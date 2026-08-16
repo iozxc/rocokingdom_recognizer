@@ -73,6 +73,32 @@ class OCREngine:
             print(f"OCR 识别出错: {e}")
             return None
 
+    def recognize_to_list(self, image_path, min_confidence=0.3):
+        """
+        提取图片中所有分散的文字，返回一个列表
+        :param image_path: 图片路径
+        :param min_confidence: 置信度过滤，过滤掉识别不准的杂质
+        :return: ['文字1', '文字2', '文字3']
+        """
+        if not os.path.exists(image_path):
+            return []
+
+        # readtext 返回列表，格式为: [ ([[坐标]], '文字', 置信度), ... ]
+        results = self.reader.readtext(image_path)
+
+        extracted_list = []
+
+        for res in results:
+            text = res[1].strip()  # 提取文字内容
+            conf = res[2]  # 提取置信度
+
+            if text and conf > min_confidence:
+                # 可选：进行简单的正则清洗，去掉无效符号
+                cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', text)
+                if cleaned:
+                    extracted_list.append(cleaned)
+
+        return extracted_list
 
 # --- 下面是独立运行的测试逻辑 ---
 if __name__ == "__main__":
@@ -80,10 +106,10 @@ if __name__ == "__main__":
     ocr = OCREngine()
 
     # 测试路径
-    test_image = "../assets/pic/ocr_test.png"  # 替换为你自己的图片路径
+    test_image = "../assets/pic/ocr_test2.png"  # 替换为你自己的图片路径
 
     if os.path.exists(test_image):
-        result = ocr.recognize_text(test_image)
+        result = ocr.recognize_to_list(test_image)
         if result:
             print(f"识别成功: {result}")
         else:

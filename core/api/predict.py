@@ -1,3 +1,4 @@
+import io
 import os
 import tempfile
 
@@ -60,9 +61,6 @@ def ocr_top_k_match(image, map_num, top_k=6):
 
 
 def init_routes(app):
-    # --- 预测接口 ---
-    # --- predict.py ---
-
     @app.route('/predict', methods=['POST'])
     def predict():
         if 'image' not in request.files:
@@ -135,55 +133,77 @@ def init_routes(app):
 
     @app.route('/init_batch', methods=['POST'])
     def predict_batch():
-        """
-        批量识别接口：上传一张大图，识别其中所有图标，每个图标返回 Top-K 个候选结果
-        """
         if 'image' not in request.files:
             return jsonify({"error": "No image uploaded"}), 400
 
         file = request.files['image']
         map_num = int(request.form.get('map_num', 1))
         threshold = float(request.form.get('threshold', config.DEFAULT_THRESHOLD))
-        # 新增：获取 top_k 参数，默认 3
-        top_k = int(request.form.get('top_k', 3))
+        top_k = int(request.form.get('top_k', 6))
         total_count = int(request.form.get('total_count', 999))
 
+        temp_path = None
         try:
-            # 1. 分割图片
-            image_bytes = file.read()
+            # 1. 保存临时文件
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
+                temp_path = tmp.name
+                file.save(temp_path)
+
+            # 2. OCR 识别
+            ocr_names = ocr.recognize_to_list(temp_path)
+
+            # 3. 分割图标
+            with open(temp_path, 'rb') as f:
+                image_bytes = f.read()
             pil_icons = segment_icons(image_bytes, total_count)
 
             if not pil_icons:
-                return jsonify({"status": "fail", "reason": "No icons detected in image"}), 404
+                if temp_path and os.path.exists(temp_path): os.remove(temp_path)
+                return jsonify({"status": "fail", "reason": "No icons detected"}), 404
 
-            # 2. 逐一对比识别
             batch_results = []
             map_name = f"map{map_num}"
 
             for i, icon_img in enumerate(pil_icons):
-                # 调用 recognizer 的 match 方法（假设你已经按照上一条建议修改了 recognizer.py）
-                # 它现在返回的是一个 list
-                results, err = recognizer.match(icon_img, map_num, threshold, top_k=top_k)
+                # A. 图像特征匹配
+                feat_results, err = recognizer.match(icon_img, map_num, threshold, top_k=top_k)
+                if feat_results is None: feat_results = []
 
+                # B. OCR 模糊匹配
+                ocr_match_results = []
+                if i < len(ocr_names):
+                    target_word = ocr_names[i]
+                    matches = get_top_k_matches(target_word, map_name, names_dict, k=top_k)
+                    for m in matches:
+                        full_path = get_icon_full_path(map_name, m['name'])
+                        if full_path:
+                            ocr_match_results.append({
+                                "match_path": full_path,
+                                "filename": os.path.basename(full_path),
+                                "score": m['score']
+                            })
+
+                # C. 按文件名去重
+                unique_results = {}
+                for res in (feat_results + ocr_match_results):
+                    f_name = res['filename']
+                    if f_name not in unique_results or res['score'] > unique_results[f_name]['score']:
+                        unique_results[f_name] = res
+
+                final_candidates = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)
+                final_candidates = final_candidates[:top_k]
+
+                # D. 注入 view_url
                 res_item = {"index": i}
-                if results:
-                    # 匹配成功，处理 list 中的每一个候选结果
-                    for res in results:
+                if final_candidates:
+                    for res in final_candidates:
                         res['view_url'] = url_for('get_icon_file',
                                                   map_name=map_name,
                                                   filename=res['filename'],
                                                   _external=True)
-
-                    res_item.update({
-                        "status": "matched",
-                        "candidates": results  # 这里包含 Top-K 个结果
-                    })
+                    res_item.update({"status": "matched", "candidates": final_candidates})
                 else:
-                    # 匹配失败（所有候选均低于阈值或数据库为空）
-                    res_item.update({
-                        "status": "unmatched",
-                        "reason": err or "No candidates above threshold"
-                    })
+                    res_item.update({"status": "unmatched", "reason": "No match found"})
 
                 batch_results.append(res_item)
 
@@ -194,6 +214,11 @@ def init_routes(app):
             })
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()  # 打印错误日志方便调试
             return jsonify({"error": str(e)}), 500
+
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except:
+                    pass
