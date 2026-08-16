@@ -1,6 +1,4 @@
-import config
-from core import create_app, ImageRecognizer
-
+from core import create_app
 from webview import create_window, start
 from threading import Thread
 
