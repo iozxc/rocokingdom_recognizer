@@ -12,6 +12,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # 2. 设置环境变量屏蔽 EasyOCR 的自带控制台打印 (Using CPU... 那行)
 os.environ["EASYOCR_MODULE_LOG"] = "False"
 
+
 def clean_ocr_text(text):
     if not text:
         return ""
@@ -19,6 +20,7 @@ def clean_ocr_text(text):
     # 这一步会把 # 删掉
     cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', text)
     return cleaned
+
 
 class OCREngine:
     def __init__(self):
@@ -31,74 +33,163 @@ class OCREngine:
         # 模型文件通常存放在 ~/.EasyOCR/model 下
         self.reader = easyocr.Reader(['ch_sim', 'en'], gpu=self.use_gpu)
 
-    def recognize_text(self, image_path):
+    def recognize_bottom_text(self, image_path, y_tolerance=30, min_confidence=0.3):
         """
-        识别图片中的文字
-        :param image_path: 图片的绝对路径
-        :return: 识别出的合并字符串，如果没有文字则返回 None
+        精确提取最底部的名字行，并过滤掉已知的干扰词
         """
-        if not os.path.exists(image_path):
-            print(f"Error: 文件不存在 {image_path}")
-            return None
+        # 1. 定义干扰词黑名单 (只要包含这些字的块都会被踢除)
+        blacklist = ["额外", "掉落", "获取", "碎片", "额外掉落", "额外获取"]
 
-        try:
-            # 读取图片
-            img = cv2.imread(image_path)
-            if img is None: return None
-
-            # --- 预处理开始 ---
-            # 1. 转为灰度图
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            # 2. 放大一倍（对于小文字非常有效）
-            gray = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-            # --- 预处理结束 ---
-
-            # readtext 返回一个列表，每个元素是: (边界框, 内容, 置信度)
-            results = self.reader.readtext(gray)
-
-            if not results:
-                return None
-
-            # 提取所有文本内容并拼接
-            # result[1] 是文本内容
-            full_text = "".join([res[1] for res in results]).strip()
-            full_text = clean_ocr_text(full_text)
-            # 如果拼接后是空字符串，也返回 None
-            if not full_text:
-                return None
-
-            return full_text
-
-        except Exception as e:
-            print(f"OCR 识别出错: {e}")
-            return None
-
-    def recognize_to_list(self, image_path, min_confidence=0.3):
-        """
-        提取图片中所有分散的文字，返回一个列表
-        :param image_path: 图片路径
-        :param min_confidence: 置信度过滤，过滤掉识别不准的杂质
-        :return: ['文字1', '文字2', '文字3']
-        """
         if not os.path.exists(image_path):
             return []
 
-        # readtext 返回列表，格式为: [ ([[坐标]], '文字', 置信度), ... ]
         results = self.reader.readtext(image_path)
+        if not results:
+            return []
 
-        extracted_list = []
-
+        blocks = []
         for res in results:
-            text = res[1].strip()  # 提取文字内容
-            conf = res[2]  # 提取置信度
+            box, text, conf = res
+            if conf < min_confidence: continue
 
-            if text and conf > min_confidence:
-                # 可选：进行简单的正则清洗，去掉无效符号
-                cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', text)
-                if cleaned:
-                    extracted_list.append(cleaned)
+            # 去掉空格和特殊符号，方便匹配
+            clean_raw = re.sub(r'\s+', '', text)
 
-        return extracted_list
+            # --- 核心逻辑：黑名单过滤 ---
+            # 如果识别到的词在黑名单里，或者黑名单里的词在识别结果里，跳过
+            is_noise = False
+            for noise in blacklist:
+                if noise in clean_raw:
+                    is_noise = True
+                    break
+            if is_noise: continue
+
+            # 只要没被过滤，计算中心点
+            center_x = (box[0][0] + box[1][0]) / 2
+            center_y = (box[0][1] + box[2][1]) / 2
+
+            # 最终清洗（只留中英数）
+            cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', clean_raw)
+            if cleaned:
+                blocks.append({
+                    "text": cleaned,
+                    "x": center_x,
+                    "y": center_y
+                })
+
+        if not blocks: return []
+
+        # 2. 按 Y 坐标进行行聚类（从下往上找）
+        lines = []
+        # 按 Y 坐标降序（值越大代表在图片越底部）
+        blocks.sort(key=lambda b: b['y'], reverse=True)
+
+        for b in blocks:
+            found_line = False
+            for line in lines:
+                avg_y = sum(item['y'] for item in line) / len(line)
+                if abs(b['y'] - avg_y) < y_tolerance:
+                    line.append(b)
+                    found_line = True
+                    break
+            if not found_line:
+                lines.append([b])
+
+        # 3. 提取目标行
+        # 经过黑名单过滤后，最底部的这一行（lines[0]）几乎确定就是名字行
+        target_line = lines[0]
+
+        # 4. 按 X 坐标从左到右排序，对齐分割索引
+        target_line.sort(key=lambda b: b['x'])
+
+        return [b['text'] for b in target_line]
+
+    def recognize_single_bottom_text(self, image_path, y_tolerance=30, min_confidence=0.3):
+        """
+        专门针对单图优化的识别：过滤残缺干扰，优先定位正下方名字
+        """
+        # 扩展黑名单：加入可能出现的残缺单字
+        blacklist = ["额外", "掉落", "获取", "碎片", "额", "外", "掉", "落", "碎", "片", "夕"]
+
+        if not os.path.exists(image_path):
+            return None
+
+        # 获取图片宽度用于计算中心距离
+        from PIL import Image
+        with Image.open(image_path) as img:
+            img_w, img_h = img.size
+        center_x = img_w / 2
+
+        results = self.reader.readtext(image_path)
+        if not results:
+            return None
+
+        blocks = []
+        for res in results:
+            box, text, conf = res
+            if conf < min_confidence: continue
+
+            # 基础清洗
+            clean_raw = re.sub(r'\s+', '', text)
+
+            # 1. 黑名单增强过滤
+            # 如果识别出的词包含黑名单词汇，或者是黑名单里的单字，直接跳过
+            if any(noise in clean_raw for noise in blacklist):
+                continue
+
+            # 计算重心
+            cur_x = (box[0][0] + box[1][0]) / 2
+            cur_y = (box[0][1] + box[2][1]) / 2
+
+            # 2. 距离中心点的偏移量（越小越可能是名字）
+            dist_to_center = abs(cur_x - center_x)
+
+            # 最终清洗
+            cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', clean_raw)
+            if cleaned:
+                blocks.append({
+                    "text": cleaned,
+                    "x": cur_x,
+                    "y": cur_y,
+                    "dist": dist_to_center,
+                    "conf": conf
+                })
+
+        if not blocks:
+            return None
+
+        # 3. 核心排序算法：综合 [Y坐标] 和 [水平中心偏移]
+        # 我们寻找：位置最靠下 且 离中心最近 的块
+        # 我们可以通过给 Y 坐标最高的权重，给中心偏移量一定的负权重来筛选
+
+        # 先按 Y 降序排序（最底部的在前）
+        blocks.sort(key=lambda b: b['y'], reverse=True)
+
+        # 取出最底部的块作为候选
+        best_block = blocks[0]
+
+        # 4. 容错逻辑：检查是否有跟它 Y 轴差不多，但离中心更近的块
+        # 因为“额夕”这种残片有时会因为切图原因显得比名字还靠下一点点
+        for i in range(1, len(blocks)):
+            # 如果另一个块也在底部区域（Y差距在 50 像素内）
+            if abs(blocks[i]['y'] - best_block['y']) < 50:
+                # 但是另一个块离中心点显著更近，则它更可能是名字
+                if blocks[i]['dist'] < best_block['dist'] * 0.5:
+                    best_block = blocks[i]
+
+        # 5. 寻找同一行可能被切断的名字片段（比如“香草” “甜甜”）
+        target_line = [best_block]
+        for b in blocks:
+            if b == best_block: continue
+            if abs(b['y'] - best_block['y']) < y_tolerance:
+                target_line.append(b)
+
+        # 按 X 排序并合并
+        target_line.sort(key=lambda b: b['x'])
+        final_name = "".join([b['text'] for b in target_line])
+
+        return final_name if final_name else None
+
 
 # --- 下面是独立运行的测试逻辑 ---
 if __name__ == "__main__":
@@ -106,10 +197,10 @@ if __name__ == "__main__":
     ocr = OCREngine()
 
     # 测试路径
-    test_image = "../assets/pic/ocr_test2.png"  # 替换为你自己的图片路径
+    test_image = "../assets/pic/ocr_test3.png"  # 替换为你自己的图片路径
 
     if os.path.exists(test_image):
-        result = ocr.recognize_to_list(test_image)
+        result = ocr.recognize_bottom_text(test_image)
         if result:
             print(f"识别成功: {result}")
         else:

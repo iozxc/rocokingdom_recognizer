@@ -33,7 +33,7 @@ except Exception as e:
 
 def ocr_top_k_match(image, map_num, top_k=6):
     # 1. OCR 提取文字
-    name = ocr.recognize_text(image)
+    name = ocr.recognize_single_bottom_text(image)
 
     # 如果没有识别到文字，直接返回空列表
     if not name:
@@ -149,32 +149,50 @@ def init_routes(app):
                 temp_path = tmp.name
                 file.save(temp_path)
 
-            # 2. OCR 识别
-            ocr_names = ocr.recognize_to_list(temp_path)
+            # 2. OCR 识别（拿到底部名字列表）
+            ocr_names = ocr.recognize_bottom_text(temp_path)
 
             # 3. 分割图标
             with open(temp_path, 'rb') as f:
                 image_bytes = f.read()
             pil_icons = segment_icons(image_bytes, total_count)
 
-            if not pil_icons:
+            # --- 核心修正逻辑：确定最终要返回的数量 ---
+            # 如果 OCR 精准识别到了 1-3 个文字，即使图片分割失败（比如只分出1个），我们也以 OCR 数量为准
+            num_ocr = len(ocr_names)
+            num_pil = len(pil_icons)
+
+            # 判定 OCR 是否可信：数量在1-3之间
+            use_ocr_count = 1 <= num_ocr <= 3
+
+            # 最终处理的数量：如果 OCR 可信，取两者最大值
+            total_detected = max(num_pil, num_ocr) if use_ocr_count else num_pil
+
+            if total_detected == 0:
                 if temp_path and os.path.exists(temp_path): os.remove(temp_path)
-                return jsonify({"status": "fail", "reason": "No icons detected"}), 404
+                return jsonify({"status": "fail", "reason": "No icons or text detected"}), 404
 
             batch_results = []
             map_name = f"map{map_num}"
 
-            for i, icon_img in enumerate(pil_icons):
-                # A. 图像特征匹配
-                feat_results, err = recognizer.match(icon_img, map_num, threshold, top_k=top_k)
-                if feat_results is None: feat_results = []
+            # 以修正后的总数进行遍历
+            for i in range(total_detected):
+                # A. 获取图像块进行特征匹配（如果 i 超过了分割块数量，则不进行图像匹配）
+                feat_results = []
+                if i < num_pil:
+                    icon_img = pil_icons[i]
+                    feat_results, err = recognizer.match(icon_img, map_num, threshold, top_k=top_k)
+                    if feat_results is None: feat_results = []
 
-                # B. OCR 模糊匹配
+                # B. 获取 OCR 文字进行模糊匹配
                 ocr_match_results = []
-                if i < len(ocr_names):
+                if i < num_ocr:
                     target_word = ocr_names[i]
+                    # 获取匹配列表
                     matches = get_top_k_matches(target_word, map_name, names_dict, k=top_k)
                     for m in matches:
+                        # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
+                        # 或者当没有图像块可用时，我们也接受这个结果
                         full_path = get_icon_full_path(map_name, m['name'])
                         if full_path:
                             ocr_match_results.append({
@@ -183,19 +201,27 @@ def init_routes(app):
                                 "score": m['score']
                             })
 
-                # C. 按文件名去重
+                # C. 合并与去重 (按文件名去重，保留最高分)
                 unique_results = {}
                 for res in (feat_results + ocr_match_results):
                     f_name = res['filename']
                     if f_name not in unique_results or res['score'] > unique_results[f_name]['score']:
                         unique_results[f_name] = res
 
+                # 排序并截断
                 final_candidates = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)
                 final_candidates = final_candidates[:top_k]
 
-                # D. 注入 view_url
+                # 剔除逻辑：多于1个结果时剔除最低分
+                if len(final_candidates) > 1:
+                    final_candidates.pop()
+
+                # D. 注入 view_url 并封装
                 res_item = {"index": i}
                 if final_candidates:
+                    # 检查最高置信度是否满足你的 80% 要求 (可选)
+                    # if final_candidates[0]['score'] < 0.8: ...
+
                     for res in final_candidates:
                         res['view_url'] = url_for('get_icon_file',
                                                   map_name=map_name,
@@ -203,17 +229,19 @@ def init_routes(app):
                                                   _external=True)
                     res_item.update({"status": "matched", "candidates": final_candidates})
                 else:
-                    res_item.update({"status": "unmatched", "reason": "No match found"})
+                    res_item.update({"status": "unmatched", "reason": "Low confidence or no detection"})
 
                 batch_results.append(res_item)
 
             return jsonify({
                 "status": "success",
-                "total_detected": len(pil_icons),
+                "total_detected": total_detected,
                 "results": batch_results
             })
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return jsonify({"error": str(e)}), 500
 
         finally:
