@@ -236,9 +236,9 @@ def start_webview():
     window = create_window(
         '洛克王国草系徽章试炼',
         'http://127.0.0.1:5000',  # 直接传入 Flask app 对象
-        width=1370,
-        height=950,
-        min_size=(1370, 950)
+        width=1500,
+        height=1000,
+        min_size=(1500, 1000)
     )
 
     start(start_logic) # 开发阶段开启调试，打包前可设为 False
