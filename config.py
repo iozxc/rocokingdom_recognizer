@@ -29,6 +29,7 @@ DATABASE_PATH = get_resource_path('features_db.pt')
 DATA_FILE = get_external_path('roco_user_data.json')
 
 DEFAULT_THRESHOLD = 0.9
+DEFAULT_TOPK = 6
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # 地图列表
