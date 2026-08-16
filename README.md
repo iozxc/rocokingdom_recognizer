@@ -23,5 +23,5 @@ pip install opencv-python easyocr numpy flask flask-cors
 ```
 
 # 补充
-由于本人也为未全、所有并不是全图鉴，缺了几个，如果有补充请提交issue或者联系作者
+由于作者也没找全、所有并不是全图鉴，缺了几个，有补充请提交issue或者联系作者
  
