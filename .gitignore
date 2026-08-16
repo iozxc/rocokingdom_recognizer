@@ -1,0 +1,5 @@
+/build/
+/dist/
+/.idea/
+/assets/
+app.spec
