@@ -41,7 +41,7 @@ class ImageRecognizer:
             feature = feature / feature.norm(p=2)
         return feature
 
-    def match(self, img_pil, map_num, threshold=0.7):
+    def match(self, img_pil, map_num, threshold=0.7, top_k=3):
         map_key = f"map{map_num}"
         if map_key not in self.map_databases:
             return None, f"Map {map_key} 不存在"
@@ -50,13 +50,29 @@ class ImageRecognizer:
         db = self.map_databases[map_key]
 
         with torch.no_grad():
+            # 计算余弦相似度（由于特征已归一化，矩阵乘法即相似度）
             similarities = torch.mv(db["features"], query_feat)
 
-        score, idx = torch.max(similarities, dim=0)
-        score = score.item()
+        # 获取前 top_k 个结果
+        # 注意：如果数据库图片数量少于 top_k，取实际数量
+        actual_k = min(top_k, len(db["features"]))
+        scores, indices = torch.topk(similarities, k=actual_k)
 
-        return {
-            "match_path": db["paths"][idx.item()],
-            "filename": os.path.basename(db["paths"][idx.item()]),
-            "score": round(score, 4)
-        }, None
+        results = []
+        for score, idx in zip(scores, indices):
+            s = score.item()
+            # 过滤掉低于阈值的结果
+            if s < threshold:
+                continue
+
+            idx_val = idx.item()
+            results.append({
+                "match_path": db["paths"][idx_val],
+                "filename": os.path.basename(db["paths"][idx_val]),
+                "score": round(s, 4)
+            })
+
+        if not results:
+            return None, "未找到匹配程度足够高的图标"
+
+        return results, None

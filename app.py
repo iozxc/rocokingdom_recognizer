@@ -24,10 +24,10 @@ def start_webview():
         'http://127.0.0.1:5000',  # 直接传入 Flask app 对象
         width=1500,
         height=1000,
-        min_size=(1500, 1000)
+        min_size=(1200, 700)
     )
 
-    start(start_logic)  # 开发阶段开启调试，打包前可设为 False
+    start(start_logic)
 
 
 if __name__ == '__main__':
