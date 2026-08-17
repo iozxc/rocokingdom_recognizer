@@ -9,8 +9,6 @@ def run_train():
     recognizer = ImageRecognizer(device=config.DEVICE)
     db_to_save = {}
 
-    if not os.path.exists('data'): os.makedirs('data')
-
     for map_name in config.MAP_LIST:
         folder_path = os.path.join(config.ICONS_DIR, map_name)
         if not os.path.exists(folder_path): continue

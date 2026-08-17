@@ -5,8 +5,7 @@ from PIL import Image
 import pygetwindow as gw
 
 def find_roco_window():
-    # windows = gw.getWindowsWithTitle('洛克王国：世界')
-    windows = gw.getWindowsWithTitle('计算器')
+    windows = gw.getWindowsWithTitle('洛克王国：世界')
     if windows and len(windows) > 0:
         return windows[0]
     return None
