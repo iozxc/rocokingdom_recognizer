@@ -30,6 +30,10 @@ try:
 except Exception as e:
     print(e)
 
+def f(image):
+    ocr_names = ocr.recognize_bottom_text(image)
+    return ocr_names
+
 
 def ocr_top_k_match(image, map_num, top_k=6):
     # 1. OCR 提取文字

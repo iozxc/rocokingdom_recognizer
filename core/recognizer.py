@@ -69,6 +69,7 @@ class ImageRecognizer:
             results.append({
                 "match_path": db["paths"][idx_val],
                 "filename": os.path.basename(db["paths"][idx_val]),
+                "name": os.path.basename(db["paths"][idx_val]).split(".")[0],
                 "score": round(s, 4)
             })
 

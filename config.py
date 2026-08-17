@@ -26,12 +26,19 @@ def get_external_path(filename):
 # 基础路径
 ICONS_DIR = get_resource_path('icons')
 DATABASE_PATH = get_resource_path('features_db.pt')
-DATABASE_PATH2 = get_resource_path('features_db2.pt')
 DATA_FILE = get_external_path('roco_user_data.json')
 
 DEFAULT_THRESHOLD = 0.9
 DEFAULT_TOPK = 6
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = "cpu"
 
 # 地图列表
 MAP_LIST = ['map1', 'map2', 'map3']
+
+DATA_ROOT = r"D:\game\RocoKingdom\assets\pic\title"
+NUM_CLASSES = len(MAP_LIST)
+MAP_MODEL_SAVE_PATH  = get_resource_path('features_resnet50_map_classifier.pt')
+BATCH_SIZE = 4
+EPOCHS = 20
+LR = 1e-4

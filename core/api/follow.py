@@ -1,8 +1,27 @@
-from flask import request, jsonify
-import base64
-import io
+import numpy as np
+from flask import jsonify
 from PIL import Image
 import pygetwindow as gw
+
+import config
+from core.map_classifier import MapClassifier
+
+recognizer = MapClassifier(config.MAP_MODEL_SAVE_PATH, device=config.DEVICE)
+
+def crop_sections_from_pil(pil_image: Image.Image):
+    arr = np.array(pil_image)  # shape [H,W,3] RGB
+
+    # 切片 y_start:y_end , x_start:x_end
+    title_arr = arr[40:145, 930:1650, :]
+    cards_arr = arr[350:600, 600:2000, :]
+
+    title_pil = Image.fromarray(title_arr)
+    cards_pil = Image.fromarray(cards_arr)
+
+    return {
+        "title_pil": title_pil,
+        "cards_pil": cards_pil
+    }
 
 def find_roco_window():
     windows = gw.getWindowsWithTitle('洛克王国：世界')
@@ -30,72 +49,4 @@ def init_routes(app):
                 "width": win.width,
                 "height": win.height
             }
-        })
-
-    @app.route('/follow_recognize', methods=['POST'])
-    def follow_recognize():
-        win = find_roco_window()
-        if not win:
-            return jsonify({
-                "code": 404,
-                "is_game_running": False,
-                "msg": "游戏窗口已关闭或丢失",
-                "results": []
-            })
-
-        data = request.json
-        image_b64 = data.get('image_data')  # 获取前端传来的Base64
-
-        if image_b64:
-            # 如果带有 data:image/jpeg;base64, 前缀，需要去掉
-            if "," in image_b64:
-                image_b64 = image_b64.split(",")[1]
-
-            # 将 Base64 转回 PIL 图片对象，供你的识别算法使用
-            img_bytes = base64.b64decode(image_b64)
-            image = Image.open(io.BytesIO(img_bytes))
-
-            # --- 这里执行你原来的识别算法逻辑 ---
-            # results = my_recognition_model.detect(image)
-            # ----------------------------------
-
-        # 在这里调用您的 PyTorch / OpenCV / EasyOCR 识别逻辑
-        # 识别当前地图与画面中的精灵，构造 results 列表
-        # ...
-        return jsonify({
-            "code": 200,
-            "is_game_running": True,
-            "map_num": 1,
-            "results": [
-                {
-                    "filename": "书魔虫.png",
-                    "score": 0.965,
-                    "status": "matched",
-                    "candidates": [
-                        {"filename": "书魔虫.png", "score": 0.965},
-                        {"filename": "多彩方方.png", "score": 0.724},
-                        {"filename": "奇丽果.png", "score": 0.453}
-                    ]
-                },
-                {
-                    "filename": "书魔虫.png",
-                    "score": 0.965,
-                    "status": "matched",
-                    "candidates": [
-                        {"filename": "书魔虫.png", "score": 0.965},
-                        {"filename": "蒲公英.png", "score": 0.721},
-                        {"filename": "奇丽草.png", "score": 0.452}
-                    ]
-                },
-                {
-                    "filename": "书魔虫.png",
-                    "score": 0.965,
-                    "status": "matched",
-                    "candidates": [
-                        {"filename": "书魔虫.png", "score": 0.965},
-                        {"filename": "蒲公英.png", "score": 0.726},
-                        {"filename": "奇丽草.png", "score": 0.457}
-                    ]
-                }
-            ]
         })

@@ -1,69 +1,38 @@
 import ctypes
-import io
-import json
 import os
-import time
+import tempfile
 
-from config import DATA_FILE
+import waitress
+from flask import jsonify
+
 from core import create_app
 import webview
 from threading import Thread
 import pygetwindow as gw
 from PIL import ImageGrab
-import base64
-from flask_socketio import SocketIO, emit
+
+from core.api.predict import ocr
+from core.map_classifier import recognizer
+from core.api.predict import recognizer as recog
+from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path
 
 app = create_app()
-app.config['SECRET_KEY'] = 'secret!'
-# allow cors，pywebview本地访问
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
 main_window = None
 scanner_window = None
-api_instance = None  # ✅全局保存api实例
+api_instance = None  # 全局保存api实例
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
 except Exception:
     ctypes.windll.user32.SetProcessDPIAware()
 
-def load_storage_file():
-    if not os.path.exists(DATA_FILE):
-        return {
-            "version": 0,
-            "encounteredPets": {},
-            "thresholds": {},
-            "appSettings": {}
-        }
-    try:
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {"version":0,"encounteredPets":{},"thresholds":{},"appSettings":{}}
+try:
+    names_dict = scan_icon_names()
+except Exception as e:
+    print(e)
 
-def save_storage_file(payload: dict):
-    data = load_storage_file()
-    data["encounteredPets"] = payload.get("encounteredPets", data["encounteredPets"])
-    data["thresholds"] = payload.get("thresholds", data["thresholds"])
-    data["appSettings"] = payload.get("appSettings", data["appSettings"])
-    data["version"] = int(time.time() * 1000)
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    return data
 
-@socketio.on("storage_save")
-def handle_storage_save(payload):
-    new_data = save_storage_file(payload)
-    # broadcast=True 是参数，不需要导入broadcast
-    emit("storage_updated", {"version": new_data["version"]}, broadcast=True)
-
-@socketio.on("connect")
-def on_connect():
-    print("前端ws客户端已连接")
-
-@socketio.on("disconnect")
-def on_disconnect():
-    print("前端ws客户端断开")
 class AppApi:
     def open_scanner_to_app(self, target_app_name="计算器"):
         global scanner_window, api_instance
@@ -127,6 +96,7 @@ class AppApi:
 
     def capture_and_recognize(self, target_title="计算器"):
         try:
+
             # 1. 查找窗口
             windows = gw.getWindowsWithTitle(target_title)
             if not windows:
@@ -142,40 +112,108 @@ class AppApi:
             bbox = (win.left, win.top, win.right, win.bottom)
             img = ImageGrab.grab(bbox)
 
-            # ----- 【测试代码：保存到本地】 -----
-            # 创建 debug 文件夹
-            debug_dir = "debug_caps"
-            if not os.path.exists(debug_dir):
-                os.makedirs(debug_dir)
+            title_pil, cards_pil, items = crop_sections_from_pil(img)
 
-            # 以时间命名文件名：例如 20231027_143005.jpg
-            file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
-            save_path = os.path.join(debug_dir, file_name)
-            img.save(save_path, "JPEG", quality=90)
-            print(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
-            # ----------------------------------
+            # # ----- 【测试代码：保存到本地】 -----
+            # # 创建 debug 文件夹
+            # debug_dir = "debug_caps"
+            # if not os.path.exists(debug_dir):
+            #     os.makedirs(debug_dir)
+            #
+            # # 以时间命名文件名：例如 20231027_143005.jpg
+            # file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
+            # save_path = os.path.join(debug_dir, file_name)
+            # img.save(save_path, "JPEG", quality=90)
+            # print(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
+            # # ----------------------------------
 
-            # 3. 转为 Base64 供前端和后端接口使用
-            buffered = io.BytesIO()
-            img.save(buffered, format="JPEG", quality=80)
-            img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+            map_name = recognizer.predict_label(title_pil)
+            map_num = int(map_name[3])
+            print(map_num)
 
-            return {
-                "status": "ok",
-                "image_data": f"data:image/jpeg;base64,{img_base64}",
-                "local_path": os.path.abspath(save_path)  # 把路径也传回前端方便查看
-            }
+            temp_path = None
+            try:
+                # 1. 保存临时文件
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
+                    temp_path = tmp.name
+                    cards_pil.save(temp_path)
+
+                ocr_names = ocr.recognize_bottom_text(temp_path)
+                print(ocr_names)
+
+                all_results = []
+                for i in range(len(ocr_names)):
+                    feat_results = recog.match(items[i], map_num, 0.25, 3)
+
+                    ocr_match_results = []
+                    match_results = []
+                    # 获取匹配列表
+                    ocr_results = get_top_k_matches(ocr_names[i], map_name, names_dict, k=3)
+
+                    combined_results = feat_results[0] + ocr_results
+
+                    # 去重：如果同一个文件既被特征匹配到，也被 OCR 匹配到，取分数高的那个
+                    unique_results = {}
+                    for res in combined_results:
+                        path = res['name']
+                        if path not in unique_results or res['score'] > unique_results[path]['score']:
+                            unique_results[path] = res
+
+                    # 转回列表
+                    final_list = list(unique_results.values())
+
+                    # 排序：按 score 从高到低
+                    final_list.sort(key=lambda x: x['score'], reverse=True)
+
+                    # 截取 3 个
+                    final_list = final_list[:3]
+
+                    for m in final_list:
+                        full_path = get_icon_full_path(map_name, m['name'])
+                        if full_path:
+                            ocr_match_results.append({
+                                "filename": os.path.basename(full_path),
+                                "score": m['score']
+                            })
+                    if len(ocr_match_results):
+                        all_results_item = {
+                            "filename": ocr_match_results[0]["filename"],
+                            "score": ocr_match_results[0]["score"],
+                            "status": "matched",
+                            "candidates": ocr_match_results
+                        }
+                        all_results.append(all_results_item)
+
+                return {
+                    "code": 200,
+                    "is_game_running": True,
+                    "map_num": map_num,
+                    "results": all_results
+                }
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                return jsonify({"error": str(e)}), 500
+
+            finally:
+                if temp_path and os.path.exists(temp_path):
+                    try:
+                        os.remove(temp_path)
+                    except:
+                        pass
+
         except Exception as e:
             print(f"截图异常: {e}")
             return {"status": "error", "message": str(e)}
 
+
 def start_server():
-    # app.run(host='127.0.0.1', port=5000, threaded=True, debug=False, use_reloader=False)
-    socketio.run(app, host="127.0.0.1", port=5000, debug=False)
+    waitress.serve(app, host="127.0.0.1", port=5000)
 
 
 def start_webview():
     global main_window, api_instance
+
     def start_logic():
         t = Thread(target=start_server)
         t.daemon = True
@@ -193,7 +231,7 @@ def start_webview():
         js_api=api
     )
 
-    webview.start(start_logic, debug=True)
+    webview.start(start_logic)
 
 
 if __name__ == '__main__':

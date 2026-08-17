@@ -1,34 +1,47 @@
 import json
 import os
-from flask import  request, jsonify
+import time
 
-import config
+from flask import jsonify, request
 
-def init_routes(app):
-    # 读取本地存储数据
-    @app.route('/api/storage', methods=['GET'])
-    def get_storage():
-        if os.path.exists(config.DATA_FILE):
-            try:
-                with open(config.DATA_FILE, 'r', encoding='utf-8') as f:
-                    return jsonify(json.load(f))
-            except Exception as e:
-                return jsonify({"error": str(e)}), 500
-        # 默认空数据
-        return jsonify({
+from config import DATA_FILE
+from core.utils import scan_icon_names
+
+
+def load_storage_file():
+    if not os.path.exists(DATA_FILE):
+        return {
+            "version": 0,
             "encounteredPets": {},
             "thresholds": {},
             "appSettings": {}
-        })
+        }
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"version": 0, "encounteredPets": {}, "thresholds": {}, "appSettings": {}}
 
 
-    # 保存数据到本地磁盘
-    @app.route('/api/storage', methods=['POST'])
-    def save_storage():
-        try:
-            data = request.json
-            with open(config.DATA_FILE, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-            return jsonify({"status": "success", "message": "Saved to local disk"})
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+def save_storage_file(payload: dict):
+    data = load_storage_file()
+    data["encounteredPets"] = payload.get("encounteredPets", data["encounteredPets"])
+    data["thresholds"] = payload.get("thresholds", data["thresholds"])
+    data["appSettings"] = payload.get("appSettings", data["appSettings"])
+    data["version"] = int(time.time() * 1000)
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return data
+
+
+def init_routes(app):
+    @app.route("/api/storage", methods=["GET"])
+    def api_get_storage():
+        data = load_storage_file()
+        return jsonify(data)
+
+    @app.route("/api/storage", methods=["POST"])
+    def api_post_storage():
+        payload = request.get_json()
+        new_data = save_storage_file(payload)
+        return jsonify({"ok": True, "version": new_data["version"]})

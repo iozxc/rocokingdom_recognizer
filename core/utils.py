@@ -1,4 +1,6 @@
 import os
+import numpy as np
+from PIL import Image
 import config
 from difflib import SequenceMatcher
 
@@ -108,6 +110,32 @@ def get_top_k_matches(user_name, map_key, names_dict, k=3):
 
     return top_k
 
+
+
+# 2k
+def crop_sections_from_pil(pil_image: Image.Image):
+    arr = np.array(pil_image)
+
+    # 大约在顶部中央
+    title_arr = arr[40:145, 930:1650, :]
+
+    # 大约在屏幕中上部，横跨三个角色
+    cards_arr = arr[350:600, 600:2000, :]
+
+    # 三个精灵
+    item1_arr = arr[430:550, 800:900, :]
+    item2_arr = arr[430:550, 1280:1360, :]
+    item3_arr = arr[430:550, 1750:1840, :]
+
+    title_pil = Image.fromarray(title_arr)
+    cards_pil = Image.fromarray(cards_arr)
+    item1_pil = Image.fromarray(item1_arr)
+    item2_pil = Image.fromarray(item2_arr)
+    item3_pil = Image.fromarray(item3_arr)
+
+    return title_pil, cards_pil, [item1_pil, item2_pil, item3_pil]
+
+
 if __name__ == '__main__':
     # 假设这是你扫描出来的 dict
     names = {
@@ -127,5 +155,5 @@ if __name__ == '__main__':
     print(f"匹配度(置信度): {score}")
     # 输出示例: 匹配度: 0.8 (因为 "小拉" 是 "小拉塔" 的子串)
 
-    results  = get_top_k_matches(input_text, target_key, names, 6)
+    results = get_top_k_matches(input_text, target_key, names, 6)
     print(results)
