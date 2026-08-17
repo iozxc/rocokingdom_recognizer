@@ -21,8 +21,9 @@ conda create -n rocokingdom python=3.12
 pip install torch torchvision
 pip install opencv-python easyocr numpy flask flask-cors
 pip install pygetwindow pywin32
-pip install flask-socketio eventlet
+pip install waitress 
 ```
 
 # 补充
 由于作者也没找全、所有并不是全图鉴，缺了几个，有补充请提交issue或者联系作者
+qq : 1269670415
