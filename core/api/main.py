@@ -3,6 +3,7 @@ from flask import send_from_directory
 import os
 from flask import jsonify, url_for
 import config
+from version import get_update_info
 
 
 def init_routes(app):
@@ -61,3 +62,7 @@ def init_routes(app):
         directory = os.path.join(config.ICONS_DIR, map_name)
         # 安全地发送文件
         return send_from_directory(directory, filename)
+
+    @app.route('/api/check_update')
+    def check_update_api():
+        return get_update_info()
