@@ -23,13 +23,13 @@
 ### 🛠️ 技术栈
 我们将前沿的 Web 技术与强大的 AI 能力结合：
 
-| 模块 | 技术实现 |
-| :--- | :--- |
+| 模块 | 技术实现                                                                                                  |
+| :--- |:------------------------------------------------------------------------------------------------------|
 | **前端 (Frontend)** | [React](https://reactjs.org/) + [Vite](https://vitejs.dev/) + [TailwindCSS](https://tailwindcss.com/) |
-| **后端 (Backend)** | [Flask](https://flask.palletsprojects.com/) (Python) |
-| **AI 引擎 (AI Engine)** | [PyTorch](https://pytorch.org/) (ResNet50 / MobileNet) |
-| **GUI 容器** | [PyWebView](https://pywebview.flowrl.com/) |
-| **打包分发** | [PyInstaller](https://pyinstaller.org/) + [Inno Setup](https://jrsoftware.org/isinfo.php) |
+| **后端 (Backend)** | [Flask](https://flask.palletsprojects.com/)                                                           |
+| **AI 引擎 (AI Engine)** | [PyTorch](https://pytorch.org/)                                                                       |
+| **GUI 容器** | [PyWebView](https://pywebview.flowrl.com/)                                                            |
+| **打包分发** | [PyInstaller](https://pyinstaller.org/) + [Inno Setup](https://jrsoftware.org/isinfo.php)             |
 
 ---
 
@@ -43,7 +43,8 @@
 ---
 
 ### 📥 安装与运行
-1. 前往 [Releases](https://gitee.com/iozxc/rocokingdom_recognizer/releases) 页面下载最新的 `Setup.exe`。
+1. 前往 [Releases（Github）](https://github.com/iozxc/rocokingdom_recognizer/releases/tag/1.0.0) 页面下载。
+1. 前往 [Releases（国内Gitee）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/tag/v1.0.0) 页面下载。
 2. 运行安装程序，按照指引完成安装。
 3. 桌面双击 **RocoKingdomRecognizer** 即可启动。
 
