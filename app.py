@@ -233,7 +233,7 @@ def start_webview():
     # 主窗口关闭，销毁子窗口
     def main_window_on_closed():
         global scanner_window
-        logger.warn("主窗口关闭，销毁子识别窗口")
+        logger.info("主窗口关闭，销毁子识别窗口")
         if scanner_window is not None:
             try:
                 scanner_window.destroy()
