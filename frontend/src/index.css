@@ -1,0 +1,259 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #FDF9F3;
+    color: #1e293b;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-image: radial-gradient(#dce8f5 1px, transparent 1px);
+    background-size: 24px 24px;
+    min-height: 100vh;
+  }
+
+  body.scanner-transparent-mode {
+    background-color: #F6FAFE !important;
+    background-image: none !important;
+    background: #F6FAFE !important;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* pywebview draggable titlebar */
+.pywebview-drag-region {
+  -webkit-app-region: drag;
+  user-select: none;
+}
+.pywebview-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Sleek Interface Cartoon Styling */
+.roco-card {
+  background-color: #ffffff;
+  border: 3px solid #E6EEF8;
+  box-shadow: 0 6px 0 0 #D5E2F0, 0 10px 20px -3px rgba(122, 188, 244, 0.08);
+  border-radius: 1.5rem;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.roco-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: #7ABCF4;
+  box-shadow: 0 8px 0 0 #B9D7F2, 0 14px 24px -3px rgba(122, 188, 244, 0.16);
+}
+
+/* Primary Button (Sleek Sky Blue) */
+.roco-btn-primary {
+  background: #7ABCF4;
+  border: 2px solid #5DA8E8;
+  box-shadow: 0 4px 0 0 #4A92D0;
+  border-radius: 1rem;
+  color: #ffffff;
+  font-weight: 800;
+  transition: all 0.15s ease;
+}
+
+.roco-btn-primary:hover {
+  background: #68AEEB;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #4A92D0;
+}
+
+.roco-btn-primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 #4A92D0;
+}
+
+/* Success Button (Sleek Green) */
+.roco-btn-success {
+  background: #95D151;
+  border: 2px solid #76B032;
+  box-shadow: 0 4px 0 0 #629626;
+  border-radius: 1rem;
+  color: #ffffff;
+  font-weight: 800;
+  transition: all 0.15s ease;
+}
+
+.roco-btn-success:hover {
+  background: #86C242;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #629626;
+}
+
+.roco-btn-success:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 #629626;
+}
+
+/* Yellow Accent Button (Sleek Gold/Yellow) */
+.roco-btn-yellow {
+  background: #FEE061;
+  border: 2px solid #E5C43B;
+  box-shadow: 0 4px 0 0 #C4A220;
+  border-radius: 1rem;
+  color: #854D0E;
+  font-weight: 800;
+  transition: all 0.15s ease;
+}
+
+.roco-btn-yellow:hover {
+  background: #F4D349;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 #C4A220;
+}
+
+.roco-btn-yellow:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 #C4A220;
+}
+
+/* Secondary Button (Clean White/Neutral) */
+.roco-btn-secondary {
+  background: #ffffff;
+  border: 2px solid #E2E8F0;
+  box-shadow: 0 3px 0 0 #CBD5E1;
+  border-radius: 1rem;
+  color: #475569;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.roco-btn-secondary:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 0 #CBD5E1;
+}
+
+.roco-btn-secondary:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 0 #CBD5E1;
+}
+
+/* Bottom-Left Green Checkmark Badge 【已遇见】 */
+.encountered-badge-check {
+  position: absolute;
+  bottom: -4px;
+  left: -4px;
+  width: 24px;
+  height: 24px;
+  background: #95D151;
+  border: 2.5px solid #ffffff;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(118, 176, 50, 0.4);
+  z-index: 10;
+}
+
+/* Scanning Magic Animation */
+@keyframes magic-scan {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+.magic-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #7ABCF4 50%, transparent 100%);
+  box-shadow: 0 0 12px 3px rgba(122, 188, 244, 0.85);
+  animation: magic-scan 1.6s ease-in-out infinite;
+}
+
+/* Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FDF9F3;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #7ABCF4;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5DA8E8;
+}
+
+/* Highlight Target Pet Animation */
+@keyframes target-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(122, 188, 244, 0.7);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 12px rgba(122, 188, 244, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(122, 188, 244, 0);
+  }
+}
+
+.highlight-pet-target {
+  animation: target-pulse 0.8s ease-in-out 3;
+  z-index: 20;
+}
+
+/* Subtle Encounter Pop Animation when transitioning from unencountered to encountered */
+@keyframes encounter-pop {
+  0% {
+    transform: scale(0.92);
+    box-shadow: 0 0 0 0 rgba(149, 209, 81, 0.7);
+  }
+  40% {
+    transform: scale(1.06);
+    box-shadow: 0 0 18px 4px rgba(149, 209, 81, 0.45);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+}
+
+@keyframes encounter-sparkle-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.7);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.85);
+  }
+}
+
+.encounter-pop-active {
+  animation: encounter-pop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 15;
+}
+
+.encounter-sparkle-active {
+  animation: encounter-sparkle-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -10,3 +10,9 @@ tree.txt
 keys/
 /setup.iss
 /Output/
+/frontend/dist/
+/frontend/node_modules/
+/frontend/build/
+/frontend/.env*
+/frontend/.idea/
+
