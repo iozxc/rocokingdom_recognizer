@@ -139,16 +139,16 @@ class AppApi:
                 ocr_name = ocr.recognize_text(names_pil[i])
 
                 if ocr_name == "魔力之源" or ocr_name == "远行商人":
-                    # all_results_item = {
-                    #     "filename": "魔力之源.png",
-                    #     "score": 1,
-                    #     "status": "matched",
-                    #     "candidates": [{
-                    #         "name": "魔力之源.png",
-                    #         "score": 1
-                    #     }]
-                    # }
-                    # all_results.append(all_results_item)
+                    all_results_item = {
+                        "filename": f"{ocr_name}.png",
+                        "score": 1,
+                        "status": "matched",
+                        "candidates": [{
+                            "name": f"{ocr_name}.png",
+                            "score": 1
+                        }]
+                    }
+                    all_results.append(all_results_item)
                     continue
 
                 feat_results = recog.match(items_pil[i], map_num, 0.25, 3)
@@ -228,7 +228,7 @@ def start_webview():
         js_api=api
     )
 
-    webview.start(start_logic)
+    webview.start(start_logic, debug=True)
 
 
 if __name__ == '__main__':
