@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { sound } from '../services/sound';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface ApiSettingsModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   const [activeTab, setActiveTab] = useState<'api' | 'data' | 'guide'>('api');
   const [importText, setImportText] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [isConfirmClearAllOpen, setIsConfirmClearAllOpen] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
@@ -313,13 +315,11 @@ def predict():
                 </div>
                 <button
                   onClick={() => {
-                    sound.playToggleOff();
-                    if (window.confirm('警告：确定要清空全部地图的所有遇见记录吗？')) {
-                      onClearAll();
-                      onClose();
-                    }
+                    sound.playClick();
+                    setIsConfirmClearAllOpen(true);
+
                   }}
-                  className="px-3.5 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-black hover:bg-rose-700 transition-colors flex items-center gap-1 shadow-xs"
+                  className="px-3.5 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-black hover:bg-rose-700 transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   全部清空
@@ -328,6 +328,21 @@ def predict():
             </div>
           )}
         </div>
+
+        {/* Clear All Confirmation Dialog */}
+        <ConfirmDialog
+            isOpen={isConfirmClearAllOpen}
+            title="清空全部图鉴数据"
+            description="警告：确定要清空全部地图的所有已遇见记录吗？此操作无法撤销。"
+            confirmText="确定全部清空"
+            cancelText="取消"
+            danger={true}
+            onConfirm={() => {
+              onClearAll();
+              onClose();
+            }}
+            onClose={() => setIsConfirmClearAllOpen(false)}
+        />
 
         {/* Footer */}
         <div className="mt-5 pt-3.5 border-t-2 border-[#F1F5F9] flex items-center justify-end gap-2">

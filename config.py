@@ -25,8 +25,9 @@ def get_external_path(filename):
 
 
 # 基础路径
-ICONS_DIR = get_resource_path('icons')
+ICONS_DIR = get_resource_path('icons_dep')
 DATABASE_PATH = get_resource_path('features_db.pt')
+ASSETS_FILE = get_resource_path('assets.db')
 DATA_FILE = get_external_path('roco_user_data.json')
 
 DEFAULT_THRESHOLD = 0.9
