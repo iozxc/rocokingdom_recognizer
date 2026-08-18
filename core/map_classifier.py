@@ -1,10 +1,9 @@
-import logging
-import os
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 import config
+from core.utils import logger
 
 
 class MapClassifier:
@@ -27,7 +26,7 @@ class MapClassifier:
 
         self.model.to(self.device)
         self.model.eval()
-        logging.info(f"加载分类模型成功，类别：{self.class_names}")
+        logger.info(f"加载分类模型成功，类别：{self.class_names}")
 
     def predict(self, img):
         """
