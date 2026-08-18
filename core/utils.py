@@ -1,12 +1,44 @@
 import ctypes
 import os
+from pathlib import Path
+
 import numpy as np
 from PIL import Image
 import config
 from difflib import SequenceMatcher
 import win32gui
 import win32ui
-import win32con
+import os
+import logging
+
+
+# ----------------日志模块----------------
+def setup_app_logger():
+    """初始化应用日志，日志目录 ./logs，最多保留20个日志文件，单个最大5MB"""
+    log_dir = Path(config.get_external_path("debug"))
+    log_dir.mkdir(exist_ok=True)
+    log_file = log_dir / "debug.log"
+
+    from logging.handlers import RotatingFileHandler
+
+    logger = logging.getLogger("rk_app")
+    logger.setLevel(config.LOG_LEVEL)
+    logger.propagate = False
+
+    # 按大小轮转，单个5MB，最多20份
+    handler = RotatingFileHandler(
+        log_file,
+        maxBytes=5 * 1024 * 1024,
+        backupCount=20,
+        encoding="utf‑8"
+    )
+    fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    handler.setFormatter(fmt)
+    logger.addHandler(handler)
+    return logger
+
+
+logger = setup_app_logger()
 
 
 def scan_icon_names():
@@ -29,7 +61,7 @@ def scan_icon_names():
                     name_without_ext = os.path.splitext(filename)[0]
                     names_dict[map_name].append(name_without_ext)
         else:
-            print(f"警告: 路径确实不存在: {map_folder}")
+            logger.error(f"警告: 路径不存在: {map_folder}")
 
     return names_dict
 
@@ -145,6 +177,30 @@ def crop_sections_from_pil(pil_image: Image.Image):
 
     return title_pil, [name1_pil, name2_pil, name3_pil], [item1_pil, item2_pil, item3_pil]
 
+def clean_debug_folder(folder_path: str, max_count: int = 30):
+    """
+    清理debug截图文件夹，最多保留max_count张，删除最旧的文件
+    :param folder_path: 文件夹路径
+    :param max_count: 最大保留文件数量
+    """
+    folder = Path(folder_path)
+    if not folder.exists():
+        return
+
+    # 获取所有jpg图片，按修改时间升序（旧的在前）
+    files = list(folder.glob("*.jpg"))
+    if len(files) <= max_count:
+        return
+
+    # 按文件修改时间排序，旧文件放前面
+    files.sort(key=lambda x: x.stat().st_mtime)
+    need_remove = files[: len(files) - max_count]
+    for f in need_remove:
+        try:
+            os.remove(f)
+            logger.info(f"删除过期debug截图: {f.name}")
+        except Exception as e:
+            logger.warning(f"删除文件失败 {f.name}: {str(e)}")
 
 def capture_window_by_hwnd(hwnd):
     """

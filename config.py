@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 
@@ -42,3 +43,5 @@ MAP_MODEL_SAVE_PATH  = get_resource_path('features_resnet50_map_classifier.pt')
 BATCH_SIZE = 4
 EPOCHS = 20
 LR = 1e-4
+
+LOG_LEVEL = logging.DEBUG
