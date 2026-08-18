@@ -22,6 +22,7 @@ pip install torch torchvision
 pip install opencv-python easyocr numpy flask flask-cors
 pip install pygetwindow pywin32
 pip install waitress 
+pip install psutil
 ```
 
 # 补充

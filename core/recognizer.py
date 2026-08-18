@@ -1,3 +1,5 @@
+import logging
+
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -28,7 +30,7 @@ class ImageRecognizer:
         self.map_databases = torch.load(path, map_location='cpu')
         for m in self.map_databases:
             self.map_databases[m]['features'] = self.map_databases[m]['features'].to(self.device)
-        print(f"--- 成功加载特征库: {path} ---")
+        logging.info(f"--- 成功加载特征库: {path} ---")
 
     def get_feature(self, img):
         """支持传入路径或 PIL Image 对象"""

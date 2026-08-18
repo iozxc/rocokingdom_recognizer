@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 import tempfile
 
@@ -13,22 +14,22 @@ from core.utils import scan_icon_names, get_top_k_matches, get_icon_full_path
 
 # 全局初始化识别器
 try:
-    print(f"正在加载数据库: {config.DATABASE_PATH}")
+    logging.info(f"正在加载数据库: {config.DATABASE_PATH}")
     recognizer = ImageRecognizer(database_path=config.DATABASE_PATH, device=config.DEVICE)
-    print("数据库加载成功！")
+    logging.info("数据库加载成功！")
 except Exception as e:
-    print(f"数据库加载失败: {e}")
+    logging.error(f"数据库加载失败: {e}")
     recognizer = None
 
 try:
     names_dict = scan_icon_names()
 except Exception as e:
-    print(e)
+    logging.error(e)
 
 try:
     ocr = OCREngine()
 except Exception as e:
-    print(e)
+    logging.error(e)
 
 def f(image):
     ocr_names = ocr.recognize_bottom_text(image)
@@ -244,8 +245,7 @@ def init_routes(app):
             })
 
         except Exception as e:
-            import traceback
-            traceback.print_exc()
+            logging.error(e)
             return jsonify({"error": str(e)}), 500
 
         finally:

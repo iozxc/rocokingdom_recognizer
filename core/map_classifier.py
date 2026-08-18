@@ -1,3 +1,4 @@
+import logging
 import os
 import torch
 import torch.nn as nn
@@ -26,7 +27,7 @@ class MapClassifier:
 
         self.model.to(self.device)
         self.model.eval()
-        # print(f"加载分类模型成功，类别：{self.class_names}")
+        logging.info(f"加载分类模型成功，类别：{self.class_names}")
 
     def predict(self, img):
         """
