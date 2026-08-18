@@ -19,10 +19,9 @@
 ```shell
 conda create -n rocokingdom python=3.12 
 pip install torch torchvision
-pip install opencv-python easyocr numpy flask flask-cors
+pip install opencv-python easyocr numpy flask flask-cors psutil
 pip install pygetwindow pywin32
 pip install waitress 
-pip install psutil
 ```
 
 # 补充
