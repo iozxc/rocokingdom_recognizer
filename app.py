@@ -1,20 +1,19 @@
 import ctypes
 import os
-import tempfile
+import time
 
 import waitress
-from flask import jsonify
 
 from core import create_app
 import webview
 from threading import Thread
 import pygetwindow as gw
-from PIL import ImageGrab
 
 from core.api.predict import ocr
 from core.map_classifier import recognizer
 from core.api.predict import recognizer as recog
-from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path
+from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path, \
+    capture_window_by_hwnd
 
 app = create_app()
 
@@ -109,98 +108,96 @@ class AppApi:
 
             # 2. 执行截图
             # 获取窗口坐标 (left, top, right, bottom)
-            bbox = (win.left, win.top, win.right, win.bottom)
-            img = ImageGrab.grab(bbox)
+            hwnd = win._hWnd  # pygetwindow 在 Windows 上的窗口句柄
+            img = capture_window_by_hwnd(hwnd)
+            if img is None:
+                return {"status": "error", "message": "窗口捕获失败，窗口可能已关闭或最小化"}
 
-            title_pil, cards_pil, items = crop_sections_from_pil(img)
+            title_pil, names_pil, items_pil = crop_sections_from_pil(img)
 
-            # # ----- 【测试代码：保存到本地】 -----
-            # # 创建 debug 文件夹
-            # debug_dir = "debug_caps"
-            # if not os.path.exists(debug_dir):
-            #     os.makedirs(debug_dir)
-            #
-            # # 以时间命名文件名：例如 20231027_143005.jpg
-            # file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
-            # save_path = os.path.join(debug_dir, file_name)
-            # img.save(save_path, "JPEG", quality=90)
-            # print(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
-            # # ----------------------------------
+            # ----- 【测试代码：保存到本地】 -----
+            # 创建 debug 文件夹
+            debug_dir = "debug_caps"
+            if not os.path.exists(debug_dir):
+                os.makedirs(debug_dir)
 
+            # 以时间命名文件名：例如 20231027_143005.jpg
+            file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
+            save_path = os.path.join(debug_dir, file_name)
+            img.save(save_path, "JPEG", quality=90)
+            print(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
+            # ----------------------------------
+
+            # 拿到map名
             map_name = recognizer.predict_label(title_pil)
             map_num = int(map_name[3])
             print(map_num)
 
-            temp_path = None
-            try:
-                # 1. 保存临时文件
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
-                    temp_path = tmp.name
-                    cards_pil.save(temp_path)
+            all_results = []
 
-                ocr_names = ocr.recognize_bottom_text(temp_path)
-                print(ocr_names)
+            for i in range(0, 3):
+                ocr_name = ocr.recognize_text(names_pil[i])
 
-                all_results = []
-                for i in range(len(ocr_names)):
-                    feat_results = recog.match(items[i], map_num, 0.25, 3)
+                if ocr_name == "魔力之源" or ocr_name == "远行商人":
+                    # all_results_item = {
+                    #     "filename": "魔力之源.png",
+                    #     "score": 1,
+                    #     "status": "matched",
+                    #     "candidates": [{
+                    #         "name": "魔力之源.png",
+                    #         "score": 1
+                    #     }]
+                    # }
+                    # all_results.append(all_results_item)
+                    continue
 
-                    ocr_match_results = []
-                    match_results = []
-                    # 获取匹配列表
-                    ocr_results = get_top_k_matches(ocr_names[i], map_name, names_dict, k=3)
+                feat_results = recog.match(items_pil[i], map_num, 0.25, 3)
 
-                    combined_results = feat_results[0] + ocr_results
+                ocr_match_results = []
+                match_results = []
+                # 获取匹配列表
+                ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=3)
 
-                    # 去重：如果同一个文件既被特征匹配到，也被 OCR 匹配到，取分数高的那个
-                    unique_results = {}
-                    for res in combined_results:
-                        path = res['name']
-                        if path not in unique_results or res['score'] > unique_results[path]['score']:
-                            unique_results[path] = res
+                combined_results = feat_results[0] + ocr_results
 
-                    # 转回列表
-                    final_list = list(unique_results.values())
+                # 去重：如果同一个文件既被特征匹配到，也被 OCR 匹配到，取分数高的那个
+                unique_results = {}
+                for res in combined_results:
+                    path = res['name']
+                    if path not in unique_results or res['score'] > unique_results[path]['score']:
+                        unique_results[path] = res
 
-                    # 排序：按 score 从高到低
-                    final_list.sort(key=lambda x: x['score'], reverse=True)
+                # 转回列表
+                final_list = list(unique_results.values())
 
-                    # 截取 3 个
-                    final_list = final_list[:3]
+                # 排序：按 score 从高到低
+                final_list.sort(key=lambda x: x['score'], reverse=True)
 
-                    for m in final_list:
-                        full_path = get_icon_full_path(map_name, m['name'])
-                        if full_path:
-                            ocr_match_results.append({
-                                "filename": os.path.basename(full_path),
-                                "score": m['score']
-                            })
-                    if len(ocr_match_results):
-                        all_results_item = {
-                            "filename": ocr_match_results[0]["filename"],
-                            "score": ocr_match_results[0]["score"],
-                            "status": "matched",
-                            "candidates": ocr_match_results
-                        }
-                        all_results.append(all_results_item)
+                # 截取 3 个
+                final_list = final_list[:3]
 
-                return {
-                    "code": 200,
-                    "is_game_running": True,
-                    "map_num": map_num,
-                    "results": all_results
-                }
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-                return jsonify({"error": str(e)}), 500
+                for m in final_list:
+                    full_path = get_icon_full_path(map_name, m['name'])
+                    if full_path:
+                        ocr_match_results.append({
+                            "filename": os.path.basename(full_path),
+                            "score": m['score']
+                        })
+                if len(ocr_match_results):
+                    all_results_item = {
+                        "filename": ocr_match_results[0]["filename"],
+                        "score": ocr_match_results[0]["score"],
+                        "status": "matched",
+                        "candidates": ocr_match_results
+                    }
+                    all_results.append(all_results_item)
 
-            finally:
-                if temp_path and os.path.exists(temp_path):
-                    try:
-                        os.remove(temp_path)
-                    except:
-                        pass
+            return {
+                "code": 200,
+                "is_game_running": True,
+                "map_num": map_num,
+                "results": all_results
+            }
 
         except Exception as e:
             print(f"截图异常: {e}")

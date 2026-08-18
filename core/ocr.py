@@ -7,6 +7,8 @@ import torch
 import re
 import warnings
 
+from PIL import Image
+
 # 1. 忽略 Torch 的弃用警告和用户警告
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -192,6 +194,32 @@ class OCREngine:
 
         return final_name if final_name else None
 
+    def recognize_text(self, image, min_confidence=0.3):
+        # PIL 转 numpy array
+        if isinstance(image, Image.Image):
+            image = np.array(image)
+
+        results = self.reader.readtext(image)
+        if not results:
+            return ""
+
+        blocks = []
+        for box, text, conf in results:
+            if conf < min_confidence:
+                continue
+            cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', text)
+            if cleaned:
+                blocks.append({
+                    "text": cleaned,
+                    "x": (box[0][0] + box[1][0]) / 2,
+                    "y": (box[0][1] + box[2][1]) / 2
+                })
+
+        if not blocks:
+            return ""
+
+        blocks.sort(key=lambda b: (round(b['y'] / 15), b['x']))
+        return "".join(b['text'] for b in blocks)
 
 # --- 下面是独立运行的测试逻辑 ---
 if __name__ == "__main__":
@@ -210,10 +238,9 @@ if __name__ == "__main__":
     # else:
     #     print(f"请准备一张名为 {test_image} 的图片进行测试")
 
-    list_name = ["../debug_caps/cropped_results/2_cards.png",
-                 "../debug_caps/cropped_results/3_cards.png",
-                 "../debug_caps/cropped_results/4_cards.png",
-                 "../debug_caps/cropped_results/5_cards.png"]
+
+    list_name = ["../debug_caps/cropped_results/1c2f320a3a927e6507e11660f4ad50ea_item3.png"
+                 ]
 
     # list_name2 = ["../debug_caps/cropped_results/2_title.png",
     #              "../debug_caps/cropped_results/3_title.png",
@@ -222,5 +249,5 @@ if __name__ == "__main__":
     #
 
     for name in list_name:
-        result = ocr.recognize_bottom_text(name)
+        result = ocr.recognize_text(name)
         print(result)

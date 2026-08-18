@@ -1,12 +1,13 @@
 import cv2
 import os
 
-
+i = 0
 def crop_sections(image_path, output_folder="cropped_results"):
     """
     根据第五张图的紫色框选区域，从输入图片中截取两部分
     """
     # 如果输出文件夹不存在则创建
+    global i
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -25,7 +26,7 @@ def crop_sections(image_path, output_folder="cropped_results"):
 
     # # 1. 上方标题区域 (紫色小框)
     # # 大约在顶部中央
-    # title_crop = img[40:145, 930:1650]
+    title_crop = img[60:140, 930:1650]
     #
     # # 2. 下方角色卡片区域 (紫色大长方形框)
     # # 大约在屏幕中上部，横跨三个角色
@@ -33,19 +34,26 @@ def crop_sections(image_path, output_folder="cropped_results"):
 
     # 3. 下方角色卡片区域 (紫色大长方形框)
     # 大约在屏幕中上部，横跨三个角色
-    item1_crop = img[430:550, 800:900]
-    item2_crop = img[430:550, 1280:1360]
-    item3_crop = img[430:550, 1750:1840]
-
+    # item1_crop = img[440:550, 800:880]
+    # item2_crop = img[440:550, 1280:1360]
+    # item3_crop = img[440:550, 1760:1840]
+    #
+    # item1_crop = img[550:585, 720:920]
+    # item2_crop = img[550:585, 1200:1400]
+    # item3_crop = img[550:585, 1680:1880]
     #
     # # --- 保存结果 ---
-    path1 = os.path.join(output_folder, f"{base_name}_item1.png")
-    path2 = os.path.join(output_folder, f"{base_name}_item2.png")
-    path3 = os.path.join(output_folder, f"{base_name}_item3.png")
+    # path1 = os.path.join(output_folder, f"{base_name}_item1.png")
+    # path2 = os.path.join(output_folder, f"{base_name}_item2.png")
+    # path3 = os.path.join(output_folder, f"{base_name}_item3.png")
+
+    path = os.path.join(output_folder, f"{i}_title.png")
+    i = i + 1
     #
-    cv2.imwrite(path1, item1_crop)
-    cv2.imwrite(path2, item2_crop)
-    cv2.imwrite(path3, item3_crop)
+    # cv2.imwrite(path1, item1_crop)
+    # cv2.imwrite(path2, item2_crop)
+    # cv2.imwrite(path3, item3_crop)
+    cv2.imwrite(path, title_crop)
 
     print(f"处理完成: {base_name} -> 已保存至 {output_folder}")
 
