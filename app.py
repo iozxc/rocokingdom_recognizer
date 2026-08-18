@@ -1,7 +1,14 @@
 import ctypes
-import os
 import time
 
+from PIL import ImageGrab
+
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+except Exception:
+    ctypes.windll.user32.SetProcessDPIAware()
+
+import os
 import waitress
 
 from core import create_app
@@ -12,8 +19,8 @@ import pygetwindow as gw
 from core.api.predict import ocr
 from core.map_classifier import recognizer
 from core.api.predict import recognizer as recog
-from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path, \
-    capture_window_by_hwnd
+from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path, logger, \
+    clean_debug_folder
 
 app = create_app()
 
@@ -21,21 +28,17 @@ main_window = None
 scanner_window = None
 api_instance = None  # 全局保存api实例
 
-try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
-except Exception:
-    ctypes.windll.user32.SetProcessDPIAware()
 
 try:
     names_dict = scan_icon_names()
 except Exception as e:
-    print(e)
+    logger.error(e)
 
 
 class AppApi:
     def open_scanner_to_app(self, target_app_name="计算器"):
         global scanner_window, api_instance
-        print(f"--> [Python] 收到前端打开子窗口请求: {target_app_name}")
+        logger.info(f"--> [Python] 收到前端打开子窗口请求: {target_app_name}")
 
         def _open():
             global scanner_window, api_instance
@@ -62,13 +65,13 @@ class AppApi:
                 def on_closed():
                     global scanner_window
                     scanner_window = None
-                    print("子窗口被手动关闭")
+                    logger.info("子窗口被手动关闭")
 
                 scanner_window.events.closed += on_closed
                 scanner_window.show()
-                print("--> [Python] 子窗口已成功 show()")
+                logger.info("--> [Python] 子窗口已成功 show()")
             except Exception as e:
-                print(f"--> [Python] 创建子窗口失败: {e}")
+                logger.error(f"--> [Python] 创建子窗口失败: {e}")
 
         t = Thread(target=_open)
         t.daemon = True
@@ -82,7 +85,7 @@ class AppApi:
             try:
                 scanner_window.destroy()
             except Exception as e:
-                print(f"destroy异常: {e}")
+                logger.error(f"destroy异常: {e}")
             scanner_window = None
         return {"status": "closed"}
 
@@ -95,7 +98,6 @@ class AppApi:
 
     def capture_and_recognize(self, target_title="计算器"):
         try:
-
             # 1. 查找窗口
             windows = gw.getWindowsWithTitle(target_title)
             if not windows:
@@ -108,30 +110,30 @@ class AppApi:
 
             # 2. 执行截图
             # 获取窗口坐标 (left, top, right, bottom)
-            hwnd = win._hWnd  # pygetwindow 在 Windows 上的窗口句柄
-            img = capture_window_by_hwnd(hwnd)
-            if img is None:
-                return {"status": "error", "message": "窗口捕获失败，窗口可能已关闭或最小化"}
+            bbox = (win.left, win.top, win.right, win.bottom)
+            img = ImageGrab.grab(bbox)
 
             title_pil, names_pil, items_pil = crop_sections_from_pil(img)
 
             # ----- 【测试代码：保存到本地】 -----
             # 创建 debug 文件夹
-            debug_dir = "debug_caps"
+            debug_dir = os.path.join("debug", "capture")
             if not os.path.exists(debug_dir):
                 os.makedirs(debug_dir)
+
+            clean_debug_folder(debug_dir, max_count=30)
 
             # 以时间命名文件名：例如 20231027_143005.jpg
             file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
             save_path = os.path.join(debug_dir, file_name)
             img.save(save_path, "JPEG", quality=90)
-            print(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
+            logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
             # ----------------------------------
 
             # 拿到map名
             map_name = recognizer.predict_label(title_pil)
             map_num = int(map_name[3])
-            print(map_num)
+            logger.debug(f"mapname : {map_name}")
 
             all_results = []
 
@@ -200,7 +202,7 @@ class AppApi:
             }
 
         except Exception as e:
-            print(f"截图异常: {e}")
+            logger.error(f"截图异常: {e}")
             return {"status": "error", "message": str(e)}
 
 
@@ -228,7 +230,20 @@ def start_webview():
         js_api=api
     )
 
-    webview.start(start_logic, debug=True)
+    # 主窗口关闭，销毁子窗口
+    def main_window_on_closed():
+        global scanner_window
+        logger.warn("主窗口关闭，销毁子识别窗口")
+        if scanner_window is not None:
+            try:
+                scanner_window.destroy()
+            except Exception as e:
+                logger.error(f"销毁子窗口异常:{e}")
+            scanner_window = None
+
+    main_window.events.closed += main_window_on_closed
+
+    webview.start(start_logic)
 
 
 if __name__ == '__main__':
