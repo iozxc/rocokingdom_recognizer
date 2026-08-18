@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 
-import torch
 
 # --- 路径处理核心逻辑 ---
 def get_resource_path(relative_path):
@@ -24,6 +23,7 @@ def get_external_path(filename):
 
     return os.path.normpath(os.path.join(base_path, filename))
 
+
 # 基础路径
 ICONS_DIR = get_resource_path('icons')
 DATABASE_PATH = get_resource_path('features_db.pt')
@@ -39,7 +39,7 @@ MAP_LIST = ['map1', 'map2', 'map3']
 
 DATA_ROOT = r"D:\game\RocoKingdom\assets\pic\title"
 NUM_CLASSES = len(MAP_LIST)
-MAP_MODEL_SAVE_PATH  = get_resource_path('features_resnet50_map_classifier.pt')
+MAP_MODEL_SAVE_PATH = get_resource_path('features_resnet50_map_classifier.pt')
 BATCH_SIZE = 4
 EPOCHS = 20
 LR = 1e-4
