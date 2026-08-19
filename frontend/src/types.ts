@@ -1,5 +1,6 @@
 export interface PetItem {
   name: string; // 精灵名称 (后端返回的精灵名字)
+  displayName?: string;
   url: string;  // 图标地址
   element?: 'grass' | 'fire' | 'water' | 'electric' | 'normal' | 'ghost' | 'dragon' | 'light' | 'stone';
   id?: number;
@@ -169,12 +170,42 @@ export interface CheckUpdateResponse {
   latest_version?: string;
   update_log?: string;
   mirrors?: Record<string, string>;
+  auto_update?: {
+    base_url?: string;
+    files?: Array<{
+      name: string;
+      md5: string;
+    }>;
+  };
 }
 
-export type DownloadStatus = 'idle' | 'downloading' | 'verifying' | 'ready' | 'error';
+export type DownloadStatus =
+    | 'idle'
+    | 'downloading'
+    | 'stopped'
+    | 'merging'
+    | 'ready'
+    | 'error'
+    | 'install'
+    | string;
 
 export interface StartDownloadResponse {
-  status: 'started' | 'error';
+  status: 'downloading' | 'started' | 'error' | string;
+  message?: string;
+}
+
+export interface StopDownloadResponse {
+  status: 'stopped' | 'error' | string;
+  message?: string;
+}
+
+export interface DeleteDownloadResponse {
+  status: 'deleted' | 'idle' | 'error' | string;
+  message?: string;
+}
+
+export interface InstallUpdateResponse {
+  status: 'install' | 'success' | 'error' | string;
   message?: string;
 }
 
