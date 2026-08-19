@@ -11,7 +11,11 @@ import {
   FollowRecognizeApiResponse,
   CheckUpdateResponse,
   StartDownloadResponse,
+  StopDownloadResponse,
+  DeleteDownloadResponse,
+  InstallUpdateResponse,
   DownloadProgressResponse,
+  DownloadStatus,
   SubmitFeedbackPayload,
   SubmitFeedbackResponse,
 } from '../types';
@@ -113,10 +117,10 @@ export class ApiService {
 
   // Predict Pet Image (Supports Top-K selection: 1 to 6 candidates)
   public async predictPet(
-    imageFile: File | Blob,
-    mapNum: number,
-    threshold: number = 0.25,
-    topK: number = 3
+      imageFile: File | Blob,
+      mapNum: number,
+      threshold: number = 0.25,
+      topK: number = 3
   ): Promise<{ result: PredictResult; isOfflineMock: boolean }> {
     const clampedK = Math.max(1, Math.min(6, Math.round(topK || 3)));
     const formData = new FormData();
@@ -132,14 +136,14 @@ export class ApiService {
 
     try {
       const response = await axios.post<PredictApiResponse>(
-        `${this.apiBase}/predict`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          timeout: 12000,
-        }
+          `${this.apiBase}/predict`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            timeout: 12000,
+          }
       );
 
       if (response.data && response.data.status === 'success' && response.data.data) {
@@ -231,10 +235,10 @@ export class ApiService {
 
   // Batch Initialization: Send one full image, backend returns an array of detected pets with candidates and top_k
   public async initBatch(
-    imageFile: File | Blob,
-    mapNum: number,
-    threshold: number = 0.25,
-    topK: number = 3
+      imageFile: File | Blob,
+      mapNum: number,
+      threshold: number = 0.25,
+      topK: number = 3
   ): Promise<{ data: BatchInitApiResponse; isOfflineMock: boolean }> {
     const clampedK = Math.max(1, Math.min(6, Math.round(topK || 3)));
     const formData = new FormData();
@@ -248,14 +252,14 @@ export class ApiService {
 
     try {
       const response = await axios.post<any>(
-        `${this.apiBase}/init_batch`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          timeout: 60000,
-        }
+          `${this.apiBase}/init_batch`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            timeout: 30000,
+          }
       );
 
       const resBody = response.data;
@@ -301,7 +305,7 @@ export class ApiService {
             const primaryCandidate = candidates[0];
             const petName = primaryCandidate?.filename || raw.filename || raw.name || raw.label || raw.pet_name || '';
             const status: 'matched' | 'unmatched' =
-              raw.status === 'unmatched' || (!petName && !raw.matched) ? 'unmatched' : 'matched';
+                raw.status === 'unmatched' || (!petName && !raw.matched) ? 'unmatched' : 'matched';
 
             let viewUrl = primaryCandidate?.view_url || raw.view_url || raw.url || '';
             if (viewUrl && !viewUrl.startsWith('http') && !viewUrl.startsWith('data:')) {
@@ -309,12 +313,12 @@ export class ApiService {
             }
 
             const rawScore = primaryCandidate
-              ? primaryCandidate.score
-              : typeof raw.score === 'number'
-              ? raw.score
-              : typeof raw.confidence === 'number'
-              ? raw.confidence
-              : 0.88;
+                ? primaryCandidate.score
+                : typeof raw.score === 'number'
+                    ? raw.score
+                    : typeof raw.confidence === 'number'
+                        ? raw.confidence
+                        : 0.88;
 
             return {
               index: typeof raw.index === 'number' ? raw.index : idx,
@@ -560,6 +564,22 @@ export class ApiService {
     }
   }
 
+  // Simulated local download state for development / preview mode
+  private simDownloadState: {
+    progress: number;
+    total_bytes: number;
+    speed_bps: number;
+    status: DownloadStatus;
+    timer: NodeJS.Timeout | null;
+    errorMsg?: string;
+  } = {
+    progress: 0,
+    total_bytes: 73400320, // ~70.0 MB
+    speed_bps: 0,
+    status: 'idle',
+    timer: null,
+  };
+
   /**
    * 3. 检查是否有最新版本
    * GET /api/check_update
@@ -590,11 +610,28 @@ export class ApiService {
       return {
         data: {
           has_update: true,
-          latest_version: '1.1.0',
+          latest_version: '1.0.0',
           update_log: '1.0.0正式发布版，洛克王国草系徽章图鉴：跟随识别、初始化、单个识别、批量识别',
           mirrors: {
-            'Gitee (国内加速)': 'https://gitee.com/iozxc/rocokingdom_recognizer/releases',
-            'GitHub (海外备份)': 'https://github.com/iozxc/rocokingdom_recognizer/releases',
+            'Gitee': 'https://gitee.com/iozxc/rocokingdom_recognizer/releases',
+            'GitHub': 'https://github.com/iozxc/rocokingdom_recognizer/releases',
+          },
+          auto_update: {
+            base_url: 'https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.0.0/',
+            files: [
+              {
+                name: 'RocoKingdomRecognizer_part.7z.001',
+                md5: 'c8042c38c1a3781bdf40d63100456e9b',
+              },
+              {
+                name: 'RocoKingdomRecognizer_part.7z.002',
+                md5: '61897e197feaaba1b56606ca0ad767e9',
+              },
+              {
+                name: 'RocoKingdomRecognizer_part.7z.003',
+                md5: 'cfac22b59f623d574890e45556a8a6f8',
+              },
+            ],
           },
         },
         isOfflineMock: true,
@@ -619,7 +656,7 @@ export class ApiService {
       if (response.data) {
         return { data: response.data, isOfflineMock: false };
       }
-      return { data: { status: 'started' }, isOfflineMock: false };
+      return { data: { status: 'downloading' }, isOfflineMock: false };
     } catch (err: unknown) {
       const error = err as AxiosError<{ message?: string; status?: string }>;
       if (error.response?.data?.message) {
@@ -631,16 +668,129 @@ export class ApiService {
           isOfflineMock: false,
         };
       }
-      // 离线/模拟测试：返回 started
+      // 离线/模拟测试模式：模拟下载步进 (字节单位)
+      this.simDownloadState.status = 'downloading';
+      this.simDownloadState.speed_bps = 2516582.4; // 2.4 MB/s
+      if (this.simDownloadState.progress >= this.simDownloadState.total_bytes) {
+        this.simDownloadState.progress = 0;
+      }
+      if (this.simDownloadState.timer) {
+        clearInterval(this.simDownloadState.timer);
+      }
+      this.simDownloadState.timer = setInterval(() => {
+        const curStatus = this.simDownloadState.status;
+        if (curStatus === 'stopped' || curStatus === 'idle' || curStatus === 'ready' || curStatus === 'error') {
+          if (this.simDownloadState.timer) clearInterval(this.simDownloadState.timer);
+          return;
+        }
+        const total = this.simDownloadState.total_bytes;
+        if (this.simDownloadState.progress < total * 0.9) {
+          this.simDownloadState.progress += 10485760; // +10MB
+          this.simDownloadState.speed_bps = 2400000 + Math.random() * 400000;
+        } else if (this.simDownloadState.progress < total) {
+          this.simDownloadState.progress = total;
+          this.simDownloadState.speed_bps = 0;
+          this.simDownloadState.status = 'verifying_1';
+        } else if (curStatus === 'verifying_1') {
+          this.simDownloadState.status = 'verifying_2';
+        } else if (curStatus === 'verifying_2') {
+          this.simDownloadState.status = 'merging';
+        } else if (curStatus === 'merging') {
+          this.simDownloadState.status = 'ready';
+          if (this.simDownloadState.timer) clearInterval(this.simDownloadState.timer);
+        }
+      }, 1200);
+
       return {
-        data: { status: 'started' },
+        data: { status: 'downloading' },
         isOfflineMock: true,
       };
     }
   }
 
   /**
-   * 5. 获取下载更新进度
+   * 5. 暂停下载更新
+   * GET /api/stop_download
+   */
+  public async stopDownload(): Promise<{
+    data: StopDownloadResponse;
+    isOfflineMock: boolean;
+  }> {
+    try {
+      const response = await axios.get<StopDownloadResponse>(
+          `${this.apiBase}/api/stop_download`,
+          { timeout: 5000 }
+      );
+      return { data: response.data || { status: 'stopped' }, isOfflineMock: false };
+    } catch (err: unknown) {
+      if (this.simDownloadState.timer) {
+        clearInterval(this.simDownloadState.timer);
+        this.simDownloadState.timer = null;
+      }
+      this.simDownloadState.status = 'stopped';
+      this.simDownloadState.speed_bps = 0;
+      return {
+        data: { status: 'stopped' },
+        isOfflineMock: true,
+      };
+    }
+  }
+
+  /**
+   * 6. 删除已下载文件
+   * GET /api/delete_download
+   */
+  public async deleteDownload(): Promise<{
+    data: DeleteDownloadResponse;
+    isOfflineMock: boolean;
+  }> {
+    try {
+      const response = await axios.get<DeleteDownloadResponse>(
+          `${this.apiBase}/api/delete_download`,
+          { timeout: 5000 }
+      );
+      return { data: response.data || { status: 'deleted' }, isOfflineMock: false };
+    } catch (err: unknown) {
+      if (this.simDownloadState.timer) {
+        clearInterval(this.simDownloadState.timer);
+        this.simDownloadState.timer = null;
+      }
+      this.simDownloadState.status = 'idle';
+      this.simDownloadState.progress = 0;
+      this.simDownloadState.speed_bps = 0;
+      return {
+        data: { status: 'deleted' },
+        isOfflineMock: true,
+      };
+    }
+  }
+
+  /**
+   * 7. 提交确认安装更新
+   * GET /api/download_progress 或 /api/install_update
+   */
+  public async installUpdate(): Promise<{
+    data: InstallUpdateResponse;
+    isOfflineMock: boolean;
+  }> {
+    try {
+      // 尝试调用安装接口，若接到返回即代表请求成功开始安装
+      const response = await axios.get<InstallUpdateResponse>(
+          `${this.apiBase}/api/download_progress`,
+          { timeout: 5000 }
+      );
+      return { data: response.data || { status: 'install' }, isOfflineMock: false };
+    } catch (err: unknown) {
+      // 也有可能提前把 Kill app 收不到返回，视为成功触发安装
+      return {
+        data: { status: 'install' },
+        isOfflineMock: true,
+      };
+    }
+  }
+
+  /**
+   * 8. 获取下载更新进度
    * GET /api/download_progress
    */
   public async getDownloadProgress(): Promise<{
@@ -657,12 +807,13 @@ export class ApiService {
       }
       throw new Error('获取下载进度返回为空');
     } catch (err: unknown) {
-      const error = err as AxiosError;
-      console.warn('API getDownloadProgress fallback mode:', error.message);
       return {
         data: {
-          progress: 0,
-          status: 'idle',
+          progress: this.simDownloadState.progress,
+          total_bytes: this.simDownloadState.total_bytes,
+          speed_bps: this.simDownloadState.speed_bps,
+          status: this.simDownloadState.status,
+          error: this.simDownloadState.errorMsg,
         },
         isOfflineMock: true,
       };
@@ -670,7 +821,7 @@ export class ApiService {
   }
 
   /**
-   * 6. 提交用户反馈
+   * 9. 提交用户反馈
    * POST /api/submit_feedback
    */
   public async submitFeedback(payload: SubmitFeedbackPayload): Promise<{
