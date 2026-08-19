@@ -3,6 +3,8 @@ import time
 
 from PIL import ImageGrab
 
+import config
+
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
 except Exception:
@@ -17,7 +19,7 @@ from threading import Thread
 import pygetwindow as gw
 
 from core.api.predict import ocr
-from core.map_classifier import recognizer
+from core.map_classifier import MapClassifier
 from core.api.predict import recognizer as recog
 from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path, logger, \
     clean_debug_folder
@@ -27,12 +29,8 @@ app = create_app()
 main_window = None
 scanner_window = None
 api_instance = None  # 全局保存api实例
-
-
-try:
-    names_dict = scan_icon_names()
-except Exception as e:
-    logger.error(e)
+names_dict = None
+map_classifier_recognizer = None
 
 
 class AppApi:
@@ -97,6 +95,7 @@ class AppApi:
             win.move(x + dx, y + dy)
 
     def capture_and_recognize(self, target_title="计算器"):
+        global map_classifier_recognizer
         try:
             # 1. 查找窗口
             windows = gw.getWindowsWithTitle(target_title)
@@ -131,14 +130,16 @@ class AppApi:
             # ----------------------------------
 
             # 拿到map名
-            map_name = recognizer.predict_label(title_pil)
+            if not map_classifier_recognizer:
+                map_classifier_recognizer = MapClassifier(config.MAP_MODEL_SAVE_PATH, device=config.DEVICE)
+            map_name = map_classifier_recognizer.predict_label(title_pil)
             map_num = int(map_name[3])
             logger.debug(f"mapname : {map_name}")
 
             all_results = []
 
             for i in range(0, 3):
-                ocr_name = ocr.recognize_text(names_pil[i])
+                ocr_name = ocr().recognize_text(names_pil[i])
 
                 if ocr_name == "魔力之源" or ocr_name == "远行商人":
                     all_results_item = {
@@ -153,11 +154,16 @@ class AppApi:
                     all_results.append(all_results_item)
                     continue
 
-                feat_results = recog.match(items_pil[i], map_num, 0.25, 3)
+                feat_results = recog().match(items_pil[i], map_num, 0.25, 3)
 
                 ocr_match_results = []
-                match_results = []
                 # 获取匹配列表
+                if not names_dict:
+                    try:
+                        names_dict = scan_icon_names()
+                    except Exception as e:
+                        logger.error(e)
+
                 ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=3)
 
                 combined_results = feat_results[0] + ocr_results
@@ -207,7 +213,8 @@ class AppApi:
 
 
 def start_server():
-    waitress.serve(app, host="127.0.0.1", port=5000)
+    # waitress.serve(app, host="127.0.0.1", port=5000)
+    app.run(host='127.0.0.1', port=5000, threaded=True, debug=False)
 
 
 def start_webview():
@@ -243,7 +250,7 @@ def start_webview():
 
     main_window.events.closed += main_window_on_closed
 
-    webview.start(start_logic)
+    webview.start(start_logic, debug=True)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,11 @@
 import requests
 from packaging import version
 
+from core.utils import logger
 
 CURRENT_VERSION = "1.0.0"
 CHECK_URL = "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json"
+
 
 def get_update_info():
     """
@@ -31,10 +33,11 @@ def get_update_info():
                     # 获取下载地址字典，如果不存在则返回空字典
                     "mirrors": remote_data.get("mirrors", {}),
                     "update_log": remote_data.get("update_log", "作者很懒，没写更新说明。"),
+                    "auto_update": remote_data.get("auto_update", {})
                 }
     except Exception as e:
         # 这里建议只在 debug 模式下打印
-        print(f"检查更新失败 (网络问题或JSON格式错误): {e}")
+        logger.error(f"检查更新失败 (网络问题或JSON格式错误): {e}")
 
     # 默认返回无更新
     return {"has_update": False}

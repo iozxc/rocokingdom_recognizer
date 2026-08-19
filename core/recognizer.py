@@ -5,6 +5,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 import os
 
+from config import get_resource_path
 from core.utils import logger
 
 
@@ -13,7 +14,12 @@ class ImageRecognizer:
         self.device = device
 
         # 加载 ResNet50 模型
-        model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
+        resnet_weight_path = get_resource_path(r"resnet50-0676ba61.pth")
+        if not os.path.exists(resnet_weight_path):
+            raise FileNotFoundError(f"ResNet权重文件缺失：{resnet_weight_path}")
+        model = models.resnet50(weights=None)
+        ckpt = torch.load(resnet_weight_path, map_location=device)
+        model.load_state_dict(ckpt)
         self.feature_extractor = nn.Sequential(*list(model.children())[:-1]).to(self.device).eval()
 
         self.transform = transforms.Compose([

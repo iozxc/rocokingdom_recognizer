@@ -29,6 +29,7 @@ ICONS_DIR = get_resource_path('icons')
 DATABASE_PATH = get_resource_path('features_db.pt')
 ASSETS_FILE = get_resource_path('assets.db')
 DATA_FILE = get_external_path('roco_user_data.json')
+OCR_DIR = get_resource_path('ocr_models')
 
 DEFAULT_THRESHOLD = 0.9
 DEFAULT_TOPK = 6

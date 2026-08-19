@@ -1,12 +1,5 @@
-import numpy as np
 from flask import jsonify
-from PIL import Image
 import pygetwindow as gw
-
-import config
-from core.map_classifier import MapClassifier
-
-recognizer = MapClassifier(config.MAP_MODEL_SAVE_PATH, device=config.DEVICE)
 
 def find_roco_window():
     windows = gw.getWindowsWithTitle('洛克王国：世界')

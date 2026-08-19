@@ -13,37 +13,49 @@ from core.utils import scan_icon_names, get_top_k_matches, get_icon_full_path, l
 names_dict = None
 
 
-# 全局初始化识别器
-
-def get_name_dicts():
+def name_dicts():
     global names_dict
     if not names_dict:
         names_dict = scan_icon_names()
     return names_dict
 
 
-try:
-    logger.info(f"正在加载数据库: {config.DATABASE_PATH}")
-    recognizer = ImageRecognizer(database_path=config.DATABASE_PATH, device=config.DEVICE)
-    logger.info("数据库加载成功！")
-except Exception as e:
-    logger.error(f"数据库加载失败: {e}")
-    recognizer = None
+_recognizer = None
 
-try:
-    ocr = OCREngine()
-except Exception as e:
-    logger.error(e)
+
+def recognizer():
+    try:
+        global _recognizer
+        if not _recognizer:
+            logger.info(f"正在加载数据库: {config.DATABASE_PATH}")
+            _recognizer = ImageRecognizer(database_path=config.DATABASE_PATH, device=config.DEVICE)
+            logger.info("数据库加载成功！")
+        return _recognizer
+    except Exception as e:
+        logger.error(f"数据库加载失败: {e}")
+
+
+_ocr = None
+
+
+def ocr():
+    try:
+        global _ocr
+        if not _ocr:
+            _ocr = OCREngine()
+        return _ocr
+    except Exception as e:
+        logger.error(e)
 
 
 def f(image):
-    ocr_names = ocr.recognize_bottom_text(image)
+    ocr_names = ocr().recognize_bottom_text(image)
     return ocr_names
 
 
 def ocr_top_k_match(image, map_num, top_k=6):
     # 1. OCR 提取文字
-    name = ocr.recognize_single_bottom_text(image)
+    name = ocr().recognize_single_bottom_text(image)
 
     # 如果没有识别到文字，直接返回空列表
     if not name:
@@ -51,7 +63,7 @@ def ocr_top_k_match(image, map_num, top_k=6):
 
     # 2. 通过你已有的 get_top_k_matches 获取初步匹配列表
     map_key = f"map{map_num}"
-    raw_result_list = get_top_k_matches(name, map_key, get_name_dicts(), top_k)
+    raw_result_list = get_top_k_matches(name, map_key, name_dicts(), top_k)
 
     # 3. 转换格式并补充 match_path
     final_ocr_results = []
@@ -92,7 +104,7 @@ def init_routes(app):
 
             img = Image.open(temp_path).convert('RGB')
 
-            feat_results, err = recognizer.match(img, map_num, threshold, top_k=top_k)
+            feat_results, err = recognizer().match(img, map_num, threshold, top_k=top_k)
 
             if err:
                 return jsonify({"error": err}), 500
@@ -160,7 +172,7 @@ def init_routes(app):
                 file.save(temp_path)
 
             # 2. OCR 识别（拿到底部名字列表）
-            ocr_names = ocr.recognize_bottom_text(temp_path)
+            ocr_names = ocr().recognize_bottom_text(temp_path)
 
             # 3. 分割图标
             with open(temp_path, 'rb') as f:
@@ -191,7 +203,7 @@ def init_routes(app):
                 feat_results = []
                 if i < num_pil:
                     icon_img = pil_icons[i]
-                    feat_results, err = recognizer.match(icon_img, map_num, threshold, top_k=top_k)
+                    feat_results, err = recognizer().match(icon_img, map_num, threshold, top_k=top_k)
                     if feat_results is None: feat_results = []
 
                 # B. 获取 OCR 文字进行模糊匹配
@@ -199,7 +211,7 @@ def init_routes(app):
                 if i < num_ocr:
                     target_word = ocr_names[i]
                     # 获取匹配列表
-                    matches = get_top_k_matches(target_word, map_name, get_name_dicts(), k=top_k)
+                    matches = get_top_k_matches(target_word, map_name, name_dicts(), k=top_k)
                     for m in matches:
                         # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
                         # 或者当没有图像块可用时，我们也接受这个结果

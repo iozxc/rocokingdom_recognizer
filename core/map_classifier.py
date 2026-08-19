@@ -51,10 +51,6 @@ class MapClassifier:
         pred_cls, _ = self.predict(img)
         return pred_cls
 
-
-recognizer = MapClassifier(config.MAP_MODEL_SAVE_PATH, device=config.DEVICE)
-
-
 if __name__ == "__main__":
     # 测试推理示例
     clf = MapClassifier(r"D:\game\RocoKingdom\features_resnet50_map_classifier.pt", device=config.DEVICE)

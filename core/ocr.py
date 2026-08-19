@@ -1,3 +1,8 @@
+import ssl
+
+# 解决Windows10 easyocr下载模型ssl证书报错
+ssl._create_default_https_context = ssl._create_unverified_context
+import config
 import easyocr
 import os
 
@@ -34,7 +39,10 @@ class OCREngine:
         self.use_gpu = torch.cuda.is_available()
         # 初始化读取器，支持简体中文和英文
         # 模型文件通常存放在 ~/.EasyOCR/model 下
-        self.reader = easyocr.Reader(['ch_sim', 'en'], gpu=self.use_gpu)
+        self.reader = easyocr.Reader(['ch_sim'],
+                                     model_storage_directory=config.OCR_DIR,
+                                     download_enabled=False,
+                                     gpu=self.use_gpu)
 
     def recognize_bottom_text(self, image_path, y_tolerance=30, min_confidence=0.3):
         """
@@ -220,6 +228,7 @@ class OCREngine:
         blocks.sort(key=lambda b: (round(b['y'] / 15), b['x']))
         return "".join(b['text'] for b in blocks)
 
+
 # --- 下面是独立运行的测试逻辑 ---
 if __name__ == "__main__":
     # 实例化引擎（建议在应用启动时只实例化一次，因为加载模型较慢）
@@ -236,7 +245,6 @@ if __name__ == "__main__":
             print("未识别到文字，返回内容为 None")
     else:
         print(f"请准备一张名为 {test_image} 的图片进行测试")
-
 
     # list_name = ["../debug_caps/cropped_results/1c2f320a3a927e6507e11660f4ad50ea_item3.png"
     #              ]

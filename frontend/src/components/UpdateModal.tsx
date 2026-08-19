@@ -23,11 +23,12 @@ interface UpdateModalProps {
 
 export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     const [hasChecked, setHasChecked] = useState<boolean>(false);
     const [updateData, setUpdateData] = useState<CheckUpdateResponse | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    // Auto Download & Update State: Fully driven by server API (No local stale state)
+    // Auto Download & Update State: Fully driven by server API
     const [downloadStatus, setDownloadStatus] = useState<DownloadStatus>('idle');
     const [downloadProgress, setDownloadProgress] = useState<number>(0);
     const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -43,16 +44,28 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         }
     };
 
-    const fetchUpdate = async () => {
-        setIsLoading(true);
+    const isDownloadingOrVerifying = downloadStatus === 'downloading' || downloadStatus === 'verifying';
+
+    const fetchUpdate = async (silent = false) => {
+        if (isDownloadingOrVerifying) {
+            // 正在下载或校验时，禁止重新检测以免打断下载流程与界面
+            return;
+        }
+
+        if (silent || hasChecked) {
+            setIsRefreshing(true);
+        } else {
+            setIsLoading(true);
+        }
         setErrorMsg(null);
+
         try {
             // 1. 获取最新更新状态
             const res = await api.checkUpdate();
             setUpdateData(res.data);
             setHasChecked(true);
 
-            // 2. 向后端查询当前真实下载进度状态（如果后端为 idle，则重置为 idle 并显示下载按钮）
+            // 2. 向后端查询当前真实下载进度状态
             try {
                 const progressRes = await api.getDownloadProgress();
                 const { progress, status, error } = progressRes.data;
@@ -69,7 +82,6 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                     stopPolling();
                 }
             } catch {
-                // progress 获取失败则保持 idle
                 setDownloadStatus('idle');
             }
         } catch (err: unknown) {
@@ -78,6 +90,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             setHasChecked(true);
         } finally {
             setIsLoading(false);
+            setIsRefreshing(false);
         }
     };
 
@@ -111,7 +124,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
     // Trigger download action
     const handleStartDownload = async () => {
-        if (!updateData?.has_update || downloadStatus === 'ready') {
+        if (!updateData?.has_update || downloadStatus === 'ready' || isDownloadingOrVerifying) {
             return;
         }
 
@@ -141,7 +154,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
     useEffect(() => {
         if (isOpen) {
-            fetchUpdate();
+            fetchUpdate(false);
         } else {
             stopPolling();
             setHasChecked(false);
@@ -190,12 +203,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
                 {/* Content */}
                 <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-                    {isLoading ? (
+                    {isLoading && !updateData ? (
                         <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
                             <RefreshCw className="w-8 h-8 animate-spin text-[#2B78C4]" />
                             <p className="text-xs font-black">正在连接服务器检查更新中...</p>
                         </div>
-                    ) : errorMsg ? (
+                    ) : errorMsg && !updateData ? (
                         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                             <div className="text-xs">
@@ -203,7 +216,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                 <p className="text-rose-600 mt-1">{errorMsg}</p>
                                 <button
                                     type="button"
-                                    onClick={fetchUpdate}
+                                    onClick={() => fetchUpdate(false)}
                                     className="mt-2 px-3 py-1 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 transition-colors"
                                 >
                                     重新检查
@@ -353,7 +366,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                     </div>
                                 )}
 
-                                {/* Action Trigger Button: Visible when idle or error (Server returns status="idle" will naturally show this button) */}
+                                {/* Action Trigger Button: Visible when idle or error */}
                                 {(downloadStatus === 'idle' || downloadStatus === 'error') && (
                                     <button
                                         type="button"
@@ -393,12 +406,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                 <div className="px-5 py-3 bg-[#F0F6FC] border-t border-[#D5E3F0] flex items-center justify-between">
                     <button
                         type="button"
-                        onClick={fetchUpdate}
-                        disabled={isLoading || downloadStatus === 'downloading' || downloadStatus === 'verifying'}
-                        className="flex items-center gap-1.5 text-xs text-[#2B78C4] hover:text-[#1E5B99] font-black cursor-pointer disabled:opacity-50"
+                        onClick={() => fetchUpdate(true)}
+                        disabled={isLoading || isRefreshing || isDownloadingOrVerifying}
+                        className="flex items-center gap-1.5 text-xs text-[#2B78C4] hover:text-[#1E5B99] font-black cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        title={isDownloadingOrVerifying ? '正在下载更新中，不可重新检测' : '重新检测是否有新版本'}
                     >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                        <span>重新检测</span>
+                        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isLoading ? 'animate-spin' : ''}`} />
+                        <span>{isDownloadingOrVerifying ? '正在更新中...' : '重新检测'}</span>
                     </button>
 
                     <button

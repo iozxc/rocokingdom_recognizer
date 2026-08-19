@@ -2,8 +2,6 @@ from flask import Flask
 
 from config import get_resource_path
 from core.api import init_routes
-from core.processor import segment_icons
-from core.recognizer import ImageRecognizer
 from flask_cors import CORS
 
 
