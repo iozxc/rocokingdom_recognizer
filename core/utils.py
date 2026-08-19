@@ -1,4 +1,5 @@
 import ctypes
+import sqlite3
 from pathlib import Path
 
 import numpy as np
@@ -42,25 +43,45 @@ logger = setup_app_logger()
 
 def scan_icon_names():
     """
-    扫描 icons 目录下所有子文件夹的文件名
+    从数据库扫描所有图片名
     返回: {"map1": ["小拉塔", "迪莫"], "map2": []}
     """
-    names_dict = {}
+    # 初始化字典，确保 config.MAP_LIST 里的地图都有对应的 Key
+    names_dict = {map_name: [] for map_name in config.MAP_LIST}
 
-    for map_name in config.MAP_LIST:
-        # 这里的 config.ICONS_DIR 已经是绝对路径了
-        map_folder = os.path.join(config.ICONS_DIR, map_name)
+    try:
+        # 这里建议直接创建一个临时的连接，或者使用你之前的 get_db()
+        # 注意：如果是独立脚本，请确保 DB_PATH 正确
+        conn = sqlite3.connect('assets.db')
+        cursor = conn.cursor()
 
-        names_dict[map_name] = []
+        # 只需要查询路径字段
+        cursor.execute("SELECT path FROM icons")
+        rows = cursor.fetchall()
 
-        if os.path.exists(map_folder):
-            for filename in os.listdir(map_folder):
-                # 仅处理图片
-                if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        for row in rows:
+            # row[0] 格式示例: "map1/迪莫.png"
+            db_path = row[0]
+
+            # 使用 / 拆分
+            parts = db_path.split('/')
+            if len(parts) == 2:
+                map_name, filename = parts[0], parts[1]
+
+                # 如果这个地图在我们的配置列表中
+                if map_name in names_dict:
+                    # 去掉后缀名，例如 "迪莫.png" -> "迪莫"
                     name_without_ext = os.path.splitext(filename)[0]
                     names_dict[map_name].append(name_without_ext)
+
+        conn.close()
+
+    except Exception as e:
+        # 如果报错（比如数据库还没创建），记录日志
+        if 'logger' in globals():
+            logger.error(f"从数据库扫描图标名失败: {e}")
         else:
-            logger.error(f"警告: 路径不存在: {map_folder}")
+            logger.error(f"Error: {e}")
 
     return names_dict
 
@@ -69,15 +90,7 @@ def get_icon_full_path(map_name, icon_name_without_ext):
     """
     通过 map 名和图片名（不含后缀）反查文件的绝对路径
     """
-    map_folder = os.path.join(config.ICONS_DIR, map_name)
-
-    # 尝试常见的图片后缀
-    for ext in ['.png', '.jpg', '.jpeg']:
-        full_path = os.path.join(map_folder, icon_name_without_ext + ext)
-        if os.path.exists(full_path):
-            return os.path.normpath(full_path)
-
-    return None
+    os.path.normpath(os.path.join(config.ICONS_DIR, map_name, icon_name_without_ext + '.png'))
 
 
 def get_best_match(user_name, map_key, names_dict):
@@ -175,6 +188,7 @@ def crop_sections_from_pil(pil_image: Image.Image):
     item3_pil = Image.fromarray(item3_arr)
 
     return title_pil, [name1_pil, name2_pil, name3_pil], [item1_pil, item2_pil, item3_pil]
+
 
 def clean_debug_folder(folder_path: str, max_count: int = 30):
     """
