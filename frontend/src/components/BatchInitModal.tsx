@@ -464,7 +464,6 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
     // 点击批量遇见之后清空所有上传框
     handleClearUpload();
-    onClose();
   };
 
   // Filtered review items
