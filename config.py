@@ -26,10 +26,17 @@ def get_external_path(filename):
 
 # 基础路径
 ICONS_DIR = get_resource_path('icons')
+OCR_DIR = get_resource_path('ocr_models')
+ONNX_DIR = get_resource_path('onnx')
+
 DATABASE_PATH = get_resource_path('features_db.pt')
 ASSETS_FILE = get_resource_path('assets.db')
 DATA_FILE = get_external_path('roco_user_data.json')
-OCR_DIR = get_resource_path('ocr_models')
+
+MAP_CLASSIFIER = get_resource_path(os.path.join('onnx', 'map_classifier.onnx'))
+MAP_CLASSES = get_resource_path(os.path.join('onnx', 'map_classes.json'))
+RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
+FEATURES_DB = get_resource_path(os.path.join('onnx', 'features_db.pkl'))
 
 DEFAULT_THRESHOLD = 0.9
 DEFAULT_TOPK = 6

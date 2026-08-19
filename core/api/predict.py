@@ -8,7 +8,8 @@ from core.ocr import OCREngine
 from core.processor import segment_icons
 import config
 from core.recognizer import ImageRecognizer
-from core.utils import scan_icon_names, get_top_k_matches, get_icon_full_path, logger
+from core.utils import scan_icon_names, get_top_k_matches, get_icon_full_path
+from logger import logger
 
 names_dict = None
 
@@ -28,7 +29,7 @@ def recognizer():
         global _recognizer
         if not _recognizer:
             logger.info(f"正在加载数据库: {config.DATABASE_PATH}")
-            _recognizer = ImageRecognizer(database_path=config.DATABASE_PATH, device=config.DEVICE)
+            _recognizer = ImageRecognizer(config.RESNET50, config.FEATURES_DB)
             logger.info("数据库加载成功！")
         return _recognizer
     except Exception as e:

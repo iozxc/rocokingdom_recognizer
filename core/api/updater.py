@@ -1,7 +1,5 @@
 import hashlib
 import os
-import shutil
-import os
 import subprocess
 import shutil
 import time
@@ -9,7 +7,7 @@ import time
 import py7zr
 import requests
 
-from core.utils import logger
+from logger import logger
 from version import get_update_info
 import threading
 

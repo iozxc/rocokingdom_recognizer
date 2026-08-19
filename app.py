@@ -17,11 +17,11 @@ from core import create_app
 import webview
 from threading import Thread
 import pygetwindow as gw
-
+from logger import logger
 from core.api.predict import ocr
 from core.map_classifier import MapClassifier
 from core.api.predict import recognizer as recog
-from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path, logger, \
+from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path, \
     clean_debug_folder
 
 app = create_app()
@@ -131,7 +131,8 @@ class AppApi:
 
             # 拿到map名
             if not map_classifier_recognizer:
-                map_classifier_recognizer = MapClassifier(config.MAP_MODEL_SAVE_PATH, device=config.DEVICE)
+                map_classifier_recognizer = MapClassifier(config.MAP_CLASSIFIER, config.MAP_CLASSES,
+                                                          device=config.DEVICE)
             map_name = map_classifier_recognizer.predict_label(title_pil)
             map_num = int(map_name[3])
             logger.debug(f"mapname : {map_name}")
@@ -213,8 +214,8 @@ class AppApi:
 
 
 def start_server():
-    # waitress.serve(app, host="127.0.0.1", port=5000)
-    app.run(host='127.0.0.1', port=5000, threaded=True, debug=False)
+    waitress.serve(app, host="127.0.0.1", port=5000)
+    # app.run(host='127.0.0.1', port=5000, threaded=True, debug=False)
 
 
 def start_webview():
@@ -250,7 +251,7 @@ def start_webview():
 
     main_window.events.closed += main_window_on_closed
 
-    webview.start(start_logic, debug=True)
+    webview.start(start_logic)
 
 
 if __name__ == '__main__':

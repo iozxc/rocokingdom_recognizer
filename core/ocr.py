@@ -1,31 +1,20 @@
-import ssl
-
-# 解决Windows10 easyocr下载模型ssl证书报错
-ssl._create_default_https_context = ssl._create_unverified_context
-import config
-import easyocr
 import os
-
-import numpy as np
-import torch
 import re
 import warnings
-
 from PIL import Image
+from rapidocr_onnxruntime import RapidOCR  # 导入 RapidOCR
 
-# 1. 忽略 Torch 的弃用警告和用户警告
+from config import get_resource_path
+from logger import logger
+
+# 彻底移除对 torch 和 ssl 的依赖
 warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-# 2. 设置环境变量屏蔽 EasyOCR 的自带控制台打印 (Using CPU... 那行)
-os.environ["EASYOCR_MODULE_LOG"] = "False"
 
 
 def clean_ocr_text(text):
     if not text:
         return ""
-    # 1. 过滤掉所有特殊符号，只保留中文、数字和英文
-    # 这一步会把 # 删掉
+    # 过滤掉所有特殊符号，只保留中文、数字和英文
     cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', text)
     return cleaned
 
@@ -33,68 +22,77 @@ def clean_ocr_text(text):
 class OCREngine:
     def __init__(self):
         """
-        初始化 OCR 引擎
-        自动检测是否支持 GPU (CUDA)
+        初始化 RapidOCR 引擎
+        无需检测 GPU，ONNX Runtime 会自动处理最快的推理方式
         """
-        self.use_gpu = torch.cuda.is_available()
-        # 初始化读取器，支持简体中文和英文
-        # 模型文件通常存放在 ~/.EasyOCR/model 下
-        self.reader = easyocr.Reader(['ch_sim'],
-                                     model_storage_directory=config.OCR_DIR,
-                                     download_enabled=False,
-                                     gpu=self.use_gpu)
+        # 初始化 RapidOCR
+        # 模型会自动下载到用户目录，或者你可以手动指定路径
+        det_model_path = get_resource_path(os.path.join("ocr_models", "ch_PP-OCRv4_det_infer.onnx"))
+        # det_model_path = os.path.join(r"D:\game\RocoKingdom\ocr_models", "ch_PP-OCRv4_det_infer.onnx")
+        cls_model_path = get_resource_path(os.path.join("ocr_models", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))
+        # cls_model_path = os.path.join(r"D:\game\RocoKingdom\ocr_models", "ch_ppocr_mobile_v2.0_cls_infer.onnx")
+        rec_model_path = get_resource_path(os.path.join("ocr_models", "ch_PP-OCRv4_rec_infer.onnx"))
+        # rec_model_path = os.path.join(r"D:\game\RocoKingdom\ocr_models", "ch_PP-OCRv4_rec_infer.onnx")
+
+        if not os.path.exists(det_model_path):
+            logger.error(f"❌ 警告：OCR检测模型不存在: {det_model_path}")
+
+        self.engine = RapidOCR(
+            det_model_path=det_model_path,
+            cls_model_path=cls_model_path,
+            rec_model_path=rec_model_path
+        )
+
+    def _do_ocr(self, img_input):
+        """
+        封装底层的推理动作
+        RapidOCR 返回格式: [ [[box], text, conf], ... ]
+        """
+        # RapidOCR 支持文件路径、numpy 数组和 PIL Image
+        # 我们这里统一处理返回格式，使其与你之前的逻辑兼容
+        result, _ = self.engine(img_input)
+
+        formatted_results = []
+        if result:
+            for res in result:
+                # res 格式为: [[x1,y1],[x2,y2],[x3,y3],[x4,y4]], text, conf
+                box, text, conf = res
+                formatted_results.append((box, text, conf))
+        return formatted_results
 
     def recognize_bottom_text(self, image_path, y_tolerance=30, min_confidence=0.3):
-        """
-        精确提取最底部的名字行，并过滤掉已知的干扰词
-        """
-        # 1. 定义干扰词黑名单 (只要包含这些字的块都会被踢除)
+        """精确提取最底部的名字行"""
         blacklist = ["额外", "掉落", "获取", "碎片", "额外掉落", "额外获取"]
 
         if not os.path.exists(image_path):
             return []
 
-        results = self.reader.readtext(image_path)
+        # 调用 RapidOCR
+        results = self._do_ocr(image_path)
         if not results:
             return []
 
         blocks = []
-        for res in results:
-            box, text, conf = res
+        for box, text, conf in results:
             if conf < min_confidence: continue
 
-            # 去掉空格和特殊符号，方便匹配
             clean_raw = re.sub(r'\s+', '', text)
+            if any(noise in clean_raw for noise in blacklist):
+                continue
 
-            # --- 核心逻辑：黑名单过滤 ---
-            # 如果识别到的词在黑名单里，或者黑名单里的词在识别结果里，跳过
-            is_noise = False
-            for noise in blacklist:
-                if noise in clean_raw:
-                    is_noise = True
-                    break
-            if is_noise: continue
-
-            # 只要没被过滤，计算中心点
+            # 计算重心 (box 格式为 4 个坐标点)
             center_x = (box[0][0] + box[1][0]) / 2
             center_y = (box[0][1] + box[2][1]) / 2
 
-            # 最终清洗（只留中英数）
             cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', clean_raw)
             if cleaned:
-                blocks.append({
-                    "text": cleaned,
-                    "x": center_x,
-                    "y": center_y
-                })
+                blocks.append({"text": cleaned, "x": center_x, "y": center_y})
 
         if not blocks: return []
 
-        # 2. 按 Y 坐标进行行聚类（从下往上找）
+        # 按 Y 聚类（从下往上）
         lines = []
-        # 按 Y 坐标降序（值越大代表在图片越底部）
         blocks.sort(key=lambda b: b['y'], reverse=True)
-
         for b in blocks:
             found_line = False
             for line in lines:
@@ -106,114 +104,74 @@ class OCREngine:
             if not found_line:
                 lines.append([b])
 
-        # 3. 提取目标行
-        # 经过黑名单过滤后，最底部的这一行（lines[0]）几乎确定就是名字行
         target_line = lines[0]
-
-        # 4. 按 X 坐标从左到右排序，对齐分割索引
         target_line.sort(key=lambda b: b['x'])
-
         return [b['text'] for b in target_line]
 
     def recognize_single_bottom_text(self, image_path, y_tolerance=30, min_confidence=0.3):
-        """
-        专门针对单图优化的识别：过滤残缺干扰，优先定位正下方名字
-        """
-        # 扩展黑名单：加入可能出现的残缺单字
+        """针对单图优化：优先定位正下方名字"""
         blacklist = ["额外", "掉落", "获取", "碎片", "额", "外", "掉", "落", "碎", "片", "夕"]
 
         if not os.path.exists(image_path):
             return None
 
-        # 获取图片宽度用于计算中心距离
-        from PIL import Image
+        # 获取图片宽度
         with Image.open(image_path) as img:
-            img_w, img_h = img.size
+            img_w, _ = img.size
         center_x = img_w / 2
 
-        results = self.reader.readtext(image_path)
+        results = self._do_ocr(image_path)
         if not results:
             return None
 
         blocks = []
-        for res in results:
-            box, text, conf = res
+        for box, text, conf in results:
             if conf < min_confidence: continue
-
-            # 基础清洗
             clean_raw = re.sub(r'\s+', '', text)
-
-            # 1. 黑名单增强过滤
-            # 如果识别出的词包含黑名单词汇，或者是黑名单里的单字，直接跳过
             if any(noise in clean_raw for noise in blacklist):
                 continue
 
-            # 计算重心
             cur_x = (box[0][0] + box[1][0]) / 2
             cur_y = (box[0][1] + box[2][1]) / 2
-
-            # 2. 距离中心点的偏移量（越小越可能是名字）
             dist_to_center = abs(cur_x - center_x)
 
-            # 最终清洗
             cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', clean_raw)
             if cleaned:
                 blocks.append({
-                    "text": cleaned,
-                    "x": cur_x,
-                    "y": cur_y,
-                    "dist": dist_to_center,
-                    "conf": conf
+                    "text": cleaned, "x": cur_x, "y": cur_y,
+                    "dist": dist_to_center, "conf": conf
                 })
 
-        if not blocks:
-            return None
+        if not blocks: return None
 
-        # 3. 核心排序算法：综合 [Y坐标] 和 [水平中心偏移]
-        # 我们寻找：位置最靠下 且 离中心最近 的块
-        # 我们可以通过给 Y 坐标最高的权重，给中心偏移量一定的负权重来筛选
-
-        # 先按 Y 降序排序（最底部的在前）
         blocks.sort(key=lambda b: b['y'], reverse=True)
-
-        # 取出最底部的块作为候选
         best_block = blocks[0]
 
-        # 4. 容错逻辑：检查是否有跟它 Y 轴差不多，但离中心更近的块
-        # 因为“额夕”这种残片有时会因为切图原因显得比名字还靠下一点点
         for i in range(1, len(blocks)):
-            # 如果另一个块也在底部区域（Y差距在 50 像素内）
             if abs(blocks[i]['y'] - best_block['y']) < 50:
-                # 但是另一个块离中心点显著更近，则它更可能是名字
                 if blocks[i]['dist'] < best_block['dist'] * 0.5:
                     best_block = blocks[i]
 
-        # 5. 寻找同一行可能被切断的名字片段（比如“香草” “甜甜”）
         target_line = [best_block]
         for b in blocks:
             if b == best_block: continue
             if abs(b['y'] - best_block['y']) < y_tolerance:
                 target_line.append(b)
 
-        # 按 X 排序并合并
         target_line.sort(key=lambda b: b['x'])
         final_name = "".join([b['text'] for b in target_line])
-
         return final_name if final_name else None
 
     def recognize_text(self, image, min_confidence=0.3):
-        # PIL 转 numpy array
-        if isinstance(image, Image.Image):
-            image = np.array(image)
-
-        results = self.reader.readtext(image)
+        """通用识别"""
+        # RapidOCR 内部会自动处理 PIL 转 Numpy
+        results = self._do_ocr(image)
         if not results:
             return ""
 
         blocks = []
         for box, text, conf in results:
-            if conf < min_confidence:
-                continue
+            if conf < min_confidence: continue
             cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', text)
             if cleaned:
                 blocks.append({
@@ -222,39 +180,15 @@ class OCREngine:
                     "y": (box[0][1] + box[2][1]) / 2
                 })
 
-        if not blocks:
-            return ""
-
+        if not blocks: return ""
+        # 按行列排序
         blocks.sort(key=lambda b: (round(b['y'] / 15), b['x']))
         return "".join(b['text'] for b in blocks)
 
 
-# --- 下面是独立运行的测试逻辑 ---
 if __name__ == "__main__":
-    # 实例化引擎（建议在应用启动时只实例化一次，因为加载模型较慢）
     ocr = OCREngine()
-
-    # 测试路径
-    test_image = r"D:\game\RocoKingdom\assets\pic\test\ocr_test3.png"  # 替换为你自己的图片路径
-
+    test_image = r"D:\game\RocoKingdom\assets\pic\test\ocr_test3.png"
     if os.path.exists(test_image):
         result = ocr.recognize_bottom_text(test_image)
-        if result:
-            print(f"识别成功: {result}")
-        else:
-            print("未识别到文字，返回内容为 None")
-    else:
-        print(f"请准备一张名为 {test_image} 的图片进行测试")
-
-    # list_name = ["../debug_caps/cropped_results/1c2f320a3a927e6507e11660f4ad50ea_item3.png"
-    #              ]
-
-    # list_name2 = ["../debug_caps/cropped_results/2_title.png",
-    #              "../debug_caps/cropped_results/3_title.png",
-    #              "../debug_caps/cropped_results/4_title.png",
-    #              "../debug_caps/cropped_results/5_title.png"]
-    #
-
-    # for name in list_name:
-    #     result = ocr.recognize_text(name)
-    #     print(result)
+        print(f"识别结果: {result}")

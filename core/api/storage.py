@@ -5,7 +5,6 @@ import time
 from flask import jsonify, request
 
 from config import DATA_FILE
-from core.utils import scan_icon_names
 
 
 def load_storage_file():

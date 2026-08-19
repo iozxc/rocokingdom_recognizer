@@ -18,3 +18,4 @@ keys/
 /frontend/.idea/
 *.pth
 /ocr_models/
+/onnx/

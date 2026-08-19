@@ -1,52 +1,84 @@
-import torch
-import torch.nn as nn
-import torchvision.models as models
-import torchvision.transforms as transforms
-from PIL import Image
+import onnxruntime as ort
+import numpy as np
+import cv2  # 推荐用 cv2 替代 torchvision 进行图像处理，打包体积更小
 import os
-
-from config import get_resource_path
-from core.utils import logger
+import pickle
+from logger import logger
 
 
 class ImageRecognizer:
-    def __init__(self, database_path=None, device="cpu"):
-        self.device = device
+    def __init__(self, onnx_model_path, database_path=None):
+        """
+        使用 ONNX Runtime 初始化识别器
+        :param onnx_model_path: feature_extractor.onnx 的路径
+        :param database_path: features_db.pkl (NumPy 格式) 的路径
+        """
+        # 1. 加载 ONNX 模型
+        if not os.path.exists(onnx_model_path):
+            raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
 
-        # 加载 ResNet50 模型
-        resnet_weight_path = get_resource_path(r"resnet50-0676ba61.pth")
-        if not os.path.exists(resnet_weight_path):
-            raise FileNotFoundError(f"ResNet权重文件缺失：{resnet_weight_path}")
-        model = models.resnet50(weights=None)
-        ckpt = torch.load(resnet_weight_path, map_location=device)
-        model.load_state_dict(ckpt)
-        self.feature_extractor = nn.Sequential(*list(model.children())[:-1]).to(self.device).eval()
+        # 优化选项：仅使用 CPU 运行
+        self.session = ort.InferenceSession(onnx_model_path, providers=['CPUExecutionProvider'])
 
-        self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
+        # 2. 预处理参数 (必须与 Torchvision 的 Normalize 一致)
+        self.mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape((1, 1, 3))
+        self.std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape((1, 1, 3))
 
         self.map_databases = {}
         if database_path and os.path.exists(database_path):
             self.load_db(database_path)
 
     def load_db(self, path):
-        self.map_databases = torch.load(path, map_location='cpu')
-        for m in self.map_databases:
-            self.map_databases[m]['features'] = self.map_databases[m]['features'].to(self.device)
-        logger.info(f"--- 成功加载特征库: {path} ---")
+        """加载经过转换后的 pkl 特征库"""
+        with open(path, 'rb') as f:
+            self.map_databases = pickle.load(f)
+        logger.info(f"--- 成功加载特征库 (NumPy): {path} ---")
+
+    def preprocess(self, img):
+        """
+        手动实现 torchvision.transforms 的逻辑
+        """
+        # 如果是路径，读取图片；如果是 PIL 对象，转为 numpy
+        if isinstance(img, str):
+            # 解决 opencv 读取中文路径的问题
+            img_data = np.fromfile(img, dtype=np.uint8)
+            img_bgr = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
+        else:
+            # PIL Image 转 numpy (RGB)
+            img_bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+        # 1. 统一转为 RGB 格式
+        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+
+        # 2. Resize (224, 224)
+        img_resized = cv2.resize(img_rgb, (224, 224), interpolation=cv2.INTER_LINEAR)
+
+        # 3. ToTensor: 转为 float32 并缩放到 [0, 1]
+        img_float = img_resized.astype(np.float32) / 255.0
+
+        # 4. Normalize: (img - mean) / std
+        img_norm = (img_float - self.mean) / self.std
+
+
+        # 5. HWC 转 CHW 并增加 Batch 维度: (1, 3, 224, 224)
+        img_final = img_norm.transpose(2, 0, 1)[np.newaxis, :]
+        return img_final.astype(np.float32)
 
     def get_feature(self, img):
-        """支持传入路径或 PIL Image 对象"""
-        if isinstance(img, str):
-            img = Image.open(img).convert('RGB')
+        """提取特征并进行 L2 归一化"""
+        input_tensor = self.preprocess(img)
 
-        img_tensor = self.transform(img).unsqueeze(0).to(self.device)
-        with torch.no_grad():
-            feature = self.feature_extractor(img_tensor).flatten()
-            feature = feature / feature.norm(p=2)
+        # 执行 ONNX 推理
+        ort_inputs = {self.session.get_inputs()[0].name: input_tensor}
+        ort_outs = self.session.run(None, ort_inputs)
+
+        # 提取结果并打平
+        feature = ort_outs[0].flatten()
+
+        # L2 归一化 (等同于 feature / feature.norm(p=2))
+        norm = np.linalg.norm(feature)
+        if norm > 0:
+            feature = feature / norm
         return feature
 
     def match(self, img_pil, map_num, threshold=0.7, top_k=3):
@@ -54,31 +86,34 @@ class ImageRecognizer:
         if map_key not in self.map_databases:
             return None, f"Map {map_key} 不存在"
 
+        # 获取查询图片的特征 (1D numpy array)
         query_feat = self.get_feature(img_pil)
+
         db = self.map_databases[map_key]
+        # db["features"] 现在是一个 (N, 2048) 的 numpy 矩阵
+        # db["paths"] 是列表
 
-        with torch.no_grad():
-            # 计算余弦相似度（由于特征已归一化，矩阵乘法即相似度）
-            similarities = torch.mv(db["features"], query_feat)
+        # 计算余弦相似度: 矩阵乘向量 (N, 2048) * (2048,) -> (N,)
+        similarities = np.dot(db["features"], query_feat)
 
-        # 获取前 top_k 个结果
-        # 注意：如果数据库图片数量少于 top_k，取实际数量
+        # 获取前 top_k 个索引 (按相似度从大到小)
+        # np.argsort 返回升序索引，用 [::-1] 反转，然后切片
         actual_k = min(top_k, len(db["features"]))
-        scores, indices = torch.topk(similarities, k=actual_k)
+        indices = np.argsort(similarities)[::-1][:actual_k]
 
         results = []
-        for score, idx in zip(scores, indices):
-            s = score.item()
-            # 过滤掉低于阈值的结果
-            if s < threshold:
+        for idx in indices:
+            score = float(similarities[idx])  # 转为标准 python float
+
+            if score < threshold:
                 continue
 
-            idx_val = idx.item()
+            match_path = db["paths"][idx]
             results.append({
-                "match_path": db["paths"][idx_val],
-                "filename": os.path.basename(db["paths"][idx_val]),
-                "name": os.path.basename(db["paths"][idx_val]).split(".")[0],
-                "score": round(s, 4)
+                "match_path": match_path,
+                "filename": os.path.basename(match_path),
+                "name": os.path.basename(match_path).split(".")[0],
+                "score": round(score, 4)
             })
 
         if not results:

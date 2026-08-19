@@ -1,7 +1,7 @@
 import requests
 from flask import request
 
-from core.utils import logger
+from logger import logger
 
 # 你刚才保存的 Webhook 地址
 FEISHU_WEBHOOK_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab"

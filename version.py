@@ -1,7 +1,7 @@
 import requests
 from packaging import version
 
-from core.utils import logger
+from logger import logger
 
 CURRENT_VERSION = "1.0.0"
 CHECK_URL = "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json"
