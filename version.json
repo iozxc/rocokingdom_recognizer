@@ -4,5 +4,26 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "1.0.0正式发布版，洛克王国草系徽章图鉴：跟随识别、初始化、单个识别、批量识别"
+  "update_log": "1.0.0正式发布版，洛克王国草系徽章图鉴：跟随识别、初始化、单个识别、批量识别",
+  "auto_update": {
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.0.0/",
+    "files": [
+      {
+        "name": "RocoKingdomRecognizer_part.zip.001",
+        "md5": "670cffdf9396ee85a7f3a74026f3b83b"
+      },
+      {
+        "name": "RocoKingdomRecognizer_part.zip.002",
+        "md5": "b29a6f5f5ace2dd9636530838ba2ea7d"
+      },
+      {
+        "name": "RocoKingdomRecognizer_part.zip.003",
+        "md5": "08ac6be26b568669781c31da145dfe26"
+      },
+      {
+        "name": "RocoKingdomRecognizer_part.zip.004",
+        "md5": "eede2b04d41cd6f2cd036ddac8fcdc3e"
+      }
+    ]
+  }
 }
