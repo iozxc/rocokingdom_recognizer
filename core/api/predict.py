@@ -10,7 +10,18 @@ import config
 from core.recognizer import ImageRecognizer
 from core.utils import scan_icon_names, get_top_k_matches, get_icon_full_path, logger
 
+names_dict = None
+
+
 # 全局初始化识别器
+
+def get_name_dicts():
+    global names_dict
+    if not names_dict:
+        names_dict = scan_icon_names()
+    return names_dict
+
+
 try:
     logger.info(f"正在加载数据库: {config.DATABASE_PATH}")
     recognizer = ImageRecognizer(database_path=config.DATABASE_PATH, device=config.DEVICE)
@@ -20,14 +31,10 @@ except Exception as e:
     recognizer = None
 
 try:
-    names_dict = scan_icon_names()
-except Exception as e:
-    logger.error(e)
-
-try:
     ocr = OCREngine()
 except Exception as e:
     logger.error(e)
+
 
 def f(image):
     ocr_names = ocr.recognize_bottom_text(image)
@@ -44,7 +51,7 @@ def ocr_top_k_match(image, map_num, top_k=6):
 
     # 2. 通过你已有的 get_top_k_matches 获取初步匹配列表
     map_key = f"map{map_num}"
-    raw_result_list = get_top_k_matches(name, map_key, names_dict, top_k)
+    raw_result_list = get_top_k_matches(name, map_key, get_name_dicts(), top_k)
 
     # 3. 转换格式并补充 match_path
     final_ocr_results = []
@@ -192,7 +199,7 @@ def init_routes(app):
                 if i < num_ocr:
                     target_word = ocr_names[i]
                     # 获取匹配列表
-                    matches = get_top_k_matches(target_word, map_name, names_dict, k=top_k)
+                    matches = get_top_k_matches(target_word, map_name, get_name_dicts(), k=top_k)
                     for m in matches:
                         # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
                         # 或者当没有图像块可用时，我们也接受这个结果

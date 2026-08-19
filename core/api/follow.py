@@ -8,21 +8,6 @@ from core.map_classifier import MapClassifier
 
 recognizer = MapClassifier(config.MAP_MODEL_SAVE_PATH, device=config.DEVICE)
 
-def crop_sections_from_pil(pil_image: Image.Image):
-    arr = np.array(pil_image)  # shape [H,W,3] RGB
-
-    # 切片 y_start:y_end , x_start:x_end
-    title_arr = arr[40:145, 930:1650, :]
-    cards_arr = arr[350:600, 600:2000, :]
-
-    title_pil = Image.fromarray(title_arr)
-    cards_pil = Image.fromarray(cards_arr)
-
-    return {
-        "title_pil": title_pil,
-        "cards_pil": cards_pil
-    }
-
 def find_roco_window():
     windows = gw.getWindowsWithTitle('洛克王国：世界')
     if windows and len(windows) > 0:

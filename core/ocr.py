@@ -226,20 +226,20 @@ if __name__ == "__main__":
     ocr = OCREngine()
 
     # 测试路径
-    # test_image = "../assets/pic/ocr_test3.png"  # 替换为你自己的图片路径
+    test_image = r"D:\game\RocoKingdom\assets\pic\test\ocr_test3.png"  # 替换为你自己的图片路径
 
-    # if os.path.exists(test_image):
-    #     result = ocr.recognize_bottom_text(test_image)
-    #     if result:
-    #         print(f"识别成功: {result}")
-    #     else:
-    #         print("未识别到文字，返回内容为 None")
-    # else:
-    #     print(f"请准备一张名为 {test_image} 的图片进行测试")
+    if os.path.exists(test_image):
+        result = ocr.recognize_bottom_text(test_image)
+        if result:
+            print(f"识别成功: {result}")
+        else:
+            print("未识别到文字，返回内容为 None")
+    else:
+        print(f"请准备一张名为 {test_image} 的图片进行测试")
 
 
-    list_name = ["../debug_caps/cropped_results/1c2f320a3a927e6507e11660f4ad50ea_item3.png"
-                 ]
+    # list_name = ["../debug_caps/cropped_results/1c2f320a3a927e6507e11660f4ad50ea_item3.png"
+    #              ]
 
     # list_name2 = ["../debug_caps/cropped_results/2_title.png",
     #              "../debug_caps/cropped_results/3_title.png",
@@ -247,6 +247,6 @@ if __name__ == "__main__":
     #              "../debug_caps/cropped_results/5_title.png"]
     #
 
-    for name in list_name:
-        result = ocr.recognize_text(name)
-        print(result)
+    # for name in list_name:
+    #     result = ocr.recognize_text(name)
+    #     print(result)

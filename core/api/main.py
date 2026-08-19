@@ -1,18 +1,9 @@
-import sqlite3
-
 from flask import send_from_directory, g, Response
 
 import os
 from flask import jsonify, url_for
-import config
 
-def get_db():
-    """获取数据库连接（Flask 推荐写法）"""
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(config.ASSETS_FILE)
-    return db
-
+from core.db import get_db
 
 
 def init_routes(app):

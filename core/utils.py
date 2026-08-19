@@ -11,6 +11,8 @@ import win32ui
 import os
 import logging
 
+from core.api.main import get_db
+
 
 # ----------------日志模块----------------
 def setup_app_logger():
@@ -52,7 +54,7 @@ def scan_icon_names():
     try:
         # 这里建议直接创建一个临时的连接，或者使用你之前的 get_db()
         # 注意：如果是独立脚本，请确保 DB_PATH 正确
-        conn = sqlite3.connect('assets.db')
+        conn = get_db()
         cursor = conn.cursor()
 
         # 只需要查询路径字段
@@ -90,7 +92,7 @@ def get_icon_full_path(map_name, icon_name_without_ext):
     """
     通过 map 名和图片名（不含后缀）反查文件的绝对路径
     """
-    os.path.normpath(os.path.join(config.ICONS_DIR, map_name, icon_name_without_ext + '.png'))
+    return os.path.normpath(os.path.join(config.ICONS_DIR, map_name, icon_name_without_ext + '.png'))
 
 
 def get_best_match(user_name, map_key, names_dict):
