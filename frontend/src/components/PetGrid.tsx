@@ -82,7 +82,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
           </div>
           <div>
             <h3 className="text-base sm:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2 flex-wrap">
-              <span>{currentMap.name} · 精灵图鉴名册</span>
+              <span>{currentMap.name}</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] text-[#2B78C4] font-mono font-black border border-[#E6EEF8] shadow-2xs flex items-center gap-1">
                 <span>已遇见 <strong className="text-[#2D6613] font-black">{encounteredCount}</strong> / {totalCount}</span>
                 {filterMode !== 'all' && (

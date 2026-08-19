@@ -322,14 +322,14 @@ export const ScannerApp: React.FC = () => {
 
           {/* Right side status & action buttons */}
           <div className="flex items-center gap-1 shrink-0 pywebview-no-drag">
-            <button
-                type="button"
-                onClick={() => setIsCollapsedContent(!isCollapsedContent)}
-                className="w-7 h-7 hover:bg-white/20 text-white/90 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                title={isCollapsedContent ? '展开详细面板' : '收起详细面板'}
-            >
-              {isCollapsedContent ? <ChevronDown className="w-4 h-4 stroke-[2.5]" /> : <ChevronUp className="w-4 h-4 stroke-[2.5]" />}
-            </button>
+            {/*<button*/}
+            {/*    type="button"*/}
+            {/*    onClick={() => setIsCollapsedContent(!isCollapsedContent)}*/}
+            {/*    className="w-7 h-7 hover:bg-white/20 text-white/90 hover:text-white flex items-center justify-center transition-colors cursor-pointer"*/}
+            {/*    title={isCollapsedContent ? '展开详细面板' : '收起详细面板'}*/}
+            {/*>*/}
+            {/*  {isCollapsedContent ? <ChevronDown className="w-4 h-4 stroke-[2.5]" /> : <ChevronUp className="w-4 h-4 stroke-[2.5]" />}*/}
+            {/*</button>*/}
             <button
                 type="button"
                 id="scanner-standalone-close-btn"
