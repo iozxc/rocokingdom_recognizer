@@ -11,6 +11,7 @@ export interface StoragePayload {
   encounteredPets?: Record<string, EncounterRecord>;
   thresholds?: Record<string, number>;
   appSettings?: AppSettings;
+  version?: number;
 }
 
 type StorageListener = (records: Record<string, EncounterRecord>) => void;
@@ -28,6 +29,8 @@ export class StorageService {
   private localVersion = 0;
   // 轮询定时器
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
+  // 标记是否本地有未同步到后端的最新更改，避免轮询覆盖当前未落盘的点击
+  private hasPendingLocalChanges = false;
 
   constructor() {
     this.loadFromLocalStorage();
@@ -43,14 +46,17 @@ export class StorageService {
   private startPoll() {
     const poll = async () => {
       try {
-        const apiBase = api.getApiBase();
-        const res = await axios.get<StoragePayload & { version?: number }>(`${apiBase}/api/storage`, { timeout:4000 });
-        const remote = res.data;
-        if (remote.version && remote.version > this.localVersion) {
-          await this.fetchRemote();
+        // 如果本地有正在等待保存或正在落盘的操作，暂缓本轮拉取，避免竞态覆盖
+        if (!this.hasPendingLocalChanges && !this.saveTimeout) {
+          const apiBase = api.getApiBase();
+          const res = await axios.get<StoragePayload>(`${apiBase}/api/storage`, { timeout: 4000 });
+          const remote = res.data;
+          if (remote && remote.version && remote.version > this.localVersion) {
+            await this.fetchRemote();
+          }
         }
       } catch (e) {
-        // 后端未启动，静默失败
+        // 后端未启动或离线，静默忽略
       } finally {
         this.pollTimer = setTimeout(poll, 300);
       }
@@ -117,11 +123,11 @@ export class StorageService {
     });
   }
 
-  public async fetchRemote(): Promise<(StoragePayload & {version?:number}) | null> {
+  public async fetchRemote(): Promise<StoragePayload | null> {
     const apiBase = api.getApiBase();
     this.isSyncing = true;
     try {
-      const response = await axios.get<StoragePayload & {version?:number}>(`${apiBase}/api/storage`, {
+      const response = await axios.get<StoragePayload>(`${apiBase}/api/storage`, {
         timeout: 4000,
       });
 
@@ -148,7 +154,9 @@ export class StorageService {
         }
         hasSettingsChanges = true;
       }
-      if (remote.version) this.localVersion = remote.version;
+      if (remote.version) {
+        this.localVersion = remote.version;
+      }
 
       this.saveToLocalStorage();
       if (hasRecordsChanges) this.notifyListeners();
@@ -168,17 +176,25 @@ export class StorageService {
    */
   public async saveToRemote(): Promise<boolean> {
     const payload: StoragePayload = {
-      encounteredPets: this.records,
-      thresholds: this.thresholds,
-      appSettings: this.appSettings,
+      encounteredPets: { ...this.records },
+      thresholds: { ...this.thresholds },
+      appSettings: { ...this.appSettings },
+      version: this.localVersion,
     };
     const apiBase = api.getApiBase();
     try {
-      const res = await axios.post(`${apiBase}/api/storage`, payload, {
+      const res = await axios.post<{ version?: number }>(`${apiBase}/api/storage`, payload, {
         headers: { 'Content-Type': 'application/json' },
         timeout: 5000,
       });
-      return res.status === 200;
+      if (res.status === 200) {
+        if (res.data?.version) {
+          this.localVersion = res.data.version;
+        }
+        this.hasPendingLocalChanges = false;
+        return true;
+      }
+      return false;
     } catch (err) {
       console.warn('save remote http fail', err);
       return false;
@@ -186,36 +202,47 @@ export class StorageService {
   }
 
   private triggerSave() {
+    this.hasPendingLocalChanges = true;
     this.saveToLocalStorage();
     this.notifyListeners();
 
     if (this.saveTimeout) clearTimeout(this.saveTimeout);
     this.saveTimeout = setTimeout(() => {
+      this.saveTimeout = null;
       this.saveToRemote();
-    }, 300);
+    }, 150);
   }
 
   private triggerSettingsSave() {
+    this.hasPendingLocalChanges = true;
     this.saveToLocalStorage();
     this.notifySettingsListeners();
 
     if (this.saveTimeout) clearTimeout(this.saveTimeout);
     this.saveTimeout = setTimeout(() => {
+      this.saveTimeout = null;
       this.saveToRemote();
-    }, 300);
+    }, 150);
   }
 
   public subscribe(listener: StorageListener): () => void {
     this.listeners.add(listener);
-    return () => { this.listeners.delete(listener); };
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   public subscribeSettings(listener: SettingsListener): () => void {
     this.settingsListeners.add(listener);
-    return () => { this.settingsListeners.delete(listener); };
+    return () => {
+      this.settingsListeners.delete(listener);
+    };
   }
 
-  public getSettings(): AppSettings { return { ...this.appSettings }; }
+  public getSettings(): AppSettings {
+    return { ...this.appSettings };
+  }
+
   public getSetting<T>(key: keyof AppSettings, defaultValue: T): T {
     return (this.appSettings[key] !== undefined ? this.appSettings[key] : defaultValue) as T;
   }
@@ -236,12 +263,19 @@ export class StorageService {
     this.triggerSettingsSave();
   }
 
-  public getAll(): Record<string, EncounterRecord> { return { ...this.records }; }
-  public getKey(mapId: string, filename: string): string { return `${mapId}_${filename}`; }
+  public getAll(): Record<string, EncounterRecord> {
+    return { ...this.records };
+  }
+
+  public getKey(mapId: string, filename: string): string {
+    return `${mapId}_${filename}`;
+  }
+
   public isEncountered(mapId: string, filename: string): boolean {
     const key = this.getKey(mapId, filename);
     return !!this.records[key]?.encountered;
   }
+
   public getRecord(mapId: string, filename: string): EncounterRecord | undefined {
     const key = this.getKey(mapId, filename);
     return this.records[key];
@@ -252,7 +286,10 @@ export class StorageService {
     const existing = this.records[key];
     const now = new Date().toISOString();
     const record: EncounterRecord = {
-      key, mapId, filename, encountered: true,
+      key,
+      mapId,
+      filename,
+      encountered: true,
       count: (existing?.count || 0) + 1,
       firstSeenAt: existing?.firstSeenAt || now,
       lastSeenAt: now,
@@ -263,14 +300,19 @@ export class StorageService {
     return record;
   }
 
-  public batchMarkEncountered(items: Array<{ mapId: string; filename: string; note?: string }>): number {
+  public batchMarkEncountered(
+      items: Array<{ mapId: string; filename: string; note?: string }>
+  ): number {
     const now = new Date().toISOString();
     let updatedCount = 0;
     items.forEach(({ mapId, filename, note }) => {
       const key = this.getKey(mapId, filename);
       const existing = this.records[key];
       this.records[key] = {
-        key, mapId, filename, encountered: true,
+        key,
+        mapId,
+        filename,
+        encountered: true,
         count: (existing?.count || 0) + 1,
         firstSeenAt: existing?.firstSeenAt || now,
         lastSeenAt: now,
@@ -287,12 +329,19 @@ export class StorageService {
     const existing = this.records[key];
     const now = new Date().toISOString();
     if (existing && existing.encountered) {
-      this.records[key] = { ...existing, encountered: false };
+      this.records[key] = {
+        ...existing,
+        encountered: false,
+        lastSeenAt: now,
+      };
       this.triggerSave();
       return false;
     } else {
       this.records[key] = {
-        key, mapId, filename, encountered: true,
+        key,
+        mapId,
+        filename,
+        encountered: true,
         count: (existing?.count || 0) + 1,
         firstSeenAt: existing?.firstSeenAt || now,
         lastSeenAt: now,
@@ -303,9 +352,14 @@ export class StorageService {
   }
 
   public resetMap(mapId: string): void {
+    const now = new Date().toISOString();
     Object.keys(this.records).forEach((key) => {
       if (this.records[key].mapId === mapId) {
-        this.records[key].encountered = false;
+        this.records[key] = {
+          ...this.records[key],
+          encountered: false,
+          lastSeenAt: now,
+        };
       }
     });
     this.triggerSave();
@@ -326,8 +380,13 @@ export class StorageService {
     return Object.values(this.records).filter((r) => r.encountered).length;
   }
 
-  public getMapStats(mapId: string, totalItems: number): { encounteredCount: number; percentage: number } {
-    const count = Object.values(this.records).filter(r => r.mapId === mapId && r.encountered).length;
+  public getMapStats(
+      mapId: string,
+      totalItems: number
+  ): { encounteredCount: number; percentage: number } {
+    const count = Object.values(this.records).filter(
+        (r) => r.mapId === mapId && r.encountered
+    ).length;
     const percentage = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
     return { encounteredCount: count, percentage };
   }
@@ -335,14 +394,17 @@ export class StorageService {
   public getThreshold(key: string, defaultValue = 0.25): number {
     return typeof this.thresholds[key] === 'number' ? this.thresholds[key] : defaultValue;
   }
+
   public setThreshold(key: string, value: number): void {
     this.thresholds[key] = value;
     this.triggerSave();
   }
+
   public getTopK(defaultValue = 3): number {
     const val = this.thresholds['predict_top_k'];
     return typeof val === 'number' && val >= 1 && val <= 6 ? val : defaultValue;
   }
+
   public setTopK(value: number): void {
     const clamped = Math.max(1, Math.min(6, Math.round(value)));
     this.thresholds['predict_top_k'] = clamped;
@@ -350,11 +412,15 @@ export class StorageService {
   }
 
   public exportData(): string {
-    return JSON.stringify({
-      encounteredPets: this.records,
-      thresholds: this.thresholds,
-      appSettings: this.appSettings,
-    }, null, 2);
+    return JSON.stringify(
+        {
+          encounteredPets: this.records,
+          thresholds: this.thresholds,
+          appSettings: this.appSettings,
+        },
+        null,
+        2
+    );
   }
 
   public importData(jsonString: string): boolean {
@@ -377,7 +443,9 @@ export class StorageService {
     }
   }
 
-  public getIsSyncing(): boolean { return this.isSyncing; }
+  public getIsSyncing(): boolean {
+    return this.isSyncing;
+  }
 
   public destroy() {
     if (this.saveTimeout) clearTimeout(this.saveTimeout);
