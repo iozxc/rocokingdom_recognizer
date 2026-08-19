@@ -5,7 +5,6 @@ from flask import send_from_directory, g, Response
 import os
 from flask import jsonify, url_for
 import config
-from version import get_update_info
 
 def get_db():
     """获取数据库连接（Flask 推荐写法）"""
@@ -98,6 +97,3 @@ def init_routes(app):
         except Exception as e:
             return str(e), 500
 
-    @app.route('/api/check_update')
-    def check_update_api():
-        return get_update_info()
