@@ -10,6 +10,8 @@ import {
   FollowGameStatusResponse,
   FollowRecognizeApiResponse,
   CheckUpdateResponse,
+  StartDownloadResponse,
+  DownloadProgressResponse,
   SubmitFeedbackPayload,
   SubmitFeedbackResponse,
 } from '../types';
@@ -602,7 +604,73 @@ export class ApiService {
   }
 
   /**
-   * 4. 提交用户反馈
+   * 4. 发起手动/自动下载更新
+   * GET /api/start_download
+   */
+  public async startDownload(): Promise<{
+    data: StartDownloadResponse;
+    isOfflineMock: boolean;
+  }> {
+    try {
+      const response = await axios.get<StartDownloadResponse>(
+          `${this.apiBase}/api/start_download`,
+          { timeout: 5000 }
+      );
+      if (response.data) {
+        return { data: response.data, isOfflineMock: false };
+      }
+      return { data: { status: 'started' }, isOfflineMock: false };
+    } catch (err: unknown) {
+      const error = err as AxiosError<{ message?: string; status?: string }>;
+      if (error.response?.data?.message) {
+        return {
+          data: {
+            status: 'error',
+            message: error.response.data.message,
+          },
+          isOfflineMock: false,
+        };
+      }
+      // 离线/模拟测试：返回 started
+      return {
+        data: { status: 'started' },
+        isOfflineMock: true,
+      };
+    }
+  }
+
+  /**
+   * 5. 获取下载更新进度
+   * GET /api/download_progress
+   */
+  public async getDownloadProgress(): Promise<{
+    data: DownloadProgressResponse;
+    isOfflineMock: boolean;
+  }> {
+    try {
+      const response = await axios.get<DownloadProgressResponse>(
+          `${this.apiBase}/api/download_progress`,
+          { timeout: 4000 }
+      );
+      if (response.data) {
+        return { data: response.data, isOfflineMock: false };
+      }
+      throw new Error('获取下载进度返回为空');
+    } catch (err: unknown) {
+      const error = err as AxiosError;
+      console.warn('API getDownloadProgress fallback mode:', error.message);
+      return {
+        data: {
+          progress: 0,
+          status: 'idle',
+        },
+        isOfflineMock: true,
+      };
+    }
+  }
+
+  /**
+   * 6. 提交用户反馈
    * POST /api/submit_feedback
    */
   public async submitFeedback(payload: SubmitFeedbackPayload): Promise<{

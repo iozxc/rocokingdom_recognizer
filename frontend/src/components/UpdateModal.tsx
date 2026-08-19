@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     X,
     RefreshCw,
@@ -9,10 +9,12 @@ import {
     Download,
     Info,
     ArrowUpCircle,
+    Check,
+    Loader2,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { api } from '../services/api';
-import { CheckUpdateResponse } from '../types';
+import { CheckUpdateResponse, DownloadStatus } from '../types';
 
 interface UpdateModalProps {
     isOpen: boolean;
@@ -21,27 +23,138 @@ interface UpdateModalProps {
 
 export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [hasChecked, setHasChecked] = useState<boolean>(false);
     const [updateData, setUpdateData] = useState<CheckUpdateResponse | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    // Auto Download & Update State: Fully driven by server API (No local stale state)
+    const [downloadStatus, setDownloadStatus] = useState<DownloadStatus>('idle');
+    const [downloadProgress, setDownloadProgress] = useState<number>(0);
+    const [downloadError, setDownloadError] = useState<string | null>(null);
+    const [isStartingDownload, setIsStartingDownload] = useState<boolean>(false);
+    const [showReadyDialog, setShowReadyDialog] = useState<boolean>(false);
+
+    const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const stopPolling = () => {
+        if (pollTimerRef.current) {
+            clearInterval(pollTimerRef.current);
+            pollTimerRef.current = null;
+        }
+    };
 
     const fetchUpdate = async () => {
         setIsLoading(true);
         setErrorMsg(null);
         try {
+            // 1. 获取最新更新状态
             const res = await api.checkUpdate();
             setUpdateData(res.data);
+            setHasChecked(true);
+
+            // 2. 向后端查询当前真实下载进度状态（如果后端为 idle，则重置为 idle 并显示下载按钮）
+            try {
+                const progressRes = await api.getDownloadProgress();
+                const { progress, status, error } = progressRes.data;
+
+                setDownloadStatus(status || 'idle');
+                setDownloadProgress(typeof progress === 'number' ? Math.max(0, Math.min(100, progress)) : 0);
+
+                if (status === 'downloading' || status === 'verifying') {
+                    startProgressPolling();
+                } else if (status === 'error') {
+                    setDownloadError(error || '下载更新过程中发生错误');
+                } else if (status === 'idle') {
+                    setDownloadError(null);
+                    stopPolling();
+                }
+            } catch {
+                // progress 获取失败则保持 idle
+                setDownloadStatus('idle');
+            }
         } catch (err: unknown) {
             const error = err as Error;
             setErrorMsg(error.message || '检查更新失败，请稍后再试');
+            setHasChecked(true);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Poll /api/download_progress every 1 second
+    const startProgressPolling = () => {
+        stopPolling();
+        pollTimerRef.current = setInterval(async () => {
+            try {
+                const res = await api.getDownloadProgress();
+                const { progress, status, error } = res.data;
+
+                setDownloadProgress(typeof progress === 'number' ? Math.max(0, Math.min(100, progress)) : 0);
+                setDownloadStatus(status);
+
+                if (status === 'error') {
+                    setDownloadError(error || '下载更新过程中发生错误');
+                    stopPolling();
+                } else if (status === 'ready') {
+                    stopPolling();
+                    setShowReadyDialog(true);
+                } else if (status === 'verifying') {
+                    setDownloadProgress(100);
+                } else if (status === 'idle') {
+                    stopPolling();
+                }
+            } catch (err: unknown) {
+                console.warn('Polling download progress failed:', err);
+            }
+        }, 1000);
+    };
+
+    // Trigger download action
+    const handleStartDownload = async () => {
+        if (!updateData?.has_update || downloadStatus === 'ready') {
+            return;
+        }
+
+        sound.playClick();
+        setIsStartingDownload(true);
+        setDownloadError(null);
+        setDownloadProgress(0);
+        setDownloadStatus('downloading');
+
+        try {
+            const res = await api.startDownload();
+            if (res.data.status === 'error') {
+                setDownloadStatus('error');
+                setDownloadError(res.data.message || '发起更新失败，请稍后再试');
+            } else {
+                // Start polling progress
+                startProgressPolling();
+            }
+        } catch (err: unknown) {
+            const error = err as Error;
+            setDownloadStatus('error');
+            setDownloadError(error.message || '网络异常，发起更新请求失败');
+        } finally {
+            setIsStartingDownload(false);
         }
     };
 
     useEffect(() => {
         if (isOpen) {
             fetchUpdate();
+        } else {
+            stopPolling();
+            setHasChecked(false);
+            setUpdateData(null);
+            setErrorMsg(null);
+            setDownloadStatus('idle');
+            setDownloadProgress(0);
+            setDownloadError(null);
+            setShowReadyDialog(false);
         }
+        return () => {
+            stopPolling();
+        };
     }, [isOpen]);
 
     if (!isOpen) return null;
@@ -49,7 +162,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
             <div
-                className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col"
+                className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col relative"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -60,7 +173,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                         </div>
                         <div>
                             <h3 className="text-base font-black tracking-tight">检查版本更新</h3>
-                            <p className="text-[11px] text-white/80 font-medium">获取洛克王国草系徽章助手最新版本与更新日志</p>
+                            <p className="text-[11px] text-white/80 font-medium">获取洛克王国识别助手最新版本与更新日志</p>
                         </div>
                     </div>
                     <button
@@ -97,7 +210,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                 </button>
                             </div>
                         </div>
-                    ) : updateData?.has_update ? (
+                    ) : hasChecked && updateData?.has_update ? (
                         <div className="space-y-4">
                             {/* Has update banner */}
                             <div className="p-4 bg-gradient-to-r from-[#F0FDF4] to-[#ECFCCB] rounded-2xl border-2 border-[#86EFAC] flex items-center justify-between">
@@ -130,7 +243,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                 </div>
                             )}
 
-                            {/* Mirrors / Download Links */}
+                            {/* 1. Mirrors / Manual Download Links */}
                             {updateData.mirrors && Object.keys(updateData.mirrors).length > 0 && (
                                 <div className="space-y-2">
                   <span className="text-xs font-black text-slate-700 flex items-center gap-1">
@@ -156,8 +269,114 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                     </div>
                                 </div>
                             )}
+
+                            {/* 2. One-click Automatic Update Section */}
+                            <div className="p-4 bg-white rounded-2xl border-2 border-[#BCD7F2] space-y-3 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-lg bg-[#7ABCF4] text-white flex items-center justify-center">
+                                            <Download className="w-3.5 h-3.5" />
+                                        </div>
+                                        <span className="text-xs font-black text-slate-800">一键自动下载更新</span>
+                                    </div>
+
+                                    {downloadStatus === 'downloading' && (
+                                        <span className="text-xs font-mono font-black text-[#2B78C4]">
+                      {downloadProgress}%
+                    </span>
+                                    )}
+                                    {downloadStatus === 'verifying' && (
+                                        <span className="text-xs font-black text-amber-600 animate-pulse">
+                      校验中...
+                    </span>
+                                    )}
+                                    {downloadStatus === 'ready' && (
+                                        <span className="text-xs font-black text-[#22C55E]">
+                      下载完成
+                    </span>
+                                    )}
+                                </div>
+
+                                {/* Progress bar and status descriptions */}
+                                {downloadStatus === 'downloading' && (
+                                    <div className="space-y-1.5 animate-in fade-in duration-150">
+                                        <div className="w-full h-3 bg-[#E9F2FA] rounded-full overflow-hidden border border-[#BCD7F2] p-0.5">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-[#7ABCF4] to-[#2B78C4] rounded-full transition-all duration-300"
+                                                style={{ width: `${downloadProgress}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                                            <span>正在下载最新安装包文件...</span>
+                                            <span className="font-mono font-black text-slate-700">{downloadProgress}%</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {downloadStatus === 'verifying' && (
+                                    <div className="space-y-1.5 animate-in fade-in duration-150">
+                                        <div className="w-full h-3 bg-[#E9F2FA] rounded-full overflow-hidden border border-[#BCD7F2] p-0.5">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-[#95D151] to-[#689F38] rounded-full w-full animate-pulse"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[11px] text-amber-700 font-black">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            <span>正在校验文件... (MD5一致性校验)</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Status: Ready - Download completed and prepared for restart */}
+                                {downloadStatus === 'ready' && (
+                                    <div className="p-3 bg-[#F0FDF4] border border-[#86EFAC] rounded-xl flex items-center justify-between gap-2 text-xs font-black text-[#15803D] animate-in fade-in duration-150">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-[#22C55E] shrink-0" />
+                                            <span>下载完成！即将自动重启安装更新</span>
+                                        </div>
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#166534] border border-[#86EFAC]">
+                      无需重复下载
+                    </span>
+                                    </div>
+                                )}
+
+                                {/* Local Error status: Displays neatly inline */}
+                                {downloadStatus === 'error' && (
+                                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-1 text-xs">
+                                        <div className="flex items-center gap-1.5 text-rose-700 font-black">
+                                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                                            <span>更新失败</span>
+                                        </div>
+                                        <p className="text-[11px] text-rose-600 font-medium leading-relaxed">
+                                            {downloadError || '未能完成下载，请重试或通过上方发布渠道手动下载'}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Action Trigger Button: Visible when idle or error (Server returns status="idle" will naturally show this button) */}
+                                {(downloadStatus === 'idle' || downloadStatus === 'error') && (
+                                    <button
+                                        type="button"
+                                        onClick={handleStartDownload}
+                                        disabled={isStartingDownload}
+                                        className="w-full py-2.5 px-4 bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#68AEEB] hover:to-[#4A9CE3] text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                                    >
+                                        {isStartingDownload ? (
+                                            <>
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                <span>正在发起更新...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+                                                <span>{downloadStatus === 'error' ? '重新下载更新' : '一键自动下载并更新'}</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    ) : (
+                    ) : hasChecked ? (
                         <div className="py-8 flex flex-col items-center justify-center text-center gap-2">
                             <div className="w-12 h-12 rounded-2xl bg-[#E1F7DB] text-[#2D6613] flex items-center justify-center border-2 border-[#95D151] mb-1">
                                 <CheckCircle2 className="w-6 h-6" />
@@ -167,7 +386,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                 您的助手已经搭载最新的识别算法与图鉴库，暂无更新。
                             </p>
                         </div>
-                    )}
+                    ) : null}
                 </div>
 
                 {/* Footer */}
@@ -175,7 +394,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                     <button
                         type="button"
                         onClick={fetchUpdate}
-                        disabled={isLoading}
+                        disabled={isLoading || downloadStatus === 'downloading' || downloadStatus === 'verifying'}
                         className="flex items-center gap-1.5 text-xs text-[#2B78C4] hover:text-[#1E5B99] font-black cursor-pointer disabled:opacity-50"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -193,6 +412,33 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                         关闭
                     </button>
                 </div>
+
+                {/* Ready Modal Dialog Alert */}
+                {showReadyDialog && (
+                    <div className="absolute inset-0 z-20 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="bg-white rounded-2xl border-2 border-[#22C55E] p-5 max-w-xs w-full shadow-2xl text-center space-y-3">
+                            <div className="w-12 h-12 rounded-full bg-[#E1F7DB] text-[#2D6613] flex items-center justify-center mx-auto border border-[#95D151]">
+                                <Check className="w-6 h-6 stroke-[3]" />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-black text-slate-800">下载完成！</h4>
+                                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                    即将自动重启安装更新，请稍候...
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    sound.playClick();
+                                    setShowReadyDialog(false);
+                                }}
+                                className="w-full py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white text-xs font-black rounded-xl transition-colors cursor-pointer"
+                            >
+                                我知道了
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

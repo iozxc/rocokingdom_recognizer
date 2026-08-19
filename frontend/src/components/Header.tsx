@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle } from 'lucide-react';
+import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowDownCircle} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { sound } from '../services/sound';
 
@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     title="查看是否有最新版"
                                     className="p-2 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-colors shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black"
                                 >
-                                    <ArrowUpCircle className="w-4 h-4 text-[#FEE061]" />
+                                    <ArrowDownCircle className="w-4 h-4 text-[#FEE061]" />
                                 </button>
                             )}
                             <button
@@ -186,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 title="查看是否有最新版本"
                                 className="px-3 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-colors shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1.5 text-xs font-black"
                             >
-                                <ArrowUpCircle className="w-4 h-4 text-[#FEE061]" />
+                                <ArrowDownCircle className="w-4 h-4 text-[#FEE061]" />
                                 <span>检查更新</span>
                             </button>
                         )}
