@@ -17,12 +17,14 @@ import {
   Radio,
   Eye,
   ExternalLink,
+  BookOpen,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse } from './types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
 import { sound } from './services/sound';
 import { api } from './services/api';
 import { storage } from './services/storage';
+import { ScannerMapGalleryModal } from './components/ScannerMapGalleryModal';
 
 interface DetectedPetSlot {
   id: string;
@@ -52,6 +54,9 @@ export const ScannerApp: React.FC = () => {
 
   // Detected pets list (0 to 3 pets)
   const [detectedPets, setDetectedPets] = useState<DetectedPetSlot[]>([]);
+
+  // Gallery Modal state (for browsing other maps and full gallery)
+  const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
 
   // Subscribe to storage changes & load icons
   useEffect(() => {
@@ -330,6 +335,18 @@ export const ScannerApp: React.FC = () => {
             {/*>*/}
             {/*  {isCollapsedContent ? <ChevronDown className="w-4 h-4 stroke-[2.5]" /> : <ChevronUp className="w-4 h-4 stroke-[2.5]" />}*/}
             {/*</button>*/}
+            <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  setIsGalleryOpen(true);
+                }}
+                className="px-2 py-1 bg-white/20 hover:bg-white/30 text-white flex items-center gap-1 text-[11px] font-black transition-colors cursor-pointer border border-white/30 shadow-2xs mr-0.5"
+                title="查看全部地图图鉴与全图名册"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>查图鉴</span>
+            </button>
             <button
                 type="button"
                 id="scanner-standalone-close-btn"
@@ -621,6 +638,17 @@ export const ScannerApp: React.FC = () => {
         <div className="h-6 px-3 bg-[#E9F2FA] border-t border-[#D5E3F0] text-[10px] font-mono text-slate-500 flex items-center justify-between shrink-0 font-bold">
           <span>上次: {lastScanTime}</span>
         </div>
+
+        {/* ------------------------------------------------------------- */}
+        {/* 4. Scanner Map & All Pet Gallery Modal */}
+        {/* ------------------------------------------------------------- */}
+        <ScannerMapGalleryModal
+            isOpen={isGalleryOpen}
+            onClose={() => setIsGalleryOpen(false)}
+            initialMapNum={detectedMapNum}
+            mapsPets={mapsPets}
+            records={records}
+        />
       </div>
   );
 };
