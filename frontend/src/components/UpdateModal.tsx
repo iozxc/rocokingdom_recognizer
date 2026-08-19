@@ -8,12 +8,14 @@ import {
     AlertCircle,
     Download,
     Info,
-    ArrowUpCircle,
+    ArrowDownCircle,
     Check,
     Loader2,
     Pause,
     Play,
     Trash2,
+    Activity,
+    HardDrive,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { api } from '../services/api';
@@ -24,6 +26,41 @@ interface UpdateModalProps {
     onClose: () => void;
 }
 
+// 格式化字节大小 (B, KB, MB, GB)，保留 1 位小数
+export const formatBytes = (bytes?: number): string => {
+    if (typeof bytes !== 'number' || isNaN(bytes) || bytes <= 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    if (i === 0) return `${Math.round(bytes)} B`;
+    const val = (bytes / Math.pow(k, i)).toFixed(1);
+    return `${val} ${sizes[i]}`;
+};
+
+// 格式化下载速度 (B/s, KB/s, MB/s)，保留 1 位小数
+export const formatSpeed = (speedBps?: number): string => {
+    if (typeof speedBps !== 'number' || isNaN(speedBps) || speedBps <= 0) return '0.0 KB/s';
+    if (speedBps < 1024) {
+        return `${Number(speedBps).toFixed(1)} B/s`;
+    }
+    if (speedBps < 1024 * 1024) {
+        return `${(speedBps / 1024).toFixed(1)} KB/s`;
+    }
+    return `${(speedBps / (1024 * 1024)).toFixed(1)} MB/s`;
+};
+
+// 计算百分比 0 - 100
+export const calcPercentage = (downloaded: number, total?: number): number => {
+    if (total && total > 0) {
+        return Math.max(0, Math.min(100, Math.round((downloaded / total) * 100)));
+    }
+    // 容错处理：若后端只传了 0-100 的数值而未传 total_bytes
+    if (downloaded <= 100 && downloaded >= 0) {
+        return Math.round(downloaded);
+    }
+    return 0;
+};
+
 export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [hasChecked, setHasChecked] = useState<boolean>(false);
@@ -32,7 +69,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
     // Auto Download & Update State: Fully driven by server API
     const [downloadStatus, setDownloadStatus] = useState<DownloadStatus>('idle');
-    const [downloadProgress, setDownloadProgress] = useState<number>(0);
+    const [downloadProgress, setDownloadProgress] = useState<number>(0); // 已下载字节数 (bytes)
+    const [totalBytes, setTotalBytes] = useState<number | undefined>(undefined); // 总字节数 (bytes)
+    const [speedBps, setSpeedBps] = useState<number | undefined>(undefined); // 下载速度 (bytes/sec)
     const [downloadError, setDownloadError] = useState<string | null>(null);
     const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
     const [isInstalling, setIsInstalling] = useState<boolean>(false);
@@ -48,15 +87,16 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
     };
 
     // Helper to format status display label
-    const getStatusText = (status: string, progress: number) => {
+    const getStatusText = (status: string, percentage: number, speed?: number) => {
         if (status === 'downloading') {
-            return `正在下载分包文件 (${progress}%)`;
+            const speedText = speed && speed > 0 ? ` · ${formatSpeed(speed)}` : '';
+            return `正在下载分包文件 (${percentage}%)${speedText}`;
         }
         if (status === 'stopped') {
-            return `下载已暂停 (已完成 ${progress}%)`;
+            return `下载已暂停 (已完成 ${percentage}%)`;
         }
         if (status === 'merging') {
-            return '所有分包已下载完成，正在合并分包文件...';
+            return '所有分包已下载完成，正在合并解压分包...';
         }
         if (status.startsWith('verifying')) {
             const partIndex = status.replace('verifying_', '').replace('verifying', '');
@@ -88,10 +128,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             // 2. 查询当前真实下载进度状态
             try {
                 const progressRes = await api.getDownloadProgress();
-                const { progress, status, error } = progressRes.data;
+                const { progress, total_bytes, speed_bps, status, error } = progressRes.data;
 
                 setDownloadStatus(status || 'idle');
-                setDownloadProgress(typeof progress === 'number' ? Math.max(0, Math.min(100, progress)) : 0);
+                setDownloadProgress(typeof progress === 'number' ? Math.max(0, progress) : 0);
+                setTotalBytes(typeof total_bytes === 'number' && total_bytes > 0 ? total_bytes : undefined);
+                setSpeedBps(typeof speed_bps === 'number' ? speed_bps : undefined);
 
                 if (status === 'downloading' || status.startsWith('verifying') || status === 'merging') {
                     startProgressPolling();
@@ -119,9 +161,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         pollTimerRef.current = setInterval(async () => {
             try {
                 const res = await api.getDownloadProgress();
-                const { progress, status, error } = res.data;
+                const { progress, total_bytes, speed_bps, status, error } = res.data;
 
-                setDownloadProgress(typeof progress === 'number' ? Math.max(0, Math.min(100, progress)) : 0);
+                setDownloadProgress(typeof progress === 'number' ? Math.max(0, progress) : 0);
+                if (typeof total_bytes === 'number' && total_bytes > 0) {
+                    setTotalBytes(total_bytes);
+                }
+                setSpeedBps(typeof speed_bps === 'number' ? speed_bps : undefined);
                 setDownloadStatus(status);
 
                 if (status === 'error') {
@@ -172,9 +218,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         try {
             await api.stopDownload();
             setDownloadStatus('stopped');
+            setSpeedBps(0);
         } catch (err: unknown) {
             console.warn('Stop download error:', err);
             setDownloadStatus('stopped');
+            setSpeedBps(0);
         } finally {
             setIsActionLoading(false);
         }
@@ -189,11 +237,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             await api.deleteDownload();
             setDownloadStatus('idle');
             setDownloadProgress(0);
+            setSpeedBps(0);
             setDownloadError(null);
         } catch (err: unknown) {
             console.warn('Delete download error:', err);
             setDownloadStatus('idle');
             setDownloadProgress(0);
+            setSpeedBps(0);
         } finally {
             setIsActionLoading(false);
         }
@@ -208,7 +258,6 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             await api.installUpdate();
             setInstallSuccessMessage('安装程序已启动！应用正在准备执行更新...');
         } catch (err: unknown) {
-            const error = err as Error;
             setInstallSuccessMessage('安装程序已唤起，请根据屏幕提示完成安装。');
         } finally {
             setIsActionLoading(false);
@@ -225,6 +274,8 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             setErrorMsg(null);
             setDownloadStatus('idle');
             setDownloadProgress(0);
+            setTotalBytes(undefined);
+            setSpeedBps(undefined);
             setDownloadError(null);
             setIsInstalling(false);
             setInstallSuccessMessage(null);
@@ -236,6 +287,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
     if (!isOpen) return null;
 
+    const percentage = calcPercentage(downloadProgress, totalBytes);
     const isBusyProcessing =
         downloadStatus === 'downloading' ||
         downloadStatus === 'merging' ||
@@ -251,7 +303,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                 <div className="bg-[#7ABCF4] px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8]">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
-                            <ArrowUpCircle className="w-4 h-4 text-[#FEE061]" />
+                            <ArrowDownCircle className="w-4 h-4 text-[#FEE061]" />
                         </div>
                         <div>
                             <h3 className="text-base font-black tracking-tight">检查版本更新</h3>
@@ -286,7 +338,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                 <button
                                     type="button"
                                     onClick={fetchUpdate}
-                                    className="mt-2 px-3 py-1 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 transition-colors"
+                                    className="mt-2 px-3 py-1 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 transition-colors cursor-pointer"
                                 >
                                     重新检查
                                 </button>
@@ -362,12 +414,22 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                         <span className="text-xs font-black text-slate-800">一键自动下载更新</span>
                                     </div>
 
-                                    <span className="text-xs font-black">
-                    {downloadStatus === 'downloading' && (
-                        <span className="font-mono text-[#2B78C4]">{downloadProgress}%</span>
-                    )}
+                                    <div className="flex items-center gap-2 text-xs font-black">
+                                        {downloadStatus === 'downloading' && (
+                                            <div className="flex items-center gap-2">
+                                                {typeof speedBps === 'number' && (
+                                                    <span className="flex items-center gap-1 text-[11px] font-mono text-[#1E5B99] bg-[#E1F0FE] px-2 py-0.5 rounded-md border border-[#BCD7F2]">
+                            <Activity className="w-3 h-3 text-[#2B78C4]" />
+                                                        {formatSpeed(speedBps)}
+                          </span>
+                                                )}
+                                                <span className="font-mono text-[#2B78C4]">{percentage}%</span>
+                                            </div>
+                                        )}
                                         {downloadStatus === 'stopped' && (
-                                            <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">已暂停</span>
+                                            <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                        已暂停 ({percentage}%)
+                      </span>
                                         )}
                                         {downloadStatus.startsWith('verifying') && (
                                             <span className="text-amber-600 animate-pulse">MD5 校验中</span>
@@ -376,9 +438,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                             <span className="text-indigo-600 animate-pulse">合并解压中</span>
                                         )}
                                         {downloadStatus === 'ready' && (
-                                            <span className="text-[#22C55E] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">准备安装</span>
+                                            <span className="text-[#22C55E] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        准备安装
+                      </span>
                                         )}
-                  </span>
+                                    </div>
                                 </div>
 
                                 {/* Progress bar */}
@@ -387,8 +451,8 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                     downloadStatus === 'merging' ||
                                     downloadStatus.startsWith('verifying') ||
                                     downloadStatus === 'ready') && (
-                                    <div className="space-y-1.5 animate-in fade-in duration-150">
-                                        <div className="w-full h-3 bg-[#E9F2FA] rounded-full overflow-hidden border border-[#BCD7F2] p-0.5">
+                                    <div className="space-y-2 animate-in fade-in duration-150">
+                                        <div className="w-full h-3.5 bg-[#E9F2FA] rounded-full overflow-hidden border border-[#BCD7F2] p-0.5">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-300 ${
                                                     downloadStatus === 'ready'
@@ -405,18 +469,30 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                         downloadStatus.startsWith('verifying') ||
                                                         downloadStatus === 'merging'
                                                             ? '100%'
-                                                            : `${downloadProgress}%`,
+                                                            : `${percentage}%`,
                                                 }}
                                             />
                                         </div>
+
+                                        {/* Progress details: Status on left, Byte counts and percentage on right */}
                                         <div className="flex items-center justify-between text-[11px] text-slate-600 font-medium">
-                      <span className="flex items-center gap-1.5">
-                        {isBusyProcessing && <Loader2 className="w-3 h-3 animate-spin text-[#2B78C4]" />}
-                          {getStatusText(downloadStatus, downloadProgress)}
+                      <span className="flex items-center gap-1.5 truncate max-w-[55%]">
+                        {isBusyProcessing && <Loader2 className="w-3 h-3 animate-spin text-[#2B78C4] shrink-0" />}
+                          <span className="truncate">{getStatusText(downloadStatus, percentage, speedBps)}</span>
                       </span>
-                                            <span className="font-mono font-black text-slate-700">
-                        {downloadStatus === 'ready' ? '100%' : `${downloadProgress}%`}
-                      </span>
+
+                                            <div className="flex items-center gap-1.5 font-mono shrink-0">
+                                                <HardDrive className="w-3 h-3 text-slate-400" />
+                                                {totalBytes ? (
+                                                    <span className="font-bold text-slate-700">
+                            {formatBytes(downloadProgress)} / {formatBytes(totalBytes)} ({percentage}%)
+                          </span>
+                                                ) : (
+                                                    <span className="font-bold text-slate-700">
+                            {downloadProgress > 100 ? formatBytes(downloadProgress) : `${percentage}%`}
+                          </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )}

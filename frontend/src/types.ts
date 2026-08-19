@@ -210,7 +210,9 @@ export interface InstallUpdateResponse {
 }
 
 export interface DownloadProgressResponse {
-  progress: number;
+  progress: number; // 已下载字节数 (bytes) 或 进度值
+  total_bytes?: number; // 总字节数 (bytes)
+  speed_bps?: number; // 下载速度 (字节/秒 bytes/sec)
   status: DownloadStatus;
   error?: string;
 }
