@@ -171,6 +171,19 @@ export interface CheckUpdateResponse {
   mirrors?: Record<string, string>;
 }
 
+export type DownloadStatus = 'idle' | 'downloading' | 'verifying' | 'ready' | 'error';
+
+export interface StartDownloadResponse {
+  status: 'started' | 'error';
+  message?: string;
+}
+
+export interface DownloadProgressResponse {
+  progress: number;
+  status: DownloadStatus;
+  error?: string;
+}
+
 export interface SubmitFeedbackPayload {
   type: string;
   content: string;
