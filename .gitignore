@@ -16,4 +16,5 @@ keys/
 /frontend/build/
 /frontend/.env*
 /frontend/.idea/
-
+*.pth
+/ocr_models/
