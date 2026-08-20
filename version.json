@@ -4,7 +4,7 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "1.1.0 新增：跟随识别改为yolo目标检测+ocr+特征识别。修复：修复了win11下载异常问题、解决了特定情况下数据库连接不上的问题。",
+  "update_log": "1.1.0 新增：跟随识别改为yolo目标检测+ocr+特征识别。修复：修复了win10下载异常问题、解决了特定情况下数据库连接不上的问题。",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.0.0/",
     "files": [
