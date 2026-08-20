@@ -150,7 +150,7 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
 class AppApi:
     def open_scanner_to_app(self, target_app_name="计算器"):
         global scanner_window, api_instance
-        logger.info(f"--> [Python] 收到前端打开子窗口请求: {"计算器"}")
+        logger.info(f"--> [Python] 收到前端打开子窗口请求: {target_app_name}")
 
         def _open():
             global scanner_window, api_instance
@@ -214,9 +214,9 @@ class AppApi:
         # t_all = time.perf_counter()
         try:
             # t = time.perf_counter()
-            windows = gw.getWindowsWithTitle("计算器")
+            windows = gw.getWindowsWithTitle(target_title)
             if not windows:
-                return {"status": "error", "message": f"未找到窗口: {"计算器"}"}
+                return {"status": "error", "message": f"未找到窗口: {target_title}"}
             win = windows[0]
             if win.isMinimized:
                 win.restore()
