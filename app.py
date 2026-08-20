@@ -21,8 +21,8 @@ from logger import logger
 from core.api.predict import ocr
 from core.map_classifier import MapClassifier
 from core.api.predict import recognizer as recog
-from core.utils import crop_sections_from_pil, get_top_k_matches, scan_icon_names, get_icon_full_path, \
-    clean_debug_folder
+from core.utils import get_top_k_matches, scan_icon_names, get_icon_full_path, \
+    clean_debug_folder, crop_sections_from_pil_by_YOLOv8
 
 app = create_app()
 
@@ -95,7 +95,7 @@ class AppApi:
             win.move(x + dx, y + dy)
 
     def capture_and_recognize(self, target_title="计算器"):
-        global map_classifier_recognizer
+        global map_classifier_recognizer, names_dict
         try:
             # 1. 查找窗口
             windows = gw.getWindowsWithTitle(target_title)
@@ -112,7 +112,7 @@ class AppApi:
             bbox = (win.left, win.top, win.right, win.bottom)
             img = ImageGrab.grab(bbox)
 
-            title_pil, names_pil, items_pil = crop_sections_from_pil(img)
+            title_pil, names_pil, items_pil = crop_sections_from_pil_by_YOLOv8(img)
 
             # ----- 【测试代码：保存到本地】 -----
             # 创建 debug 文件夹
@@ -131,8 +131,7 @@ class AppApi:
 
             # 拿到map名
             if not map_classifier_recognizer:
-                map_classifier_recognizer = MapClassifier(config.MAP_CLASSIFIER, config.MAP_CLASSES,
-                                                          device=config.DEVICE)
+                map_classifier_recognizer = MapClassifier(config.MAP_CLASSIFIER, config.MAP_CLASSES)
             map_name = map_classifier_recognizer.predict_label(title_pil)
             map_num = int(map_name[3])
             logger.debug(f"mapname : {map_name}")
