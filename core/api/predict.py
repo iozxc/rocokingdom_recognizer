@@ -15,47 +15,37 @@ names_dict = None
 
 
 def scan_icon_names(app):
-    """
-    从数据库扫描所有图片名
-    返回: {"map1": ["小拉塔", "迪莫"], "map2": []}
-    """
-    # 初始化字典，确保 config.MAP_LIST 里的地图都有对应的 Key
+    logger.debug("开始从数据库扫描图标名(api模块)...")
+
     with app.app_context():
         names_dict = {map_name: [] for map_name in config.MAP_LIST}
 
         try:
-            # 这里建议直接创建一个临时的连接，或者使用你之前的 get_db()
-            # 注意：如果是独立脚本，请确保 DB_PATH 正确
             conn = get_db()
             cursor = conn.cursor()
 
-            # 只需要查询路径字段
             cursor.execute("SELECT path FROM icons")
             rows = cursor.fetchall()
 
             for row in rows:
-                # row[0] 格式示例: "map1/迪莫.png"
                 db_path = row[0]
 
-                # 使用 / 拆分
                 parts = db_path.split('/')
                 if len(parts) == 2:
                     map_name, filename = parts[0], parts[1]
 
-                    # 如果这个地图在我们的配置列表中
                     if map_name in names_dict:
-                        # 去掉后缀名，例如 "迪莫.png" -> "迪莫"
                         name_without_ext = os.path.splitext(filename)[0]
                         names_dict[map_name].append(name_without_ext)
 
             conn.close()
 
+            total = sum(len(v) for v in names_dict.values())
+            logger.info(f"图标名扫描完成(api模块)，共 {total} 个图标: " +
+                        ", ".join(f"{k}={len(v)}" for k, v in names_dict.items()))
+
         except Exception as e:
-            # 如果报错（比如数据库还没创建），记录日志
-            if 'logger' in globals():
-                logger.error(f"从数据库扫描图标名失败: {e}")
-            else:
-                logger.error(f"Error: {e}")
+            logger.error(f"从数据库扫描图标名失败(api模块): {e}", exc_info=True)
 
         return names_dict
 
@@ -63,6 +53,7 @@ def scan_icon_names(app):
 def name_dicts(app):
     global names_dict
     if not names_dict:
+        logger.debug("names_dict未初始化，触发懒加载(api模块)")
         names_dict = scan_icon_names(app)
     return names_dict
 
@@ -79,7 +70,7 @@ def recognizer():
             logger.info("数据库加载成功！")
         return _recognizer
     except Exception as e:
-        logger.error(f"数据库加载失败: {e}")
+        logger.error(f"数据库加载失败: {e}", exc_info=True)
 
 
 def f(image):
@@ -88,47 +79,51 @@ def f(image):
 
 
 def ocr_top_k_match(image, map_num, top_k=6, app=None):
-    # 1. OCR 提取文字
+    logger.debug(f"OCR top-k匹配开始: map_num={map_num}, top_k={top_k}")
+
     name = ocr().recognize_single_bottom_text(image)
 
-    # 如果没有识别到文字，直接返回空列表
     if not name:
+        logger.debug("OCR未识别到文字，返回空列表")
         return []
 
-    # 2. 通过你已有的 get_top_k_matches 获取初步匹配列表
+    logger.debug(f"OCR识别文字: '{name}'")
+
     map_key = f"map{map_num}"
     raw_result_list = get_top_k_matches(name, map_key, name_dicts(app), top_k)
 
-    # 3. 转换格式并补充 match_path
     final_ocr_results = []
     for item in raw_result_list:
-        # 获取图片的绝对路径
         full_path = get_icon_full_path(map_key, item['name'])
 
         if full_path:
-            # 这里的格式必须与 ImageRecognizer 返回的格式完全一致
             final_ocr_results.append({
                 "match_path": full_path,
                 "filename": os.path.basename(full_path),  # 自动带上 .png 后缀
                 "score": item['score']
             })
 
+    logger.debug(f"OCR模糊匹配完成: 原始候选={len(raw_result_list)}, 有效结果={len(final_ocr_results)}")
     return final_ocr_results
 
 
 def init_routes(app):
     @app.route('/predict', methods=['POST'])
     def predict():
+        logger.info(f"[/predict] 请求开始, map_num={request.form.get('map_num')}, "
+                    f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}")
+
         if 'image' not in request.files:
+            logger.warning("[/predict] 请求中无image字段")
             return jsonify({"error": "No image"}), 400
 
-        # 1. 获取参数
         file = request.files.get('image')
         map_num = request.form.get('map_num', 1)
         threshold = float(request.form.get('threshold', config.DEFAULT_THRESHOLD))
         top_k = int(request.form.get('top_k', config.DEFAULT_TOPK))
 
         if not file:
+            logger.warning("[/predict] image文件为空")
             return jsonify({"error": "No image uploaded"}), 400
 
         try:
@@ -137,13 +132,17 @@ def init_routes(app):
                 file.save(temp_path)
 
             img = Image.open(temp_path).convert('RGB')
+            logger.debug(f"[/predict] 图片尺寸: {img.size}")
 
             feat_results, err = recognizer().match(img, map_num, threshold, top_k=top_k)
+            logger.debug(f"[/predict] 特征匹配: 结果数={len(feat_results) if feat_results else 0}, err={err}")
 
             if err:
+                logger.warning(f"[/predict] 特征匹配返回错误: {err}")
                 return jsonify({"error": err}), 500
 
             ocr_results = ocr_top_k_match(temp_path, map_num, top_k, app)
+            logger.debug(f"[/predict] OCR匹配结果数: {len(ocr_results)}")
 
             combined_results = feat_results + ocr_results
 
@@ -154,42 +153,47 @@ def init_routes(app):
                 if path not in unique_results or res['score'] > unique_results[path]['score']:
                     unique_results[path] = res
 
-            # 转回列表
             final_list = list(unique_results.values())
 
-            # 排序：按 score 从高到低
             final_list.sort(key=lambda x: x['score'], reverse=True)
 
-            # 截取 top_k 个
             final_list = final_list[:top_k]
 
-            # 6. 清理临时文件
             if os.path.exists(temp_path):
                 os.remove(temp_path)
 
             if final_list:
                 map_name = f"map{map_num}"
-                # 遍历列表，为每个匹配项添加 view_url
                 for res in final_list:
                     res['view_url'] = url_for('get_icon_file',
                                               map_name=map_name,
                                               filename=res['filename'],
                                               _external=True)
 
+                top1 = final_list[0]
+                logger.info(f"[/predict] 预测成功: top1={top1['filename']}({top1['score']:.3f}), "
+                            f"共{len(final_list)}个候选")
                 return jsonify({
                     "status": "success",
                     "count": len(final_list),
                     "data": final_list  # 此时 data 是一个数组
                 })
 
+            logger.info(f"[/predict] 无匹配结果, err={err}")
             return jsonify({"status": "fail", "reason": err}), 404
 
         except Exception as e:
+            logger.error(f"[/predict] 处理异常: {e}", exc_info=True)
             return jsonify({"error": str(e)}), 500
 
     @app.route('/init_batch', methods=['POST'])
     def predict_batch():
+        logger.info(f"[/init_batch] 请求开始, map_num={request.form.get('map_num')}, "
+                    f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
+                    f"total_count={request.form.get('total_count')}")
+
         if 'image' not in request.files:
+            logger.warning("[/init_batch] 请求中无image字段")
             return jsonify({"error": "No image uploaded"}), 400
 
         file = request.files['image']
@@ -200,38 +204,36 @@ def init_routes(app):
 
         temp_path = None
         try:
-            # 1. 保存临时文件
             with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
                 temp_path = tmp.name
                 file.save(temp_path)
 
-            # 2. OCR 识别（拿到底部名字列表）
             ocr_names = ocr().recognize_bottom_text(temp_path)
+            logger.debug(f"[/init_batch] OCR识别名字列表: {ocr_names}")
 
-            # 3. 分割图标
             with open(temp_path, 'rb') as f:
                 image_bytes = f.read()
             pil_icons = segment_icons(image_bytes, total_count)
+            logger.debug(f"[/init_batch] 图标分割数量: {len(pil_icons)}")
 
-            # --- 核心修正逻辑：确定最终要返回的数量 ---
-            # 如果 OCR 精准识别到了 1-3 个文字，即使图片分割失败（比如只分出1个），我们也以 OCR 数量为准
             num_ocr = len(ocr_names)
             num_pil = len(pil_icons)
 
-            # 判定 OCR 是否可信：数量在1-3之间
             use_ocr_count = 1 <= num_ocr <= 3
 
-            # 最终处理的数量：如果 OCR 可信，取两者最大值
             total_detected = max(num_pil, num_ocr) if use_ocr_count else num_pil
+
+            logger.debug(f"[/init_batch] 数量决策: num_ocr={num_ocr}, num_pil={num_pil}, "
+                        f"use_ocr_count={use_ocr_count}, total_detected={total_detected}")
 
             if total_detected == 0:
                 if temp_path and os.path.exists(temp_path): os.remove(temp_path)
+                logger.info("[/init_batch] 未检测到图标或文字，返回404")
                 return jsonify({"status": "fail", "reason": "No icons or text detected"}), 404
 
             batch_results = []
             map_name = f"map{map_num}"
 
-            # 以修正后的总数进行遍历
             for i in range(total_detected):
                 # A. 获取图像块进行特征匹配（如果 i 超过了分割块数量，则不进行图像匹配）
                 feat_results = []
@@ -248,7 +250,7 @@ def init_routes(app):
                     matches = get_top_k_matches(target_word, map_name, name_dicts(app), k=top_k)
                     for m in matches:
                         # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
-                        # 或者当没有图像块可用时，我们也接受这个结果
+                        # 或者当没有图像块可用时，也接受这个结果
                         full_path = get_icon_full_path(map_name, m['name'])
                         if full_path:
                             ocr_match_results.append({
@@ -284,10 +286,18 @@ def init_routes(app):
                                                   filename=res['filename'],
                                                   _external=True)
                     res_item.update({"status": "matched", "candidates": final_candidates})
+                    top1 = final_candidates[0]
+                    logger.debug(f"[/init_batch] 槽位{i}: matched -> {top1['filename']}({top1['score']:.3f}), "
+                                f"候选数={len(final_candidates)}")
                 else:
                     res_item.update({"status": "unmatched", "reason": "Low confidence or no detection"})
+                    logger.debug(f"[/init_batch] 槽位{i}: unmatched")
 
                 batch_results.append(res_item)
+
+            matched = sum(1 for r in batch_results if r['status'] == 'matched')
+            logger.info(f"[/init_batch] 批量预测完成: total={total_detected}, matched={matched}, "
+                       f"unmatched={total_detected - matched}")
 
             return jsonify({
                 "status": "success",
@@ -296,12 +306,12 @@ def init_routes(app):
             })
 
         except Exception as e:
-            logger.error(e)
+            logger.error(f"[/init_batch] 批量预测异常: {e}", exc_info=True)
             return jsonify({"error": str(e)}), 500
 
         finally:
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.remove(temp_path)
-                except:
-                    pass
+                except Exception as e:
+                    logger.warning(f"[/init_batch] 临时文件清理失败: {e}")

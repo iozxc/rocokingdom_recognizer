@@ -11,7 +11,6 @@ def get_update_info():
     """
     从远程 JSON 文件检查更新信息
     """
-    # === 新增日志 === 函数入口
     logger.debug(f"开始检查更新，当前版本: {CURRENT_VERSION}")
     try:
         # 模拟浏览器请求头，防止部分平台（如 GitHub）拦截无 Header 的请求
@@ -20,7 +19,6 @@ def get_update_info():
             'Cache-Control': 'no-cache'  # 强制获取最新内容，防止缓存
         }
 
-        # === 新增日志 === 请求发送前
         logger.debug(f"请求更新地址: {CHECK_URL}")
 
         # 发起请求，超时设为 5 秒

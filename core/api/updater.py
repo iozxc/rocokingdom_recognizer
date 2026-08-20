@@ -42,8 +42,11 @@ def verify_md5(file_path, expected_md5):
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(65536), b""):
                 hash_md5.update(chunk)
-        return hash_md5.hexdigest().lower() == expected_md5.lower()
-    except Exception:
+        result = hash_md5.hexdigest().lower() == expected_md5.lower()
+        logger.debug(f"MD5校验: {os.path.basename(file_path)} -> {'通过' if result else '失败'}")
+        return result
+    except Exception as e:
+        logger.error(f"MD5校验异常 {file_path}: {e}", exc_info=True)
         return False
 
 
@@ -67,18 +70,22 @@ def real_download_logic():
     updater.stop_requested = False
     updater.pause_requested = False
 
+    logger.info("开始执行更新下载流程")
+
     try:
         auto_update_cfg = updater.latest_info.get('auto_update')
         files = auto_update_cfg['files']
         base_url = auto_update_cfg['base_url']
+        logger.info(f"下载配置: 分片数={len(files)}, 基地址={base_url}")
 
         temp_dir = "update_temp"
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
 
         file_size_map = {}
-        # ========= 关键：判断是全新下载，还是断点恢复 =========
         is_resume = updater.status == "paused" and updater.total_bytes > 0
+
+        logger.info(f"下载模式: {'断点续传' if is_resume else '全新下载'}")
 
         if not is_resume:
             # 全新下载：HEAD 请求获取分片大小，重置进度
@@ -92,20 +99,20 @@ def real_download_logic():
                     resp_head.raise_for_status()
                     size = int(resp_head.headers["content-length"])
                 except Exception:
+                    logger.warning(f"HEAD请求失败，改用GET获取大小: {file_item['name']}")
                     resp_head = requests.get(download_url, headers=headers_head, stream=True, timeout=10)
                     resp_head.close()
                     resp_head.raise_for_status()
                     size = int(resp_head.headers["content-length"])
                 file_size_map[file_item['name']] = size
                 updater.total_bytes += size
+            logger.info(f"更新包总大小: {updater.total_bytes / 1024 / 1024:.1f} MB")
         else:
             # -------- 断点恢复：不再发HEAD请求，从内存读取旧的file_size_map不存在，重新构建size_map --------
-            # 注意：进程重启后内存丢失，会走到全新下载分支
             for file_item in files:
                 # 恢复模式下必须依赖上一次保存的total_bytes；如果进程重启，is_resume=False，会重新HEAD
                 file_size_map[file_item['name']] = file_item["size"]
 
-        # 恢复模式：从磁盘统计已经下载完成分片字节，初始化progress，**不会置0**
         finished_part_bytes = 0
         for file_item in files:
             fname = file_item['name']
@@ -114,6 +121,8 @@ def real_download_logic():
             if os.path.exists(fpath) and os.path.getsize(fpath) == fsize:
                 finished_part_bytes += fsize
         updater.progress = finished_part_bytes
+        if finished_part_bytes > 0:
+            logger.info(f"断点续传: 已完成 {finished_part_bytes / 1024 / 1024:.1f} MB / {updater.total_bytes / 1024 / 1024:.1f} MB")
 
         # 速度统计初始化，使用当前已下载字节，避免恢复瞬间速度异常
         updater.speed_bps = 0
@@ -141,16 +150,21 @@ def real_download_logic():
                 existing_size = os.path.getsize(save_path)
 
             if existing_size == this_file_total_size:
+                logger.debug(f"分片 {file_name} 已存在且完整，跳过下载")
                 updater.status = f"verifying_{i + 1}"
                 if not verify_md5(save_path, expected_md5):
                     updater.status = "error"
                     updater.error_msg = f"文件 {file_name} 校验失败，请重试。"
                     updater.speed_bps = 0
+                    logger.error(f"分片校验失败: {file_name}")
                     return
                 updater.status = "downloading"
                 finished_part_bytes += this_file_total_size
                 updater.progress = finished_part_bytes
                 continue
+
+            logger.info(f"开始下载分片 [{i+1}/{len(files)}]: {file_name} "
+                       f"({this_file_total_size / 1024 / 1024:.1f} MB, 断点={existing_size > 0})")
 
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
@@ -215,14 +229,17 @@ def real_download_logic():
                 updater.status = "error"
                 updater.error_msg = f"文件 {file_name} 校验失败，请重试。"
                 updater.speed_bps = 0
+                logger.error(f"分片下载后校验失败: {file_name}")
                 return
 
             finished_part_bytes += this_file_total_size
             updater.progress = finished_part_bytes
+            logger.info(f"分片下载完成 [{i+1}/{len(files)}]: {file_name}")
 
         # 全部完成
         updater.status = "merging"
         updater.speed_bps = 0
+        logger.info("所有分片下载完成，开始合并...")
         combined_zip = "RocoKingdomReg_Update_Package.7z"
         with open(combined_zip, "wb") as outfile:
             for file_item in files:
@@ -239,13 +256,17 @@ def real_download_logic():
         updater.status = "error"
         updater.error_msg = f"网络连接失败: {str(e)}"
         updater.speed_bps = 0
+        logger.error(f"更新下载网络异常: {e}", exc_info=True)
     except Exception as e:
         updater.status = "error"
         updater.error_msg = f"更新失败: {str(e)}"
         updater.speed_bps = 0
+        logger.error(f"更新下载异常: {e}", exc_info=True)
 
 def create_bat_script(temp_dir):
     exe_name = "RocoKingdomRecognizer.exe"
+
+    logger.debug("创建更新批处理脚本 update.bat")
 
     # 批处理脚本内容
     # ping 127.0.0.1 -n 3 用于等待 2 秒（比 timeout 更兼容）
@@ -308,14 +329,17 @@ pause
     # 必须使用 gbk 编码，否则 Windows 批处理显示中文会乱码
     with open("update.bat", "w", encoding="gbk") as f:
         f.write(bat_content)
+    logger.debug("更新批处理脚本创建完成")
 
 
 def apply_update():
     """
     解压并准备更新脚本
     """
+    logger.info("开始应用更新：解压并准备安装脚本")
     try:
         # 1. 第一层解压：提取出内部的 RocoKingdomRecognizer.7z
+        logger.debug("第一层解压: 提取内部更新包")
         with py7zr.SevenZipFile(combined_zip, 'r') as z:
             z.extract(inner_zip, ".")
 
@@ -323,6 +347,7 @@ def apply_update():
         if os.path.exists(temp_extract_dir):
             shutil.rmtree(temp_extract_dir)
 
+        logger.debug("第二层解压: 解压到临时目录")
         with py7zr.SevenZipFile(inner_zip, 'r') as z:
             z.extractall(temp_extract_dir)
 
@@ -331,26 +356,35 @@ def apply_update():
 
         # 4. 启动脚本并退出
         # 使用 Popen 启动，不要等待它结束
+        logger.info("启动更新脚本并退出当前进程")
         subprocess.Popen("update.bat", shell=True)
         os._exit(0)  # 强制关闭当前 Python 进程
 
     except Exception as e:
-        logger.error(f"解压或启动更新脚本失败: {e}")
+        # === 修复 === 增加 exc_info
+        logger.error(f"解压或启动更新脚本失败: {e}", exc_info=True)
 
 
 def init_routes(app):
     @app.route('/api/check_update')
     def check_update_api():
+        logger.info("[API] 检查更新")
         info = get_update_info()
         updater.latest_info = info
+        has_update = info.get("has_update", False)
+        latest = info.get("latest_version", "未知")
+        logger.info(f"[API] 检查更新结果: has_update={has_update}, latest={latest}")
         return info
 
     @app.route('/api/start_download')
     def start_download_api():
+        logger.info(f"[API] 请求开始下载, 当前状态={updater.status}")
         if not updater.latest_info:
+            logger.warning("[API] 开始下载失败: latest_info为空")
             return {"status": "error", "message": "无效操作"}
 
         if updater.status == "downloading":
+            logger.debug("[API] 已在下载中，跳过")
             return {"status": "downloading"}
 
         # 开启新线程下载，防止阻塞 Flask 响应
@@ -370,24 +404,26 @@ def init_routes(app):
         }
 
     @app.route('/api/apply_update', methods=['GET'])
-    def apply_update():
+    def apply_update_api():
         """开始安装"""
+        logger.info("[API] 请求应用更新（安装）")
         apply_update()
         return {"status": "install"}
 
     @app.route('/api/stop_download', methods=['GET'])
     def stop_download():
         """停止下载信号"""
+        logger.info("[API] 请求暂停下载")
         updater.pause_requested = True
         return {"status": "stopped"}
 
     @app.route('/api/delete_download', methods=['GET'])
     def delete_download():
         """删除已下载的更新文件（无论是下完的还是没下完的）"""
+        logger.info("[API] 请求删除已下载的更新文件")
         # 如果正在下载，先发停止信号
         updater.stop_requested = True
         updater.pause_requested = False
-        # 执行清理
         handle_cleanup("update_temp")
         updater.status = "idle"  # 重置回空闲状态
         return {"status": "deleted"}

@@ -10,23 +10,19 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import numpy as np
 from PIL import Image
 
+from logger import logger
+
+
 def get_icon_full_path(map_name, icon_name_without_ext):
-    """
-    通过 map 名和图片名（不含后缀）反查文件的绝对路径
-    """
     return os.path.normpath(os.path.join(config.ICONS_DIR, map_name, icon_name_without_ext + '.png'))
 
 
 def get_best_match(user_name, map_key, names_dict):
-    """
-    在指定的 map 列表里寻找与 user_name 最相似的字符串
-    :param user_name: 用户提供的名字（或 OCR 识别到的）
-    :param map_key: 字典的键，如 "map1"
-    :param names_dict: 你获取到的那个全量字典
-    :return: (最匹配的字符串, 匹配度得分)
-    """
+    logger.debug(f"get_best_match: user='{user_name}', map={map_key}")
+
     # 1. 安全检查：如果 key 不存在或列表为空
     if map_key not in names_dict or not names_dict[map_key]:
+        logger.warning(f"get_best_match: 地图 {map_key} 不存在或为空")
         return None, 0.0
 
     candidates = names_dict[map_key]
@@ -44,20 +40,16 @@ def get_best_match(user_name, map_key, names_dict):
             best_name = candidate
 
     # 3. 返回结果 (例如: "小拉塔", 0.85)
+    logger.debug(f"get_best_match: 最佳匹配='{best_name}', 得分={max_score:.4f}")
     return best_name, round(max_score, 4)
 
 
 def get_top_k_matches(user_name, map_key, names_dict, k=3):
-    """
-    在指定的 map 列表里寻找与 user_name 最相似的前 K 个字符串
-    :param user_name: 用户提供的名字（或 OCR 识别到的）
-    :param map_key: 字典的键，如 "map1"
-    :param names_dict: 图标名称字典
-    :param k: 需要返回的前几个结果
-    :return: 包含 {"name": 名字, "score": 分数} 的列表，按分数从高到低排序
-    """
+    logger.debug(f"get_top_k_matches: user='{user_name}', map={map_key}, k={k}")
+
     # 1. 安全检查
     if map_key not in names_dict or not names_dict[map_key]:
+        logger.warning(f"get_top_k_matches: 地图 {map_key} 不存在或为空")
         return []
 
     candidates = names_dict[map_key]
@@ -81,11 +73,20 @@ def get_top_k_matches(user_name, map_key, names_dict, k=3):
     # 如果列表长度不足 K，slice 会自动返回现有的全部
     top_k = scored_results[:k]
 
+    if top_k:
+        top1 = top_k[0]
+        logger.debug(f"get_top_k_matches: top1='{top1['name']}'({top1['score']:.4f}), "
+                    f"返回{len(top_k)}个候选")
+    else:
+        logger.debug("get_top_k_matches: 无匹配结果")
+
     return top_k
 
 
 # 2k
 def crop_sections_from_pil(pil_image: Image.Image):
+    logger.debug(f"crop_sections_from_pil(固定坐标): 图片尺寸={pil_image.size}")
+
     arr = np.array(pil_image)
 
     # 大约在顶部中央
@@ -120,63 +121,64 @@ def capture_window_by_hwnd(hwnd):
     窗口被遮挡、部分在屏幕外也能抓到。
     返回 PIL Image，失败返回 None。
     """
+    logger.debug(f"capture_window_by_hwnd: hwnd={hwnd}")
+
     # 获取窗口尺寸（整个窗口，含标题栏，与原 ImageGrab 行为一致）
     left, top, right, bottom = win32gui.GetWindowRect(hwnd)
     width = right - left
     height = bottom - top
     if width <= 0 or height <= 0:
+        logger.warning(f"capture_window_by_hwnd: 窗口尺寸异常 ({width}x{height}), hwnd={hwnd}")
         return None
 
-    hwndDC = win32gui.GetWindowDC(hwnd)
-    mfcDC = win32ui.CreateDCFromHandle(hwndDC)
-    saveDC = mfcDC.CreateCompatibleDC()
+    hwndDC = None
+    mfcDC = None
+    saveDC = None
+    saveBitMap = None
 
-    saveBitMap = win32ui.CreateBitmap()
-    saveBitMap.CreateCompatibleBitmap(mfcDC, width, height)
-    saveDC.SelectObject(saveBitMap)
+    try:
+        hwndDC = win32gui.GetWindowDC(hwnd)
+        mfcDC = win32ui.CreateDCFromHandle(hwndDC)
+        saveDC = mfcDC.CreateCompatibleDC()
 
-    # PW_RENDERFULLCONTENT = 2，可捕获硬件加速/视频/游戏画面
-    result = ctypes.windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 2)
+        saveBitMap = win32ui.CreateBitmap()
+        saveBitMap.CreateCompatibleBitmap(mfcDC, width, height)
+        saveDC.SelectObject(saveBitMap)
 
-    bmpinfo = saveBitMap.GetInfo()
-    bmpstr = saveBitMap.GetBitmapBits(True)
+        result = ctypes.windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 2)
 
-    img = Image.frombuffer(
-        'RGB',
-        (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
-        bmpstr, 'raw', 'BGRX', 0, 1
-    )
+        if result == 0:
+            logger.warning(f"capture_window_by_hwnd: PrintWindow返回失败, hwnd={hwnd}")
 
-    # 释放 GDI 资源，防止泄漏
-    win32gui.DeleteObject(saveBitMap.GetHandle())
-    saveDC.DeleteDC()
-    mfcDC.DeleteDC()
-    win32gui.ReleaseDC(hwnd, hwndDC)
+        bmpinfo = saveBitMap.GetInfo()
+        bmpstr = saveBitMap.GetBitmapBits(True)
 
-    return img if result else None
+        img = Image.frombuffer(
+            'RGB',
+            (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+            bmpstr, 'raw', 'BGRX', 0, 1
+        )
 
+        logger.debug(f"capture_window_by_hwnd: 捕获成功 {width}x{height}, result={result}")
+        return img if result else None
 
-# if __name__ == '__main__':
-#     # 假设这是你扫描出来的 dict
-#     names = {
-#         "map1": ["小拉塔", "迪莫", "皮卡丘", "皮卡丘1", "皮卡丘2", "皮卡丘3", "皮卡丘4", "皮卡丘5", "皮卡皮卡"],
-#         "map2": ["火花", "喵喵"],
-#         "map3": ["水蓝蓝"]
-#     }
-#
-#     # 模拟用户输入了 "小拉" (OCR 可能没识别全)
-#     target_key = "map1"
-#     input_text = "皮卡"
-#
-#     match_name, score = get_best_match(input_text, target_key, names)
-#
-#     print(f"输入: {input_text}")
-#     print(f"在 {target_key} 中找到最匹配的是: {match_name}")
-#     print(f"匹配度(置信度): {score}")
-#     # 输出示例: 匹配度: 0.8 (因为 "小拉" 是 "小拉塔" 的子串)
-#
-#     results = get_top_k_matches(input_text, target_key, names, 6)
-#     print(results)
+    except Exception as e:
+        logger.error(f"capture_window_by_hwnd: 捕获异常 hwnd={hwnd}: {e}", exc_info=True)
+        return None
+
+    finally:
+        try:
+            if saveBitMap is not None:
+                win32gui.DeleteObject(saveBitMap.GetHandle())
+            if saveDC is not None:
+                saveDC.DeleteDC()
+            if mfcDC is not None:
+                mfcDC.DeleteDC()
+            if hwndDC is not None:
+                win32gui.ReleaseDC(hwnd, hwndDC)
+        except Exception as e:
+            logger.warning(f"capture_window_by_hwnd: GDI资源释放异常: {e}")
+
 
 if __name__ == "__main__":
     img = Image.open("test.jpg")

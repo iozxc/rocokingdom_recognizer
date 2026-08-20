@@ -155,7 +155,6 @@ def crop_sections_from_pil_by_YOLOv8(pil_image: Image.Image, debug=True):
     """
     使用 ONNX 推理进行动态裁剪，并可选开启可视化调试
     """
-    # === 新增日志 === 裁剪开始
     logger.debug("开始YOLO动态裁剪")
     detections = yolo_model.predict(pil_image, conf_threshold=CONF_THRESH)
 
@@ -177,7 +176,6 @@ def crop_sections_from_pil_by_YOLOv8(pil_image: Image.Image, debug=True):
         elif cid == 1:
             item_boxes.append(box)
 
-    # === 新增日志 === 分类统计
     logger.debug(f"检测分类: Title={len([d for d in detections if d['class']==0])}, "
                  f"Name={len(name_boxes)}, Item={len(item_boxes)}")
 

@@ -4,6 +4,7 @@ import cv2
 import os
 import pickle
 from logger import logger
+import time
 
 
 class MapClassifier:
@@ -12,25 +13,38 @@ class MapClassifier:
         :param model_path: map_classifier.onnx 路径
         :param class_names_path: map_classes.json 路径
         """
+        logger.info(f"初始化MapClassifier: 模型={onnx_model_path}, 特征库={database_path}")
+
         # 1. 加载 ONNX 模型
         if not os.path.exists(onnx_model_path):
+            logger.error(f"ONNX模型文件缺失: {onnx_model_path}")
             raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
 
         # 优化选项：仅使用 CPU 运行
         self.session = ort.InferenceSession(onnx_model_path, providers=['CPUExecutionProvider'])
+        logger.info("MapClassifier ONNX模型加载成功 (CPU)")
 
         # 2. 预处理参数 (必须与 Torchvision 的 Normalize 一致)
         self.mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape((1, 1, 3))
         self.std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape((1, 1, 3))
 
         self.databases = {}
-        self.load_db(database_path)
+        if database_path:
+            self.load_db(database_path)
+        else:
+            logger.warning("MapClassifier初始化时未提供特征库路径，需后续调用load_db")
 
     def load_db(self, path):
         """加载经过转换后的 pkl 特征库"""
-        with open(path, 'rb') as f:
-            self.databases = pickle.load(f)
-        logger.info(f"--- 成功加载特征库 (NumPy): {path} ---")
+        logger.debug(f"开始加载特征库: {path}")
+        try:
+            with open(path, 'rb') as f:
+                self.databases = pickle.load(f)
+            feat_count = len(self.databases.get("features", []))
+            logger.info(f"--- 成功加载特征库 (NumPy): {path}, 特征数={feat_count} ---")
+        except Exception as e:
+            logger.error(f"加载特征库失败 {path}: {e}", exc_info=True)
+            raise
 
     def preprocess(self, img):
         """
@@ -64,6 +78,7 @@ class MapClassifier:
 
     def get_feature(self, img):
         """提取特征并进行 L2 归一化"""
+        t0 = time.perf_counter()
         input_tensor = self.preprocess(img)
 
         # 执行 ONNX 推理
@@ -77,17 +92,34 @@ class MapClassifier:
         norm = np.linalg.norm(feature)
         if norm > 0:
             feature = feature / norm
+
+        elapsed = (time.perf_counter() - t0) * 1000
+        logger.debug(f"地图分类特征提取: 维度={len(feature)}, 耗时={elapsed:.1f}ms")
         return feature
 
     def match(self, img_pil):
+        t0 = time.perf_counter()
+        logger.debug("开始地图分类匹配")
+
         query_feat = self.get_feature(img_pil)
         db = self.databases
+
+        if not db or "features" not in db or len(db["features"]) == 0:
+            logger.warning("地图分类特征库为空，返回默认map1")
+            return "map1"
+
         similarities = np.dot(db["features"], query_feat)
         actual_k = min(1, len(db["features"]))
         indices = np.argsort(similarities)[::-1][:actual_k]
 
         for idx in indices:
-            return db["paths"][idx].split(".")[0]
+            result = db["paths"][idx].split(".")[0]
+            max_sim = similarities[idx]
+            elapsed = (time.perf_counter() - t0) * 1000
+            logger.info(f"地图分类结果: {result}, 最高相似度={max_sim:.4f}, 耗时={elapsed:.1f}ms")
+            return result
+
+        logger.warning("地图分类无匹配结果，返回默认map1")
         return "map1"
 
 

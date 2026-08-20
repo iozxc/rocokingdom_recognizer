@@ -8,6 +8,7 @@ from flask import jsonify, url_for
 
 import config
 from core.db import get_db
+from logger import logger
 
 PET_NAME_TO_ID = {}
 try:
@@ -15,8 +16,10 @@ try:
         root = json.load(f)
     pet_list = root.get("pets", [])
     PET_NAME_TO_ID = {item["name"]: item["id"] for item in pet_list}
-except Exception:
+    logger.info(f"宠物图鉴加载成功: {len(PET_NAME_TO_ID)} 个宠物")
+except Exception as e:
     # 读取失败，降级：所有图标排末尾
+    logger.warning(f"宠物图鉴加载失败，将降级排序: {e}", exc_info=True)
     PET_NAME_TO_ID = {}
 
 
@@ -45,6 +48,7 @@ def init_routes(app):
     @app.route('/icons', methods=['GET'])
     def list_icons():
         """从数据库读取所有图片的名字及其对应的访问 URL，按图鉴id排序"""
+        logger.info("[GET /icons] 请求图标列表")
         try:
             db = get_db()
             cursor = db.execute("SELECT path FROM icons ORDER BY path ASC")
@@ -79,14 +83,18 @@ def init_routes(app):
             for map_name in icons_structure:
                 icons_structure[map_name]["items"].sort(key=sort_key)
 
+            total = sum(v["count"] for v in icons_structure.values())
+            logger.debug(f"[GET /icons] 返回 {len(icons_structure)} 个地图, 共 {total} 个图标")
             return jsonify({"status": "success", "data": icons_structure})
 
         except Exception as e:
+            logger.error(f"[GET /icons] 异常: {e}", exc_info=True)
             return jsonify({"status": "error", "message": str(e)}), 500
 
     @app.route('/icons/<map_name>/<filename>')
     def get_icon_file(map_name, filename):
         """从数据库直接返回图片二进制流"""
+        logger.debug(f"[GET /icons] 获取图标: {map_name}/{filename}")
         try:
             # 数据库中存储的路径格式是 "map_name/filename"
             db_path = f"{map_name}/{filename}"
@@ -99,8 +107,9 @@ def init_routes(app):
                 # 直接返回二进制数据，mimetype 设置为 image/png
                 return Response(row[0], mimetype='image/png')
             else:
+                logger.warning(f"[GET /icons] 图标不存在: {db_path}")
                 return "Icon Not Found", 404
 
         except Exception as e:
+            logger.error(f"[GET /icons] 获取图标异常 {map_name}/{filename}: {e}", exc_info=True)
             return str(e), 500
-

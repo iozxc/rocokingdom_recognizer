@@ -33,6 +33,7 @@ DATABASE_PATH = get_resource_path('features_db.pt')
 DATABASE2_PATH = get_resource_path('features_title_db.pt')
 ASSETS_FILE = get_resource_path('assets.db')
 DATA_FILE = get_external_path('roco_user_data.json')
+PETS_FILE = get_external_path('roco_all_pets.json')
 
 MAP_CLASSIFIER = get_resource_path(os.path.join('onnx', 'map_classifier.onnx'))
 MAP_CLASSES = get_resource_path(os.path.join('onnx', 'map_classes.json'))

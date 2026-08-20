@@ -3,7 +3,6 @@ import ctypes
 import sqlite3
 import time
 
-import waitress
 from PIL import ImageGrab
 from flask import g
 
@@ -28,6 +27,10 @@ from core.utils import get_top_k_matches, get_icon_full_path
 from crop import crop_sections_from_pil_by_YOLOv8
 from tools import clean_debug_folder
 import multiprocessing
+from waitress import serve
+
+logger.info("=" * 50)
+logger.info("程序启动，初始化模块...")
 
 app = create_app()
 
@@ -49,6 +52,7 @@ def get_waitress_threads() -> int:
     cpu = multiprocessing.cpu_count() or 4
     threads = cpu * 2
     threads = max(4, min(threads, 12))  # 强制钳位 4~12之间
+    logger.debug(f"waitress线程计算: CPU逻辑核数={cpu}, 最终线程数={threads}")
     return threads
 
 
@@ -65,6 +69,8 @@ def scan_icon_names():
     从数据库扫描所有图片名
     返回: {"map1": ["小拉塔", "迪莫"], "map2": []}
     """
+    logger.debug("开始从数据库扫描图标名...")
+
     # 初始化字典，确保 config.MAP_LIST 里的地图都有对应的 Key
     with app.app_context():
         names_dict = {map_name: [] for map_name in config.MAP_LIST}
@@ -96,12 +102,12 @@ def scan_icon_names():
 
             conn.close()
 
+            total = sum(len(v) for v in names_dict.values())
+            logger.info(f"图标名扫描完成，共 {total} 个图标: " +
+                        ", ".join(f"{k}={len(v)}" for k, v in names_dict.items()))
+
         except Exception as e:
-            # 如果报错（比如数据库还没创建），记录日志
-            if 'logger' in globals():
-                logger.error(f"从数据库扫描图标名失败: {e}")
-            else:
-                logger.error(f"Error: {e}")
+            logger.error(f"从数据库扫描图标名失败: {e}", exc_info=True)
 
         return names_dict
 
@@ -109,13 +115,17 @@ def scan_icon_names():
 def process_single_item(i, name_img, item_img, map_num, map_name):
     """单个槽位的并行处理函数"""
     t_start = time.perf_counter()
+    logger.debug(f"[槽位{i}] 开始处理，地图={map_name}(map{map_num})")
 
     # 1. OCR 识别 (使用单例且跳过检测)
     engine = ocr()
     ocr_name = engine.recognize_crop_only(name_img)
+    # OCR识别结果
+    logger.debug(f"[槽位{i}] OCR识别结果: '{ocr_name}'")
 
     # 特殊情况处理
     if ocr_name in ["魔力之源", "远行商人"]:
+        logger.info(f"[槽位{i}] 特殊物品直接匹配: {ocr_name}")
         return {
             "filename": f"{ocr_name}.png",
             "score": 1,
@@ -126,14 +136,17 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
     # OCR 辅助匹配
     global names_dict
     if not names_dict:
+        logger.debug("[槽位{i}] names_dict未初始化，触发懒加载")
         names_dict = scan_icon_names()
 
     ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=3)
+    logger.debug(f"[槽位{i}] OCR模糊匹配候选数: {len(ocr_results)}")
 
     # 2. 特征匹配与 OCR 模糊匹配并行 (此处可以继续细化，但主要瓶颈在 OCR)
     feat_results = [[]]
     if item_img:
         feat_results = recog().match(item_img, map_num, 0.25, 3)
+    logger.debug(f"[槽位{i}] 特征匹配候选数: {len(feat_results[0]) if feat_results else 0}")
 
     # 合并逻辑 (保持你原有的逻辑)
     combined_results = feat_results[0] + ocr_results
@@ -154,12 +167,17 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
                 "score": m['score']
             })
 
-    return {
+    result = {
         "filename": ocr_match_results[0]["filename"] if ocr_match_results else "unknown",
         "score": ocr_match_results[0]["score"] if ocr_match_results else 0,
         "status": "matched",
         "candidates": ocr_match_results
     }
+
+    elapsed = (time.perf_counter() - t_start) * 1000
+    logger.debug(f"[槽位{i}] 最终匹配: {result['filename']} (score={result['score']:.3f}), 耗时={elapsed:.1f}ms")
+
+    return result
 
 
 class AppApi:
@@ -174,6 +192,7 @@ class AppApi:
                     scanner_window.show()
                     scanner_window.restore()
                     scanner_window.on_top = True
+                    logger.debug("子窗口已存在，执行show/restore")
                     return
 
                 scanner_window = webview.create_window(
@@ -211,6 +230,7 @@ class AppApi:
         if scanner_window is not None:
             try:
                 scanner_window.destroy()
+                logger.info("子窗口已关闭")
             except Exception as e:
                 logger.error(f"destroy异常: {e}")
             scanner_window = None
@@ -222,20 +242,27 @@ class AppApi:
         if win:
             x, y = win.position
             win.move(x + dx, y + dy)
+            logger.debug(f"移动子窗口: dx={dx}, dy={dy}, 新位置=({x+dx}, {y+dy})")
 
     def capture_and_recognize(self, target_title="计算器"):
         global map_classifier_recognizer, names_dict
         import time
+        t_total = time.perf_counter()
+        logger.info(f"开始截图识别，目标窗口: {target_title}")
+
         try:
             windows = gw.getWindowsWithTitle(target_title)
             if not windows:
+                logger.warning(f"未找到目标窗口: {target_title}")
                 return {"status": "error", "message": f"未找到窗口: {target_title}"}
             win = windows[0]
             if win.isMinimized:
                 win.restore()
+                logger.debug("目标窗口已最小化，执行restore")
 
             bbox = (win.left, win.top, win.right, win.bottom)
             img = ImageGrab.grab(bbox)
+            logger.debug(f"截图尺寸: {img.size}, 窗口bbox={bbox}")
 
             title_pil, names_pil, items_pil = crop_sections_from_pil_by_YOLOv8(img)
 
@@ -249,6 +276,7 @@ class AppApi:
             logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
 
             if not map_classifier_recognizer:
+                logger.info("地图分类器未初始化，执行懒加载...")
                 map_classifier_recognizer = MapClassifier(config.RESNET50, config.FEATURES2_DB)
             map_name = map_classifier_recognizer.match(title_pil)
             map_num = int(map_name[3])
@@ -265,18 +293,23 @@ class AppApi:
                 result = process_single_item(i, _names_pil, _items_pil, map_num, map_name)
                 all_results.append(result)
 
+            elapsed_total = (time.perf_counter() - t_total) * 1000
+            summary = " | ".join(
+                f"槽位{i}:{r['filename']}({r['score']:.2f})" for i, r in enumerate(all_results)
+            )
+            logger.info(f"识别完成 [{map_name}] 总耗时={elapsed_total:.1f}ms -> {summary}")
+
             return {"code": 200, "map_num": map_num, "results": all_results}
 
         except Exception as e:
-            print(f"截图异常: {e}")
-            logger.error(f"截图异常: {e}")
+            logger.error(f"截图识别异常: {e}", exc_info=True)
             return {"status": "error", "message": str(e)}
 
 
 def start_server():
     threads = get_waitress_threads()
     logger.info(f"waitress start, threads={threads}")
-    waitress.serve(
+    serve(
         app,
         host="127.0.0.1",  # 桌面客户端只监听本机，不要0.0.0.0
         port=5000,
@@ -289,6 +322,8 @@ def start_server():
 
 def start_webview():
     global main_window, api_instance
+
+    logger.info("启动主窗口...")
 
     def start_logic():
         t = Thread(target=start_server)
@@ -320,6 +355,7 @@ def start_webview():
 
     main_window.events.closed += main_window_on_closed
 
+    logger.info("主窗口创建完成")
     webview.start(start_logic, debug=True)
 
 
