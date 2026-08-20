@@ -1,4 +1,4 @@
-import concurrent
+import concurrent.futures
 import ctypes
 import time
 
@@ -22,8 +22,8 @@ from logger import logger
 from core.ocr import ocr
 from core.map_classifier import MapClassifier
 from core.api.predict import recognizer as recog
-from core.utils import get_top_k_matches, scan_icon_names, get_icon_full_path, \
-    clean_debug_folder, crop_sections_from_pil_by_YOLOv8
+from core.utils import get_top_k_matches, scan_icon_names, get_icon_full_path, clean_debug_folder
+from crop import crop_sections_from_pil_by_YOLOv8
 
 app = create_app()
 
