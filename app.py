@@ -1,3 +1,4 @@
+import concurrent
 import ctypes
 import time
 
@@ -18,7 +19,7 @@ import webview
 from threading import Thread
 import pygetwindow as gw
 from logger import logger
-from core.api.predict import ocr
+from core.ocr import ocr
 from core.map_classifier import MapClassifier
 from core.api.predict import recognizer as recog
 from core.utils import get_top_k_matches, scan_icon_names, get_icon_full_path, \
@@ -31,6 +32,60 @@ scanner_window = None
 api_instance = None  # 全局保存api实例
 names_dict = None
 map_classifier_recognizer = None
+
+
+def process_single_item(i, name_img, item_img, map_num, map_name):
+    """单个槽位的并行处理函数"""
+    t_start = time.perf_counter()
+
+    # 1. OCR 识别 (使用单例且跳过检测)
+    engine = ocr()
+    ocr_name = engine.recognize_crop_only(name_img)
+
+    # 特殊情况处理
+    if ocr_name in ["魔力之源", "远行商人"]:
+        return {
+            "filename": f"{ocr_name}.png",
+            "score": 1,
+            "status": "matched",
+            "candidates": [{"name": f"{ocr_name}.png", "score": 1}]
+        }
+
+    # 2. 特征匹配与 OCR 模糊匹配并行 (此处可以继续细化，但主要瓶颈在 OCR)
+    feat_results = recog().match(item_img, map_num, 0.25, 3)
+
+    # OCR 辅助匹配
+    global names_dict
+    if not names_dict:
+        names_dict = scan_icon_names()
+
+    ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=3)
+
+    # 合并逻辑 (保持你原有的逻辑)
+    combined_results = feat_results[0] + ocr_results
+    unique_results = {}
+    for res in combined_results:
+        path = res['name']
+        if path not in unique_results or res['score'] > unique_results[path]['score']:
+            unique_results[path] = res
+
+    final_list = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)[:3]
+
+    ocr_match_results = []
+    for m in final_list:
+        full_path = get_icon_full_path(map_name, m['name'])
+        if full_path:
+            ocr_match_results.append({
+                "filename": os.path.basename(full_path),
+                "score": m['score']
+            })
+
+    return {
+        "filename": ocr_match_results[0]["filename"] if ocr_match_results else "unknown",
+        "score": ocr_match_results[0]["score"] if ocr_match_results else 0,
+        "status": "matched",
+        "candidates": ocr_match_results
+    }
 
 
 class AppApi:
@@ -96,116 +151,59 @@ class AppApi:
 
     def capture_and_recognize(self, target_title="计算器"):
         global map_classifier_recognizer, names_dict
+        import time
+        # t_all = time.perf_counter()
         try:
-            # 1. 查找窗口
+            # t = time.perf_counter()
             windows = gw.getWindowsWithTitle(target_title)
             if not windows:
                 return {"status": "error", "message": f"未找到窗口: {target_title}"}
-
             win = windows[0]
-            # 确保窗口不是最小化的
             if win.isMinimized:
                 win.restore()
+            # print(f"【窗口查找】 {time.perf_counter() - t:.3f}s")
 
-            # 2. 执行截图
-            # 获取窗口坐标 (left, top, right, bottom)
+            # t = time.perf_counter()
             bbox = (win.left, win.top, win.right, win.bottom)
             img = ImageGrab.grab(bbox)
+            # print(f"【截图Grab】 {time.perf_counter() - t:.3f}s")
 
+            # t = time.perf_counter()
             title_pil, names_pil, items_pil = crop_sections_from_pil_by_YOLOv8(img)
+            # print(f"【YOLO裁剪推理】 {time.perf_counter() - t:.3f}s")
 
-            # ----- 【测试代码：保存到本地】 -----
-            # 创建 debug 文件夹
+            # t = time.perf_counter()
             debug_dir = os.path.join("debug", "capture")
             if not os.path.exists(debug_dir):
                 os.makedirs(debug_dir)
-
             clean_debug_folder(debug_dir, max_count=30)
-
-            # 以时间命名文件名：例如 20231027_143005.jpg
             file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
             save_path = os.path.join(debug_dir, file_name)
             img.save(save_path, "JPEG", quality=90)
             logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
-            # ----------------------------------
+            # print(f"【Debug保存图片】 {time.perf_counter() - t:.3f}s")
 
-            # 拿到map名
+            # t = time.perf_counter()
             if not map_classifier_recognizer:
                 map_classifier_recognizer = MapClassifier(config.MAP_CLASSIFIER, config.MAP_CLASSES)
             map_name = map_classifier_recognizer.predict_label(title_pil)
             map_num = int(map_name[3])
             logger.debug(f"mapname : {map_name}")
+            # print(f"【地图分类推理】 {time.perf_counter() - t:.3f}s")
 
+            # t = time.perf_counter()
             all_results = []
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                futures = [
+                    executor.submit(process_single_item, i, names_pil[i], items_pil[i], map_num, map_name)
+                    for i in range(3)
+                ]
+                for future in futures:
+                    all_results.append(future.result())
+            # print(f"【OCR】 {time.perf_counter() - t:.3f}s")
 
-            for i in range(0, 3):
-                ocr_name = ocr().recognize_text(names_pil[i])
-
-                if ocr_name == "魔力之源" or ocr_name == "远行商人":
-                    all_results_item = {
-                        "filename": f"{ocr_name}.png",
-                        "score": 1,
-                        "status": "matched",
-                        "candidates": [{
-                            "name": f"{ocr_name}.png",
-                            "score": 1
-                        }]
-                    }
-                    all_results.append(all_results_item)
-                    continue
-
-                feat_results = recog().match(items_pil[i], map_num, 0.25, 3)
-
-                ocr_match_results = []
-                # 获取匹配列表
-                if not names_dict:
-                    try:
-                        names_dict = scan_icon_names()
-                    except Exception as e:
-                        logger.error(e)
-
-                ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=3)
-
-                combined_results = feat_results[0] + ocr_results
-
-                # 去重：如果同一个文件既被特征匹配到，也被 OCR 匹配到，取分数高的那个
-                unique_results = {}
-                for res in combined_results:
-                    path = res['name']
-                    if path not in unique_results or res['score'] > unique_results[path]['score']:
-                        unique_results[path] = res
-
-                # 转回列表
-                final_list = list(unique_results.values())
-
-                # 排序：按 score 从高到低
-                final_list.sort(key=lambda x: x['score'], reverse=True)
-
-                # 截取 3 个
-                final_list = final_list[:3]
-
-                for m in final_list:
-                    full_path = get_icon_full_path(map_name, m['name'])
-                    if full_path:
-                        ocr_match_results.append({
-                            "filename": os.path.basename(full_path),
-                            "score": m['score']
-                        })
-                if len(ocr_match_results):
-                    all_results_item = {
-                        "filename": ocr_match_results[0]["filename"],
-                        "score": ocr_match_results[0]["score"],
-                        "status": "matched",
-                        "candidates": ocr_match_results
-                    }
-                    all_results.append(all_results_item)
-
-            return {
-                "code": 200,
-                "is_game_running": True,
-                "map_num": map_num,
-                "results": all_results
-            }
+            # print(f"【总耗时】 {time.perf_counter() - t_all:.3f}s")
+            return {"code": 200, "map_num": map_num, "results": all_results}
 
         except Exception as e:
             logger.error(f"截图异常: {e}")
