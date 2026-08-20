@@ -200,10 +200,12 @@ class OCREngine:
     def recognize_crop_only(self, pil_image):
         """专门用于处理已经裁剪好的文字区域，跳过检测环节"""
         import numpy as np
+        # =====新增判空=====
+        if pil_image is None:
+            return ""
         # 将 PIL 转为 numpy
         img_array = np.array(pil_image.convert('RGB'))
         # RapidOCR 可以通过参数控制，或者直接调用内部的 rec 模型
-        # 这里使用简单的调用，但确保 engine 是复用的
         result, _ = self.engine(img_array, use_det=False, use_cls=False, use_rec=True)
         if result:
             # result 格式会变化，只需提取文字
@@ -213,7 +215,8 @@ class OCREngine:
 
 if __name__ == "__main__":
     ocr = OCREngine()
-    test_image = r"D:\game\RocoKingdom\assets\pic\test\ocr_test3.png"
+    # test_image = r"D:\game\RocoKingdom\assets\pic\test\ocr_test3.png"
+    test_image = r"D:\game\RocoKingdom\core\2.png"
     if os.path.exists(test_image):
         result = ocr.recognize_bottom_text(test_image)
         print(f"识别结果: {result}")

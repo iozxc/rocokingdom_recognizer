@@ -4,20 +4,66 @@ import tempfile
 from flask import request, jsonify, url_for
 from PIL import Image
 
+from core.db import get_db
 from core.ocr import ocr
 from core.processor import segment_icons
 import config
 from core.recognizer import ImageRecognizer
-from core.utils import scan_icon_names, get_top_k_matches, get_icon_full_path
+from core.utils import get_top_k_matches, get_icon_full_path
 from logger import logger
-
 names_dict = None
 
 
-def name_dicts():
+def scan_icon_names(app):
+    """
+    从数据库扫描所有图片名
+    返回: {"map1": ["小拉塔", "迪莫"], "map2": []}
+    """
+    # 初始化字典，确保 config.MAP_LIST 里的地图都有对应的 Key
+    with app.app_context():
+        names_dict = {map_name: [] for map_name in config.MAP_LIST}
+
+        try:
+            # 这里建议直接创建一个临时的连接，或者使用你之前的 get_db()
+            # 注意：如果是独立脚本，请确保 DB_PATH 正确
+            conn = get_db()
+            cursor = conn.cursor()
+
+            # 只需要查询路径字段
+            cursor.execute("SELECT path FROM icons")
+            rows = cursor.fetchall()
+
+            for row in rows:
+                # row[0] 格式示例: "map1/迪莫.png"
+                db_path = row[0]
+
+                # 使用 / 拆分
+                parts = db_path.split('/')
+                if len(parts) == 2:
+                    map_name, filename = parts[0], parts[1]
+
+                    # 如果这个地图在我们的配置列表中
+                    if map_name in names_dict:
+                        # 去掉后缀名，例如 "迪莫.png" -> "迪莫"
+                        name_without_ext = os.path.splitext(filename)[0]
+                        names_dict[map_name].append(name_without_ext)
+
+            conn.close()
+
+        except Exception as e:
+            # 如果报错（比如数据库还没创建），记录日志
+            if 'logger' in globals():
+                logger.error(f"从数据库扫描图标名失败: {e}")
+            else:
+                logger.error(f"Error: {e}")
+
+        return names_dict
+
+
+def name_dicts(app):
     global names_dict
     if not names_dict:
-        names_dict = scan_icon_names()
+        names_dict = scan_icon_names(app)
     return names_dict
 
 
@@ -28,7 +74,7 @@ def recognizer():
     try:
         global _recognizer
         if not _recognizer:
-            logger.info(f"正在加载数据库: {config.DATABASE_PATH}")
+            logger.info(f"正在加载数据库: {config.FEATURES_DB}")
             _recognizer = ImageRecognizer(config.RESNET50, config.FEATURES_DB)
             logger.info("数据库加载成功！")
         return _recognizer
@@ -41,7 +87,7 @@ def f(image):
     return ocr_names
 
 
-def ocr_top_k_match(image, map_num, top_k=6):
+def ocr_top_k_match(image, map_num, top_k=6, app=None):
     # 1. OCR 提取文字
     name = ocr().recognize_single_bottom_text(image)
 
@@ -51,7 +97,7 @@ def ocr_top_k_match(image, map_num, top_k=6):
 
     # 2. 通过你已有的 get_top_k_matches 获取初步匹配列表
     map_key = f"map{map_num}"
-    raw_result_list = get_top_k_matches(name, map_key, name_dicts(), top_k)
+    raw_result_list = get_top_k_matches(name, map_key, name_dicts(app), top_k)
 
     # 3. 转换格式并补充 match_path
     final_ocr_results = []
@@ -97,7 +143,7 @@ def init_routes(app):
             if err:
                 return jsonify({"error": err}), 500
 
-            ocr_results = ocr_top_k_match(temp_path, map_num, top_k=top_k)
+            ocr_results = ocr_top_k_match(temp_path, map_num, top_k, app)
 
             combined_results = feat_results + ocr_results
 
@@ -199,7 +245,7 @@ def init_routes(app):
                 if i < num_ocr:
                     target_word = ocr_names[i]
                     # 获取匹配列表
-                    matches = get_top_k_matches(target_word, map_name, name_dicts(), k=top_k)
+                    matches = get_top_k_matches(target_word, map_name, name_dicts(app), k=top_k)
                     for m in matches:
                         # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
                         # 或者当没有图像块可用时，我们也接受这个结果

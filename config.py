@@ -30,6 +30,7 @@ OCR_DIR = get_resource_path('ocr_models')
 ONNX_DIR = get_resource_path('onnx')
 
 DATABASE_PATH = get_resource_path('features_db.pt')
+DATABASE2_PATH = get_resource_path('features_title_db.pt')
 ASSETS_FILE = get_resource_path('assets.db')
 DATA_FILE = get_external_path('roco_user_data.json')
 
@@ -37,6 +38,7 @@ MAP_CLASSIFIER = get_resource_path(os.path.join('onnx', 'map_classifier.onnx'))
 MAP_CLASSES = get_resource_path(os.path.join('onnx', 'map_classes.json'))
 RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
 FEATURES_DB = get_resource_path(os.path.join('onnx', 'features_db.pkl'))
+FEATURES2_DB = get_resource_path(os.path.join('onnx', 'features_title_db.pkl'))
 SCANNER = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
 
 DEFAULT_THRESHOLD = 0.9

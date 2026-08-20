@@ -1,8 +1,10 @@
 import concurrent.futures
 import ctypes
+import sqlite3
 import time
 
 from PIL import ImageGrab
+from flask import g
 
 import config
 
@@ -22,8 +24,9 @@ from logger import logger
 from core.ocr import ocr
 from core.map_classifier import MapClassifier
 from core.api.predict import recognizer as recog
-from core.utils import get_top_k_matches, scan_icon_names, get_icon_full_path, clean_debug_folder
+from core.utils import get_top_k_matches, get_icon_full_path
 from crop import crop_sections_from_pil_by_YOLOv8
+from tools import clean_debug_folder
 
 app = create_app()
 
@@ -32,6 +35,60 @@ scanner_window = None
 api_instance = None  # 全局保存api实例
 names_dict = None
 map_classifier_recognizer = None
+
+
+def get_db():
+    """获取数据库连接（Flask 推荐写法）"""
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(config.ASSETS_FILE)
+    return db
+
+
+def scan_icon_names():
+    """
+    从数据库扫描所有图片名
+    返回: {"map1": ["小拉塔", "迪莫"], "map2": []}
+    """
+    # 初始化字典，确保 config.MAP_LIST 里的地图都有对应的 Key
+    with app.app_context():
+        names_dict = {map_name: [] for map_name in config.MAP_LIST}
+
+        try:
+            # 这里建议直接创建一个临时的连接，或者使用你之前的 get_db()
+            # 注意：如果是独立脚本，请确保 DB_PATH 正确
+            conn = get_db()
+            cursor = conn.cursor()
+
+            # 只需要查询路径字段
+            cursor.execute("SELECT path FROM icons")
+            rows = cursor.fetchall()
+
+            for row in rows:
+                # row[0] 格式示例: "map1/迪莫.png"
+                db_path = row[0]
+
+                # 使用 / 拆分
+                parts = db_path.split('/')
+                if len(parts) == 2:
+                    map_name, filename = parts[0], parts[1]
+
+                    # 如果这个地图在我们的配置列表中
+                    if map_name in names_dict:
+                        # 去掉后缀名，例如 "迪莫.png" -> "迪莫"
+                        name_without_ext = os.path.splitext(filename)[0]
+                        names_dict[map_name].append(name_without_ext)
+
+            conn.close()
+
+        except Exception as e:
+            # 如果报错（比如数据库还没创建），记录日志
+            if 'logger' in globals():
+                logger.error(f"从数据库扫描图标名失败: {e}")
+            else:
+                logger.error(f"Error: {e}")
+
+        return names_dict
 
 
 def process_single_item(i, name_img, item_img, map_num, map_name):
@@ -51,15 +108,17 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
             "candidates": [{"name": f"{ocr_name}.png", "score": 1}]
         }
 
-    # 2. 特征匹配与 OCR 模糊匹配并行 (此处可以继续细化，但主要瓶颈在 OCR)
-    feat_results = recog().match(item_img, map_num, 0.25, 3)
-
     # OCR 辅助匹配
     global names_dict
     if not names_dict:
         names_dict = scan_icon_names()
 
     ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=3)
+
+    # 2. 特征匹配与 OCR 模糊匹配并行 (此处可以继续细化，但主要瓶颈在 OCR)
+    feat_results = [[]]
+    if item_img:
+        feat_results = recog().match(item_img, map_num, 0.25, 3)
 
     # 合并逻辑 (保持你原有的逻辑)
     combined_results = feat_results[0] + ocr_results
@@ -91,7 +150,7 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
 class AppApi:
     def open_scanner_to_app(self, target_app_name="计算器"):
         global scanner_window, api_instance
-        logger.info(f"--> [Python] 收到前端打开子窗口请求: {target_app_name}")
+        logger.info(f"--> [Python] 收到前端打开子窗口请求: {"计算器"}")
 
         def _open():
             global scanner_window, api_instance
@@ -155,9 +214,9 @@ class AppApi:
         # t_all = time.perf_counter()
         try:
             # t = time.perf_counter()
-            windows = gw.getWindowsWithTitle(target_title)
+            windows = gw.getWindowsWithTitle("计算器")
             if not windows:
-                return {"status": "error", "message": f"未找到窗口: {target_title}"}
+                return {"status": "error", "message": f"未找到窗口: {"计算器"}"}
             win = windows[0]
             if win.isMinimized:
                 win.restore()
@@ -176,7 +235,7 @@ class AppApi:
             debug_dir = os.path.join("debug", "capture")
             if not os.path.exists(debug_dir):
                 os.makedirs(debug_dir)
-            clean_debug_folder(debug_dir, max_count=30)
+            clean_debug_folder(debug_dir, max_count=100)
             file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
             save_path = os.path.join(debug_dir, file_name)
             img.save(save_path, "JPEG", quality=90)
@@ -185,27 +244,29 @@ class AppApi:
 
             # t = time.perf_counter()
             if not map_classifier_recognizer:
-                map_classifier_recognizer = MapClassifier(config.MAP_CLASSIFIER, config.MAP_CLASSES)
-            map_name = map_classifier_recognizer.predict_label(title_pil)
+                map_classifier_recognizer = MapClassifier(config.RESNET50, config.FEATURES2_DB)
+            map_name = map_classifier_recognizer.match(title_pil)
             map_num = int(map_name[3])
             logger.debug(f"mapname : {map_name}")
             # print(f"【地图分类推理】 {time.perf_counter() - t:.3f}s")
 
             # t = time.perf_counter()
             all_results = []
-            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-                futures = [
-                    executor.submit(process_single_item, i, names_pil[i], items_pil[i], map_num, map_name)
-                    for i in range(3)
-                ]
-                for future in futures:
-                    all_results.append(future.result())
-            # print(f"【OCR】 {time.perf_counter() - t:.3f}s")
+            for i in range(0, 3):
+                _items_pil = None
+                _names_pil = None
+                if len(items_pil) > i:
+                    _items_pil = items_pil[i]
+                if len(names_pil) > i:
+                    _names_pil = names_pil[i]
+                result = process_single_item(i, _names_pil, _items_pil, map_num, map_name)
+                all_results.append(result)
 
             # print(f"【总耗时】 {time.perf_counter() - t_all:.3f}s")
             return {"code": 200, "map_num": map_num, "results": all_results}
 
         except Exception as e:
+            print(f"截图异常: {e}")
             logger.error(f"截图异常: {e}")
             return {"status": "error", "message": str(e)}
 
@@ -227,7 +288,7 @@ def start_webview():
     api_instance = api  # ✅赋值给全局变量，子窗口可以拿到
 
     main_window = webview.create_window(
-        '洛克王国草系徽章试炼',
+        '洛克王国草系徽章试炼助手',
         'http://127.0.0.1:5000',
         width=1500,
         height=1000,
