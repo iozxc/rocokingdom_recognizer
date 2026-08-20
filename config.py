@@ -37,6 +37,7 @@ MAP_CLASSIFIER = get_resource_path(os.path.join('onnx', 'map_classifier.onnx'))
 MAP_CLASSES = get_resource_path(os.path.join('onnx', 'map_classes.json'))
 RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
 FEATURES_DB = get_resource_path(os.path.join('onnx', 'features_db.pkl'))
+SCANNER = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
 
 DEFAULT_THRESHOLD = 0.9
 DEFAULT_TOPK = 6

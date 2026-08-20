@@ -10,6 +10,18 @@ from logger import logger
 # 彻底移除对 torch 和 ssl 的依赖
 warnings.filterwarnings("ignore", category=UserWarning)
 
+_ocr = None
+
+
+def ocr():
+    try:
+        global _ocr
+        if not _ocr:
+            _ocr = OCREngine()
+        return _ocr
+    except Exception as e:
+        logger.error(e)
+
 
 def clean_ocr_text(text):
     if not text:
@@ -184,6 +196,19 @@ class OCREngine:
         # 按行列排序
         blocks.sort(key=lambda b: (round(b['y'] / 15), b['x']))
         return "".join(b['text'] for b in blocks)
+
+    def recognize_crop_only(self, pil_image):
+        """专门用于处理已经裁剪好的文字区域，跳过检测环节"""
+        import numpy as np
+        # 将 PIL 转为 numpy
+        img_array = np.array(pil_image.convert('RGB'))
+        # RapidOCR 可以通过参数控制，或者直接调用内部的 rec 模型
+        # 这里使用简单的调用，但确保 engine 是复用的
+        result, _ = self.engine(img_array, use_det=False, use_cls=False, use_rec=True)
+        if result:
+            # result 格式会变化，只需提取文字
+            return clean_ocr_text(result[0][0])
+        return ""
 
 
 if __name__ == "__main__":

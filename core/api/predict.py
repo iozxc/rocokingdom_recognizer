@@ -4,7 +4,7 @@ import tempfile
 from flask import request, jsonify, url_for
 from PIL import Image
 
-from core.ocr import OCREngine
+from core.ocr import ocr
 from core.processor import segment_icons
 import config
 from core.recognizer import ImageRecognizer
@@ -34,19 +34,6 @@ def recognizer():
         return _recognizer
     except Exception as e:
         logger.error(f"数据库加载失败: {e}")
-
-
-_ocr = None
-
-
-def ocr():
-    try:
-        global _ocr
-        if not _ocr:
-            _ocr = OCREngine()
-        return _ocr
-    except Exception as e:
-        logger.error(e)
 
 
 def f(image):
