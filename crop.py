@@ -1,91 +1,172 @@
-import threading
-
+import os
+import time
 import numpy as np
-from PIL import Image
-from ultralytics import YOLO
+import cv2
+from PIL import Image, ImageDraw, ImageFont  # 增加了 ImageDraw 和 ImageFont
+import onnxruntime as ort
 
 import config
+from logger import logger
+from tools import clean_debug_folder
 
-# 全局初始化一次模型
-yolo_model = YOLO(config.SCANNER)
+# --- 配置 ---
+MODEL_PATH = config.SCANNER if config.SCANNER.endswith(".onnx") else config.SCANNER.replace(".pt", ".onnx")
 INFER_IMGSZ = 1920
-CONF_THRESH = 0.25
+CONF_THRESH = 0.1
+NMS_THRESH = 0.4
 
-warmup_done = threading.Event()  # 预热完成信号
+# 类别映射（根据模型逻辑：0是标题，1是精灵物品，2是名字）
+CLASS_NAMES = {0: "Title", 1: "Item", 2: "Name"}
+# 可视化颜色
+COLORS = {0: (255, 0, 0), 1: (0, 255, 0), 2: (0, 0, 255)}  # RGB
 
 
-def yolo_warmup_background():
-    """后台线程执行预热；模型加载+预热全部放在这个线程内"""
-    global yolo_model
+class YOLOv8ORT:
+    def __init__(self, model_path):
+        providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+        if ort.get_device() == 'CPU':
+            providers = ['CPUExecutionProvider']
+
+        self.session = ort.InferenceSession(model_path, providers=providers)
+        self.input_name = self.session.get_inputs()[0].name
+        self.output_names = [o.name for o in self.session.get_outputs()]
+
+        input_shape = self.session.get_inputs()[0].shape
+        self.model_h = int(input_shape[2]) if isinstance(input_shape[2], int) else INFER_IMGSZ
+        self.model_w = int(input_shape[3]) if isinstance(input_shape[3], int) else INFER_IMGSZ
+
+    def preprocess(self, pil_img):
+        orig_w, orig_h = pil_img.size
+        img = np.array(pil_img.convert('RGB'))
+        img = cv2.resize(img, (self.model_w, self.model_h))
+        img = img.astype(np.float32) / 255.0
+        img = img.transpose(2, 0, 1)
+        img = np.expand_dims(img, axis=0)
+        return img, orig_w, orig_h
+
+    def postprocess(self, outputs, orig_w, orig_h, conf_threshold=0.25):
+        predictions = np.squeeze(outputs[0])
+        predictions = predictions.T
+
+        boxes = []
+        scores = []
+        class_ids = []
+
+        for pred in predictions:
+            cls_scores = pred[4:]
+            max_score = np.max(cls_scores)
+
+            if max_score >= conf_threshold:
+                class_id = np.argmax(cls_scores)
+                cx, cy, w, h = pred[0:4]
+                x1 = cx - w / 2
+                y1 = cy - h / 2
+                boxes.append([float(x1), float(y1), float(w), float(h)])
+                scores.append(float(max_score))
+                class_ids.append(int(class_id))
+
+        indices = cv2.dnn.NMSBoxes(boxes, scores, conf_threshold, NMS_THRESH)
+        results = []
+        if len(indices) > 0:
+            scale_w = orig_w / self.model_w
+            scale_h = orig_h / self.model_h
+            for i in indices.flatten():
+                x, y, w, h = boxes[i]
+                rx1 = int(x * scale_w)
+                ry1 = int(y * scale_h)
+                rx2 = int((x + w) * scale_w)
+                ry2 = int((y + h) * scale_h)
+                results.append({
+                    "box": (rx1, ry1, rx2, ry2),
+                    "conf": scores[i],
+                    "class": class_ids[i]
+                })
+        return results
+
+    def predict(self, pil_image, conf_threshold=0.25):
+        blob, orig_w, orig_h = self.preprocess(pil_image)
+        outputs = self.session.run(self.output_names, {self.input_name: blob})
+        return self.postprocess(outputs, orig_w, orig_h, conf_threshold)
+
+
+# --- 核心新增：可视化函数 ---
+def visualize_detections(pil_image, detections, save_name="yolo_debug.png"):
+    """
+    在图片上画框并保存，用于查看识别是否准确
+    """
+    draw_img = pil_image.copy()
+    draw = ImageDraw.Draw(draw_img)
+
+    # 尝试加载字体，如果加载失败则使用默认字体
     try:
-        print("后台线程：开始加载YOLO模型...")
-        # 构造虚拟BGR图片
-        dummy_bgr_img = np.random.randint(0, 255, (INFER_IMGSZ, INFER_IMGSZ, 3), dtype=np.uint8)
-        print("后台线程：执行YOLO预热 imgsz=", INFER_IMGSZ)
-        # 跑两次预热
-        for _ in range(2):
-            _ = yolo_model.predict(
-                dummy_bgr_img,
-                imgsz=INFER_IMGSZ,
-                conf=0.99,
-                verbose=False,
-                save=False
-            )
-        print("YOLO异步预热完成")
-    except Exception as e:
-        print(f"预热异常: {e}")
-    finally:
-        warmup_done.set()  # 不管成功失败，标记完成
+        font = ImageFont.truetype("arial.ttf", 24)
+    except:
+        font = ImageFont.load_default()
+
+    for det in detections:
+        box = det["box"]  # (x1, y1, x2, y2)
+        cid = det["class"]
+        conf = det["conf"]
+        label = f"{CLASS_NAMES.get(cid, 'Unknown')} {conf:.2f}"
+        color = COLORS.get(cid, (255, 255, 255))
+
+        # 画矩形框 (增加宽度方便查看)
+        draw.rectangle(box, outline=color, width=4)
+
+        # 在框上方写文字
+        text_pos = (box[0], box[1] - 30 if box[1] > 30 else box[1])
+        draw.text(text_pos, label, fill=color, font=font)
+
+    # 保存到 debug 目录
+    debug_dir = os.path.join("debug", "yolo_viz")
+    if not os.path.exists(debug_dir):
+        os.makedirs(debug_dir)
+    clean_debug_folder(debug_dir, max_count=100)
+    file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
+    save_path = os.path.join(debug_dir, file_name)
+    draw_img.save(save_path)
+    logger.debug(f"--> [DEBUG] YOLO可视化结果已保存至: {save_path}")
+    return save_path
 
 
-# 程序启动时，启动后台预热线程（不会阻塞主线程）
-warmup_thread = threading.Thread(target=yolo_warmup_background, daemon=True)
-warmup_thread.start()
+# --- 初始化逻辑 ---
+yolo_model = YOLOv8ORT(MODEL_PATH)
 
 
-def crop_sections_from_pil_by_YOLOv8(pil_image: Image.Image):
+def crop_sections_from_pil_by_YOLOv8(pil_image: Image.Image, debug=True):
     """
-    替换原来硬坐标裁剪，使用YOLO动态检测框
-    返回: (title_pil, [name1_pil, name2_pil, name3_pil], [item1_pil, item2_pil, item3_pil])
-    检测不到的目标填充 None
+    使用 ONNX 推理进行动态裁剪，并可选开启可视化调试
     """
-    # PIL图片直接给yolo推理
-    res = yolo_model(pil_image, conf=CONF_THRESH, imgsz=INFER_IMGSZ)
-    boxes = res[0].boxes
+    detections = yolo_model.predict(pil_image, conf_threshold=CONF_THRESH)
+
+    # --- 调用可视化 ---
+    if debug:
+        visualize_detections(pil_image, detections)
 
     title_pil = None
     name_boxes = []
     item_boxes = []
 
-    for box in boxes:
-        cid = int(box.cls[0])
-        x1, y1, x2, y2 = map(int, box.xyxy[0])
+    for det in detections:
+        cid = det["class"]
+        box = det["box"]
         if cid == 0:
-            # title
-            title_pil = pil_image.crop((x1, y1, x2, y2))
+            title_pil = pil_image.crop(box)
         elif cid == 2:
-            # name
-            name_boxes.append((x1, y1, x2, y2))
+            name_boxes.append(box)
         elif cid == 1:
-            # item
-            item_boxes.append((x1, y1, x2, y2))
+            item_boxes.append(box)
 
-    # 按X从左到右排序（场上1、2、3号位）
+    # 排序与裁剪逻辑...
     name_boxes.sort(key=lambda b: b[0])
     item_boxes.sort(key=lambda b: b[0])
 
-    # 补齐长度到3，不足填充None，兼容2人对战场景
     def boxes_to_pil_list(box_list, target_len=3):
         out = []
         for b in box_list[:target_len]:
-            x1, y1, x2, y2 = b
-            out.append(pil_image.crop((x1, y1, x2, y2)))
-        # 不够补None
+            out.append(pil_image.crop(b))
         while len(out) < target_len:
             out.append(None)
         return out
 
-    name_pil_list = boxes_to_pil_list(name_boxes, 3)
-    item_pil_list = boxes_to_pil_list(item_boxes, 3)
-
-    return title_pil, name_pil_list, item_pil_list
+    return title_pil, boxes_to_pil_list(name_boxes, 3), boxes_to_pil_list(item_boxes, 3)
