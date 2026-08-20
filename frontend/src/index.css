@@ -257,3 +257,18 @@
 .encounter-sparkle-active {
   animation: encounter-sparkle-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ------------------------------------------------------------- */
+/* Visual Animations & Feedback Utilities                        */
+/* ------------------------------------------------------------- */
+
+@keyframes map-pill-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(122, 188, 244, 0.6); }
+  50% { transform: scale(1.06); box-shadow: 0 0 18px 4px rgba(122, 188, 244, 0.5); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(122, 188, 244, 0); }
+}
+
+.map-sync-highlight {
+  animation: map-pill-pulse 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2;
+}
+

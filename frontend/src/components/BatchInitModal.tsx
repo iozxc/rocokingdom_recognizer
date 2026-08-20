@@ -34,7 +34,7 @@ import { api } from '../services/api';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
-import { formatPetName, isSamePetName } from '../utils/petHelper';
+import { formatPetName, isSamePetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 
 interface BatchInitModalProps {
   isOpen: boolean;
@@ -100,16 +100,9 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
   const checkAlreadyEncountered = (mapId: string, name?: string): boolean => {
     if (!name) return false;
     if (isEncountered) {
-      if (isEncountered(mapId, name) || isEncountered(mapId, formatPetName(name))) {
-        return true;
-      }
+      return isEncountered(mapId, name);
     }
-    if (records) {
-      const key1 = `${mapId}_${name}`;
-      const key2 = `${mapId}_${formatPetName(name)}`;
-      if (records[key1]?.encountered || records[key2]?.encountered) return true;
-    }
-    return false;
+    return isPetEncounteredInRecords(records, mapId, name);
   };
 
   // When target map changes, re-evaluate review items against the new map's library

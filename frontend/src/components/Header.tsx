@@ -1,5 +1,5 @@
 import React from 'react';
-import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowDownCircle} from 'lucide-react';
+import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowDownCircle, Settings} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { sound } from '../services/sound';
 
@@ -21,6 +21,7 @@ interface HeaderProps {
     onToggleSound: () => void;
     onOpenFeedback?: () => void;
     onOpenUpdate?: () => void;
+    onOpenSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -33,6 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                   onToggleSound,
                                                   onOpenFeedback,
                                                   onOpenUpdate,
+                                                  onOpenSettings,
                                               }) => {
     return (
         <header className="bg-[#7ABCF4] border-b-4 border-[#5DA8E8] sticky top-0 z-30 shadow-md text-white">
@@ -64,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
                             </div>
                         </div>
 
-                        {/* Mobile Actions: Feedback, Update & Sound Toggle */}
+                        {/* Mobile Actions: Feedback, Update, Sound & Settings */}
                         <div className="lg:hidden flex items-center gap-1.5">
                             {onOpenFeedback && (
                                 <button
@@ -107,6 +109,19 @@ export const Header: React.FC<HeaderProps> = ({
                                     <Volume2 className="w-4 h-4 text-[#FEE061]" />
                                 )}
                             </button>
+                            {onOpenSettings && (
+                                <button
+                                    id="settings-toggle-btn-mobile"
+                                    onClick={() => {
+                                        sound.playClick();
+                                        onOpenSettings();
+                                    }}
+                                    title="系统设置 (特效等级/悬浮按钮)"
+                                    className="p-2 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-colors shadow-2xs backdrop-blur-xs cursor-pointer"
+                                >
+                                    <Settings className="w-4 h-4 text-white" />
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -158,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
                         })}
                     </div>
 
-                    {/* Right Action: Feedback, Check Update & Sound Toggle */}
+                    {/* Right Action: Feedback, Check Update, Sound Toggle & Settings */}
                     <div className="hidden lg:flex items-center gap-2">
                         {onOpenFeedback && (
                             <button
@@ -206,6 +221,20 @@ export const Header: React.FC<HeaderProps> = ({
                                 <Volume2 className="w-4 h-4 text-[#FEE061]" />
                             )}
                         </button>
+
+                        {onOpenSettings && (
+                            <button
+                                id="settings-toggle-btn"
+                                onClick={() => {
+                                    sound.playClick();
+                                    onOpenSettings();
+                                }}
+                                title="系统设置 (特效等级/悬浮按钮)"
+                                className="p-2 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-colors shadow-2xs backdrop-blur-xs cursor-pointer"
+                            >
+                                <Settings className="w-4 h-4 text-white hover:rotate-45 transition-transform duration-300" />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

@@ -11,6 +11,7 @@ import { PetItem, EncounterRecord } from '../types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
+import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 
 interface ScannerMapGalleryModalProps {
     isOpen: boolean;
@@ -34,41 +35,16 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMode, setFilterMode] = useState<'all' | 'unencountered' | 'encountered'>('all');
 
-    const formatPetName = (rawName: string): string => {
-        if (!rawName) return '未知精灵';
-        let clean = rawName.trim();
-        if (clean.includes('.')) {
-            clean = clean.split('.')[0];
-        }
-        return clean;
-    };
-
     const isEncountered = (mapId: string, filename: string): boolean => {
-        const formatted = formatPetName(filename);
-        const directKey = `${mapId}_${filename}`;
-        const directFormattedKey = `${mapId}_${formatted}`;
-        if (records[directKey]?.encountered || records[directFormattedKey]?.encountered) {
-            return true;
-        }
-        return (Object.values(records) as EncounterRecord[]).some((rec) => {
-            if (!rec || !rec.encountered) return false;
-            const recFormatted = formatPetName(rec.filename);
-            return (
-                rec.mapId === mapId &&
-                (recFormatted === formatted ||
-                    rec.filename === filename ||
-                    recFormatted.includes(formatted) ||
-                    formatted.includes(recFormatted))
-            );
-        });
+        return isPetEncounteredInRecords(records, mapId, filename);
     };
 
     const handleToggle = (mapId: string, filename: string) => {
         sound.playClick();
         if (onToggleEncounter) {
-            onToggleEncounter(mapId, formatPetName(filename));
+            onToggleEncounter(mapId, filename);
         } else {
-            storage.toggleEncountered(mapId, formatPetName(filename));
+            storage.toggleEncountered(mapId, filename);
         }
     };
 

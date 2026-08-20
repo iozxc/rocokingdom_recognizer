@@ -1,9 +1,24 @@
+import difflib
+import json
+
 from flask import send_from_directory, g, Response
 
 import os
 from flask import jsonify, url_for
 
+import config
 from core.db import get_db
+
+PET_NAME_TO_ID = {}
+try:
+    with open(config.PETS_FILE, "r", encoding="utf-8") as f:
+        root = json.load(f)
+    pet_list = root.get("pets", [])
+    PET_NAME_TO_ID = {item["name"]: item["id"] for item in pet_list}
+except Exception:
+    # 读取失败，降级：所有图标排末尾
+    PET_NAME_TO_ID = {}
+
 
 
 def init_routes(app):
@@ -27,47 +42,48 @@ def init_routes(app):
         # 否则返回 index.html (支持 SPA 路由)
         return send_from_directory(app.static_folder, 'index.html')
 
-    # --- 1. 修改后的列表接口 ---
     @app.route('/icons', methods=['GET'])
     def list_icons():
-        """从数据库读取所有图片的名字及其对应的访问 URL"""
+        """从数据库读取所有图片的名字及其对应的访问 URL，按图鉴id排序"""
         try:
             db = get_db()
-            # 从数据库一次性查出所有路径，并按路径排序
             cursor = db.execute("SELECT path FROM icons ORDER BY path ASC")
             all_paths = [row[0] for row in cursor.fetchall()]
 
             icons_structure = {}
 
-            # 处理数据库中的路径，例如: "map1/0.png"
             for p in all_paths:
-                # 拆分 map_name 和 filename
                 parts = p.split('/')
                 if len(parts) != 2:
                     continue
 
                 map_name, filename = parts[0], parts[1]
 
-                # 初始化结构
                 if map_name not in icons_structure:
                     icons_structure[map_name] = {
                         "count": 0,
                         "items": []
                     }
 
-                # 生成访问链接（逻辑与原来完全一致）
                 icons_structure[map_name]["items"].append({
                     "name": filename,
                     "url": url_for('get_icon_file', map_name=map_name, filename=filename, _external=True)
                 })
                 icons_structure[map_name]["count"] += 1
 
+            # 对每个分组内的 items，按图鉴id排序；找不到id的排末尾
+            def sort_key(item):
+                pure_name = item["name"].rsplit(".", 1)[0]
+                return PET_NAME_TO_ID.get(pure_name, float("inf"))
+
+            for map_name in icons_structure:
+                icons_structure[map_name]["items"].sort(key=sort_key)
+
             return jsonify({"status": "success", "data": icons_structure})
 
         except Exception as e:
             return jsonify({"status": "error", "message": str(e)}), 500
 
-    # --- 2. 修改后的获取图片接口 ---
     @app.route('/icons/<map_name>/<filename>')
     def get_icon_file(map_name, filename):
         """从数据库直接返回图片二进制流"""

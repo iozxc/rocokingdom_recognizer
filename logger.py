@@ -25,7 +25,7 @@ def setup_app_logger():
         backupCount=20,
         encoding="utf‑8"
     )
-    fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    fmt = logging.Formatter("%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d - %(funcName)s] - %(message)s")
     handler.setFormatter(fmt)
     logger.addHandler(handler)
     return logger

@@ -3,6 +3,7 @@ import ctypes
 import sqlite3
 import time
 
+import waitress
 from PIL import ImageGrab
 from flask import g
 
@@ -14,7 +15,6 @@ except Exception:
     ctypes.windll.user32.SetProcessDPIAware()
 
 import os
-import waitress
 
 from core import create_app
 import webview
@@ -27,6 +27,7 @@ from core.api.predict import recognizer as recog
 from core.utils import get_top_k_matches, get_icon_full_path
 from crop import crop_sections_from_pil_by_YOLOv8
 from tools import clean_debug_folder
+import multiprocessing
 
 app = create_app()
 
@@ -35,6 +36,20 @@ scanner_window = None
 api_instance = None  # 全局保存api实例
 names_dict = None
 map_classifier_recognizer = None
+
+
+def get_waitress_threads() -> int:
+    """
+    桌面端自适应计算waitress线程数
+    IO密集场景，本地客户端，仅限本机访问
+    下限：4（低配机器保底）
+    上限：12（防止32核机器开爆炸，桌面程序不需要）
+    基准：逻辑CPU * 2
+    """
+    cpu = multiprocessing.cpu_count() or 4
+    threads = cpu * 2
+    threads = max(4, min(threads, 12))  # 强制钳位 4~12之间
+    return threads
 
 
 def get_db():
@@ -211,27 +226,19 @@ class AppApi:
     def capture_and_recognize(self, target_title="计算器"):
         global map_classifier_recognizer, names_dict
         import time
-        # t_all = time.perf_counter()
         try:
-            # t = time.perf_counter()
             windows = gw.getWindowsWithTitle(target_title)
             if not windows:
                 return {"status": "error", "message": f"未找到窗口: {target_title}"}
             win = windows[0]
             if win.isMinimized:
                 win.restore()
-            # print(f"【窗口查找】 {time.perf_counter() - t:.3f}s")
 
-            # t = time.perf_counter()
             bbox = (win.left, win.top, win.right, win.bottom)
             img = ImageGrab.grab(bbox)
-            # print(f"【截图Grab】 {time.perf_counter() - t:.3f}s")
 
-            # t = time.perf_counter()
             title_pil, names_pil, items_pil = crop_sections_from_pil_by_YOLOv8(img)
-            # print(f"【YOLO裁剪推理】 {time.perf_counter() - t:.3f}s")
 
-            # t = time.perf_counter()
             debug_dir = os.path.join("debug", "capture")
             if not os.path.exists(debug_dir):
                 os.makedirs(debug_dir)
@@ -240,17 +247,13 @@ class AppApi:
             save_path = os.path.join(debug_dir, file_name)
             img.save(save_path, "JPEG", quality=90)
             logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
-            # print(f"【Debug保存图片】 {time.perf_counter() - t:.3f}s")
 
-            # t = time.perf_counter()
             if not map_classifier_recognizer:
                 map_classifier_recognizer = MapClassifier(config.RESNET50, config.FEATURES2_DB)
             map_name = map_classifier_recognizer.match(title_pil)
             map_num = int(map_name[3])
             logger.debug(f"mapname : {map_name}")
-            # print(f"【地图分类推理】 {time.perf_counter() - t:.3f}s")
 
-            # t = time.perf_counter()
             all_results = []
             for i in range(0, 3):
                 _items_pil = None
@@ -262,7 +265,6 @@ class AppApi:
                 result = process_single_item(i, _names_pil, _items_pil, map_num, map_name)
                 all_results.append(result)
 
-            # print(f"【总耗时】 {time.perf_counter() - t_all:.3f}s")
             return {"code": 200, "map_num": map_num, "results": all_results}
 
         except Exception as e:
@@ -272,7 +274,16 @@ class AppApi:
 
 
 def start_server():
-    waitress.serve(app, host="127.0.0.1", port=5000)
+    threads = get_waitress_threads()
+    logger.info(f"waitress start, threads={threads}")
+    waitress.serve(
+        app,
+        host="127.0.0.1",  # 桌面客户端只监听本机，不要0.0.0.0
+        port=5000,
+        threads=threads,
+        connection_limit=60,  # 最大并发连接
+        channel_timeout=90,  # 慢请求超时，避免僵死连接占住线程
+    )
     # app.run(host='127.0.0.1', port=5000, threaded=True, debug=False)
 
 
@@ -309,7 +320,7 @@ def start_webview():
 
     main_window.events.closed += main_window_on_closed
 
-    webview.start(start_logic)
+    webview.start(start_logic, debug=True)
 
 
 if __name__ == '__main__':

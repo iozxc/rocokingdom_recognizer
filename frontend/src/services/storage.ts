@@ -1,7 +1,14 @@
 import axios from 'axios';
-import { EncounterRecord, AppSettings } from '../types';
+import { EncounterRecord, AppSettings, PetItem } from '../types';
 import { api } from './api';
 import { sound } from './sound';
+import {
+  isPetEncounteredInRecords,
+  findMatchingRecordKeys,
+  formatPetName,
+  getBasePetName,
+  isSamePetName,
+} from '../utils/petHelper';
 
 const LOCAL_STORAGE_KEY = 'roco_encountered_pets_v1';
 const THRESHOLDS_STORAGE_KEY = 'roco_thresholds_v1';
@@ -272,13 +279,17 @@ export class StorageService {
   }
 
   public isEncountered(mapId: string, filename: string): boolean {
-    const key = this.getKey(mapId, filename);
-    return !!this.records[key]?.encountered;
+    return isPetEncounteredInRecords(this.records, mapId, filename);
   }
 
   public getRecord(mapId: string, filename: string): EncounterRecord | undefined {
     const key = this.getKey(mapId, filename);
-    return this.records[key];
+    if (this.records[key]) return this.records[key];
+    const matchingKeys = findMatchingRecordKeys(this.records, mapId, filename);
+    if (matchingKeys.length > 0) {
+      return this.records[matchingKeys[0]];
+    }
+    return undefined;
   }
 
   public markEncountered(mapId: string, filename: string, note?: string): EncounterRecord {
@@ -296,6 +307,19 @@ export class StorageService {
       note: note ?? existing?.note,
     };
     this.records[key] = record;
+
+    // Synchronize all other matching keys for this pet on this map
+    const matchingKeys = findMatchingRecordKeys(this.records, mapId, filename);
+    matchingKeys.forEach((mKey) => {
+      if (mKey !== key && this.records[mKey]) {
+        this.records[mKey] = {
+          ...this.records[mKey],
+          encountered: true,
+          lastSeenAt: now,
+        };
+      }
+    });
+
     this.triggerSave();
     return record;
   }
@@ -318,6 +342,19 @@ export class StorageService {
         lastSeenAt: now,
         note: note ?? existing?.note ?? '批量初始化识别导入',
       };
+
+      // Also ensure existing variant keys for this pet match
+      const matchingKeys = findMatchingRecordKeys(this.records, mapId, filename);
+      matchingKeys.forEach((mKey) => {
+        if (mKey !== key && this.records[mKey]) {
+          this.records[mKey] = {
+            ...this.records[mKey],
+            encountered: true,
+            lastSeenAt: now,
+          };
+        }
+      });
+
       updatedCount++;
     });
     this.triggerSave();
@@ -326,17 +363,41 @@ export class StorageService {
 
   public toggleEncountered(mapId: string, filename: string): boolean {
     const key = this.getKey(mapId, filename);
-    const existing = this.records[key];
     const now = new Date().toISOString();
-    if (existing && existing.encountered) {
-      this.records[key] = {
-        ...existing,
-        encountered: false,
-        lastSeenAt: now,
-      };
+    const isCurrentlyEnc = this.isEncountered(mapId, filename);
+
+    // Find all matching keys in records (e.g. map1_板板壳.png, map1_板板壳, map1_板板壳_蜕皮.png)
+    const matchingKeys = new Set(findMatchingRecordKeys(this.records, mapId, filename));
+    matchingKeys.add(key);
+
+    if (isCurrentlyEnc) {
+      // Toggle to FALSE: uncheck ALL matching keys so no phantom record keeps it encountered
+      matchingKeys.forEach((mKey) => {
+        if (this.records[mKey]) {
+          this.records[mKey] = {
+            ...this.records[mKey],
+            encountered: false,
+            lastSeenAt: now,
+          };
+        }
+      });
+      // Also ensure primary key has record explicitly false
+      if (!this.records[key]) {
+        this.records[key] = {
+          key,
+          mapId,
+          filename,
+          encountered: false,
+          count: 0,
+          firstSeenAt: now,
+          lastSeenAt: now,
+        };
+      }
       this.triggerSave();
       return false;
     } else {
+      // Toggle to TRUE: mark primary key as true, and sync any existing matched records
+      const existing = this.records[key];
       this.records[key] = {
         key,
         mapId,
@@ -346,6 +407,17 @@ export class StorageService {
         firstSeenAt: existing?.firstSeenAt || now,
         lastSeenAt: now,
       };
+
+      matchingKeys.forEach((mKey) => {
+        if (mKey !== key && this.records[mKey]) {
+          this.records[mKey] = {
+            ...this.records[mKey],
+            encountered: true,
+            lastSeenAt: now,
+          };
+        }
+      });
+
       this.triggerSave();
       return true;
     }
@@ -354,7 +426,7 @@ export class StorageService {
   public resetMap(mapId: string): void {
     const now = new Date().toISOString();
     Object.keys(this.records).forEach((key) => {
-      if (this.records[key].mapId === mapId) {
+      if (this.records[key]?.mapId === mapId || key.startsWith(`${mapId}_`)) {
         this.records[key] = {
           ...this.records[key],
           encountered: false,
@@ -376,17 +448,45 @@ export class StorageService {
     this.saveToRemote();
   }
 
-  public getTotalEncounteredCount(): number {
-    return Object.values(this.records).filter((r) => r.encountered).length;
+  public getTotalEncounteredCount(allMapsPets?: Record<string, { items: PetItem[] }>): number {
+    if (allMapsPets) {
+      let count = 0;
+      Object.keys(allMapsPets).forEach((mapId) => {
+        const items = allMapsPets[mapId]?.items || [];
+        count += items.filter((p) => isPetEncounteredInRecords(this.records, mapId, p.name)).length;
+      });
+      return count;
+    }
+
+    // Fallback: count unique base pet names per map to avoid double-counting multi-key records
+    const uniqueMapPets = new Set<string>();
+    Object.values(this.records).forEach((r) => {
+      if (r && r.encountered) {
+        const base = getBasePetName(r.filename || r.key);
+        uniqueMapPets.add(`${r.mapId}_${base}`);
+      }
+    });
+    return uniqueMapPets.size;
   }
 
   public getMapStats(
       mapId: string,
-      totalItems: number
+      totalItems: number,
+      petsList?: PetItem[]
   ): { encounteredCount: number; percentage: number } {
-    const count = Object.values(this.records).filter(
-        (r) => r.mapId === mapId && r.encountered
-    ).length;
+    let count = 0;
+    if (petsList && petsList.length > 0) {
+      count = petsList.filter((p) => isPetEncounteredInRecords(this.records, mapId, p.name)).length;
+    } else {
+      // Deduplicate by base name to avoid multiple keys inflating count
+      const uniqueBase = new Set<string>();
+      Object.values(this.records).forEach((r) => {
+        if (r && r.encountered && (r.mapId === mapId || r.key?.startsWith(`${mapId}_`))) {
+          uniqueBase.add(getBasePetName(r.filename || r.key));
+        }
+      });
+      count = uniqueBase.size;
+    }
     const percentage = totalItems > 0 ? Math.round((count / totalItems) * 100) : 0;
     return { encounteredCount: count, percentage };
   }

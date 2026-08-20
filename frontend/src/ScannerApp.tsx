@@ -25,6 +25,12 @@ import { sound } from './services/sound';
 import { api } from './services/api';
 import { storage } from './services/storage';
 import { ScannerMapGalleryModal } from './components/ScannerMapGalleryModal';
+import {
+  formatPetName,
+  isSamePetName,
+  isPetEncounteredInRecords,
+  getBasePetName,
+} from './utils/petHelper';
 
 interface DetectedPetSlot {
   id: string;
@@ -46,6 +52,7 @@ export const ScannerApp: React.FC = () => {
 
   // Recognition process status
   const [isRecognizingNow, setIsRecognizingNow] = useState<boolean>(false);
+  const [showRadarAnimation, setShowRadarAnimation] = useState<boolean>(false);
   const [lastScanTime, setLastScanTime] = useState<string>('刚刚');
 
   // Backend connection & collapsed state
@@ -116,37 +123,16 @@ export const ScannerApp: React.FC = () => {
 
   // Check if a pet is encountered in records
   const checkEncountered = (petName: string): boolean => {
-    const formatted = formatPetName(petName);
     const mapKey = `map${detectedMapNum}`;
-    const directKey = `${mapKey}_${petName}`;
-    const directFormattedKey = `${mapKey}_${formatted}`;
-
-    if (records[directKey]?.encountered || records[directFormattedKey]?.encountered) {
-      return true;
-    }
-
-    return (Object.values(records) as EncounterRecord[]).some((rec) => {
-      if (!rec || !rec.encountered) return false;
-      const recFormatted = formatPetName(rec.filename);
-      return (
-          rec.mapId === mapKey && (recFormatted === formatted || rec.filename === petName)
-      );
-    });
+    return isPetEncounteredInRecords(records, mapKey, petName);
   };
 
   // Find rich pet metadata
   const findPetMetadata = (name: string): PetItem | undefined => {
-    const formatted = formatPetName(name);
     const activePetsMap = mapsPets || FALLBACK_MAPS_DATA;
     for (const key of Object.keys(activePetsMap)) {
       const items = activePetsMap[key]?.items || [];
-      const found = items.find((p) => {
-        const pFormatted = formatPetName(p.name);
-        return (
-            pFormatted === formatted ||
-            p.name === name
-        );
-      });
+      const found = items.find((p) => isSamePetName(p.name, name));
       if (found) return found;
     }
     return undefined;
@@ -162,19 +148,9 @@ export const ScannerApp: React.FC = () => {
       return { total: 0, encountered: 0, percent: 0, remaining: 0 };
     }
 
-    const encounteredCount = petsOnMap.filter((p) => {
-      const formatted = formatPetName(p.name);
-      const directKey = `${mapKey}_${p.name}`;
-      const directFormattedKey = `${mapKey}_${formatted}`;
-      if (records[directKey]?.encountered || records[directFormattedKey]?.encountered) {
-        return true;
-      }
-      return (Object.values(records) as EncounterRecord[]).some((rec) => {
-        if (!rec || !rec.encountered) return false;
-        const recFormatted = formatPetName(rec.filename);
-        return rec.mapId === mapKey && (recFormatted === formatted || rec.filename === p.name);
-      });
-    }).length;
+    const encounteredCount = petsOnMap.filter((p) =>
+        isPetEncounteredInRecords(records, mapKey, p.name)
+    ).length;
 
     const percent = (encounteredCount / total) * 100;
     const remaining = total - encounteredCount;
@@ -204,7 +180,6 @@ export const ScannerApp: React.FC = () => {
 
   // Mark/unmark single pet
   const handleTogglePetEncounter = (petName: string) => {
-    const formatted = formatPetName(petName);
     sound.playEncounter();
     const mapKey = `map${detectedMapNum}`;
     storage.toggleEncountered(mapKey, petName);
@@ -213,7 +188,28 @@ export const ScannerApp: React.FC = () => {
   // Process response into state
   const applyApiResults = (data: FollowRecognizeApiResponse) => {
     if (data.map_num !== undefined && data.map_num !== null) {
-      setDetectedMapNum(data.map_num);
+      const mapNum = Number(data.map_num);
+      setDetectedMapNum(mapNum);
+      // 同步给左侧主界面（通过 storage settings 以及跨窗口消息）
+      storage.setSetting('activeMapNum', mapNum);
+      try {
+        if (typeof window !== 'undefined') {
+          // localStorage 跨页面事件触发
+          localStorage.setItem('roco_active_map_num', String(mapNum));
+          // BroadcastChannel (如果有)
+          if ('BroadcastChannel' in window) {
+            const bc = new BroadcastChannel('roco_channel');
+            bc.postMessage({ type: 'SWITCH_MAP', mapNum });
+            bc.close();
+          }
+          // opener 跨窗口 postMessage
+          if (window.opener) {
+            window.opener.postMessage({ type: 'SWITCH_MAP', mapNum }, '*');
+          }
+        }
+      } catch (e) {
+        console.warn('Sync map message error:', e);
+      }
     }
 
     const rawList = data.results || [];
@@ -256,7 +252,26 @@ export const ScannerApp: React.FC = () => {
   const executeSingleRecognition = async () => {
     if (isRecognizingNow) return;
     setIsRecognizingNow(true);
+    setShowRadarAnimation(true);
+    setTimeout(() => setShowRadarAnimation(false), 1300);
     sound.playClick();
+
+    // 通知左侧主页面展示轻量扫描联动特效
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('roco_scan_trigger', String(Date.now()));
+        if ('BroadcastChannel' in window) {
+          const bc = new BroadcastChannel('roco_channel');
+          bc.postMessage({ type: 'SCAN_TRIGGERED', timestamp: Date.now() });
+          bc.close();
+        }
+        if (window.opener) {
+          window.opener.postMessage({ type: 'SCAN_TRIGGERED', timestamp: Date.now() }, '*');
+        }
+      }
+    } catch (e) {
+      console.warn('Sync scan trigger error:', e);
+    }
 
     try {
       // 第一步：调用 pywebview API 进行本地截图
@@ -306,9 +321,13 @@ export const ScannerApp: React.FC = () => {
   };
 
   return (
-      <div className="w-screen h-screen bg-[#F0F6FC] text-slate-800 flex flex-col justify-between select-none overflow-hidden font-sans border-0 m-0 p-0">
+      <div className="w-screen h-screen bg-[#F0F6FC] text-slate-800 flex flex-col justify-between select-none overflow-hidden font-sans border-0 m-0 p-0 relative">
+        {/* Subtle Scan Shimmer Radar Effect */}
+        {showRadarAnimation && <div className="scanner-radar-active" />}
+
         {/* ------------------------------------------------------------- */}
         {/* 1. Main App Match Titlebar: Roco Sky Blue (#7ABCF4) */}
+
         {/* ------------------------------------------------------------- */}
         <div className="h-10 px-3 bg-[#7ABCF4] border-b-2 border-[#5DA8E8] flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 shadow-xs text-white">
           <div className="flex items-center gap-2 min-w-0 pointer-events-none">
@@ -558,7 +577,7 @@ export const ScannerApp: React.FC = () => {
                                                       : 'bg-[#F8FBFE] border-[#D5E3F0] text-slate-600 hover:bg-[#E9F2FA]'
                                               }`}
                                           >
-                                          <div className="flex items-center justify-between text-[9px] font-mono">
+                                            <div className="flex items-center justify-between text-[9px] font-mono">
                                             <span className="text-slate-400 font-bold">
                                               {checkEncountered(candName) ? (
                                                   <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 border border-slate-200 flex items-center gap-1">
@@ -572,14 +591,14 @@ export const ScannerApp: React.FC = () => {
                                                 </span>
                                               )}
                                             </span>
-                                            <span className={isSelected ? 'text-[#1E5B99] font-black' : 'text-slate-500'}>
+                                              <span className={isSelected ? 'text-[#1E5B99] font-black' : 'text-slate-500'}>
                                               {candPercent}%
                                             </span>
-                                          </div>
+                                            </div>
 
-                                          <div className={`text-[11px] font-bold truncate mt-0.5 `} title={candName}>
-                                            {candName}
-                                          </div>
+                                            <div className={`text-[11px] font-bold truncate mt-0.5 `} title={candName}>
+                                              {candName}
+                                            </div>
                                           </button>
                                       );
                                     })}
