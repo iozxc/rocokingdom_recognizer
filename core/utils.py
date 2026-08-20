@@ -1,66 +1,14 @@
 import ctypes
-import threading
-from pathlib import Path
-
 import config
 from difflib import SequenceMatcher
 import win32gui
 import win32ui
-
-from core.db import get_db
-from logger import logger
 
 import os
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import numpy as np
 from PIL import Image
-
-
-def scan_icon_names():
-    """
-    从数据库扫描所有图片名
-    返回: {"map1": ["小拉塔", "迪莫"], "map2": []}
-    """
-    # 初始化字典，确保 config.MAP_LIST 里的地图都有对应的 Key
-    names_dict = {map_name: [] for map_name in config.MAP_LIST}
-
-    try:
-        # 这里建议直接创建一个临时的连接，或者使用你之前的 get_db()
-        # 注意：如果是独立脚本，请确保 DB_PATH 正确
-        conn = get_db()
-        cursor = conn.cursor()
-
-        # 只需要查询路径字段
-        cursor.execute("SELECT path FROM icons")
-        rows = cursor.fetchall()
-
-        for row in rows:
-            # row[0] 格式示例: "map1/迪莫.png"
-            db_path = row[0]
-
-            # 使用 / 拆分
-            parts = db_path.split('/')
-            if len(parts) == 2:
-                map_name, filename = parts[0], parts[1]
-
-                # 如果这个地图在我们的配置列表中
-                if map_name in names_dict:
-                    # 去掉后缀名，例如 "迪莫.png" -> "迪莫"
-                    name_without_ext = os.path.splitext(filename)[0]
-                    names_dict[map_name].append(name_without_ext)
-
-        conn.close()
-
-    except Exception as e:
-        # 如果报错（比如数据库还没创建），记录日志
-        if 'logger' in globals():
-            logger.error(f"从数据库扫描图标名失败: {e}")
-        else:
-            logger.error(f"Error: {e}")
-
-    return names_dict
-
 
 def get_icon_full_path(map_name, icon_name_without_ext):
     """
@@ -165,30 +113,6 @@ def crop_sections_from_pil(pil_image: Image.Image):
 
     return title_pil, [name1_pil, name2_pil, name3_pil], [item1_pil, item2_pil, item3_pil]
 
-def clean_debug_folder(folder_path: str, max_count: int = 30):
-    """
-    清理debug截图文件夹，最多保留max_count张，删除最旧的文件
-    :param folder_path: 文件夹路径
-    :param max_count: 最大保留文件数量
-    """
-    folder = Path(folder_path)
-    if not folder.exists():
-        return
-
-    # 获取所有jpg图片，按修改时间升序（旧的在前）
-    files = list(folder.glob("*.jpg"))
-    if len(files) <= max_count:
-        return
-
-    # 按文件修改时间排序，旧文件放前面
-    files.sort(key=lambda x: x.stat().st_mtime)
-    need_remove = files[: len(files) - max_count]
-    for f in need_remove:
-        try:
-            os.remove(f)
-            logger.info(f"删除过期debug截图: {f.name}")
-        except Exception as e:
-            logger.warning(f"删除文件失败 {f.name}: {str(e)}")
 
 def capture_window_by_hwnd(hwnd):
     """
