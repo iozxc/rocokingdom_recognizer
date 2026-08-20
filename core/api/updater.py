@@ -147,6 +147,7 @@ def real_download_logic():
                     updater.error_msg = f"文件 {file_name} 校验失败，请重试。"
                     updater.speed_bps = 0
                     return
+                updater.status = "downloading"
                 finished_part_bytes += this_file_total_size
                 updater.progress = finished_part_bytes
                 continue
