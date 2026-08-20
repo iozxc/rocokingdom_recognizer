@@ -1,24 +1,28 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "1.0.0正式发布版，洛克王国草系徽章图鉴：跟随识别、初始化、单个识别、批量识别",
+  "update_log": "1.1.0 新增：跟随识别改为yolo目标检测+ocr+特征识别。修复：修复了win11下载异常问题、解决了特定情况下数据库连接不上的问题。",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.0.0/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "c8042c38c1a3781bdf40d63100456e9b"
+        "md5": "43456795f9c0cecb41865153277f3028"
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "61897e197feaaba1b56606ca0ad767e9"
+        "md5": "40287d76c10ffcd8d32d34bddef44ef5"
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "cfac22b59f623d574890e45556a8a6f8"
+        "md5": "73f394d184912f13eca796c162997cab"
+      },
+      {
+        "name": "RocoKingdomRecognizer_part.7z.004",
+        "md5": "5099c9bd6393bdff31924be9248c5e49"
       }
     ]
   }
