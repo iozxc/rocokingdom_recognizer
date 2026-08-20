@@ -617,7 +617,7 @@ export const ScannerApp: React.FC = () => {
                 {isRecognizingNow ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>捕获中...</span>
+                      <span>识别中...</span>
                     </>
                 ) : (
                     <>
