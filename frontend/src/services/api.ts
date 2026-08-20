@@ -776,7 +776,7 @@ export class ApiService {
     try {
       // 尝试调用安装接口，若接到返回即代表请求成功开始安装
       const response = await axios.get<InstallUpdateResponse>(
-          `${this.apiBase}/api/download_progress`,
+          `${this.apiBase}/api/install_update`,
           { timeout: 5000 }
       );
       return { data: response.data || { status: 'install' }, isOfflineMock: false };
