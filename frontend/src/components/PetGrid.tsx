@@ -85,7 +85,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
         <div className="flex items-center justify-between gap-3 pb-4 border-b-2 border-[#F1F5F9] mb-5">
           <div className="flex items-center gap-2.5">
             <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-sm font-black text-sm shrink-0"
+                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0"
                 style={{ backgroundColor: currentMap.themeColor }}
             >
               {currentMap.num}
@@ -93,7 +93,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
             <div>
               <h3 className="text-base sm:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2 flex-wrap">
                 <span>{currentMap.name}</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] text-[#2B78C4] font-mono font-black border border-[#E6EEF8] shadow-2xs flex items-center gap-1">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] text-[#2B78C4] font-mono font-black border border-[#E6EEF8] flex items-center gap-1">
                 <span>已遇见 <strong className="text-[#2D6613] font-black">{encounteredCount}</strong> / {totalCount}</span>
                   {filterMode !== 'all' && (
                       <span className="text-[10px] text-slate-400 font-normal">
@@ -129,30 +129,30 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         key={pet.name}
                         id={`pet-card-${currentMap.id}-${pet.name.replace('.', '-')}`}
                         onClick={() => handleCardClick(pet.name, isEnc)}
-                        className={`group relative rounded-2xl p-2.5 flex flex-col items-center cursor-pointer transition-all duration-300 select-none ${
+                        className={`group relative rounded-2xl p-2.5 flex flex-col items-center cursor-pointer transition-all duration-200 select-none ${
                             isJustEncountered
-                                ? 'encounter-pop-active bg-[#F2FBF0] border-2 border-[#95D151] ring-4 ring-[#95D151]/40 shadow-md'
+                                ? 'encounter-pop-active bg-[#F2FBF0] border-2 border-[#95D151] ring-2 ring-[#95D151]/40'
                                 : isEnc
-                                    ? 'bg-[#F2FBF0] border-2 border-[#95D151] shadow-xs hover:border-[#76B032] hover:-translate-y-1 hover:shadow-md'
-                                    : 'bg-[#F5F9FF] border-2 border-[#E6EEF8] hover:border-[#7ABCF4] hover:bg-white hover:-translate-y-1 hover:shadow-md'
+                                    ? 'bg-[#F2FBF0] border-2 border-[#95D151] hover:border-[#76B032]'
+                                    : 'bg-[#F5F9FF] border-2 border-[#E6EEF8] hover:border-[#7ABCF4] hover:bg-white'
                         }`}
                     >
                       {/* Floating sparkle badge during encounter activation */}
                       {isJustEncountered && (
-                          <div className="absolute -top-3.5 z-20 encounter-sparkle-active bg-gradient-to-r from-[#95D151] to-[#76B032] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-md border border-white flex items-center gap-1 pointer-events-none">
+                          <div className="absolute -top-3.5 z-20 encounter-sparkle-active bg-gradient-to-r from-[#95D151] to-[#76B032] text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white flex items-center gap-1 pointer-events-none">
                             <Sparkle className="w-2.5 h-2.5 fill-white text-white" />
                             <span>点亮图鉴</span>
                           </div>
                       )}
 
                       {/* Fixed Uniform Image Container - 1:1 Aspect Ratio with object-contain */}
-                      <div className="relative w-full aspect-square rounded-xl bg-white p-1.5 flex items-center justify-center shadow-inner overflow-hidden border border-[#E6EEF8]">
+                      <div className="relative w-full aspect-square rounded-xl bg-white p-1.5 flex items-center justify-center overflow-hidden border border-[#E6EEF8]">
                         <img
                             src={pet.url}
                             alt={pet.name}
-                            className={`w-full h-full object-contain transition-transform duration-300 ${
+                            className={`w-full h-full object-contain transition-transform duration-200 ${
                                 isJustEncountered
-                                    ? 'scale-110'
+                                    ? 'scale-105'
                                     : 'group-hover:scale-105'
                             }`}
                             loading="lazy"
@@ -174,11 +174,11 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       {/* Status indicator pill */}
                       <div className="mt-2 flex items-center justify-center w-full">
                         {isEnc ? (
-                            <span className="text-[11px] font-black text-[#2D6613] bg-[#E1F7DB] px-2.5 py-0.5 rounded-md w-full text-center shadow-2xs">
+                            <span className="text-[11px] font-black text-[#2D6613] bg-[#E1F7DB] px-2.5 py-0.5 rounded-md w-full text-center border border-[#95D151]/40">
                       已遇见
                     </span>
                         ) : (
-                            <span className="text-[11px] font-medium text-slate-400 bg-white/60 px-2 py-0.5 rounded-md w-full text-center border border-slate-200/60 group-hover:border-[#BCD7F2] group-hover:text-slate-600 transition-colors">
+                            <span className="text-[11px] font-medium text-slate-400 bg-white px-2 py-0.5 rounded-md w-full text-center border border-slate-200 group-hover:border-[#BCD7F2] group-hover:text-slate-600 transition-colors">
                       未探索
                     </span>
                         )}

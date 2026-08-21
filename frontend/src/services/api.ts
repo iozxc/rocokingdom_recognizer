@@ -449,81 +449,112 @@ export class ApiService {
   }
 
   /**
-   * 2. 跟随识别接口 (建议接口名: /follow_recognize 或 /recognize_follow)
-   * 由 Flask 端自动捕获当前置顶/激活的“洛克王国”游戏窗口画面进行定域地图 + 精灵裁剪识别 (0-3个)
-   * POST /follow_recognize
+   * 2. 跟随识别接口 (HTTP GET /api/recognize/<map_num> 或 /api/recognize)
+   * 由 Flask 后端自动捕获当前游戏窗口画面进行定域地图 + 精灵裁剪识别 (0-3个)
+   * GET /api/recognize/<map_num> 或 GET /api/recognize
    */
-  public async followRecognize(params?: any): Promise<{
+  public async followRecognize(mapNumOrParams?: number | any): Promise<{
     data: FollowRecognizeApiResponse;
     isOfflineMock: boolean;
     errorMsg?: string;
   }> {
-    const threshold = 0.25;
-    const topK = Math.max(1, 3);
+    let targetMapNum: number | undefined = undefined;
+    if (typeof mapNumOrParams === 'number' && mapNumOrParams > 0) {
+      targetMapNum = mapNumOrParams;
+    } else if (mapNumOrParams && typeof mapNumOrParams === 'object' && mapNumOrParams.map_num) {
+      targetMapNum = Number(mapNumOrParams.map_num);
+    }
+
+    const url = targetMapNum
+        ? `${this.apiBase}/api/recognize/${targetMapNum}`
+        : `${this.apiBase}/api/recognize`;
 
     try {
-      const response = {
-        data:params
-      };
+      let rawResponseData: any = null;
 
-      if (response.data && (response.data.status === 'success' || response.data.results)) {
-        const rawResults = response.data.results || [];
-        const normalizedResults = rawResults.map((raw, idx) => {
+      // Check if params were directly passed as an existing response object
+      if (mapNumOrParams && typeof mapNumOrParams === 'object' && (mapNumOrParams.results || mapNumOrParams.status === 'success')) {
+        rawResponseData = mapNumOrParams;
+      } else {
+        const response = await axios.get<any>(url, {
+          timeout: 15000,
+        });
+        rawResponseData = response.data;
+      }
+
+      const body = rawResponseData?.data || rawResponseData;
+
+      if (body && (body.status === 'success' || Array.isArray(body.results) || Array.isArray(body.data))) {
+        const rawResults = Array.isArray(body.results)
+            ? body.results
+            : Array.isArray(body.data)
+                ? body.data
+                : [];
+
+        const normalizedResults = rawResults.map((raw: any, idx: number) => {
           let candidates = raw.candidates || [];
           if (Array.isArray(candidates) && candidates.length > 0) {
-            candidates = candidates.map((c) => {
-              let cUrl = c.view_url || '';
+            candidates = candidates.map((c: any) => {
+              let cUrl = c.view_url || c.url || '';
               if (cUrl && !cUrl.startsWith('http') && !cUrl.startsWith('data:')) {
                 cUrl = `${this.apiBase}/${cUrl.replace(/^\//, '')}`;
               }
               return {
-                filename: c.filename || '',
-                score: typeof c.score === 'number' ? c.score : 0.85,
+                filename: c.filename || c.name || '',
+                score: typeof c.score === 'number' ? c.score : typeof c.confidence === 'number' ? c.confidence : 0.85,
                 view_url: cUrl,
-                match_path: c.match_path,
+                match_path: c.match_path || c.path,
               };
             });
           }
 
-          let viewUrl = raw.view_url || '';
+          let viewUrl = raw.view_url || raw.url || '';
           if (viewUrl && !viewUrl.startsWith('http') && !viewUrl.startsWith('data:')) {
             viewUrl = `${this.apiBase}/${viewUrl.replace(/^\//, '')}`;
           }
 
+          const topCand = candidates[0];
+          const petName = raw.filename || raw.name || raw.pet_name || topCand?.filename || '';
+
           return {
             index: typeof raw.index === 'number' ? raw.index : idx,
             status: raw.status || 'matched',
-            filename: raw.filename || (candidates[0]?.filename ?? ''),
-            score: typeof raw.score === 'number' ? raw.score : (candidates[0]?.score ?? 0.88),
-            view_url: viewUrl || (candidates[0]?.view_url ?? ''),
-            match_path: raw.match_path || (candidates[0]?.match_path ?? ''),
+            filename: petName,
+            score: typeof raw.score === 'number' ? raw.score : typeof raw.confidence === 'number' ? raw.confidence : (topCand?.score ?? 0.88),
+            view_url: viewUrl || (topCand?.view_url ?? ''),
+            match_path: raw.match_path || (topCand?.match_path ?? ''),
             candidates: candidates.slice(0, 3),
             reason: raw.reason,
           };
         });
 
+        const effectiveMapNum =
+            body.map_num !== undefined && body.map_num !== null
+                ? Number(body.map_num)
+                : (targetMapNum || 1);
+
         return {
           data: {
             status: 'success',
-            map_num: response.data.map_num || 1,
-            map_name: response.data.map_name || `地图 ${response.data.map_num || 1}`,
+            map_num: effectiveMapNum,
+            map_name: body.map_name || `地图 ${effectiveMapNum}`,
             total_detected: normalizedResults.length,
-            is_game_running: response.data.is_game_running ?? true,
-            screenshot_url: response.data.screenshot_url,
-            timestamp: response.data.timestamp || new Date().toLocaleTimeString(),
+            is_game_running: body.is_game_running ?? true,
+            screenshot_url: body.screenshot_url,
+            timestamp: body.timestamp || new Date().toLocaleTimeString(),
             results: normalizedResults.slice(0, 3),
           },
           isOfflineMock: false,
         };
       }
 
-      throw new Error(response.data?.message || '返回数据格式不符合规范');
+      throw new Error(body?.message || '返回数据格式不符合规范');
     } catch (err: unknown) {
       const error = err as AxiosError;
-      console.warn('API followRecognize failed, using simulated fallback:', error.message);
+      console.warn(`API GET ${url} failed, using simulated fallback:`, error.message);
 
-      // Offline simulation
-      const mapNum = params?.forceMapNum || 1;
+      // Offline simulation fallback
+      const mapNum = targetMapNum || 1;
       const mapKey = `map${mapNum}`;
       const pets = FALLBACK_MAPS_DATA[mapKey]?.items || [];
       const sampleCount = Math.floor(Math.random() * 3) + 1; // 1 to 3
@@ -561,7 +592,7 @@ export class ApiService {
           results: simResults,
         },
         isOfflineMock: true,
-        errorMsg: `无法连接 Flask 后端 (/follow_recognize)，已启用本地模拟`,
+        errorMsg: `无法连接 Flask 后端 (${url})，已启用本地模拟`,
       };
     }
   }

@@ -32,23 +32,19 @@
 /* Sleek Interface Cartoon Styling */
 .roco-card {
   background-color: #ffffff;
-  border: 3px solid #E6EEF8;
-  box-shadow: 0 6px 0 0 #D5E2F0, 0 10px 20px -3px rgba(122, 188, 244, 0.08);
+  border: 2px solid #E6EEF8;
   border-radius: 1.5rem;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .roco-card-interactive:hover {
-  transform: translateY(-2px);
   border-color: #7ABCF4;
-  box-shadow: 0 8px 0 0 #B9D7F2, 0 14px 24px -3px rgba(122, 188, 244, 0.16);
 }
 
 /* Primary Button (Sleek Sky Blue) */
 .roco-btn-primary {
   background: #7ABCF4;
   border: 2px solid #5DA8E8;
-  box-shadow: 0 4px 0 0 #4A92D0;
   border-radius: 1rem;
   color: #ffffff;
   font-weight: 800;
@@ -57,20 +53,16 @@
 
 .roco-btn-primary:hover {
   background: #68AEEB;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 0 #4A92D0;
 }
 
 .roco-btn-primary:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 0 #4A92D0;
+  opacity: 0.9;
 }
 
 /* Success Button (Sleek Green) */
 .roco-btn-success {
   background: #95D151;
   border: 2px solid #76B032;
-  box-shadow: 0 4px 0 0 #629626;
   border-radius: 1rem;
   color: #ffffff;
   font-weight: 800;
@@ -79,20 +71,16 @@
 
 .roco-btn-success:hover {
   background: #86C242;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 0 #629626;
 }
 
 .roco-btn-success:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 0 #629626;
+  opacity: 0.9;
 }
 
 /* Yellow Accent Button (Sleek Gold/Yellow) */
 .roco-btn-yellow {
   background: #FEE061;
   border: 2px solid #E5C43B;
-  box-shadow: 0 4px 0 0 #C4A220;
   border-radius: 1rem;
   color: #854D0E;
   font-weight: 800;
@@ -101,20 +89,16 @@
 
 .roco-btn-yellow:hover {
   background: #F4D349;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 0 #C4A220;
 }
 
 .roco-btn-yellow:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 0 #C4A220;
+  opacity: 0.9;
 }
 
 /* Secondary Button (Clean White/Neutral) */
 .roco-btn-secondary {
   background: #ffffff;
   border: 2px solid #E2E8F0;
-  box-shadow: 0 3px 0 0 #CBD5E1;
   border-radius: 1rem;
   color: #475569;
   font-weight: 700;
@@ -124,13 +108,10 @@
 .roco-btn-secondary:hover {
   background: #F8FAFC;
   border-color: #CBD5E1;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 0 0 #CBD5E1;
 }
 
 .roco-btn-secondary:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 0 0 #CBD5E1;
+  opacity: 0.9;
 }
 
 /* Bottom-Left Green Checkmark Badge 【已遇见】 */
@@ -146,7 +127,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba(118, 176, 50, 0.4);
   z-index: 10;
 }
 
@@ -172,7 +152,6 @@
   right: 0;
   height: 3px;
   background: linear-gradient(90deg, transparent 0%, #7ABCF4 50%, transparent 100%);
-  box-shadow: 0 0 12px 3px rgba(122, 188, 244, 0.85);
   animation: magic-scan 1.6s ease-in-out infinite;
 }
 
@@ -197,15 +176,12 @@
 @keyframes target-pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(122, 188, 244, 0.7);
   }
   50% {
     transform: scale(1.08);
-    box-shadow: 0 0 0 12px rgba(122, 188, 244, 0);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(122, 188, 244, 0);
   }
 }
 
@@ -218,15 +194,12 @@
 @keyframes encounter-pop {
   0% {
     transform: scale(0.92);
-    box-shadow: 0 0 0 0 rgba(149, 209, 81, 0.7);
   }
   40% {
     transform: scale(1.06);
-    box-shadow: 0 0 18px 4px rgba(149, 209, 81, 0.45);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 }
 
@@ -263,9 +236,9 @@
 /* ------------------------------------------------------------- */
 
 @keyframes map-pill-pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(122, 188, 244, 0.6); }
-  50% { transform: scale(1.06); box-shadow: 0 0 18px 4px rgba(122, 188, 244, 0.5); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(122, 188, 244, 0); }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
 }
 
 .map-sync-highlight {

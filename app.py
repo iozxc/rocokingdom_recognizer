@@ -199,7 +199,7 @@ class AppApi:
                     title='精灵识别跟随',
                     url='http://127.0.0.1:5000/?view=scanner',
                     width=420,
-                    height=680,
+                    height=880,
                     frameless=True,
                     transparent=False,
                     on_top=True,
@@ -244,7 +244,7 @@ class AppApi:
             win.move(x + dx, y + dy)
             logger.debug(f"移动子窗口: dx={dx}, dy={dy}, 新位置=({x + dx}, {y + dy})")
 
-    def capture_and_recognize(self, target_title="计算器"):
+    def capture_and_recognize(self, target_title="计算器", map_num=None):
         global map_classifier_recognizer, names_dict
         import time
         t_total = time.perf_counter()
@@ -283,9 +283,12 @@ class AppApi:
             if not map_classifier_recognizer:
                 logger.info("地图分类器未初始化，执行懒加载...")
                 map_classifier_recognizer = MapClassifier(config.RESNET50, config.FEATURES2_DB)
-            map_name = map_classifier_recognizer.match(title_pil)
-            map_num = int(map_name[3])
-            logger.debug(f"mapname : {map_name}")
+            if map_num is None:
+                map_name = map_classifier_recognizer.match(title_pil)
+                map_num = int(map_name[3])
+                logger.debug(f"mapname : {map_name}")
+            else:
+                map_name = f"map{map_num}"
 
             all_results = []
             for i in range(0, 3):
@@ -309,6 +312,9 @@ class AppApi:
         except Exception as e:
             logger.error(f"截图识别异常: {e}", exc_info=True)
             return {"status": "error", "message": str(e)}
+
+    def capture_and_recognize_by_map(self, map_num):
+        return self.capture_and_recognize("洛克王国：世界", map_num)
 
 
 def start_server():
@@ -361,7 +367,7 @@ def start_webview():
     main_window.events.closed += main_window_on_closed
 
     logger.info("主窗口创建完成")
-    webview.start(start_logic)
+    webview.start(start_logic, debug=True)
 
 
 if __name__ == '__main__':
