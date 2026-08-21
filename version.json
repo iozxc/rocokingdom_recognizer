@@ -1,28 +1,28 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "1.1.0 新增：跟随识别改为yolo目标检测+ocr+特征识别。修复：修复了win10下载异常问题、解决了特定情况下数据库连接不上的问题。",
+  "update_log": "1. 图鉴更新(全图鉴+按编号排序)\n2. 新增设置功能，支持内存识别窗口（遮挡状态下也能识别）\n3. 新增部分特效\n4. 新增悬浮快捷栏的修改功能",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.0.0/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "bf940b2c98db8699ee0e7e507d8ebdd1"
+        "md5": "55ce6aa46931cb548b2fd614bf0d775b"
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "967b5fab557bf3af7abe72f76adae9fe"
+        "md5": "1bd73fa41ff3c906de669a92719b055a"
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "c21235bad852b93a1ab09505067ef1ba"
+        "md5": "f2b86f88b2a9f9e6f6c0ed9dacfd525b"
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.004",
-        "md5": "a79776387f6981458994e388c056cd18"
+        "md5": "94c9bcfd2957b7f50c26646dfbff7959"
       }
     ]
   }
