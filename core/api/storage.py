@@ -46,27 +46,19 @@ VERSION = _storage_cache["version"]
 def save_storage_file(payload: dict):
     global VERSION, _storage_cache
     pet_count = len(payload.get("encounteredPets", {}))
-    logger.debug(f"保存存储文件: 遇到精灵数={pet_count}, 阈值数={len(payload.get('thresholds', {}))}")
-
-    data = load_storage_file()
-    data["encounteredPets"] = payload.get("encounteredPets", data["encounteredPets"])
-    data["thresholds"] = payload.get("thresholds", data["thresholds"])
-    data["appSettings"] = payload.get("appSettings", data["appSettings"])
     new_version = int(time.time() * 1000)
-    data["version"] = new_version
-
+    payload["version"] = new_version
     try:
         with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        # 写磁盘成功，更新内存缓存与版本
-        _storage_cache = data
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        _storage_cache = payload
         VERSION = new_version
-        logger.info(f"存储文件保存成功: version={data['version']}, 遇到精灵数={len(data['encounteredPets'])}")
+        logger.info(f"保存存储文件: 遇到精灵数={pet_count}, 阈值={len(payload.get('thresholds', {}))} version={payload['version']}")
     except Exception as e:
         logger.error(f"存储文件保存失败: {e}", exc_info=True)
         raise
 
-    return data
+    return payload
 
 
 def init_routes(app):
