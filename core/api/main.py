@@ -49,7 +49,7 @@ def init_routes(app):
     @app.route('/icons', methods=['GET'])
     def list_icons():
         global ICONS
-        """从数据库读取所有图片的名字及其对应的访问 URL，按图鉴id排序"""
+        """从数据库读取所有图片的名字及其对应的访问 URL，按图鉴id排序；支持_后缀变体形态"""
         try:
             if ICONS:
                 logger.debug(f"[GET /icons] icons已缓存")
@@ -79,10 +79,16 @@ def init_routes(app):
                 })
                 icons_structure[map_name]["count"] += 1
 
-            # 对每个分组内的 items，按图鉴id排序；找不到id的排末尾
+            # 排序key：去掉后缀，按下划线切分取主名查图鉴ID；无匹配返回无穷大放末尾
             def sort_key(item):
-                pure_name = item["name"].rsplit(".", 1)[0]
-                return PET_NAME_TO_ID.get(pure_name, float("inf"))
+                filename = item["name"]
+                # 去除文件扩展名
+                no_ext = filename.rsplit(".", 1)[0]
+                # 按下划线分割，取前面主体名字
+                main_name = no_ext.split("_")[0]
+                pet_id = PET_NAME_TO_ID.get(main_name, float("inf"))
+                # 次要key：保留原始文件名，同一个主宠的多个变体内部按文件名字典序排
+                return (pet_id, filename)
 
             for map_name in icons_structure:
                 icons_structure[map_name]["items"].sort(key=sort_key)
