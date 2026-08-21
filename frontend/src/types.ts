@@ -160,6 +160,13 @@ export interface FollowRecognizeApiResponse {
 
 export type EffectLevel = 0 | 1 | 2 | 3;
 export type FloatingButtonsMode = 'normal' | 'compact' | 'hidden';
+export type CaptureMode = 'hwnd' | 'grab';
+
+export interface CaptureModeResponse {
+  status: 'success' | 'fail';
+  msg?: string;
+  data?: { capture_mode: CaptureMode };
+}
 
 export interface AppSettings {
   isSoundMuted?: boolean;

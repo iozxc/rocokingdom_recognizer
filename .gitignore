@@ -19,4 +19,3 @@ keys/
 *.pth
 /ocr_models/
 /onnx/
-/yolo/

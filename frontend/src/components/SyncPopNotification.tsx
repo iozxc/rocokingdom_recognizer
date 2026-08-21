@@ -24,7 +24,7 @@ export const SyncPopNotification: React.FC<SyncPopNotificationProps> = ({
     const isEncounter = type === 'encounter';
 
     return (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[99999] pointer-events-none flex flex-col items-center animate-in fade-in slide-in-from-top-3 duration-200">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[99999] pointer-events-none flex flex-col items-center animate-in fade-in slide-in-from-top-3 duration-200">
             <div
                 className={`flex items-center gap-2.5 px-4 py-2 backdrop-blur-md rounded-full shadow-xl border ${
                     isEncounter

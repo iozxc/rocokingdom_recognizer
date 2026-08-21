@@ -56,10 +56,15 @@ export class StorageService {
         // 如果本地有正在等待保存或正在落盘的操作，暂缓本轮拉取，避免竞态覆盖
         if (!this.hasPendingLocalChanges && !this.saveTimeout) {
           const apiBase = api.getApiBase();
-          const res = await axios.get<StoragePayload>(`${apiBase}/api/storage`, { timeout: 4000 });
+          const res = await axios.get<StoragePayload | { status: string }>(`${apiBase}/api/storage/${this.localVersion}`, { timeout: 4000 });
           const remote = res.data;
-          if (remote && remote.version && remote.version > this.localVersion) {
-            await this.fetchRemote();
+          // 版本一致时返回 {"status": "ok"}，无需更新
+          if (remote && 'status' in remote && remote.status === 'ok') {
+            return;
+          }
+          // 版本不一致时返回完整数据，直接应用
+          if (remote && 'version' in remote && remote.version && remote.version > this.localVersion) {
+            this.applyRemoteData(remote as StoragePayload);
           }
         }
       } catch (e) {
@@ -130,46 +135,47 @@ export class StorageService {
     });
   }
 
+  private applyRemoteData(remote: StoragePayload) {
+    let hasRecordsChanges = false;
+    let hasSettingsChanges = false;
+
+    if (remote.encounteredPets) {
+      this.records = remote.encounteredPets;
+      hasRecordsChanges = true;
+    }
+    if (remote.thresholds) {
+      this.thresholds = remote.thresholds;
+    }
+    if (remote.appSettings) {
+      this.appSettings = remote.appSettings;
+      if (typeof this.appSettings.isSoundMuted === 'boolean') {
+        sound.setMuted(this.appSettings.isSoundMuted);
+      }
+      hasSettingsChanges = true;
+    }
+    if (remote.version) {
+      this.localVersion = remote.version;
+    }
+
+    this.saveToLocalStorage();
+    if (hasRecordsChanges) this.notifyListeners();
+    if (hasSettingsChanges) this.notifySettingsListeners();
+  }
+
   public async fetchRemote(): Promise<StoragePayload | null> {
     const apiBase = api.getApiBase();
     this.isSyncing = true;
     try {
-      const response = await axios.get<StoragePayload>(`${apiBase}/api/storage`, {
+      const response = await axios.get<StoragePayload | { status: string }>(`${apiBase}/api/storage/0`, {
         timeout: 4000,
       });
 
       const remote = response.data;
-      if (!remote) return null;
-      if (remote.version && remote.version <= this.localVersion) {
-        return remote;
-      }
+      if (!remote || ('status' in remote && remote.status === 'ok')) return null;
+      if (!('version' in remote)) return null;
 
-      let hasRecordsChanges = false;
-      let hasSettingsChanges = false;
-
-      if (remote.encounteredPets) {
-        this.records = remote.encounteredPets;
-        hasRecordsChanges = true;
-      }
-      if (remote.thresholds) {
-        this.thresholds = remote.thresholds;
-      }
-      if (remote.appSettings) {
-        this.appSettings = remote.appSettings;
-        if (typeof this.appSettings.isSoundMuted === 'boolean') {
-          sound.setMuted(this.appSettings.isSoundMuted);
-        }
-        hasSettingsChanges = true;
-      }
-      if (remote.version) {
-        this.localVersion = remote.version;
-      }
-
-      this.saveToLocalStorage();
-      if (hasRecordsChanges) this.notifyListeners();
-      if (hasSettingsChanges) this.notifySettingsListeners();
-
-      return remote;
+      this.applyRemoteData(remote as StoragePayload);
+      return remote as StoragePayload;
     } catch (err) {
       console.warn('fetchRemote fail, fallback localStorage');
     } finally {

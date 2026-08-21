@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Header } from './components/Header';
 import { SubHeaderToolbar } from './components/SubHeaderToolbar';
 import { StatsBanner } from './components/StatsBanner';
@@ -59,6 +59,7 @@ export default function App() {
     message: '图鉴已同步',
     type: 'encounter',
   });
+  const syncPopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Trigger celebration confetti & sleek pop notification
   const triggerScanSyncEffect = useCallback(
@@ -90,8 +91,12 @@ export default function App() {
           subMessage: customSub,
         });
 
-        setTimeout(() => {
+        if (syncPopTimerRef.current) {
+          clearTimeout(syncPopTimerRef.current);
+        }
+        syncPopTimerRef.current = setTimeout(() => {
           setSyncPopState((prev) => ({ ...prev, isVisible: false }));
+          syncPopTimerRef.current = null;
         }, 2200);
       },
       []
@@ -129,7 +134,7 @@ export default function App() {
       }
       if (typeof newSettings.activeMapNum === 'number' && [1, 2, 3].includes(newSettings.activeMapNum)) {
         setActiveMapNum(newSettings.activeMapNum);
-        triggerScanSyncEffect(newSettings.effectLevel);
+        // activeMapNum 变化不再触发特效，避免扫描识别后弹出特效
       }
     });
 
@@ -139,11 +144,11 @@ export default function App() {
         const num = Number(event.data.mapNum);
         if ([1, 2, 3].includes(num)) {
           setActiveMapNum(num);
-          triggerScanSyncEffect();
+          // SWITCH_MAP 不再触发特效，避免扫描识别后弹出特效
         }
       }
       if (event.data?.type === 'SCAN_TRIGGERED') {
-        triggerScanSyncEffect();
+        // 立即识别不再触发特效，特效已移至点亮图鉴按钮
       }
     };
     window.addEventListener('message', handleMessage);
@@ -153,11 +158,11 @@ export default function App() {
         const num = Number(event.newValue);
         if ([1, 2, 3].includes(num)) {
           setActiveMapNum(num);
-          triggerScanSyncEffect();
+          // SWITCH_MAP 不再触发特效，避免扫描识别后弹出特效
         }
       }
       if (event.key === 'roco_scan_trigger') {
-        triggerScanSyncEffect();
+        // 立即识别不再触发特效，特效已移至点亮图鉴按钮
       }
     };
     window.addEventListener('storage', handleStorageEvent);
@@ -170,11 +175,11 @@ export default function App() {
           const num = Number(event.data.mapNum);
           if ([1, 2, 3].includes(num)) {
             setActiveMapNum(num);
-            triggerScanSyncEffect();
+            // SWITCH_MAP 不再触发特效，避免扫描识别后弹出特效
           }
         }
         if (event.data?.type === 'SCAN_TRIGGERED') {
-          triggerScanSyncEffect();
+          // 立即识别不再触发特效，特效已移至点亮图鉴按钮
         }
       };
     }

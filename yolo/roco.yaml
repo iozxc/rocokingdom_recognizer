@@ -1,0 +1,8 @@
+path: ./dataset
+train: train/images
+val: val/images
+
+names:
+  0: title
+  1: item
+  2: name

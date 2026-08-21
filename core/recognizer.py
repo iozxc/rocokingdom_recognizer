@@ -1,10 +1,11 @@
 import onnxruntime as ort
 import numpy as np
-import cv2  # 推荐用 cv2 替代 torchvision 进行图像处理，打包体积更小
+import cv2
 import os
 import pickle
 import time
 from logger import logger
+from PIL import Image
 
 
 class ImageRecognizer:
@@ -52,14 +53,23 @@ class ImageRecognizer:
         """
         手动实现 torchvision.transforms 的逻辑
         """
-        # 如果是路径，读取图片；如果是 PIL 对象，转为 numpy
+        if img is None:
+            raise ValueError("preprocess: 输入图像为 None")
+
+        img_bgr = None
         if isinstance(img, str):
-            # 解决 opencv 读取中文路径的问题
+            # 如果是路径，读取图片；如果是 PIL 对象，转为 numpy
             img_data = np.fromfile(img, dtype=np.uint8)
             img_bgr = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
+            if img_bgr is None:
+                raise RuntimeError(f"preprocess: 文件读取失败 {img}")
+        elif isinstance(img, Image.Image):
+            arr = np.array(img)
+            if arr.dtype == object:
+                raise RuntimeError("preprocess: PIL对象无效，np.array得到object数组")
+            img_bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
         else:
-            # PIL Image 转 numpy (RGB)
-            img_bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+            raise TypeError(f"preprocess: 不支持的输入类型 {type(img)}, 需要str路径或PIL.Image")
 
         # 1. 统一转为 RGB 格式
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
@@ -72,7 +82,6 @@ class ImageRecognizer:
 
         # 4. Normalize: (img - mean) / std
         img_norm = (img_float - self.mean) / self.std
-
 
         # 5. HWC 转 CHW 并增加 Batch 维度: (1, 3, 224, 224)
         img_final = img_norm.transpose(2, 0, 1)[np.newaxis, :]
@@ -108,21 +117,18 @@ class ImageRecognizer:
             logger.warning(f"ImageRecognizer.match: 地图 {map_key} 不在特征库中")
             return None, f"Map {map_key} 不存在"
 
-        # 获取查询图片的特征 (1D numpy array)
-        query_feat = self.get_feature(img_pil)
+        # 捕获图片处理异常，不再抛出cv2错误到上层
+        try:
+            query_feat = self.get_feature(img_pil)
+        except Exception as e:
+            logger.error(f"ImageRecognizer.match 图片预处理失败: {e}", exc_info=True)
+            return None, "图片预处理失败"
 
         db = self.map_databases[map_key]
-        # db["features"] 现在是一个 (N, 2048) 的 numpy 矩阵
-        # db["paths"] 是列表
-
         db_size = len(db["features"])
         logger.debug(f"ImageRecognizer.match: 特征库大小={db_size}")
 
-        # 计算余弦相似度: 矩阵乘向量 (N, 2048) * (2048,) -> (N,)
         similarities = np.dot(db["features"], query_feat)
-
-        # 获取前 top_k 个索引 (按相似度从大到小)
-        # np.argsort 返回升序索引，用 [::-1] 反转，然后切片
         actual_k = min(top_k, len(db["features"]))
         indices = np.argsort(similarities)[::-1][:actual_k]
 
@@ -132,11 +138,9 @@ class ImageRecognizer:
 
         results = []
         for idx in indices:
-            score = float(similarities[idx])  # 转为标准 python float
-
+            score = float(similarities[idx])
             if score < threshold:
                 continue
-
             match_path = db["paths"][idx]
             results.append({
                 "match_path": match_path,

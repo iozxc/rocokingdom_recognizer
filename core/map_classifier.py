@@ -5,6 +5,7 @@ import os
 import pickle
 from logger import logger
 import time
+from PIL import Image
 
 
 class MapClassifier:
@@ -50,14 +51,25 @@ class MapClassifier:
         """
         手动实现 torchvision.transforms 的逻辑
         """
-        # 如果是路径，读取图片；如果是 PIL 对象，转为 numpy
+        # ==========新增输入防御校验==========
+        if img is None:
+            raise ValueError("preprocess: 输入图像为 None")
+
+        img_bgr = None
         if isinstance(img, str):
-            # 解决 opencv 读取中文路径的问题
+            # 如果是路径，读取图片；如果是 PIL 对象，转为 numpy
             img_data = np.fromfile(img, dtype=np.uint8)
             img_bgr = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
-        else:
+            if img_bgr is None:
+                raise RuntimeError(f"preprocess: 文件读取失败 {img}")
+        elif isinstance(img, Image.Image):
             # PIL Image 转 numpy (RGB)
-            img_bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+            arr = np.array(img)
+            if arr.dtype == object:
+                raise RuntimeError("preprocess: PIL对象无效，np.array得到object数组")
+            img_bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+        else:
+            raise TypeError(f"preprocess: 不支持的输入类型 {type(img)}, 需要str路径或PIL.Image")
 
         # 1. 统一转为 RGB 格式
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
@@ -70,7 +82,6 @@ class MapClassifier:
 
         # 4. Normalize: (img - mean) / std
         img_norm = (img_float - self.mean) / self.std
-
 
         # 5. HWC 转 CHW 并增加 Batch 维度: (1, 3, 224, 224)
         img_final = img_norm.transpose(2, 0, 1)[np.newaxis, :]
@@ -101,7 +112,12 @@ class MapClassifier:
         t0 = time.perf_counter()
         logger.debug("开始地图分类匹配")
 
-        query_feat = self.get_feature(img_pil)
+        try:
+            query_feat = self.get_feature(img_pil)
+        except Exception as e:
+            logger.error(f"MapClassifier.match 输入图片处理失败: {e}", exc_info=True)
+            return "map1"
+
         db = self.databases
 
         if not db or "features" not in db or len(db["features"]) == 0:

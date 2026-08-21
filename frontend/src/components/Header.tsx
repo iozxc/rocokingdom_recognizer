@@ -1,5 +1,5 @@
 import React from 'react';
-import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowDownCircle, Settings} from 'lucide-react';
+import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { sound } from '../services/sound';
 
@@ -56,10 +56,10 @@ export const Header: React.FC<HeaderProps> = ({
                                 <div className="flex items-center gap-2">
                                     <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-1.5 drop-shadow-xs">
                                         <span>洛克王国</span>
-                                        <span className="text-[#FEE061]">草系徽章试炼助手</span>
-
+                                        <span className="text-[#FEE061] text-base sm:text-lg">徽章试炼助手</span>
                                     </h1>
                                 </div>
+
                                 <p className="text-xs text-white/80 font-medium">
                                     精灵图鉴识别 · 地图筛选 · 本地已遇见记录
                                 </p>
@@ -91,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     title="查看是否有最新版"
                                     className="p-2 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-colors shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black"
                                 >
-                                    <ArrowDownCircle className="w-4 h-4 text-[#FEE061]" />
+                                    <ArrowUpCircle className="w-4 h-4 text-[#FEE061]" />
                                 </button>
                             )}
                             <button
@@ -201,7 +201,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 title="查看是否有最新版本"
                                 className="px-3 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-colors shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1.5 text-xs font-black"
                             >
-                                <ArrowDownCircle className="w-4 h-4 text-[#FEE061]" />
+                                <ArrowUpCircle className="w-4 h-4 text-[#FEE061]" />
                                 <span>检查更新</span>
                             </button>
                         )}

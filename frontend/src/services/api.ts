@@ -18,6 +18,8 @@ import {
   DownloadStatus,
   SubmitFeedbackPayload,
   SubmitFeedbackResponse,
+  CaptureMode,
+  CaptureModeResponse,
 } from '../types';
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
 
@@ -853,6 +855,34 @@ export class ApiService {
         success: true,
         message: '等待后端连接恢复时！',
         isOfflineMock: true,
+      };
+    }
+  }
+
+  public async setCaptureMode(mode: CaptureMode): Promise<{
+    success: boolean;
+    mode: CaptureMode;
+    isOfflineMock: boolean;
+    message?: string;
+  }> {
+    try {
+      const response = await axios.get<CaptureModeResponse>(
+          `${this.apiBase}/api/settings/capture-mode/${mode}`,
+          { timeout: 5000 }
+      );
+
+      if (response.data && response.data.status === 'success') {
+        return { success: true, mode, isOfflineMock: false, message: response.data.msg };
+      }
+      throw new Error(response.data?.msg || '截图模式切换失败');
+    } catch (err: unknown) {
+      const error = err as AxiosError;
+      console.warn('API setCaptureMode failed:', error.message);
+      return {
+        success: false,
+        mode,
+        isOfflineMock: true,
+        message: `无法连接后端 (${error.code || error.message})，截图模式未生效`,
       };
     }
   }

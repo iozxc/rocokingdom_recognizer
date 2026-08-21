@@ -1,7 +1,24 @@
+import ctypes
+import json
+
+import config
+
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+except Exception:
+    ctypes.windll.user32.SetProcessDPIAware()
+
+import ctypes
 import os
 from pathlib import Path
 
+import win32gui
+import win32ui
+from PIL import Image, ImageGrab
+
 from logger import logger
+
+USER_SETTINGS = {}
 
 
 def clean_debug_folder(folder_path: str, max_count: int = 30):
@@ -33,3 +50,173 @@ def clean_debug_folder(folder_path: str, max_count: int = 30):
             logger.info(f"删除过期debug截图: {f.name}")
         except Exception as e:
             logger.warning(f"删除文件失败 {f.name}: {str(e)}")
+
+
+def load_setting_from_file_json():
+    global USER_SETTINGS
+    if not os.path.exists(config.DATA_FILE):
+        logger.debug("配置文件不存在，将使用默认配置")
+        return
+
+    try:
+        with open(config.DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        USER_SETTINGS = data.get("appSettings", {})
+
+    except json.JSONDecodeError:
+        logger.warning("配置文件格式损坏，将使用默认配置")
+    except Exception as e:
+        logger.warning(f"配置文件加载失败: {e}")
+
+
+def get_version_from_file_json():
+    print("==")
+    if not os.path.exists(config.DATA_FILE):
+        logger.debug("配置文件不存在，将使用默认配置")
+        return
+
+    try:
+        with open(config.DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return data.get("version", 0)
+
+    except json.JSONDecodeError:
+        logger.warning("配置文件格式损坏，将使用默认配置")
+    except Exception as e:
+        logger.warning(f"配置文件加载失败: {e}")
+
+
+def capture_by_hwnd(hwnd):
+    """
+    通过 PrintWindow 直接捕获窗口画面（不经过屏幕截图）。
+    窗口被遮挡、部分在屏幕外也能抓到。
+    返回 PIL Image，失败返回 None。
+    """
+    logger.debug(f"capture_window_by_hwnd: hwnd={hwnd}")
+
+    # 获取窗口尺寸（整个窗口，含标题栏，与原 ImageGrab 行为一致）
+    left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+    width = right - left
+    height = bottom - top
+    if width <= 0 or height <= 0:
+        logger.warning(f"capture_window_by_hwnd: 窗口尺寸异常 ({width}x{height}), hwnd={hwnd}")
+        return None
+
+    hwndDC = None
+    mfcDC = None
+    saveDC = None
+    saveBitMap = None
+
+    try:
+        hwndDC = win32gui.GetWindowDC(hwnd)
+        mfcDC = win32ui.CreateDCFromHandle(hwndDC)
+        saveDC = mfcDC.CreateCompatibleDC()
+
+        saveBitMap = win32ui.CreateBitmap()
+        saveBitMap.CreateCompatibleBitmap(mfcDC, width, height)
+        saveDC.SelectObject(saveBitMap)
+
+        result = ctypes.windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 2)
+
+        if result == 0:
+            logger.warning(f"capture_window_by_hwnd: PrintWindow返回失败, hwnd={hwnd}")
+
+        bmpinfo = saveBitMap.GetInfo()
+        bmpstr = saveBitMap.GetBitmapBits(True)
+
+        img = Image.frombuffer(
+            'RGB',
+            (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
+            bmpstr, 'raw', 'BGRX', 0, 1
+        )
+
+        logger.debug(f"capture_window_by_hwnd: 捕获成功 {width}x{height}, result={result}")
+        return img if result else None
+
+    except Exception as e:
+        logger.error(f"capture_window_by_hwnd: 捕获异常 hwnd={hwnd}: {e}", exc_info=True)
+        return None
+
+    finally:
+        try:
+            if saveBitMap is not None:
+                win32gui.DeleteObject(saveBitMap.GetHandle())
+            if saveDC is not None:
+                saveDC.DeleteDC()
+            if mfcDC is not None:
+                mfcDC.DeleteDC()
+            if hwndDC is not None:
+                win32gui.ReleaseDC(hwnd, hwndDC)
+        except Exception as e:
+            logger.warning(f"capture_window_by_hwnd: GDI资源释放异常: {e}")
+
+
+def capture_by_grab(bbox):
+    """
+    模式1：通过 PIL ImageGrab 截取屏幕指定区域
+    窗口被遮挡时会截到遮挡内容，速度快，兼容性好
+    :param bbox: (left, top, right, bottom) 屏幕坐标四元组
+    """
+    logger.debug(f"capture_by_grab: bbox={bbox}")
+    try:
+        left, top, right, bottom = bbox
+        width = right - left
+        height = bottom - top
+        if width <= 0 or height <= 0:
+            logger.warning(f"capture_by_grab: 区域尺寸异常 ({width}x{height})")
+            return None
+
+        img = ImageGrab.grab(bbox)
+        logger.debug(f"capture_by_grab: 捕获成功 {width}x{height}")
+        return img
+    except Exception as e:
+        logger.error(f"capture_by_grab: 捕获异常 bbox={bbox}: {e}", exc_info=True)
+        return None
+
+
+def capture_window(bbox=None, hwnd=None):
+    if "captureMode" not in USER_SETTINGS:
+        mode = "grab"
+    else:
+        mode = USER_SETTINGS["captureMode"]
+
+
+    if mode not in ("hwnd", "grab"):
+        logger.error(f"capture_window: 不支持模式 {mode}，可选 grab/hwnd")
+        return None
+
+    # hwnd模式：先试hwnd，失败就走grab
+    if mode == "hwnd":
+        try:
+            if hwnd is not None:
+                img = capture_by_hwnd(hwnd)
+                if img is not None:
+                    return img
+        except Exception as e:
+            logger.warning(f"hwnd截图失败，降级grab: {e}")
+        # 降级grab
+        if bbox is None:
+            logger.error("hwnd降级grab缺少bbox")
+            return None
+        try:
+            return capture_by_grab(bbox)
+        except Exception as e:
+            logger.error(f"grab截图异常:{e}")
+            return None
+
+    # grab模式
+    if mode == "grab":
+        if bbox is None:
+            logger.error("grab模式需要bbox")
+            return None
+        try:
+            return capture_by_grab(bbox)
+        except Exception as e:
+            logger.error(f"grab截图异常:{e}")
+            return None
+    return None
+
+
+load_setting_from_file_json()

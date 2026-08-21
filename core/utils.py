@@ -1,8 +1,5 @@
-import ctypes
 import config
 from difflib import SequenceMatcher
-import win32gui
-import win32ui
 
 import os
 
@@ -113,72 +110,6 @@ def crop_sections_from_pil(pil_image: Image.Image):
     item3_pil = Image.fromarray(item3_arr)
 
     return title_pil, [name1_pil, name2_pil, name3_pil], [item1_pil, item2_pil, item3_pil]
-
-
-def capture_window_by_hwnd(hwnd):
-    """
-    通过 PrintWindow 直接捕获窗口画面（不经过屏幕截图）。
-    窗口被遮挡、部分在屏幕外也能抓到。
-    返回 PIL Image，失败返回 None。
-    """
-    logger.debug(f"capture_window_by_hwnd: hwnd={hwnd}")
-
-    # 获取窗口尺寸（整个窗口，含标题栏，与原 ImageGrab 行为一致）
-    left, top, right, bottom = win32gui.GetWindowRect(hwnd)
-    width = right - left
-    height = bottom - top
-    if width <= 0 or height <= 0:
-        logger.warning(f"capture_window_by_hwnd: 窗口尺寸异常 ({width}x{height}), hwnd={hwnd}")
-        return None
-
-    hwndDC = None
-    mfcDC = None
-    saveDC = None
-    saveBitMap = None
-
-    try:
-        hwndDC = win32gui.GetWindowDC(hwnd)
-        mfcDC = win32ui.CreateDCFromHandle(hwndDC)
-        saveDC = mfcDC.CreateCompatibleDC()
-
-        saveBitMap = win32ui.CreateBitmap()
-        saveBitMap.CreateCompatibleBitmap(mfcDC, width, height)
-        saveDC.SelectObject(saveBitMap)
-
-        result = ctypes.windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 2)
-
-        if result == 0:
-            logger.warning(f"capture_window_by_hwnd: PrintWindow返回失败, hwnd={hwnd}")
-
-        bmpinfo = saveBitMap.GetInfo()
-        bmpstr = saveBitMap.GetBitmapBits(True)
-
-        img = Image.frombuffer(
-            'RGB',
-            (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
-            bmpstr, 'raw', 'BGRX', 0, 1
-        )
-
-        logger.debug(f"capture_window_by_hwnd: 捕获成功 {width}x{height}, result={result}")
-        return img if result else None
-
-    except Exception as e:
-        logger.error(f"capture_window_by_hwnd: 捕获异常 hwnd={hwnd}: {e}", exc_info=True)
-        return None
-
-    finally:
-        try:
-            if saveBitMap is not None:
-                win32gui.DeleteObject(saveBitMap.GetHandle())
-            if saveDC is not None:
-                saveDC.DeleteDC()
-            if mfcDC is not None:
-                mfcDC.DeleteDC()
-            if hwndDC is not None:
-                win32gui.ReleaseDC(hwnd, hwndDC)
-        except Exception as e:
-            logger.warning(f"capture_window_by_hwnd: GDI资源释放异常: {e}")
-
 
 if __name__ == "__main__":
     img = Image.open("test.jpg")

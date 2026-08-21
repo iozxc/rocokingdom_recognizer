@@ -23,6 +23,8 @@ def get_external_path(filename):
 
     return os.path.normpath(os.path.join(base_path, filename))
 
+# 用户配置
+CAPTURE_MODE = "grab" # hwnd
 
 # 基础路径
 ICONS_DIR = get_resource_path('icons')

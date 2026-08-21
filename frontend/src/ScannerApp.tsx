@@ -24,6 +24,8 @@ import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
 import { sound } from './services/sound';
 import { api } from './services/api';
 import { storage } from './services/storage';
+import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
+import { EffectLevel } from './types';
 import { ScannerMapGalleryModal } from './components/ScannerMapGalleryModal';
 import {
   formatPetName,
@@ -180,9 +182,20 @@ export const ScannerApp: React.FC = () => {
 
   // Mark/unmark single pet
   const handleTogglePetEncounter = (petName: string) => {
-    sound.playEncounter();
     const mapKey = `map${detectedMapNum}`;
+    const wasEncountered = storage.isEncountered(mapKey, petName);
     storage.toggleEncountered(mapKey, petName);
+
+    const level = storage.getSetting<EffectLevel>('effectLevel', 0);
+    if (!wasEncountered) {
+      // 从"点亮图鉴"切换到"已遇见"：触发遇见特效
+      sound.playEncounter();
+      fireEncounterConfetti(level);
+    } else {
+      // 从"已遇见"切换回"点亮图鉴"：触发取消特效
+      sound.playToggleOff();
+      fireUnencounterEffect(level);
+    }
   };
 
   // Process response into state

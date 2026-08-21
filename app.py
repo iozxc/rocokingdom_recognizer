@@ -25,7 +25,7 @@ from core.map_classifier import MapClassifier
 from core.api.predict import recognizer as recog
 from core.utils import get_top_k_matches, get_icon_full_path
 from crop import crop_sections_from_pil_by_YOLOv8
-from tools import clean_debug_folder
+from tools import clean_debug_folder, capture_window
 import multiprocessing
 from waitress import serve
 
@@ -51,7 +51,7 @@ def get_waitress_threads() -> int:
     """
     cpu = multiprocessing.cpu_count() or 4
     threads = cpu * 2
-    threads = max(4, min(threads, 12))  # 强制钳位 4~12之间
+    threads = max(2, min(threads, 6))  # 强制钳位 2~6之间
     logger.debug(f"waitress线程计算: CPU逻辑核数={cpu}, 最终线程数={threads}")
     return threads
 
@@ -242,7 +242,7 @@ class AppApi:
         if win:
             x, y = win.position
             win.move(x + dx, y + dy)
-            logger.debug(f"移动子窗口: dx={dx}, dy={dy}, 新位置=({x+dx}, {y+dy})")
+            logger.debug(f"移动子窗口: dx={dx}, dy={dy}, 新位置=({x + dx}, {y + dy})")
 
     def capture_and_recognize(self, target_title="计算器"):
         global map_classifier_recognizer, names_dict
@@ -261,7 +261,12 @@ class AppApi:
                 logger.debug("目标窗口已最小化，执行restore")
 
             bbox = (win.left, win.top, win.right, win.bottom)
-            img = ImageGrab.grab(bbox)
+            hwnd = win._hWnd
+
+            img = capture_window(bbox=bbox, hwnd=hwnd)
+            if img is None:
+                return {"status": "error", "message": "截图失败，请检查捕获模式与窗口状态"}
+
             logger.debug(f"截图尺寸: {img.size}, 窗口bbox={bbox}")
 
             title_pil, names_pil, items_pil = crop_sections_from_pil_by_YOLOv8(img)
@@ -356,7 +361,7 @@ def start_webview():
     main_window.events.closed += main_window_on_closed
 
     logger.info("主窗口创建完成")
-    webview.start(start_logic, debug=True)
+    webview.start(start_logic)
 
 
 if __name__ == '__main__':

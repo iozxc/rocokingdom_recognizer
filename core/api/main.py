@@ -48,7 +48,6 @@ def init_routes(app):
     @app.route('/icons', methods=['GET'])
     def list_icons():
         """从数据库读取所有图片的名字及其对应的访问 URL，按图鉴id排序"""
-        logger.info("[GET /icons] 请求图标列表")
         try:
             db = get_db()
             cursor = db.execute("SELECT path FROM icons ORDER BY path ASC")
@@ -84,7 +83,6 @@ def init_routes(app):
                 icons_structure[map_name]["items"].sort(key=sort_key)
 
             total = sum(v["count"] for v in icons_structure.values())
-            logger.debug(f"[GET /icons] 返回 {len(icons_structure)} 个地图, 共 {total} 个图标")
             return jsonify({"status": "success", "data": icons_structure})
 
         except Exception as e:
@@ -94,7 +92,6 @@ def init_routes(app):
     @app.route('/icons/<map_name>/<filename>')
     def get_icon_file(map_name, filename):
         """从数据库直接返回图片二进制流"""
-        logger.debug(f"[GET /icons] 获取图标: {map_name}/{filename}")
         try:
             # 数据库中存储的路径格式是 "map_name/filename"
             db_path = f"{map_name}/{filename}"

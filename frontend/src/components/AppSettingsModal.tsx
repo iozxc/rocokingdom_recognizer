@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, Volume2, VolumeX, Database, ArrowRight, Sparkles, Monitor, RotateCcw } from 'lucide-react';
-import { EffectLevel, FloatingButtonsMode } from '../types';
+import { X, Play, Volume2, VolumeX, Database, ArrowRight, Sparkles, Monitor, RotateCcw, Camera } from 'lucide-react';
+import { EffectLevel, FloatingButtonsMode, CaptureMode } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
+import { api } from '../services/api';
 import { fireEncounterConfetti, fireUnencounterEffect } from '../services/effect';
 import { SyncPopType } from './SyncPopNotification';
 
@@ -28,6 +29,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', false);
   });
+  const [captureMode, setCaptureMode] = useState<CaptureMode>(() => {
+    return storage.getSetting<CaptureMode>('captureMode', 'hwnd');
+  });
 
   // Sync settings updates
   useEffect(() => {
@@ -35,9 +39,22 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (typeof settings.effectLevel === 'number') setEffectLevel(settings.effectLevel as EffectLevel);
       if (settings.floatingButtonsMode) setFloatingMode(settings.floatingButtonsMode);
       if (typeof settings.isSoundMuted === 'boolean') setIsSoundMuted(settings.isSoundMuted);
+      if (settings.captureMode === 'hwnd' || settings.captureMode === 'grab') setCaptureMode(settings.captureMode);
     });
     return () => unsubscribe();
   }, []);
+
+  // 每次打开弹窗时从 storage 同步最新值（确保远程数据加载后能及时更新）
+  useEffect(() => {
+    if (!isOpen) return;
+    setEffectLevel(storage.getSetting<number>('effectLevel', 1) as EffectLevel);
+    setFloatingMode(storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal'));
+    setIsSoundMuted(storage.getSetting<boolean>('isSoundMuted', false));
+    const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'grab');
+    if (savedCaptureMode === 'hwnd' || savedCaptureMode === 'grab') {
+      setCaptureMode(savedCaptureMode);
+    }
+  }, [isOpen]);
 
   // Keyboard shortcut ESC to close
   useEffect(() => {
@@ -84,6 +101,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     if (!newMuted) {
       sound.playClick();
     }
+  };
+
+  const handleSelectCaptureMode = async (mode: CaptureMode) => {
+    sound.playClick();
+    setCaptureMode(mode);
+    storage.setSetting('captureMode', mode);
+    await api.setCaptureMode(mode);
   };
 
   return (
@@ -275,7 +299,48 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </div>
             </div>
 
-            {/* Section 3: 声音 */}
+            {/* Section 3: 截图方式 */}
+            <div className="space-y-2 pt-1 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                <Camera className="w-3.5 h-3.5 text-violet-500" />
+                <span>截图方式</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/60">
+                <button
+                    type="button"
+                    id="capture-mode-hwnd-btn"
+                    onClick={() => handleSelectCaptureMode('hwnd')}
+                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                        captureMode === 'hwnd'
+                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                            : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                >
+                  内存提取
+                </button>
+                <button
+                    type="button"
+                    id="capture-mode-grab-btn"
+                    onClick={() => handleSelectCaptureMode('grab')}
+                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                        captureMode === 'grab'
+                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                            : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                >
+                  屏幕截图
+                </button>
+              </div>
+
+              <div className="text-[10px] text-slate-400 px-0.5">
+                {captureMode === 'hwnd'
+                    ? '通过窗口句柄直接读取内存画面，速度更快、不遮挡游戏窗口'
+                    : '通过屏幕抓取当前画面，兼容性更好但需要游戏窗口可见'}
+              </div>
+            </div>
+
+            {/* Section 4: 声音 */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
@@ -303,7 +368,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </button>
             </div>
 
-            {/* Section 4: 数据与同步 */}
+            {/* Section 5: 数据与同步 */}
             {onOpenDataBackup && (
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
