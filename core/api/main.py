@@ -1,4 +1,3 @@
-import difflib
 import json
 
 from flask import send_from_directory, g, Response
@@ -11,6 +10,9 @@ from core.db import get_db
 from logger import logger
 
 PET_NAME_TO_ID = {}
+ICONS = None
+ICON_FILE_CACHE = {}
+
 try:
     with open(config.PETS_FILE, "r", encoding="utf-8") as f:
         root = json.load(f)
@@ -21,7 +23,6 @@ except Exception as e:
     # 读取失败，降级：所有图标排末尾
     logger.warning(f"宠物图鉴加载失败，将降级排序: {e}", exc_info=True)
     PET_NAME_TO_ID = {}
-
 
 
 def init_routes(app):
@@ -47,8 +48,12 @@ def init_routes(app):
 
     @app.route('/icons', methods=['GET'])
     def list_icons():
+        global ICONS
         """从数据库读取所有图片的名字及其对应的访问 URL，按图鉴id排序"""
         try:
+            if ICONS:
+                logger.debug(f"[GET /icons] icons已缓存")
+                return {"status": "success", "data": ICONS}
             db = get_db()
             cursor = db.execute("SELECT path FROM icons ORDER BY path ASC")
             all_paths = [row[0] for row in cursor.fetchall()]
@@ -82,8 +87,8 @@ def init_routes(app):
             for map_name in icons_structure:
                 icons_structure[map_name]["items"].sort(key=sort_key)
 
-            total = sum(v["count"] for v in icons_structure.values())
-            return jsonify({"status": "success", "data": icons_structure})
+            ICONS = icons_structure
+            return {"status": "success", "data": icons_structure}
 
         except Exception as e:
             logger.error(f"[GET /icons] 异常: {e}", exc_info=True)
@@ -91,17 +96,22 @@ def init_routes(app):
 
     @app.route('/icons/<map_name>/<filename>')
     def get_icon_file(map_name, filename):
-        """从数据库直接返回图片二进制流"""
+        """从缓存/数据库直接返回图片二进制流，无锁版本"""
+        global ICON_FILE_CACHE
         try:
-            # 数据库中存储的路径格式是 "map_name/filename"
             db_path = f"{map_name}/{filename}"
+
+            # 缓存命中直接返回
+            if db_path in ICON_FILE_CACHE:
+                return Response(ICON_FILE_CACHE[db_path], mimetype='image/png')
 
             db = get_db()
             cursor = db.execute("SELECT data FROM icons WHERE path = ?", (db_path,))
             row = cursor.fetchone()
 
             if row:
-                # 直接返回二进制数据，mimetype 设置为 image/png
+                # 未命中，查询后存入缓存
+                ICON_FILE_CACHE[db_path] = row[0]
                 return Response(row[0], mimetype='image/png')
             else:
                 logger.warning(f"[GET /icons] 图标不存在: {db_path}")
