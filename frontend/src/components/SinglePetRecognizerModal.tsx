@@ -23,6 +23,7 @@ import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { formatPetName } from '../utils/petHelper';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
+import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 
 interface SinglePetRecognizerModalProps {
   isOpen: boolean;
@@ -354,7 +355,10 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                     <UploadCloud className="w-4 h-4 text-[#95D151]" />
                     待识别精灵图片
                   </span>
-                    <span className="text-[11px] text-slate-400 font-medium">支持 Ctrl+V 直接粘贴</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-slate-400 font-medium">支持 Ctrl+V 直接粘贴</span>
+                      <RecognitionSamplesHint onLoadSample={handleFileSelected} />
+                    </div>
                   </div>
 
                   <div

@@ -34,6 +34,7 @@ import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
 import { formatPetName, isSamePetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
+import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 
 interface BatchRecognizerCardProps {
   currentMap: MapConfig;
@@ -491,6 +492,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
           {/* Action Controls & Help Button on Top Right */}
           <div className="flex items-center gap-2 flex-wrap">
+            {/* 截图格式示例：悬停查看 5 张正确截图，点击可直接加载测试识别 */}
+            <RecognitionSamplesHint onLoadSample={handleFileSelect} />
+
             {/* Help Button */}
             <button
                 type="button"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, Volume2, VolumeX, Database, ArrowRight, Sparkles, Monitor, RotateCcw, Camera } from 'lucide-react';
+import { X, Play, Volume2, VolumeX, Database, ArrowRight, Sparkles, Monitor, RotateCcw, Camera, Image as ImageIcon } from 'lucide-react';
 import { EffectLevel, FloatingButtonsMode, CaptureMode } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
@@ -32,6 +32,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [captureMode, setCaptureMode] = useState<CaptureMode>(() => {
     return storage.getSetting<CaptureMode>('captureMode', 'hwnd');
   });
+  const [showSamples, setShowSamples] = useState<boolean>(() => {
+    return storage.getSetting<boolean>('showRecognitionSamples', true);
+  });
 
   // Sync settings updates
   useEffect(() => {
@@ -40,6 +43,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (settings.floatingButtonsMode) setFloatingMode(settings.floatingButtonsMode);
       if (typeof settings.isSoundMuted === 'boolean') setIsSoundMuted(settings.isSoundMuted);
       if (settings.captureMode === 'hwnd' || settings.captureMode === 'grab') setCaptureMode(settings.captureMode);
+      if (typeof settings.showRecognitionSamples === 'boolean') setShowSamples(settings.showRecognitionSamples);
     });
     return () => unsubscribe();
   }, []);
@@ -54,6 +58,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     if (savedCaptureMode === 'hwnd' || savedCaptureMode === 'grab') {
       setCaptureMode(savedCaptureMode);
     }
+    setShowSamples(storage.getSetting<boolean>('showRecognitionSamples', true));
   }, [isOpen]);
 
   // Keyboard shortcut ESC to close
@@ -108,6 +113,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setCaptureMode(mode);
     storage.setSetting('captureMode', mode);
     await api.setCaptureMode(mode);
+  };
+
+  const handleToggleSamples = () => {
+    sound.playClick();
+    const next = !showSamples;
+    setShowSamples(next);
+    storage.setSetting('showRecognitionSamples', next);
   };
 
   return (
@@ -299,6 +311,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </div>
             </div>
 
+
             {/* Section 3: 截图方式 */}
             <div className="space-y-2 pt-1 border-t border-slate-100">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider text-[11px]">
@@ -396,6 +409,36 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </button>
                 </div>
             )}
+
+            {/* Section 6: 识别截图示例 */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <ImageIcon className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800">识别截图示例</div>
+                  <div className="text-[10px] text-slate-400">识别卡片里的示例截图图标与正确截图格式提示</div>
+                </div>
+              </div>
+
+              <button
+                  type="button"
+                  id="settings-samples-switch-btn"
+                  onClick={handleToggleSamples}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      showSamples ? 'bg-[#95D151]' : 'bg-slate-200'
+                  }`}
+                  title={showSamples ? '点击隐藏示例' : '点击显示示例'}
+              >
+                <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                        showSamples ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                />
+              </button>
+            </div>
+
           </div>
 
           {/* Footer */}
@@ -416,4 +459,3 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       </div>
   );
 };
-

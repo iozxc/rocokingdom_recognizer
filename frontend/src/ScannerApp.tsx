@@ -480,6 +480,34 @@ export const ScannerApp: React.FC = () => {
   };
 
   // Process response into state
+  // 更新“上次捕获”时间
+  const markScanTime = () => {
+    const now = new Date();
+    setLastScanTime(
+        `${now.getHours().toString().padStart(2, '0')}:${now
+            .getMinutes()
+            .toString()
+            .padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
+    );
+  };
+
+  // 识别不可用（游戏未打开 / 无 Python 桥接 / 识别失败）时，保持“当前未检测到精灵”空态
+  const showNoPets = () => {
+    setDetectedPets([]);
+    markScanTime();
+  };
+
+  // 统一处理 followRecognize 结果：生产环境忽略本地模拟，避免伪造精灵结果
+  const applyFollowResults = (res: { data?: FollowRecognizeApiResponse; isOfflineMock?: boolean }) => {
+    if (!res?.data) return;
+    if (res.isOfflineMock && import.meta.env.PROD) {
+      console.warn('生产环境忽略离线模拟结果，保持“当前未检测到精灵”');
+      showNoPets();
+      return;
+    }
+    applyApiResults(res.data);
+  };
+
   const applyApiResults = (data: FollowRecognizeApiResponse) => {
     // Always use the real map_num returned by the backend recognition
     const targetMap = (data.map_num !== undefined && data.map_num !== null) ? Number(data.map_num) : 1;
@@ -545,13 +573,7 @@ export const ScannerApp: React.FC = () => {
     const allSlotsEmpty = formattedSlots.length > 0 && formattedSlots.every(isEmptySlot);
     setDetectedPets(allSlotsEmpty ? [] : formattedSlots);
 
-    const now = new Date();
-    setLastScanTime(
-        `${now.getHours().toString().padStart(2, '0')}:${now
-            .getMinutes()
-            .toString()
-            .padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
-    );
+    markScanTime();
   };
 
   const executeSingleRecognition = async (targetMapNum?: number) => {
@@ -604,21 +626,28 @@ export const ScannerApp: React.FC = () => {
         }
 
         console.log("识别结果:", capRes);
-        if (capRes) {
+        if (!capRes) {
+          console.warn("截图识别返回为空（游戏未打开？）");
+          showNoPets();
+        } else if (capRes.status === 'error' || capRes.status === 'fail') {
+          // 游戏未打开 / 截图失败：不伪造数据，直接显示“当前未检测到精灵”
+          console.warn("识别失败（游戏未打开或画面不可用）:", capRes.message || capRes);
+          showNoPets();
+        } else {
           // 将结果交由 applyApiResults 或 followRecognize 进行结构规整
           const res = await api.followRecognize(capRes);
-          if (res.data) {
-            applyApiResults(res.data);
-          }
-        } else {
-          console.warn("截图识别返回为空");
+          applyFollowResults(res);
         }
       } else {
-        // 未检测到 Python API 时的 Web 端开发/测试降级调用
-        console.warn("未找到 Python API 桥接，使用 HTTP 降级");
-        const res = await api.followRecognize(targetMap);
-        if (res.data) {
-          applyApiResults(res.data);
+        if (import.meta.env.PROD) {
+          // 生产环境没有 Python 桥接（游戏未打开/非桌面端）：不做模拟识别，保持空态
+          console.warn("未找到 Python API 桥接（生产环境），保持“当前未检测到精灵”");
+          showNoPets();
+        } else {
+          // 未检测到 Python API 时的 Web 端开发/测试降级调用
+          console.warn("未找到 Python API 桥接，使用 HTTP 降级");
+          const res = await api.followRecognize(targetMap);
+          applyFollowResults(res);
         }
       }
     } catch (err) {

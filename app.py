@@ -375,10 +375,23 @@ def start_webview():
 
     logger.info("启动主窗口...")
 
-    def start_logic():
-        t = Thread(target=start_server)
-        t.daemon = True
-        t.start()
+    # 先启动 Flask 服务器并等待端口就绪，再创建窗口，
+    # 避免 WebView 先加载 http://127.0.0.1:5000 时服务器未就绪导致白屏
+    server_thread = Thread(target=start_server)
+    server_thread.daemon = True
+    server_thread.start()
+
+    import socket
+    server_ready = False
+    for _ in range(100):  # 最多等待约 10 秒
+        try:
+            with socket.create_connection(("127.0.0.1", 5000), timeout=0.2):
+                server_ready = True
+                break
+        except OSError:
+            time.sleep(0.1)
+    if not server_ready:
+        logger.error("Flask 服务器启动超时，主窗口可能白屏")
 
     api = AppApi()
     api_instance = api  # ✅赋值给全局变量，子窗口可以拿到
@@ -406,7 +419,7 @@ def start_webview():
     main_window.events.closed += main_window_on_closed
 
     logger.info("主窗口创建完成")
-    webview.start(start_logic)
+    webview.start()
 
 
 if __name__ == '__main__':

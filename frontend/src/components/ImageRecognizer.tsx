@@ -21,6 +21,7 @@ import { api } from '../services/api';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { formatPetName } from '../utils/petHelper';
+import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 
 interface ImageRecognizerProps {
   currentMap: MapConfig;
@@ -376,9 +377,12 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 <UploadCloud className="w-4 h-4 text-[#7ABCF4]" />
                 待识别精灵图片
               </span>
-                <span className="text-[11px] text-slate-400 font-medium">
-                支持 Ctrl+V 粘贴
-              </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    支持 Ctrl+V 粘贴
+                  </span>
+                  <RecognitionSamplesHint onLoadSample={handleFileSelected} />
+                </div>
               </div>
 
               {/* Dropzone with controlled compact height */}
