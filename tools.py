@@ -19,6 +19,14 @@ from PIL import Image, ImageGrab
 from logger import logger
 
 USER_SETTINGS = {}
+SCENE_FEATURES = [
+    # 记忆中的索米亚草原：索、米、亚；OCR经常识别错成 素
+    ("记忆中的索米亚草原", {"索", "米", "亚", "素"}),
+    # 记忆中的普拉塔草原：普、拉、塔
+    ("记忆中的普拉塔草原", {"普", "拉", "塔"}),
+    # 记忆中的巨石阵：巨、石
+    ("记忆中的巨石阵", {"巨", "石"}),
+]
 
 
 def clean_debug_folder(folder_path: str, max_count: int = 30):
@@ -182,7 +190,6 @@ def capture_window(bbox=None, hwnd=None):
     else:
         mode = USER_SETTINGS["captureMode"]
 
-
     if mode not in ("hwnd", "grab"):
         logger.error(f"capture_window: 不支持模式 {mode}，可选 grab/hwnd")
         return None
@@ -216,6 +223,27 @@ def capture_window(bbox=None, hwnd=None):
         except Exception as e:
             logger.error(f"grab截图异常:{e}")
             return None
+    return None
+
+
+def clean_text(raw_text: str):
+    if raw_text is None:
+        return ""
+    s = str(raw_text)
+    for ch in [' ', '\n', '\r', '\t']:
+        s = s.replace(ch, "")
+    return s
+
+
+def match_scene_unique_char(ocr_raw_text: str):
+    """
+    独有单字匹配：只要命中该场景任意一个独有字符，返回场景名；都不命中返回None
+    """
+    txt = clean_text(ocr_raw_text)
+    for scene_name, char_set in SCENE_FEATURES:
+        for c in char_set:
+            if c in txt:
+                return scene_name
     return None
 
 
