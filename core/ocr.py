@@ -44,8 +44,11 @@ class OCREngine:
 
         # 初始化 RapidOCR
         det_model_path = get_resource_path(os.path.join("ocr_models", "ch_PP-OCRv4_det_infer.onnx"))
+        # det_model_path = r"D:\game\RocoKingdom\ocr_models\ch_PP-OCRv4_det_infer.onnx"
         cls_model_path = get_resource_path(os.path.join("ocr_models", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))
+        # cls_model_path = r"D:\game\RocoKingdom\ocr_models\ch_ppocr_mobile_v2.0_cls_infer.onnx"
         rec_model_path = get_resource_path(os.path.join("ocr_models", "ch_PP-OCRv4_rec_infer.onnx"))
+        # rec_model_path = r"D:\game\RocoKingdom\ocr_models\ch_PP-OCRv4_rec_infer.onnx"
 
         for name, path in [("det", det_model_path), ("cls", cls_model_path), ("rec", rec_model_path)]:
             if not os.path.exists(path):
@@ -264,8 +267,17 @@ class OCREngine:
 
 if __name__ == "__main__":
     ocr = OCREngine()
-    # test_image = r"D:\game\RocoKingdom\assets\pic\test\ocr_test3.png"
+    test_image = r"D:\game\RocoKingdom\core\1.png"
+    if os.path.exists(test_image):
+        result = ocr.recognize_bottom_text(test_image)
+        print(f"识别结果: {result}")
+
     test_image = r"D:\game\RocoKingdom\core\2.png"
+    if os.path.exists(test_image):
+        result = ocr.recognize_bottom_text(test_image)
+        print(f"识别结果: {result}")
+
+    test_image = r"D:\game\RocoKingdom\core\3.png"
     if os.path.exists(test_image):
         result = ocr.recognize_bottom_text(test_image)
         print(f"识别结果: {result}")
