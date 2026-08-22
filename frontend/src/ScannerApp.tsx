@@ -1,6 +1,6 @@
 // noinspection JSRemoveUnnecessaryParentheses
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   X,
   Camera,
@@ -235,6 +235,61 @@ export const ScannerApp: React.FC = () => {
       unsub();
     };
   }, []);
+
+  // 上次同步给 Python 的窗口高度，避免重复 resize 造成抖动
+  const lastWindowHeightRef = useRef<number | null>(null);
+
+  // 依据前端内容自然高度，动态调整 pywebview 子窗口高度（宽度保持当前值）
+  const syncScannerWindowHeight = useCallback(() => {
+    const pyApi = (window as any).pywebview?.api;
+    if (!pyApi || typeof pyApi.resize_scanner_window !== 'function') return;
+
+    const contentEl = document.getElementById('scanner-scroll-content');
+    const titlebarEl = document.getElementById('scanner-titlebar');
+    const statusbarEl = document.getElementById('scanner-statusbar');
+    if (!contentEl) return;
+
+    const titlebarH = titlebarEl?.getBoundingClientRect().height ?? 44;
+    const statusbarH = statusbarEl?.getBoundingClientRect().height ?? 28;
+
+    // 中间滚动区内容自然高度 = 各直接子元素高度之和 + 间距(gap-2.5=10px) + 上下内边距(p-3=12px)
+    const children = Array.from(contentEl.children) as HTMLElement[];
+    const gap = 10;
+    let contentH = 0;
+    children.forEach((child, i) => {
+      contentH += child.getBoundingClientRect().height;
+      if (i > 0) contentH += gap;
+    });
+    if (children.length === 0) {
+      contentH = contentEl.scrollHeight;
+    }
+    const contentStyle = getComputedStyle(contentEl);
+    contentH += (parseFloat(contentStyle.paddingTop) || 12) + (parseFloat(contentStyle.paddingBottom) || 12);
+
+    // 前端最低高度：内容再少窗口也不低于这个值（与 create_window 默认高度保持一致）
+    const MIN_WINDOW_HEIGHT = 510;
+    const targetHeight = Math.max(MIN_WINDOW_HEIGHT, Math.ceil(titlebarH + contentH + statusbarH));
+    const prevHeight = lastWindowHeightRef.current;
+    if (prevHeight !== null && Math.abs(prevHeight - targetHeight) <= 4) return;
+    lastWindowHeightRef.current = targetHeight;
+    // 宽度保持窗口当前宽度（即 create_window 里的固定值，如 420），只按内容动态调整高度
+    pyApi.resize_scanner_window(window.innerWidth, targetHeight);
+  }, []);
+
+  // 首次加载等待字体/图片布局完成后再同步一次
+  useEffect(() => {
+    const rafId = requestAnimationFrame(() => syncScannerWindowHeight());
+    const timer = window.setTimeout(syncScannerWindowHeight, 300);
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timer);
+    };
+  }, [syncScannerWindowHeight]);
+
+  // 内容变化（识别结果、收起/展开、地图切换、钉住等）后同步窗口高度
+  useEffect(() => {
+    syncScannerWindowHeight();
+  });
 
   // Calculate statistics across all maps
   const allMapsStats = useMemo(() => {
@@ -483,7 +538,12 @@ export const ScannerApp: React.FC = () => {
       };
     });
 
-    setDetectedPets(formattedSlots);
+    // 优化识别：3 个候选区全部为 10.0%以下（无有效候选）时，说明画面里根本没有精灵，
+    // 直接清空结果走“当前未检测到精灵”空态，而不是显示 3 张 10.0%以下 的未知精灵卡片
+    const isEmptySlot = (slot: DetectedPetSlot) =>
+        slot.score <= 0 || slot.candidates.every((c) => c.score <= 0.1);
+    const allSlotsEmpty = formattedSlots.length > 0 && formattedSlots.every(isEmptySlot);
+    setDetectedPets(allSlotsEmpty ? [] : formattedSlots);
 
     const now = new Date();
     setLastScanTime(
@@ -590,7 +650,10 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         {/* 1. Main App Match Titlebar: Roco Sky Blue (#7ABCF4) */}
         {/* ------------------------------------------------------------- */}
-        <div className="h-11 px-3 bg-[#7ABCF4] border-b-4 border-[#5DA8E8] flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 text-white rounded-none">
+        <div
+            id="scanner-titlebar"
+            className="h-11 px-3 bg-[#7ABCF4] border-b-4 border-[#5DA8E8] flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 text-white rounded-none"
+        >
           <div className="flex items-center gap-2 min-w-0 pointer-events-none">
             <div className="w-7 h-7 rounded-xl bg-white/20 border-2 border-white/40 flex items-center justify-center shrink-0">
               <MapPin className="w-4 h-4 text-white" />
@@ -636,7 +699,10 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         {/* 2. Main Content Area: Roco Light Clean Aesthetics (Zero-Gap) */}
         {/* ------------------------------------------------------------- */}
-        <div className="flex-1 flex flex-col justify-between overflow-y-auto bg-[#FDF9F3] p-3 gap-2.5">
+        <div
+            id="scanner-scroll-content"
+            className="flex-1 flex flex-col justify-between overflow-y-auto bg-[#FDF9F3] p-3 gap-2.5"
+        >
           {!isCollapsedContent ? (
               <div className="space-y-2.5">
                 {/* 2.1 Collection Progress Card */}
@@ -840,7 +906,7 @@ export const ScannerApp: React.FC = () => {
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
                                 <div className="w-10 h-10 rounded-2xl bg-white border-2 border-[#D5E3F0] flex items-center justify-center text-amber-500 font-bold text-base shrink-0">
-                                  {cleanName.includes('魔力之源') ? '✨' : '🎒'}
+                                  {cleanName.includes('魔力之源') ? '❤️' : '🎒'}
                                 </div>
                                 <div className="text-left min-w-0">
                                   <div className="flex items-center gap-1.5">
@@ -1016,7 +1082,10 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         {/* 3. Micro Status Bar */}
         {/* ------------------------------------------------------------- */}
-        <div className="h-7 px-3 bg-[#E9F2FA] border-t-2 border-[#D5E3F0] text-[11px] font-mono text-slate-600 flex items-center justify-between shrink-0 font-bold rounded-none">
+        <div
+            id="scanner-statusbar"
+            className="h-7 px-3 bg-[#E9F2FA] border-t-2 border-[#D5E3F0] text-[11px] font-mono text-slate-600 flex items-center justify-between shrink-0 font-bold rounded-none"
+        >
           <span>上次捕获: {lastScanTime}</span>
           <span className="text-[10px] text-slate-400 font-sans">洛克王国草系徽章试炼助手</span>
         </div>

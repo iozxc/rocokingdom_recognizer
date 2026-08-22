@@ -20,3 +20,4 @@ keys/
 /ocr_models/
 /onnx/
 /yolo/dataset/
+/static/

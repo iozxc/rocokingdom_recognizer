@@ -17,7 +17,7 @@ import os
 
 from core import create_app
 import webview
-from threading import Thread
+from threading import Thread, Lock
 import pygetwindow as gw
 from logger import logger
 from core.ocr import ocr
@@ -36,6 +36,7 @@ app = create_app()
 
 main_window = None
 scanner_window = None
+scanner_open_lock = Lock()  # 防止连点“跟随识别”并发创建多个子窗口导致卡死
 api_instance = None  # 全局保存api实例
 names_dict = None
 map_classifier_recognizer = None
@@ -199,6 +200,9 @@ class AppApi:
 
         def _open():
             global scanner_window, api_instance
+            if not scanner_open_lock.acquire(blocking=False):
+                logger.debug("已有打开子窗口任务进行中，忽略本次点击")
+                return
             try:
                 if scanner_window is not None:
                     scanner_window.show()
@@ -211,13 +215,13 @@ class AppApi:
                     title='精灵识别跟随',
                     url='http://127.0.0.1:5000/?view=scanner',
                     width=420,
-                    height=960,
+                    height=546,
                     frameless=True,
                     transparent=False,
                     on_top=True,
                     resizable=True,
                     background_color='#F0F6FC',
-                    js_api=api_instance  # ✅这里传入全局api实例！！
+                    js_api=api_instance
                 )
 
                 def on_closed():
@@ -230,6 +234,8 @@ class AppApi:
                 logger.info("--> [Python] 子窗口已成功 show()")
             except Exception as e:
                 logger.error(f"--> [Python] 创建子窗口失败: {e}")
+            finally:
+                scanner_open_lock.release()
 
         t = Thread(target=_open)
         t.daemon = True
@@ -328,6 +334,22 @@ class AppApi:
     def capture_and_recognize_by_map(self, map_num):
         return self.capture_and_recognize("洛克王国：世界", map_num)
 
+    def resize_scanner_window(self, width, height):
+        """前端内容变化时，按前端量出的尺寸动态调整子窗口大小"""
+        global scanner_window
+        win = scanner_window
+        if win is None:
+            return {"status": "no_window"}
+        try:
+            # 钳位，防止内容测量异常把窗口撑爆或缩没
+            width = max(360, min(int(width), 1920))
+            height = max(480, min(int(height), 1600))
+            win.resize(width, height)
+            logger.debug(f"子窗口自适应: {width}x{height}")
+            return {"status": "ok", "width": width, "height": height}
+        except Exception as e:
+            logger.error(f"resize_scanner_window 异常: {e}")
+            return {"status": "error", "message": str(e)}
 
 def start_server():
     threads = get_waitress_threads()
@@ -379,7 +401,7 @@ def start_webview():
     main_window.events.closed += main_window_on_closed
 
     logger.info("主窗口创建完成")
-    webview.start(start_logic, debug=True)
+    webview.start(start_logic)
 
 
 if __name__ == '__main__':
