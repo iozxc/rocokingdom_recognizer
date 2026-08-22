@@ -172,7 +172,15 @@ export const ScannerApp: React.FC = () => {
   // Map num confirmed from last backend recognition (null on initial load, or 1, 2, 3)
   const [detectedMapNum, setDetectedMapNum] = useState<number | null>(null);
   // Map num currently selected by user in UI (can be switched freely before re-recognizing)
-  const [selectedMapNum, setSelectedMapNum] = useState<number | null>(null);
+  const [selectedMapNum, setSelectedMapNum] = useState<number | null>(() => {
+    // 上次钉住过地图时，打开窗口直接恢复钉住的地图视图
+    const savedPin = storage.getSetting<number | null>('scannerPinnedMapNum', null);
+    return savedPin !== null ? savedPin : null;
+  });
+  // 钉住地图：非 null 时锁定该地图，识别完成后视图不再跳回识别结果对应的地图
+  const [pinnedMapNum, setPinnedMapNum] = useState<number | null>(() =>
+      storage.getSetting<number | null>('scannerPinnedMapNum', null)
+  );
 
   // Storage and records
   const [records, setRecords] = useState<Record<string, EncounterRecord>>(() => storage.getAll());
@@ -355,6 +363,27 @@ export const ScannerApp: React.FC = () => {
   const handleSelectMap = (mapNum: number | null) => {
     sound.playClick();
     setSelectedMapNum(mapNum);
+    // 钉住模式下切换地图 = 钉随当前选择移动；切回“全图”则取消钉住
+    if (mapNum !== null) {
+      setPinnedMapNum(mapNum);
+      storage.setSetting('scannerPinnedMapNum', mapNum);
+    } else {
+      setPinnedMapNum(null);
+      storage.setSetting('scannerPinnedMapNum', null);
+    }
+  };
+
+  // 钉住/取消钉住当前地图：钉住后识别完成不再跳回识别结果对应的地图
+  const handleTogglePin = () => {
+    sound.playClick();
+    if (pinnedMapNum !== null) {
+      setPinnedMapNum(null);
+      storage.setSetting('scannerPinnedMapNum', null);
+    } else if (activeMapNum !== null) {
+      setPinnedMapNum(activeMapNum);
+      storage.setSetting('scannerPinnedMapNum', activeMapNum);
+      setSelectedMapNum(activeMapNum);
+    }
   };
 
   // Handle single candidate choice switch
@@ -400,20 +429,26 @@ export const ScannerApp: React.FC = () => {
     // Always use the real map_num returned by the backend recognition
     const targetMap = (data.map_num !== undefined && data.map_num !== null) ? Number(data.map_num) : 1;
     setDetectedMapNum(targetMap);
-    setSelectedMapNum(targetMap); // Reset manual selection so activeMapNum follows the recognized map
+    if (pinnedMapNum !== null) {
+      // 钉住地图：只更新识别数据，视图保持在钉住的地图，不跳回识别结果地图
+      setSelectedMapNum(pinnedMapNum);
+    } else {
+      setSelectedMapNum(targetMap); // 原逻辑：Reset manual selection so activeMapNum follows the recognized map
+    }
 
-    // 同步给左侧主界面（通过 storage settings 以及跨窗口消息）
-    storage.setSetting('activeMapNum', targetMap);
+    // 同步给左侧主界面（通过 storage settings 以及跨窗口消息；钉住时同步钉住的地图）
+    const syncMapNum = pinnedMapNum !== null ? pinnedMapNum : targetMap;
+    storage.setSetting('activeMapNum', syncMapNum);
     try {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('roco_active_map_num', String(targetMap));
+        localStorage.setItem('roco_active_map_num', String(syncMapNum));
         if ('BroadcastChannel' in window) {
           const bc = new BroadcastChannel('roco_channel');
-          bc.postMessage({ type: 'SWITCH_MAP', mapNum: targetMap });
+          bc.postMessage({ type: 'SWITCH_MAP', mapNum: syncMapNum });
           bc.close();
         }
         if (window.opener) {
-          window.opener.postMessage({ type: 'SWITCH_MAP', mapNum: targetMap }, '*');
+          window.opener.postMessage({ type: 'SWITCH_MAP', mapNum: syncMapNum }, '*');
         }
       }
     } catch (e) {
@@ -484,7 +519,9 @@ export const ScannerApp: React.FC = () => {
     }
 
     try {
-      const isReRecognize = hasPendingMapChange && selectedMapNum !== null;
+      // 钉住地图时始终以钉住的地图作为识别目标，避免再次点击识别后跳回游戏实际识别出的地图
+      const isPinnedRecognition = pinnedMapNum !== null && selectedMapNum !== null;
+      const isReRecognize = (hasPendingMapChange || isPinnedRecognition) && selectedMapNum !== null;
       const targetMap = isReRecognize ? selectedMapNum : (targetMapNum !== undefined ? targetMapNum : undefined);
 
       const pyApi = (window as any).pywebview?.api;
@@ -651,9 +688,27 @@ export const ScannerApp: React.FC = () => {
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-slate-800 font-black flex items-center gap-1.5">
                           <Layers className="w-4 h-4 text-[#7ABCF4]" />
-                          {currentDetectedMap.name} 收集进度
+                          {currentDetectedMap.name}
                         </span>
                         <div className="flex items-center gap-1.5">
+                          {/* 钉住地图：识别后视图不再跳回 */}
+                          <button
+                              type="button"
+                              onClick={handleTogglePin}
+                              className={`px-2 py-1 rounded-lg text-[10px] font-black border flex items-center gap-1 transition-all cursor-pointer active:scale-95 ${
+                                  pinnedMapNum !== null
+                                      ? 'bg-[#FEE061] text-[#854D0E] border-[#E5C43B] shadow-xs'
+                                      : 'bg-[#F8FBFE] text-slate-600 border-[#D5E3F0] hover:border-[#7ABCF4] hover:bg-[#EBF5FE]'
+                              }`}
+                              title={
+                                pinnedMapNum !== null
+                                    ? `已钉住【${currentDetectedMap.name}】：再次识别后视图不再跳回`
+                                    : '钉住当前地图：再次识别后视图不再跳回识别出的地图'
+                              }
+                          >
+                            <MapPin className={`w-3 h-3 ${pinnedMapNum !== null ? 'fill-[#E5C43B]' : ''}`} />
+                            {pinnedMapNum !== null ? '已钉住' : '钉住'}
+                          </button>
                           <span className="text-xs font-mono font-black text-[#2D6613] bg-[#E1F7DB] px-2 py-0.5 rounded-full border border-[#95D151]/50">
                             {mapCollectionStats.encountered}/{mapCollectionStats.total}
                           </span>
@@ -942,6 +997,11 @@ export const ScannerApp: React.FC = () => {
                       <RefreshCw className="w-4 h-4" />
                       <span>重新识别 (指定地图{activeMapNum})</span>
                     </>
+                ) : pinnedMapNum !== null ? (
+                    <>
+                      <MapPin className="w-4 h-4" />
+                      <span>识别 (已钉住地图{pinnedMapNum})</span>
+                    </>
                 ) : (
                     <>
                       <Camera className="w-4 h-4" />
@@ -967,7 +1027,7 @@ export const ScannerApp: React.FC = () => {
         <ScannerMapGalleryModal
             isOpen={isGalleryOpen}
             onClose={() => setIsGalleryOpen(false)}
-            initialMapNum={detectedMapNum || 1}
+            initialMapNum={activeMapNum || 1}
             mapsPets={mapsPets}
             records={records}
         />
