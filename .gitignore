@@ -22,3 +22,7 @@ keys/
 /yolo/dataset/
 /static/
 /.codex/
+/yolo/runs/
+/yolo/test/
+/yolo/*.pt
+/yolo/*.pt
