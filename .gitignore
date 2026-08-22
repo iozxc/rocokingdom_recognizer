@@ -21,3 +21,4 @@ keys/
 /onnx/
 /yolo/dataset/
 /static/
+/.codex/
