@@ -245,3 +245,21 @@
   animation: map-pill-pulse 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2;
 }
 
+/* Custom scrollbar for horizontal and vertical scrolling */
+.custom-roco-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-roco-scrollbar::-webkit-scrollbar-track {
+  background: #F4F8FD;
+  border-radius: 9999px;
+}
+.custom-roco-scrollbar::-webkit-scrollbar-thumb {
+  background: #BCD7F2;
+  border-radius: 9999px;
+  border: 1px solid #E6EEF8;
+}
+.custom-roco-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #7ABCF4;
+}
+

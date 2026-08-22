@@ -12,6 +12,8 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   MapPin,
   Sparkle,
   Radio,
@@ -38,11 +40,133 @@ interface DetectedPetSlot {
   id: string;
   name: string;
   score: number;
+  view_url?: string;
   candidates: { filename: string; score: number }[];
   selectedCandidateIndex: number;
   selectedPetName: string;
   matchedPet?: PetItem;
+  sourceMapNum?: number;
 }
+
+// 候选置信度排行分页导航组件（保持原版大尺寸卡片，每页3项，左右翻页，无滑动条）
+const CandidateCarousel: React.FC<{
+  candidates: { filename: string; score: number }[];
+  selectedCandidateIndex: number;
+  slotId: string;
+  sourceMapNum?: number;
+  onSelect: (slotId: string, index: number) => void;
+  checkEncountered: (name: string, sourceMapNum?: number) => boolean;
+}> = ({ candidates, selectedCandidateIndex, slotId, sourceMapNum, onSelect, checkEncountered }) => {
+  const pageSize = 3;
+  const totalPages = Math.ceil(candidates.length / pageSize);
+  const [currentPage, setCurrentPage] = React.useState(() => Math.floor(selectedCandidateIndex / pageSize));
+
+  // If selected candidate changes externally, ensure current page contains it
+  React.useEffect(() => {
+    const pageOfSelected = Math.floor(selectedCandidateIndex / pageSize);
+    if (pageOfSelected >= 0 && pageOfSelected < totalPages) {
+      setCurrentPage(pageOfSelected);
+    }
+  }, [selectedCandidateIndex, totalPages]);
+
+  const displayedCandidates = candidates.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
+  };
+
+  return (
+      <div className="pt-2 border-t-2 border-[#F1F5F9]">
+        <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5 font-bold">
+          <div className="flex items-center gap-1.5">
+            <span>候选置信度排行:</span>
+            {totalPages > 1 && (
+                <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
+              第 {currentPage + 1}/{totalPages} 页 (共 {candidates.length} 项)
+            </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[#1E5B99]">选定: #{selectedCandidateIndex + 1}</span>
+            {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                      type="button"
+                      onClick={handlePrevPage}
+                      disabled={currentPage === 0}
+                      className="w-5 h-5 rounded-md bg-white border border-[#BCD7F2] text-[#1E5B99] flex items-center justify-center hover:bg-[#EBF5FE] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-95 shadow-2xs"
+                      title="上一页候选 (#1-#3)"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                      type="button"
+                      onClick={handleNextPage}
+                      disabled={currentPage >= totalPages - 1}
+                      className="w-5 h-5 rounded-md bg-white border border-[#BCD7F2] text-[#1E5B99] flex items-center justify-center hover:bg-[#EBF5FE] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-95 shadow-2xs"
+                      title="下一页候选 (#4-#6)"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+            )}
+          </div>
+        </div>
+
+        {/* 原版大尺寸 3 列网格，无滑动条，保持饱满清爽 */}
+        <div className="grid grid-cols-3 gap-1.5">
+          {displayedCandidates.map((cand, idxInPage) => {
+            const cIdx = currentPage * pageSize + idxInPage;
+            const isSelected = cIdx === selectedCandidateIndex;
+            const candName = formatPetName(cand.filename);
+            const candPercent = (cand.score * 100).toFixed(1);
+
+            return (
+                <button
+                    key={cand.filename + cIdx}
+                    type="button"
+                    onClick={() => onSelect(slotId, cIdx)}
+                    className={`p-1.5 rounded-xl text-left transition-all cursor-pointer border-2 ${
+                        isSelected
+                            ? 'bg-[#EBF5FE] border-[#7ABCF4] text-[#1E5B99] font-black shadow-xs ring-1 ring-[#7ABCF4]'
+                            : 'bg-[#F8FBFE] border-[#E2E8F0] text-slate-600 hover:border-[#BCD7F2] hover:bg-[#E9F2FA]'
+                    }`}
+                >
+                  <div className="flex items-center justify-between text-[9px] font-mono">
+                <span className="text-slate-400 font-bold">
+                  {checkEncountered(candName, sourceMapNum) ? (
+                      <span className="text-[9px] font-bold text-[#2D6613] bg-[#E1F7DB] px-1.5 py-0.2 rounded-full border border-[#95D151]/40 flex items-center gap-0.5">
+                      <Check className="w-2 h-2 text-emerald-600 stroke-[3]" />
+                      #{cIdx + 1}
+                    </span>
+                  ) : (
+                      <span className="text-[9px] font-black text-amber-800 bg-[#FEF9E6] px-1.5 py-0.2 rounded-full border border-[#E5C43B]/60 flex items-center gap-0.5">
+                      <Sparkle className="w-2 h-2 text-amber-600" />
+                      #{cIdx + 1}
+                    </span>
+                  )}
+                </span>
+                    <span className={isSelected ? 'text-[#1E5B99] font-black' : 'text-slate-500'}>
+                  {candPercent}%
+                </span>
+                  </div>
+
+                  <div className="text-[11px] font-bold truncate mt-1" title={candName}>
+                    {candName}
+                  </div>
+                </button>
+            );
+          })}
+        </div>
+      </div>
+  );
+};
+
 
 export const ScannerApp: React.FC = () => {
   // Map num confirmed from last backend recognition (null on initial load, or 1, 2, 3)
@@ -183,9 +307,17 @@ export const ScannerApp: React.FC = () => {
     return clean;
   };
 
-  // Check if a pet is encountered in records
-  const checkEncountered = (petName: string): boolean => {
-    const mapKey = `map${activeMapNum || 1}`;
+  // Get readable map name
+  const getMapDisplayName = (mapNum: number | null | undefined): string => {
+    if (mapNum === null || mapNum === undefined) return '全图总览';
+    const found = MAP_CONFIGS.find((m) => m.num === mapNum);
+    return found ? found.name : `地图${mapNum}`;
+  };
+
+  // Check if a pet is encountered in records (prioritizes pet's original source map)
+  const checkEncountered = (petName: string, sourceMapNum?: number): boolean => {
+    const targetMapNum = sourceMapNum ?? detectedMapNum ?? activeMapNum ?? 1;
+    const mapKey = `map${targetMapNum}`;
     return isPetEncounteredInRecords(records, mapKey, petName);
   };
 
@@ -246,9 +378,10 @@ export const ScannerApp: React.FC = () => {
     );
   };
 
-  // Mark/unmark single pet
-  const handleTogglePetEncounter = (petName: string) => {
-    const mapKey = `map${activeMapNum || 1}`;
+  // Mark/unmark single pet (routes to sourceMapNum to avoid corrupting switched map book)
+  const handleTogglePetEncounter = (petName: string, sourceMapNum?: number) => {
+    const targetMapNum = sourceMapNum ?? detectedMapNum ?? activeMapNum ?? 1;
+    const mapKey = `map${targetMapNum}`;
     const wasEncountered = storage.isEncountered(mapKey, petName);
     storage.toggleEncountered(mapKey, petName);
 
@@ -288,15 +421,16 @@ export const ScannerApp: React.FC = () => {
     }
 
     const rawList = data.results || [];
-    const cappedList = rawList.slice(0, 3);
 
-    const formattedSlots: DetectedPetSlot[] = cappedList.map((item, idx) => {
+    const formattedSlots: DetectedPetSlot[] = rawList.map((item, idx) => {
       const topCand = item.candidates?.[0];
       const initialName = item.filename || topCand?.filename || '未知精灵';
       const initialScore = item.score ?? topCand?.score ?? 0.95;
       const matched = findPetMetadata(initialName);
 
-      const candidateList = (item.candidates || [{ filename: initialName, score: initialScore }]).slice(0, 3);
+      const candidateList = item.candidates && item.candidates.length > 0
+          ? item.candidates
+          : [{ filename: initialName, score: initialScore }];
 
       return {
         id: `slot-${idx}-${Date.now()}`,
@@ -310,6 +444,7 @@ export const ScannerApp: React.FC = () => {
         selectedCandidateIndex: 0,
         selectedPetName: initialName,
         matchedPet: matched,
+        sourceMapNum: targetMap,
       };
     });
 
@@ -595,6 +730,33 @@ export const ScannerApp: React.FC = () => {
                 )}
 
                 {/* 2.2 Detected Pets List */}
+                {/* Notice banner when user switched viewing map but has not re-recognized yet */}
+                {detectedPets.length > 0 && detectedMapNum !== null && activeMapNum !== detectedMapNum && (
+                    <div className="p-2.5 rounded-2xl bg-[#FEF9E6] border-2 border-[#E5C43B] text-[#854D0E] flex items-center justify-between gap-2 shadow-2xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-5 h-5 rounded-full bg-[#FEE061] text-[#854D0E] flex items-center justify-center font-black text-xs shrink-0 border border-[#E5C43B]">
+                        !
+                      </span>
+                        <div className="text-[11px] leading-tight min-w-0">
+                          <span className="font-black">已切换至【{getMapDisplayName(activeMapNum)}】</span>
+                          <p className="text-[10px] text-[#A16207] truncate font-medium mt-0.5">
+                            【{getMapDisplayName(detectedMapNum)}】识别结果，点亮仍计入原地图
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                          type="button"
+                          onClick={() => executeSingleRecognition(activeMapNum || undefined)}
+                          disabled={isRecognizingNow}
+                          className="shrink-0 text-[10px] font-black bg-[#E5C43B] hover:bg-[#D4B32A] text-slate-900 px-2.5 py-1 rounded-xl border border-[#CA9B1B] cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                          title="立即对当前切换的地图进行识别"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isRecognizingNow ? 'animate-spin' : ''}`} />
+                        <span>立即重识</span>
+                      </button>
+                    </div>
+                )}
+
                 {detectedPets.length === 0 ? (
                     <div className="p-5 bg-white roco-card border-2 border-[#E6EEF8] rounded-2xl text-center space-y-2">
                       <div className="w-10 h-10 rounded-2xl bg-[#EBF5FE] text-[#7ABCF4] flex items-center justify-center mx-auto border-2 border-[#D5E3F0]">
@@ -640,7 +802,9 @@ export const ScannerApp: React.FC = () => {
                         );
                       }
 
-                      const isEncountered = checkEncountered(slot.selectedPetName);
+                      const slotSourceMap = slot.sourceMapNum ?? detectedMapNum ?? 1;
+                      const isSlotFromDifferentMap = activeMapNum !== slotSourceMap;
+                      const isEncountered = checkEncountered(slot.selectedPetName, slotSourceMap);
                       const topScorePercent = (slot.score * 100).toFixed(1);
 
                       return (
@@ -652,13 +816,14 @@ export const ScannerApp: React.FC = () => {
                                       : 'bg-white border-[#7ABCF4] text-slate-800'
                               }`}
                           >
+
                             {/* Header: Avatar, Name, Status, Action */}
                             <div className="flex items-center justify-between gap-2.5 mb-2.5">
                               <div className="flex items-center gap-2.5 min-w-0">
                                 {/* Pet Image */}
                                 <div className="relative w-12 h-12 rounded-2xl bg-white border-2 border-[#D5E3F0] p-1 flex items-center justify-center shrink-0 overflow-hidden">
                                   <img
-                                      src={`${api.getApiBase()}/icons/map${detectedMapNum || 1}/${displayName}.png`}
+                                      src={`${api.getApiBase()}/icons/map${slotSourceMap}/${displayName}.png`}
                                       alt={displayName}
                                       className="w-full h-full object-contain"
                                       onError={(e) => {
@@ -698,13 +863,17 @@ export const ScannerApp: React.FC = () => {
                               {/* Toggle Encounter Button */}
                               <button
                                   type="button"
-                                  onClick={() => handleTogglePetEncounter(slot.selectedPetName)}
+                                  onClick={() => handleTogglePetEncounter(slot.selectedPetName, slotSourceMap)}
                                   className={`px-3 py-1.5 text-xs font-black rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border-2 ${
                                       isEncountered
                                           ? 'roco-btn-secondary bg-[#E1F7DB]/80 hover:bg-[#D3F3CA] text-[#2D6613] border-[#86EFAC]'
                                           : 'roco-btn-success text-white'
                                   }`}
-                                  title={isEncountered ? '已在图鉴（点击取消）' : '点击点亮图鉴'}
+                                  title={
+                                    isEncountered
+                                        ? `已在【${getMapDisplayName(slotSourceMap)}】图鉴中（点击取消）`
+                                        : `点亮【${getMapDisplayName(slotSourceMap)}】图鉴${isSlotFromDifferentMap ? `（注意：当前切换至${getMapDisplayName(activeMapNum)}但未重新识别）` : ''}`
+                                  }
                               >
                                 {isEncountered ? (
                                     <>
@@ -720,57 +889,16 @@ export const ScannerApp: React.FC = () => {
                               </button>
                             </div>
 
-                            {/* Candidate Switcher */}
+                            {/* Candidate Switcher with Horizontal Navigation */}
                             {slot.candidates && slot.candidates.length > 1 && (
-                                <div className="pt-2 border-t-2 border-[#F1F5F9]">
-                                  <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5 font-bold">
-                                    <span>候选置信度排行:</span>
-                                    <span className="font-mono text-[#1E5B99]">选定: #{slot.selectedCandidateIndex + 1}</span>
-                                  </div>
-                                  <div className="grid grid-cols-3 gap-1.5">
-                                    {slot.candidates.slice(0, 3).map((cand, cIdx) => {
-                                      const isSelected = cIdx === slot.selectedCandidateIndex;
-                                      const candName = formatPetName(cand.filename);
-                                      const candPercent = (cand.score * 100).toFixed(1);
-
-                                      return (
-                                          <button
-                                              key={cand.filename + cIdx}
-                                              type="button"
-                                              onClick={() => handleSelectCandidate(slot.id, cIdx)}
-                                              className={`p-1.5 rounded-xl text-left transition-all cursor-pointer border-2 ${
-                                                  isSelected
-                                                      ? 'bg-[#EBF5FE] border-[#7ABCF4] text-[#1E5B99] font-black'
-                                                      : 'bg-[#F8FBFE] border-[#E2E8F0] text-slate-600 hover:border-[#BCD7F2] hover:bg-[#E9F2FA]'
-                                              }`}
-                                          >
-                                            <div className="flex items-center justify-between text-[9px] font-mono">
-                                              <span className="text-slate-400 font-bold">
-                                                {checkEncountered(candName) ? (
-                                                    <span className="text-[9px] font-bold text-[#2D6613] bg-[#E1F7DB] px-1.5 py-0.2 rounded-full border border-[#95D151]/40 flex items-center gap-0.5">
-                                                      <Check className="w-2 h-2 text-emerald-600 stroke-[3]" />
-                                                      #{cIdx + 1}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-[9px] font-black text-amber-800 bg-[#FEF9E6] px-1.5 py-0.2 rounded-full border border-[#E5C43B]/60 flex items-center gap-0.5">
-                                                      <Sparkle className="w-2 h-2 text-amber-600" />
-                                                      #{cIdx + 1}
-                                                    </span>
-                                                )}
-                                              </span>
-                                              <span className={isSelected ? 'text-[#1E5B99] font-black' : 'text-slate-500'}>
-                                                {candPercent}%
-                                              </span>
-                                            </div>
-
-                                            <div className="text-[11px] font-bold truncate mt-1" title={candName}>
-                                              {candName}
-                                            </div>
-                                          </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
+                                <CandidateCarousel
+                                    candidates={slot.candidates}
+                                    selectedCandidateIndex={slot.selectedCandidateIndex}
+                                    slotId={slot.id}
+                                    sourceMapNum={slotSourceMap}
+                                    onSelect={handleSelectCandidate}
+                                    checkEncountered={checkEncountered}
+                                />
                             )}
                           </div>
                       );

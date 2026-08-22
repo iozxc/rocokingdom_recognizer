@@ -139,13 +139,13 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
         logger.debug("[槽位{i}] names_dict未初始化，触发懒加载")
         names_dict = scan_icon_names()
 
-    ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=3)
+    ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=9)
     logger.debug(f"[槽位{i}] OCR模糊匹配候选数: {len(ocr_results)}")
 
     # 2. 特征匹配与 OCR 模糊匹配并行 (此处可以继续细化，但主要瓶颈在 OCR)
     feat_results = [[]]
     if item_img:
-        feat_results = recog().match(item_img, map_num, 0.25, 3)
+        feat_results = recog().match(item_img, map_num, 0.25, 9)
     logger.debug(f"[槽位{i}] 特征匹配候选数: {len(feat_results[0]) if feat_results else 0}")
 
     # 合并逻辑 (保持你原有的逻辑)
@@ -156,7 +156,19 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
         if path not in unique_results or res['score'] > unique_results[path]['score']:
             unique_results[path] = res
 
-    final_list = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)[:3]
+    # 按分数降序排序（全量，用于回退）
+    sorted_all = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)
+
+    # 剔除置信度低于 0.25 的结果
+    filtered = [r for r in sorted_all if r['score'] >= 0.25]
+
+    # 最少 3 个：过滤后不足 3 个则回退到原始排序的前 3 个
+    if len(filtered) < 3:
+        logger.debug(f"[槽位{i}] 过滤后仅{len(filtered)}个，不足3个，回退保留原始前3个")
+        final_list = sorted_all[:3]
+    else:
+        # 最多 9 个
+        final_list = filtered[:9]
 
     ocr_match_results = []
     for m in final_list:
@@ -175,7 +187,7 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
     }
 
     elapsed = (time.perf_counter() - t_start) * 1000
-    logger.debug(f"[槽位{i}] 最终匹配: {result['filename']} (score={result['score']:.3f}), 耗时={elapsed:.1f}ms")
+    logger.debug(f"[槽位{i}] 最终匹配: {result['filename']} (score={result['score']:.3f}), 候选数={len(ocr_match_results)}, 耗时={elapsed:.1f}ms")
 
     return result
 
@@ -199,7 +211,7 @@ class AppApi:
                     title='精灵识别跟随',
                     url='http://127.0.0.1:5000/?view=scanner',
                     width=420,
-                    height=880,
+                    height=960,
                     frameless=True,
                     transparent=False,
                     on_top=True,

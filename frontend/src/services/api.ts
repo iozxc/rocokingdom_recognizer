@@ -523,7 +523,7 @@ export class ApiService {
             score: typeof raw.score === 'number' ? raw.score : typeof raw.confidence === 'number' ? raw.confidence : (topCand?.score ?? 0.88),
             view_url: viewUrl || (topCand?.view_url ?? ''),
             match_path: raw.match_path || (topCand?.match_path ?? ''),
-            candidates: candidates.slice(0, 3),
+            candidates: candidates,
             reason: raw.reason,
           };
         });
@@ -542,7 +542,7 @@ export class ApiService {
             is_game_running: body.is_game_running ?? true,
             screenshot_url: body.screenshot_url,
             timestamp: body.timestamp || new Date().toLocaleTimeString(),
-            results: normalizedResults.slice(0, 3),
+            results: normalizedResults,
           },
           isOfflineMock: false,
         };
@@ -557,15 +557,21 @@ export class ApiService {
       const mapNum = targetMapNum || 1;
       const mapKey = `map${mapNum}`;
       const pets = FALLBACK_MAPS_DATA[mapKey]?.items || [];
-      const sampleCount = Math.floor(Math.random() * 3) + 1; // 1 to 3
+      const sampleCount = Math.floor(Math.random() * 2) + 2; // 2 to 3
       const shuffled = [...pets].sort(() => 0.5 - Math.random());
       const selected = shuffled.slice(0, sampleCount);
 
       const simResults: any[] = selected.map((p, idx) => {
         const score = Number((0.92 + Math.random() * 0.07).toFixed(3));
         const otherPets = pets.filter((op) => op.name !== p.name);
-        const cand2 = otherPets[0] || p;
-        const cand3 = otherPets[1] || otherPets[0] || p;
+        const candidates = [
+          { filename: p.name, score, view_url: p.url },
+          ...otherPets.slice(0, 5).map((op, opIdx) => ({
+            filename: op.name,
+            score: Number(Math.max(0.1, score - (opIdx + 1) * 0.12 - Math.random() * 0.05).toFixed(3)),
+            view_url: op.url,
+          })),
+        ];
 
         return {
           index: idx,
@@ -573,11 +579,7 @@ export class ApiService {
           filename: p.name,
           score,
           view_url: p.url,
-          candidates: [
-            { filename: p.name, score, view_url: p.url },
-            { filename: cand2.name, score: Number((score - 0.18).toFixed(3)), view_url: cand2.url },
-            { filename: cand3.name, score: Number((score - 0.35).toFixed(3)), view_url: cand3.url },
-          ],
+          candidates,
         };
       });
 
