@@ -451,6 +451,20 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const alreadyEncounteredCount = reviewItems.filter((i) => i.status === 'matched' && i.isAlreadyEncountered).length;
   const unmatchedCount = reviewItems.filter((i) => i.status === 'unmatched').length;
 
+  // 动态计算响应式网格列数（和批量导入弹窗保持一致的高效紧凑排版）
+  const getDynamicGridClass = (count: number) => {
+    if (count <= 3) {
+      return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
+    }
+    if (count === 4) {
+      return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
+    }
+    if (count === 5) {
+      return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+    }
+    return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6';
+  };
+
   return (
       <div className="bg-white roco-card p-5 sm:p-6 mb-5">
         {/* Header & Help Button */}
@@ -470,7 +484,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
               </span>
               </div>
               <p className="text-xs text-slate-500">
-                上传含 1~3 只精灵的游戏画面，AI 识别预测并提供候选，您可以从中挑选未遇见的精灵点亮图鉴
+                上传含精灵图标或名字的画面，AI 识别预测并提供候选，您可以从中挑选未遇见的精灵点亮图鉴
               </p>
             </div>
           </div>
@@ -608,7 +622,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                     </div>
                     <div className="text-left">
                       <p className="text-xs font-black text-slate-700">
-                        点击或拖拽上传游戏画面截图（通常含 1~3 只精灵）
+                        点击或拖拽上传游戏画面截图（含精灵图标或名字）
                       </p>
                       <p className="text-[11px] text-slate-400">
                         支持 PNG / JPG · 支持截图后直接 Ctrl+V 快速粘贴
@@ -807,12 +821,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 </div>
               </div>
 
-              {/* CRITICAL REQUIREMENT: STRICTLY 3 COLUMNS PER ROW */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {/* Items Review Grid - identical responsive compact layout as BatchInitModal */}
+              <div className={`grid gap-3 ${getDynamicGridClass(filteredItems.length)}`}>
                 {filteredItems.map((item) => {
                   const isMatched = item.status === 'matched';
                   const scorePercent = item.score ? (item.score * 100).toFixed(1) : '0';
-                  const isHighScore = (item.score || 0) >= 0.85;
+                  const isHighScore = (item.score || 0) >= 0.88;
                   const isAlready = !!item.isAlreadyEncountered;
                   const displayName = formatPetName(item.matchedPet?.name || item.filename);
 
@@ -820,25 +834,25 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       <div
                           key={item.index}
                           onClick={() => handleToggleCheck(item.index)}
-                          className={`relative rounded-2xl border-3 p-3.5 transition-all flex flex-col justify-between cursor-pointer select-none group/card hover:shadow-md ${
+                          className={`relative rounded-2xl border-3 p-3 transition-colors duration-150 flex flex-col justify-between cursor-pointer select-none group/card hover:shadow-md ${
                               item.isChecked
                                   ? 'border-[#95D151] bg-[#F9FEF8] shadow-xs ring-2 ring-[#95D151]/30'
                                   : item.status === 'unmatched'
                                       ? 'border-rose-300 bg-rose-50/50 hover:border-rose-400'
                                       : isAlready
-                                          ? 'border-slate-300 bg-slate-50/80 hover:border-slate-400'
-                                          : 'border-[#E6EEF8] bg-white hover:border-[#7ABCF4]'
+                                          ? 'border-slate-300 bg-slate-50/70 opacity-90 hover:border-slate-400'
+                                          : 'border-[#E6EEF8] bg-white opacity-80 hover:border-[#7ABCF4]'
                           }`}
                       >
                         <div>
-                          {/* Top Bar: Checkbox + Status */}
-                          <div className="flex items-center justify-between mb-2">
-                            <div
+                          {/* Top Row: Checkbox + Index */}
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleToggleCheck(item.index);
                                 }}
-                                className="flex items-center gap-1.5 cursor-pointer"
+                                className="flex items-center gap-1.5 cursor-pointer select-none"
                             >
                               <input
                                   type="checkbox"
@@ -846,14 +860,15 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                   onChange={() => {}}
                                   className="w-4 h-4 rounded text-[#95D151] accent-[#95D151] cursor-pointer"
                               />
-                              <span className="text-[11px] font-mono font-black text-slate-600">
-                          检测图位 #{item.index + 1}
-                        </span>
-                            </div>
+                              <span className="text-[10px] font-mono font-black text-slate-500">
+                                检测图位 #{item.index + 1}
+                              </span>
+                            </label>
 
+                            {/* Status / Score Tag */}
                             {isMatched ? (
                                 <span
-                                    className={`text-[10px] font-mono font-black px-2 py-0.5 rounded-md ${
+                                    className={`text-[9px] font-mono font-black px-1.5 py-0.2 rounded-md ${
                                         item.isManuallyEdited
                                             ? 'bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2]'
                                             : isHighScore
@@ -861,18 +876,18 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                                 : 'bg-[#FEF9E6] text-[#854D0E]'
                                     }`}
                                 >
-                          {item.isManuallyEdited ? '已选定' : `Top 1: ${scorePercent}%`}
-                        </span>
+                                  {item.isManuallyEdited ? '已选定' : `Top 1: ${scorePercent}%`}
+                                </span>
                             ) : (
-                                <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-700">
-                          未匹配
-                        </span>
+                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-rose-100 text-rose-700">
+                                  未匹配
+                                </span>
                             )}
                           </div>
 
-                          {/* Main Pet Info */}
-                          <div className="flex items-center gap-3.5 my-1.5 p-2 rounded-xl bg-white/70 border border-slate-100">
-                            <div className="relative w-16 h-16 rounded-2xl bg-white p-1.5 border-2 border-[#E6EEF8] shadow-inner flex items-center justify-center shrink-0">
+                          {/* Main Selected Pet Display (Centered clean layout matching BatchInitModal) */}
+                          <div className="flex flex-col items-center text-center my-1">
+                            <div className="relative w-16 h-16 rounded-xl bg-white p-1 border border-[#E6EEF8] shadow-inner flex items-center justify-center">
                               {isMatched && item.matchedPet ? (
                                   <img
                                       src={item.view_url || item.matchedPet.url}
@@ -895,59 +910,67 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                               )}
                             </div>
 
-                            <div className="min-w-0 flex-1">
+                            {/* Current Chosen Pet Name */}
+                            <div className="mt-1.5 w-full">
                               {isMatched && item.matchedPet ? (
-                                  <>
-                                    <h4 className="text-sm font-black text-slate-800 truncate" title={displayName}>
-                                      {displayName}
-                                    </h4>
-                                    {isAlready ? (
-                                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 mt-1">
-                                <Check className="w-3 h-3 text-[#2D6613]" />
-                                已在图鉴中
-                              </span>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-[#2D6613] bg-[#E1F7DB] px-2 py-0.5 rounded-md border border-[#95D151] mt-1">
-                                <Sparkle className="w-3 h-3 text-amber-600" />
-                                未遇见新宠
-                              </span>
-                                    )}
-                                  </>
+                                  <p className="text-xs font-black text-slate-800 truncate" title={displayName}>
+                                    {displayName}
+                                  </p>
                               ) : (
-                                  <p className="text-xs text-rose-600 font-bold">
-                                    {item.reason || '未匹配到精灵特征'}
+                                  <p className="text-[10px] text-rose-600 font-bold truncate" title={item.reason || '特征不匹配'}>
+                                    {item.reason || '未匹配到精灵'}
                                   </p>
                               )}
-
-                              {/* Confidence Progress */}
-                              {isMatched && (
-                                  <div className="mt-1.5">
-                                    <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 mb-0.5">
-                                      <span>匹配置信度</span>
-                                      <span className="font-black text-slate-600">{scorePercent}%</span>
-                                    </div>
-                                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                      <div
-                                          className={`h-full rounded-full transition-all duration-300 ${
-                                              isHighScore ? 'bg-[#95D151]' : 'bg-[#FEE061]'
-                                          }`}
-                                          style={{ width: `${Math.min(100, Math.max(0, (item.score || 0) * 100))}%` }}
-                                      />
-                                    </div>
-                                  </div>
-                              )}
                             </div>
+
+                            {/* Match Confidence Progress Bar */}
+                            {isMatched && (
+                                <div className="w-full mt-1.5 px-0.5">
+                                  <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 mb-0.5">
+                                    <span>当前匹配度</span>
+                                    <span className="font-black text-slate-600">{scorePercent}%</span>
+                                  </div>
+                                  <div className="w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden p-[1px]">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-300 ${
+                                            isHighScore
+                                                ? 'bg-[#95D151]'
+                                                : (item.score || 0) >= 0.5
+                                                    ? 'bg-[#FEE061]'
+                                                    : 'bg-rose-400'
+                                        }`}
+                                        style={{ width: `${Math.min(100, Math.max(0, (item.score || 0) * 100))}%` }}
+                                    />
+                                  </div>
+                                </div>
+                            )}
+
+                            {/* Previously Encountered / New Discovery Badge */}
+                            {isMatched && (
+                                <div className="mt-1.5 w-full">
+                                  {isAlready ? (
+                                      <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-black text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-300 w-full">
+                                        已在图鉴中
+                                      </span>
+                                  ) : (
+                                      <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-black text-[#2D6613] bg-[#E1F7DB] px-1.5 py-0.5 rounded-md border border-[#95D151] w-full">
+                                        <Sparkles className="w-2.5 h-2.5 text-[#2D6613]" />
+                                        未遇见新宠
+                                      </span>
+                                  )}
+                                </div>
+                            )}
                           </div>
 
-                          {/* Candidates Vertical Selection List (Matches BatchInit style with clear progress bars & avatars) */}
+                          {/* Candidates Prediction List (Top 1~5) */}
                           {item.candidates && item.candidates.length > 0 && (
-                              <div className="mt-2.5 pt-2 border-t border-slate-100/90 w-full space-y-1">
-                                <div className="flex items-center justify-between text-[11px] font-black text-slate-600 mb-1 px-0.5">
+                              <div className="mt-2 pt-2 border-t border-slate-100/90 w-full space-y-1">
+                                <div className="flex items-center justify-between text-[10px] font-black text-slate-500 mb-1 px-0.5">
                                   <span>所有预测候选 ({item.candidates.length})</span>
-                                  <span className="text-[10px] text-slate-400 font-normal">点击切换</span>
+                                  <span className="text-[9px] text-slate-400 font-normal">点击直接切换</span>
                                 </div>
 
-                                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-0.5 custom-scrollbar">
+                                <div className="space-y-1 max-h-40 overflow-y-auto pr-0.5 custom-scrollbar">
                                   {item.candidates.map((cand, candIdx) => {
                                     const candPetName = cand.matchedPet?.name || cand.filename;
                                     const isSelectedCand = isMatched && (
@@ -959,10 +982,11 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                     const candDisplayName = formatPetName(cand.filename);
                                     const isCandAlready = checkAlreadyEncountered(targetMap.id, candPetName);
 
+                                    // Low-saturation, ultra-subtle color tint for progress bar according to confidence score
                                     const getProgressBarColor = (score: number) => {
-                                      if (score >= 0.8) return 'from-emerald-200/25 to-teal-200/30';
-                                      if (score >= 0.5) return 'from-amber-200/25 to-yellow-200/30';
-                                      return 'from-rose-200/25 to-orange-200/30';
+                                      if (score >= 0.8) return 'from-emerald-200/20 to-teal-200/25';
+                                      if (score >= 0.5) return 'from-amber-200/20 to-yellow-200/25';
+                                      return 'from-rose-200/20 to-orange-200/25';
                                     };
 
                                     return (
@@ -973,29 +997,29 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                               e.stopPropagation();
                                               handleSelectCandidate(item.index, cand);
                                             }}
-                                            className={`relative overflow-hidden w-full p-2 rounded-xl border text-left flex items-center justify-between gap-2 transition-all cursor-pointer group/cand ${
+                                            className={`relative overflow-hidden w-full p-1.5 rounded-xl border-2 text-left flex items-center justify-between gap-1.5 transition-colors duration-150 cursor-pointer group/cand ${
                                                 isSelectedCand
-                                                    ? 'bg-[#EEF6FF] border-[#7ABCF4] ring-2 ring-[#7ABCF4]/60 shadow-xs font-black'
+                                                    ? 'bg-[#EEF6FF] border-[#7ABCF4] shadow-xs font-black'
                                                     : 'bg-white/90 border-slate-200/80 hover:bg-[#F5F9FF] hover:border-[#BCD7F2] text-slate-700'
                                             }`}
                                             title={`点击切换为: ${candDisplayName} (置信度 ${candScorePercent}% · ${isCandAlready ? '已在图鉴中' : '未遇见新宠'})`}
                                         >
-                                          {/* 置信度背景填充进度条 */}
+                                          {/* Low-saturation background confidence bar fill */}
                                           <div
-                                              className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressBarColor(scoreVal)} pointer-events-none transition-all duration-300 rounded-l-lg`}
+                                              className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressBarColor(scoreVal)} pointer-events-none transition-[width] duration-300 rounded-l-lg`}
                                               style={{ width: `${Math.min(100, Math.max(0, scoreVal * 100))}%` }}
                                           />
 
-                                          <div className="relative z-10 flex items-center gap-2 min-w-0 flex-1">
-                                  <span className={`text-[9px] font-mono font-black px-1.5 py-0.5 rounded shrink-0 ${
-                                      candIdx === 0
-                                          ? 'bg-[#FEE061] text-[#854D0E]'
-                                          : 'bg-slate-200 text-slate-600'
-                                  }`}>
-                                    #{candIdx + 1}
-                                  </span>
+                                          <div className="relative z-10 flex items-center gap-1.5 min-w-0 flex-1">
+                                            <span className={`text-[8px] font-mono font-black px-1 py-0.2 rounded shrink-0 ${
+                                                candIdx === 0
+                                                    ? 'bg-[#FEE061] text-[#854D0E]'
+                                                    : 'bg-slate-200 text-slate-600'
+                                            }`}>
+                                              #{candIdx + 1}
+                                            </span>
 
-                                            <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                                            <div className="w-5 h-5 rounded-md bg-white border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
                                               <img
                                                   src={cand.view_url || cand.matchedPet?.url}
                                                   alt={candDisplayName}
@@ -1003,30 +1027,30 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                               />
                                             </div>
 
-                                            <span className="text-xs truncate flex-1 font-bold">
-                                    {candDisplayName}
-                                  </span>
+                                            <span className="text-[11px] truncate flex-1 font-bold">
+                                              {candDisplayName}
+                                            </span>
                                           </div>
 
-                                          <div className="relative z-10 flex items-center gap-1.5 shrink-0">
+                                          <div className="relative z-10 flex items-center gap-1 shrink-0">
+                                            {/* In-Dex Encountered Status Pill */}
                                             {isCandAlready ? (
-                                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100/90 text-slate-500 border border-slate-200/80 shadow-2xs">
-                                      已在图鉴
-                                    </span>
+                                                <span className="text-[8px] font-black px-1 py-0.2 rounded bg-slate-100/90 text-slate-500 border border-slate-200/80 shadow-2xs backdrop-blur-2xs">
+                                                  已在图鉴
+                                                </span>
                                             ) : (
-                                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#E1F7DB]/95 text-[#2D6613] border border-[#95D151] shadow-2xs">
-                                      未遇见
-                                    </span>
+                                                <span className="text-[8px] font-black px-1 py-0.2 rounded bg-[#E1F7DB]/95 text-[#2D6613] border border-[#95D151] shadow-2xs backdrop-blur-2xs">
+                                                  未遇见
+                                                </span>
                                             )}
 
-                                            <span className="text-[10px] font-mono font-black text-slate-700">
-                                    {candScorePercent}%
-                                  </span>
-
+                                            <span className="text-[9px] font-mono font-black text-slate-600">
+                                              {candScorePercent}%
+                                            </span>
                                             {isSelectedCand && (
-                                                <span className="text-[9px] px-1.5 py-0.5 bg-[#7ABCF4] text-white rounded font-black shadow-2xs">
-                                      当前
-                                    </span>
+                                                <span className="text-[8px] px-1 py-0.2 bg-[#7ABCF4] text-white rounded font-black shadow-2xs">
+                                                  当前
+                                                </span>
                                             )}
                                           </div>
                                         </button>
@@ -1038,10 +1062,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         </div>
 
                         {/* Bottom Action: Manual Correction */}
-                        <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      {item.isChecked ? '✅ 已勾选准备遇见' : '⚪ 点击卡片任意处勾选'}
-                    </span>
+                        <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-[9px] text-slate-400 font-medium">
+                            {item.isChecked ? '✅ 已勾选' : '⚪ 点击勾选'}
+                          </span>
                           <button
                               type="button"
                               onClick={(e) => {
@@ -1050,10 +1074,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                 setEditingItemIndex(item.index);
                                 setPickerSearch('');
                               }}
-                              className="text-[11px] font-black text-[#2B78C4] hover:text-[#1D5E9E] hover:underline flex items-center gap-1 cursor-pointer"
+                              className="text-[10px] font-black text-[#2B78C4] hover:text-[#1D5E9E] hover:underline flex items-center gap-1 cursor-pointer"
                           >
                             <Edit3 className="w-3 h-3" />
-                            <span>人工挑选修正</span>
+                            <span>人工修正</span>
                           </button>
                         </div>
                       </div>
@@ -1139,7 +1163,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   <div className="p-3.5 bg-gradient-to-br from-[#F5F9FF] to-[#EBF4FE] rounded-2xl border-2 border-[#BCD7F2] space-y-2.5">
                     <div className="flex items-center justify-between">
                       <p className="font-black text-[#2B78C4] flex items-center gap-1.5 text-xs">
-                        <span>🎯 推荐截图示范（游戏画面 1~3 只精灵）</span>
+                        <span>🎯 推荐截图示范（含精灵图标或名字）</span>
                       </p>
                       <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#2B78C4] text-white">
                     最佳识别效果
@@ -1187,7 +1211,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                     </div>
 
                     <p className="text-[10px] text-[#2B78C4] font-medium leading-normal">
-                      💡 提示：上传包含 1~3 只精灵的探索截图，系统会自动识别并分割各精灵。
+                      💡 提示：上传包含精灵图标或名字的画面截图，系统会自动识别并分割各精灵。
                     </p>
                   </div>
 

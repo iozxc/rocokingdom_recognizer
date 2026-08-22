@@ -939,7 +939,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                       return (
                           <div
                               key={item.index}
-                              className={`relative rounded-2xl border-3 p-3 transition-all flex flex-col justify-between ${
+                              className={`relative rounded-2xl border-3 p-3 transition-colors duration-150 flex flex-col justify-between ${
                                   item.isChecked
                                       ? 'border-[#95D151] bg-[#F9FEF8] shadow-xs'
                                       : item.status === 'unmatched'
@@ -1095,16 +1095,16 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                                 e.stopPropagation();
                                                 handleSelectCandidate(item.index, cand);
                                               }}
-                                              className={`relative overflow-hidden w-full p-1.5 rounded-xl border text-left flex items-center justify-between gap-1.5 transition-all cursor-pointer group/cand ${
+                                              className={`relative overflow-hidden w-full p-1.5 rounded-xl border-2 text-left flex items-center justify-between gap-1.5 transition-colors duration-150 cursor-pointer group/cand ${
                                                   isSelectedCand
-                                                      ? 'bg-[#EEF6FF] border-[#7ABCF4] ring-2 ring-[#7ABCF4]/60 shadow-xs font-black'
+                                                      ? 'bg-[#EEF6FF] border-[#7ABCF4] shadow-xs font-black'
                                                       : 'bg-white/90 border-slate-200/80 hover:bg-[#F5F9FF] hover:border-[#BCD7F2] text-slate-700'
                                               }`}
                                               title={`点击切换为: ${candDisplayName} (置信度 ${candScorePercent}% · ${isCandAlready ? '已在图鉴中' : '未遇见新宠'})`}
                                           >
                                             {/* Low-saturation background confidence bar fill */}
                                             <div
-                                                className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressBarColor(scoreVal)} pointer-events-none transition-all duration-300 rounded-l-lg`}
+                                                className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressBarColor(scoreVal)} pointer-events-none transition-[width] duration-300 rounded-l-lg`}
                                                 style={{ width: `${Math.min(100, Math.max(0, scoreVal * 100))}%` }}
                                             />
 
