@@ -54,7 +54,6 @@ def get_top_k_matches(user_name, map_key, names_dict, k=3):
 
     # 2. 计算所有候选词的相似度
     for candidate in candidates:
-        # 建议这里也做一下简单的 strip() 处理
         score = SequenceMatcher(None, user_name.strip(), candidate.strip()).ratio()
 
         scored_results.append({
