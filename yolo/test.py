@@ -3,12 +3,12 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 from ultralytics import YOLO
 
 if __name__ == '__main__':
-    model_path = r"D:\game\RocoKingdom\yolo\runs\detect\runs\detect\roco_ui\weights\best.onnx"
+    model_path = r"D:\game\RocoKingdom\yolo\runs\detect\runs\detect\roco_ui-5\weights\best.onnx"
     model = YOLO(model_path)
 
     img_path = r"test.jpg"
     # 重点！！加上 imgsz=1920，和训练保持一致
-    res = model(img_path, conf=0.25, imgsz=1920)
+    res = model(img_path, conf=0.25, imgsz=1280)
 
     annotated_img = res[0].plot()
     import cv2
