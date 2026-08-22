@@ -1,9 +1,8 @@
-import concurrent.futures
 import ctypes
 import sqlite3
 import time
+import socket
 
-from PIL import ImageGrab
 from flask import g
 
 import config
@@ -40,6 +39,18 @@ scanner_open_lock = Lock()  # 防止连点“跟随识别”并发创建多个�
 api_instance = None  # 全局保存api实例
 names_dict = None
 map_classifier_recognizer = None
+
+
+def pick_free_port() -> int:
+    """动态挑选一个空闲端口，避免固定 5000 被其他程序占用"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+# 整个程序共用的动态端口（窗口 URL 与 Flask 服务器都用它）
+SERVER_PORT = pick_free_port()
+logger.info(f"动态端口已分配: {SERVER_PORT}")
 
 
 def get_waitress_threads() -> int:
@@ -214,7 +225,7 @@ class AppApi:
 
                 scanner_window = webview.create_window(
                     title='精灵识别跟随',
-                    url='http://127.0.0.1:5000/?view=scanner',
+                    url=f'http://127.0.0.1:{SERVER_PORT}/?view=scanner',
                     width=420,
                     height=546,
                     frameless=True,
@@ -362,7 +373,7 @@ def start_server():
     serve(
         app,
         host="127.0.0.1",  # 桌面客户端只监听本机，不要0.0.0.0
-        port=5000,
+        port=SERVER_PORT,
         threads=threads,
         connection_limit=60,  # 最大并发连接
         channel_timeout=90,  # 慢请求超时，避免僵死连接占住线程
@@ -376,16 +387,15 @@ def start_webview():
     logger.info("启动主窗口...")
 
     # 先启动 Flask 服务器并等待端口就绪，再创建窗口，
-    # 避免 WebView 先加载 http://127.0.0.1:5000 时服务器未就绪导致白屏
+    # 避免 WebView 先加载页面时服务器未就绪导致白屏
     server_thread = Thread(target=start_server)
     server_thread.daemon = True
     server_thread.start()
 
-    import socket
     server_ready = False
     for _ in range(100):  # 最多等待约 10 秒
         try:
-            with socket.create_connection(("127.0.0.1", 5000), timeout=0.2):
+            with socket.create_connection(("127.0.0.1", SERVER_PORT), timeout=0.2):
                 server_ready = True
                 break
         except OSError:
@@ -398,7 +408,7 @@ def start_webview():
 
     main_window = webview.create_window(
         '洛克王国草系徽章试炼助手',
-        'http://127.0.0.1:5000',
+        f'http://127.0.0.1:{SERVER_PORT}',
         width=1500,
         height=1000,
         min_size=(1200, 700),

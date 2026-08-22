@@ -29,7 +29,18 @@ export class ApiService {
   private apiBase: string;
 
   constructor() {
-    this.apiBase = localStorage.getItem('roco_api_base') || DEFAULT_API_BASE;
+    this.apiBase = localStorage.getItem('roco_api_base') || this.resolveDefaultApiBase();
+  }
+
+  /**
+   * 生产环境由 Flask 同源托管（动态端口），直接用当前页面 origin；
+   * 开发环境（vite dev server）仍指向固定 5000 后端。
+   */
+  private resolveDefaultApiBase(): string {
+    if (import.meta.env.DEV) return DEFAULT_API_BASE;
+    return typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : DEFAULT_API_BASE;
   }
 
   public getApiBase(): string {
@@ -42,7 +53,7 @@ export class ApiService {
   }
 
   public resetApiBase() {
-    this.apiBase = DEFAULT_API_BASE;
+    this.apiBase = this.resolveDefaultApiBase();
     localStorage.removeItem('roco_api_base');
   }
 
