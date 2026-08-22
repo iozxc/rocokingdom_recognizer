@@ -25,7 +25,7 @@ from core.map_classifier import MapClassifier
 from core.api.predict import recognizer as recog
 from core.utils import get_top_k_matches, get_icon_full_path
 from crop import crop_sections_from_pil_by_YOLOv8
-from tools import clean_debug_folder, capture_window
+from tools import clean_debug_folder, capture_window, match_scene_unique_char
 import multiprocessing
 from waitress import serve
 
@@ -188,7 +188,8 @@ def process_single_item(i, name_img, item_img, map_num, map_name):
     }
 
     elapsed = (time.perf_counter() - t_start) * 1000
-    logger.debug(f"[槽位{i}] 最终匹配: {result['filename']} (score={result['score']:.3f}), 候选数={len(ocr_match_results)}, 耗时={elapsed:.1f}ms")
+    logger.debug(
+        f"[槽位{i}] 最终匹配: {result['filename']} (score={result['score']:.3f}), 候选数={len(ocr_match_results)}, 耗时={elapsed:.1f}ms")
 
     return result
 
@@ -302,7 +303,10 @@ class AppApi:
                 logger.info("地图分类器未初始化，执行懒加载...")
                 map_classifier_recognizer = MapClassifier(config.RESNET50, config.FEATURES2_DB)
             if map_num is None:
-                map_name = map_classifier_recognizer.match(title_pil)
+                ocr_map_name = ocr().recognize_text(title_pil)
+                map_name = match_scene_unique_char(ocr_map_name)
+                if map_name is None:
+                    map_name = map_classifier_recognizer.match(title_pil)
                 map_num = int(map_name[3])
                 logger.debug(f"mapname : {map_name}")
             else:
@@ -350,6 +354,7 @@ class AppApi:
         except Exception as e:
             logger.error(f"resize_scanner_window 异常: {e}")
             return {"status": "error", "message": str(e)}
+
 
 def start_server():
     threads = get_waitress_threads()
