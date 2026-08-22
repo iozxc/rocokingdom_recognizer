@@ -393,12 +393,12 @@ def start_webview():
     server_thread.start()
 
     server_ready = False
-    for _ in range(100):  # 最多等待约 10 秒
+    for _ in range(300):  # 最多等待约 30 秒
         try:
             with socket.create_connection(("127.0.0.1", SERVER_PORT), timeout=0.2):
                 server_ready = True
                 break
-        except OSError:
+        except Exception as e:
             time.sleep(0.1)
     if not server_ready:
         logger.error("Flask 服务器启动超时，主窗口可能白屏")
