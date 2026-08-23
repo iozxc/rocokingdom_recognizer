@@ -3,7 +3,7 @@ import os
 
 import config
 from core.db import get_db
-from logger import logger
+from core.logger import logger
 
 
 def scan_icon_names(app=None):

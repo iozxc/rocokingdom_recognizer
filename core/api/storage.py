@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from core.api.response import error, success
 from core.services.user_storage import user_storage
-from logger import logger
+from core.logger import logger
 
 bp = Blueprint("storage", __name__)
 

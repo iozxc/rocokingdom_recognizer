@@ -5,7 +5,7 @@ from core.api import register_blueprints
 from core.api.response import error as api_error
 from core.db import close_db_connection
 from flask_cors import CORS
-from logger import logger
+from core.logger import logger
 
 
 def create_app():

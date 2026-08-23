@@ -6,8 +6,8 @@ from PIL import Image, ImageDraw, ImageFont  # 增加了 ImageDraw 和 ImageFont
 import onnxruntime as ort
 
 import config
-from logger import logger
-from tools import clean_debug_folder
+from core.logger import logger
+from core.tools import clean_debug_folder
 
 # --- 配置 ---
 MODEL_PATH = config.SCANNER if config.SCANNER.endswith(".onnx") else config.SCANNER.replace(".pt", ".onnx")

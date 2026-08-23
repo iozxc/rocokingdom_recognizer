@@ -4,7 +4,7 @@ import os
 import time
 
 from config import DATA_FILE
-from logger import logger
+from core.logger import logger
 
 DEFAULT_STRUCTURE = {
     "version": 0,

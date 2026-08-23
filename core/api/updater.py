@@ -9,8 +9,8 @@ import requests
 
 import config
 from flask import Blueprint
-from logger import logger
-from version import get_update_info
+from core.logger import logger
+from core.version import get_update_info
 import threading
 
 bp = Blueprint("updater", __name__)

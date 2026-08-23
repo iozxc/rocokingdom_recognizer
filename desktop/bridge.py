@@ -9,9 +9,9 @@ from core.ocr import ocr
 from core.services.icon_catalog import icon_catalog
 from core.services.recognizers import models
 from core.utils import get_icon_full_path, get_top_k_matches
-from crop import crop_sections_from_pil_by_YOLOv8
-from logger import logger
-from tools import capture_window, clean_debug_folder, match_scene_unique_char
+from core.crop import crop_sections_from_pil_by_YOLOv8
+from core.logger import logger
+from core.tools import capture_window, clean_debug_folder, match_scene_unique_char
 
 # OCR 命中这些名称时直接匹配，无需模糊匹配
 SPECIAL_DIRECT_MATCH = ("魔力之源", "远行商人")

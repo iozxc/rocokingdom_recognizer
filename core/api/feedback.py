@@ -2,7 +2,7 @@ import requests
 from flask import Blueprint, request
 
 import config
-from logger import logger
+from core.logger import logger
 
 bp = Blueprint("feedback", __name__)
 

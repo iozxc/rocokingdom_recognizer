@@ -6,7 +6,7 @@ from PIL import Image
 from rapidocr_onnxruntime import RapidOCR  # 导入 RapidOCR
 
 from config import get_resource_path
-from logger import logger
+from core.logger import logger
 
 # 彻底移除对 torch 和 ssl 的依赖
 warnings.filterwarnings("ignore", category=UserWarning)

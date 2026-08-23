@@ -4,7 +4,7 @@ import cv2
 import os
 import pickle
 import time
-from logger import logger
+from core.logger import logger
 from PIL import Image
 
 

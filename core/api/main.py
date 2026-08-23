@@ -6,7 +6,7 @@ from flask import Blueprint, Response, current_app, send_from_directory, url_for
 import config
 from core.api.response import error, success
 from core.db import get_db
-from logger import logger
+from core.logger import logger
 
 bp = Blueprint("main", __name__)
 

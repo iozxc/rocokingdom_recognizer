@@ -7,7 +7,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import numpy as np
 from PIL import Image
 
-from logger import logger
+from core.logger import logger
 
 
 def get_icon_full_path(map_name, icon_name_without_ext):

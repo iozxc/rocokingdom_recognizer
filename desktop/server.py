@@ -4,7 +4,7 @@ import socket
 
 from waitress import serve
 
-from logger import logger
+from core.logger import logger
 
 
 def pick_free_port() -> int:

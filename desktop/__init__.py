@@ -8,7 +8,7 @@ import webview
 from desktop.bridge import AppApi
 from desktop.server import pick_free_port, start_server
 from desktop.windows import WindowManager
-from logger import logger
+from core.logger import logger
 
 
 def run(app) -> None:

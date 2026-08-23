@@ -2,7 +2,7 @@
 import config
 from core.map_classifier import MapClassifier
 from core.recognizer import ImageRecognizer
-from logger import logger
+from core.logger import logger
 
 
 class _ModelRegistry:

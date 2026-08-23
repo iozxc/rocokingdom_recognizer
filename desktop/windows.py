@@ -3,7 +3,7 @@ import threading
 
 import webview
 
-from logger import logger
+from core.logger import logger
 
 
 class WindowManager:

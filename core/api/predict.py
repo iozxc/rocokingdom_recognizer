@@ -11,7 +11,7 @@ from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
 from core.services.recognizers import models
 from core.utils import get_top_k_matches, get_icon_full_path
-from logger import logger
+from core.logger import logger
 
 bp = Blueprint("predict", __name__)
 

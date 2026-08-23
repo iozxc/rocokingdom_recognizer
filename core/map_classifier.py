@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import os
 import pickle
-from logger import logger
+from core.logger import logger
 import time
 from PIL import Image
 

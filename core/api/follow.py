@@ -3,7 +3,7 @@ from flask import Blueprint
 
 import config
 from core.api.response import error, success
-from logger import logger
+from core.logger import logger
 
 bp = Blueprint("follow", __name__)
 

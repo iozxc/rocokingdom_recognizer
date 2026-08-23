@@ -14,7 +14,7 @@ import win32gui
 import win32ui
 from PIL import Image, ImageGrab
 
-from logger import logger
+from core.logger import logger
 from core.services.user_storage import user_storage
 
 SCENE_FEATURES = [

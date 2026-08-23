@@ -1,7 +1,7 @@
 """RocoKingdomRecognizer 桌面端入口。"""
 import ctypes
 
-from logger import logger
+from core.logger import logger
 
 
 def _enable_dpi_awareness() -> None:
