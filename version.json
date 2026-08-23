@@ -1,25 +1,33 @@
 {
-  "version": "1.3.2",
+  "version": "1.3.3",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
   "update_log": "【优化】\n1、图鉴更新\n2、正确的对图鉴所有精灵进行了排序（现在是按图鉴排序）排最后的是首领\n【新增】\n3、设置功能，支持隐藏示例\n4、增强了跟随识别中地图识别的鲁棒性（现在能更精准检测出地图了）\n5、若地图检测错误可以手动切换地图重新识别（下面候选的精灵是切换地图之前的，直到点击重新识别），并且可以钉住地图，不再切回去",
   "auto_update": {
-    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.2/",
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.3/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "83e30248be68757e363780ea83d5207c"
+        "md5": "6608f3195364d8ccace969c24c77e495"
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "2b364ed0cdf1885d5de7915f9701ce09"
+        "md5": "f8b4ef64a05f00332f82b54f6891fc40"
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "df471fe595321966967a3aed23811606"
+        "md5": "e5ad9741dd7b7a58d2fdf0d16db8fddb"
       }
     ]
+  },
+  "delta": {
+    "base_version": "1.3.2",
+    "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.3/RocoKingdomRecognizer_delta.7z",
+    "md5": "9faf903df8af8ff25f3273eaf2122147",
+    "size": 19440199,
+    "changed": 3,
+    "removed": 0
   }
 }
