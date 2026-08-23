@@ -360,7 +360,11 @@ export default function App() {
               setIsUpdateOpen(true);
             }}
             onOpenSettings={() => setIsSettingsOpen(true)}
-            onOpenHub={() => setView((v) => (v === 'hub' ? 'assistant' : 'hub'))}
+            onOpenHub={() => {
+              // 先归零滚动，避免切换后内容高度变化导致浏览器夹回滚动位置产生跳动
+              window.scrollTo(0, 0);
+              setView((v) => (v === 'hub' ? 'assistant' : 'hub'));
+            }}
             showMapNav={view === 'assistant'}
         />
 
@@ -380,7 +384,12 @@ export default function App() {
         {/* Main Content Area */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
           {view === 'hub' ? (
-              <AssistantHub onSelectAssistant={() => setView('assistant')} />
+              <AssistantHub
+                  onSelectAssistant={() => {
+                    window.scrollTo(0, 0);
+                    setView('assistant');
+                  }}
+              />
           ) : (
               <>
                 {/* Map Banner & Stats */}

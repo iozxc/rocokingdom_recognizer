@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    /* 始终预留纵向滚动条，避免页面高度变化时滚动条出现/消失导致布局横向跳动 */
+    overflow-y: scroll;
+  }
+
   body {
     background-color: #FDF9F3;
     color: #1e293b;
