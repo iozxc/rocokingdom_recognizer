@@ -20,6 +20,15 @@ combined_zip = "RocoKingdomReg_Update_Package.7z"
 inner_zip = "RocoKingdomRecognizer.7z"
 temp_extract_dir = "new_version_files"
 
+# py7zr 不支持的常见 7z 压缩方法/过滤器（用于给出可读的错误提示）
+UNSUPPORTED_METHOD_NAMES = {
+    b"\x0a": "Zstandard（7-Zip 21.02+ 原生）",
+    b"\x03\x03\x01\x1b": "BCJ2（7-Zip 高压缩模式，压缩等级选得过高）",
+    b"\x04\xf7\x11\x01": "Zstandard（插件版）",
+    b"\x04\xf7\x11\x02": "Brotli",
+    b"\x04\xf7\x11\x04": "LZ4",
+}
+
 
 # 用于存放当前的下载状态
 class UpdateManager:
@@ -371,11 +380,16 @@ def apply_update():
         os._exit(0)  # 强制关闭当前 Python 进程
 
     except UnsupportedCompressionMethodError as e:
-        # 典型场景：更新包用 7-Zip 21.02+ 的 Zstandard 压缩（方法ID 0x0A），
-        # py7zr 只支持 LZMA/LZMA2/BZip2/Deflate/Copy 与插件版 Zstd(04F71101)。
+        # 典型场景：更新包用 7-Zip 的 Zstandard 或高压缩模式（BCJ2）打包，
+        # py7zr 只支持 LZMA/LZMA2/BZip2/Deflate/Copy。
         logger.error(f"更新包压缩算法不受支持: {e}", exc_info=True)
-        return ("更新包使用了 py7zr 无法解析的压缩算法（通常是 7-Zip 的 Zstandard）。"
-                "请用 7-Zip 以 LZMA2 重新打包更新包，或运行 tools/pack_update.py 自动生成。")
+        method = e.args[0] if e.args else b""
+        if isinstance(method, (bytes, bytearray)):
+            method = bytes(method)
+        name = UNSUPPORTED_METHOD_NAMES.get(method, f"未知算法({method!r})")
+        return (f"更新包使用了 py7zr 无法解析的压缩算法：{name}。"
+                "请用 7-Zip 以 LZMA2（压缩等级不要选最大/极致）重新打包更新包，"
+                "或运行 tools/pack_update.py 自动生成。")
     except Exception as e:
         # === 修复 === 增加 exc_info
         logger.error(f"解压或启动更新脚本失败: {e}", exc_info=True)
