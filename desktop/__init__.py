@@ -1,5 +1,6 @@
 """桌面端：Flask 服务与 pywebview 窗口的启动编排。"""
 import socket
+import sys
 import threading
 import time
 
@@ -32,7 +33,10 @@ def run(app) -> None:
 
     logger.info("启动主窗口...")
     window_manager.create_main_window()
-    webview.start(debug=True)
+    # PyInstaller 打包后 sys.frozen 为 True：自动关闭 webview 调试模式，无需手动改
+    debug_mode = not bool(getattr(sys, "frozen", False))
+    logger.info(f"webview 调试模式: {debug_mode}")
+    webview.start(debug=debug_mode)
 
 
 def _wait_for_server(port: int, timeout_seconds: int = 30) -> None:
