@@ -121,3 +121,52 @@ export function getMapEncounteredCount(
   if (!pets || pets.length === 0) return 0;
   return pets.filter((pet) => isPetEncounteredInRecords(records, mapId, pet.name)).length;
 }
+
+/**
+ * 根据改名映射（{旧名字: 新名字}，不含扩展名）把遇到记录里的旧名字统一迁移到新名字。
+ * 保留 count / encountered / firstSeenAt / lastSeenAt；键与 filename 同步更新。
+ */
+export function applyPetRenames(
+    records: Record<string, EncounterRecord> | undefined | null,
+    renames: Record<string, string> | undefined | null
+): Record<string, EncounterRecord> {
+  if (!records || !renames) return records || {};
+
+  const stripExt = (n: string) => n.replace(/\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i, '');
+  const out: Record<string, EncounterRecord> = {};
+
+  for (const [key, rec] of Object.entries(records)) {
+    if (!rec || typeof rec !== 'object') {
+      out[key] = rec as EncounterRecord;
+      continue;
+    }
+    const recCopy = { ...rec };
+    const fn = recCopy.filename || '';
+    const base = stripExt(fn);
+    const target = renames[base];
+
+    if (target) {
+      const ext = fn.slice(base.length);
+      recCopy.filename = target + ext;
+      const mapId = recCopy.mapId || key.split('_')[0];
+      recCopy.mapId = mapId;
+      recCopy.key = `${mapId}_${target}${ext}`;
+    }
+
+    const newKey = recCopy.key || key;
+    if (out[newKey]) {
+      const prev = out[newKey];
+      prev.count = (prev.count || 0) + (recCopy.count || 0);
+      prev.encountered = true;
+      if (recCopy.firstSeenAt && (!prev.firstSeenAt || recCopy.firstSeenAt < prev.firstSeenAt)) {
+        prev.firstSeenAt = recCopy.firstSeenAt;
+      }
+      if (recCopy.lastSeenAt && (!prev.lastSeenAt || recCopy.lastSeenAt > prev.lastSeenAt)) {
+        prev.lastSeenAt = recCopy.lastSeenAt;
+      }
+    } else {
+      out[newKey] = recCopy;
+    }
+  }
+  return out;
+}

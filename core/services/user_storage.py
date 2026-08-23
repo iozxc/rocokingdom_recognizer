@@ -42,6 +42,11 @@ def _load_renames():
     }
 
 
+def get_renames():
+    """对外暴露改名映射（供前端同步规范化本地记录）。"""
+    return _load_renames()
+
+
 def _apply_renames(pets):
     """把遇到记录里的旧名字迁成新名字，保留 count 与时间。返回 (结果, 是否有变化)。"""
     if not isinstance(pets, dict):
