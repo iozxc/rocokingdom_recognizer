@@ -1,4 +1,6 @@
 import ctypes
+import config
+
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
 except Exception:
@@ -145,7 +147,7 @@ def capture_by_grab(bbox):
 
 
 def capture_window(bbox=None, hwnd=None):
-    mode = user_storage.get_app_settings().get("captureMode", "grab")
+    mode = user_storage.get_app_settings().get("captureMode", config.CAPTURE_MODE)
 
     if mode not in ("hwnd", "grab"):
         logger.error(f"capture_window: 不支持模式 {mode}，可选 grab/hwnd")

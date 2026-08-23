@@ -3,7 +3,6 @@ import { X, Play, Volume2, VolumeX, Database, ArrowRight, Sparkles, Monitor, Rot
 import { EffectLevel, FloatingButtonsMode, CaptureMode } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
-import { api } from '../services/api';
 import { fireEncounterConfetti, fireUnencounterEffect } from '../services/effect';
 import { SyncPopType } from './SyncPopNotification';
 
@@ -108,11 +107,10 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     }
   };
 
-  const handleSelectCaptureMode = async (mode: CaptureMode) => {
+  const handleSelectCaptureMode = (mode: CaptureMode) => {
     sound.playClick();
     setCaptureMode(mode);
     storage.setSetting('captureMode', mode);
-    await api.setCaptureMode(mode);
   };
 
   const handleToggleSamples = () => {

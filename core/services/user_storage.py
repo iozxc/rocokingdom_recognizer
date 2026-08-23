@@ -55,6 +55,16 @@ class UserStorage:
             return {}
         return app_settings
 
+    def update_app_settings(self, app_settings: dict) -> dict:
+        """合并更新 appSettings 并落盘，保持内存缓存一致。"""
+        data = self.load()
+        current = data.get("appSettings", {})
+        if not isinstance(current, dict):
+            logger.warning("appSettings 格式异常，重置为空")
+            current = {}
+        data["appSettings"] = {**current, **(app_settings or {})}
+        return self.save(data)
+
     def save(self, payload: dict) -> dict:
         """写回存储文件，更新内存缓存并刷新版本号。"""
         pet_count = len(payload.get("encounteredPets", {}))
