@@ -1,8 +1,11 @@
 import os
 import json
+from pathlib import Path
 
-img_folder = r"dataset/images"
-out_label_folder = r"dataset/labels"
+# 基于脚本目录定位数据集，避免从其他目录运行时找不到
+BASE_DIR = Path(__file__).resolve().parent
+img_folder = str(BASE_DIR / "dataset" / "images")
+out_label_folder = str(BASE_DIR / "dataset" / "labels")
 classes = ["title", "item", "name"]
 
 os.makedirs(out_label_folder, exist_ok=True)

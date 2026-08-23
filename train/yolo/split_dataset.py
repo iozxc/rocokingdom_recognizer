@@ -1,9 +1,11 @@
 import os
 import shutil
 import random
+from pathlib import Path
 
 # =====================配置区=====================
-dataset_root = r"./dataset"
+# 基于脚本目录定位数据集，避免从其他目录运行时找不到
+dataset_root = str(Path(__file__).resolve().parent / "dataset")
 images_dir = os.path.join(dataset_root, "images")
 labels_dir = os.path.join(dataset_root, "labels")
 

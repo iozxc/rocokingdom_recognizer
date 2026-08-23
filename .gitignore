@@ -43,10 +43,10 @@ keys/
 *.pth
 /ocr_models/
 /onnx/
-/yolo/dataset/
+/train/yolo/dataset/
 /static/
 /.codex/
-/yolo/runs/
-/yolo/test/
-/yolo/*.pt
-/yolo/*.pt
+/train/yolo/runs/
+/train/yolo/test/
+/train/yolo/*.pt
+/train/features/assets/

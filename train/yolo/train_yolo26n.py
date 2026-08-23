@@ -1,14 +1,20 @@
 import os
+from pathlib import Path
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 from ultralytics import YOLO
 
+# 脚本目录：所有相对路径都基于它，避免从其他目录运行时找不到文件
+YOLO_DIR = Path(__file__).resolve().parent
+
 if __name__ == '__main__':
     # 换成yolo26n.pt，nano轻量版，适合CPU部署
-    model = YOLO("yolo26n.pt")
+    yolo26_weights = YOLO_DIR / "yolo26n.pt"
+    model = YOLO(str(yolo26_weights) if yolo26_weights.exists() else "yolo26n.pt")
 
     results = model.train(
-        data="roco.yaml",
+        data=str(YOLO_DIR / "roco.yaml"),
         epochs=80,
         imgsz=1280,
         batch=4,
@@ -19,7 +25,7 @@ if __name__ == '__main__':
         copy_paste=0.0,
         patience=12,
         workers=0,
-        project="runs/detect",
+        project=str(YOLO_DIR / "runs" / "detect"),
         name="roco_ui_yolo26",
         val=True,
         cos_lr=True,

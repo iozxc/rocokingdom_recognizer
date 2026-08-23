@@ -87,6 +87,9 @@ class AppApi:
                 map_name = match_scene_unique_char(ocr_map_name)
                 if map_name is None:
                     map_name = self._map_classifier.match(title_pil)
+                    logger.info(f"map_name : ocr匹配失败")
+                else:
+                    logger.info(f"map_name : ocr匹配{map_name}")
                 map_num = int(map_name[3])
                 logger.debug(f"mapname : {map_name}")
             else:
