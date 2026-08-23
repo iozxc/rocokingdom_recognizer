@@ -7,6 +7,7 @@ import time
 import py7zr
 import requests
 
+import config
 from flask import Blueprint
 from logger import logger
 from version import get_update_info
@@ -267,7 +268,7 @@ def real_download_logic():
         logger.error(f"更新下载异常: {e}", exc_info=True)
 
 def create_bat_script(temp_dir):
-    exe_name = "RocoKingdomRecognizer.exe"
+    exe_name = config.APP_EXE_NAME
 
     logger.debug("创建更新批处理脚本 update.bat")
 
@@ -282,7 +283,7 @@ set /a max_retries=10
 
 echo [1/4] 正在强制结束残留进程...
 :: 强制杀掉主程序及其所有子进程 (/T 表示杀掉整个进程树)
-taskkill /f /im RocoKingdomRecognizer.exe /t >nul 2>nul
+taskkill /f /im {exe_name} /t >nul 2>nul
 :: 如果有特定的 webview 进程也可以杀掉
 taskkill /f /im msedgewebview2.exe /t >nul 2>nul
 
@@ -291,8 +292,8 @@ echo [2/4] 正在尝试清理旧版本文件 (第 !retry_count! 次尝试)...
 ping 127.0.0.1 -n 2 > nul
 
 :: 尝试删除主程序
-if exist RocoKingdomRecognizer.exe (
-    del /f /q RocoKingdomRecognizer.exe >nul 2>nul
+if exist {exe_name} (
+    del /f /q {exe_name} >nul 2>nul
 )
 
 :: 尝试删除 libs 文件夹
@@ -301,7 +302,7 @@ if exist libs (
 )
 
 :: 检查是否还存在（即删除是否成功）
-if exist RocoKingdomRecognizer.exe (
+if exist {exe_name} (
     set /a retry_count+=1
     if !retry_count! geq !max_retries! (
         goto failed
@@ -311,14 +312,14 @@ if exist RocoKingdomRecognizer.exe (
 )
 
 echo [3/4] 正在应用新版本文件...
-xcopy /s /y /e "new_version_files\*" "." >nul
+xcopy /s /y /e "new_version_files\\*" "." >nul
 
 echo [4/4] 清理临时文件并启动...
 rd /s /q "new_version_files"
 del /f /q RocoKingdomRecognizer.7z
 del /f /q RocoKingdomReg_Update_Package.7z
 
-start "" "RocoKingdomRecognizer.exe"
+start "" "{exe_name}"
 echo 更新成功！
 goto end
 

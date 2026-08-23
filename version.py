@@ -1,10 +1,11 @@
 import requests
 from packaging import version
 
+import config
 from logger import logger
 
-CURRENT_VERSION = "1.3.2"
-CHECK_URL = "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json"
+CURRENT_VERSION = config.APP_VERSION
+CHECK_URL = config.UPDATE_CHECK_URL
 
 
 def get_update_info():

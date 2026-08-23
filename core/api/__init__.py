@@ -4,7 +4,6 @@ from core.api.main import bp as main_bp
 from core.api.predict import bp as predict_bp
 from core.api.settings import bp as settings_bp
 from core.api.storage import bp as storage_bp
-from core.api.test import bp as test_bp
 from core.api.updater import bp as updater_bp
 
 
@@ -17,4 +16,3 @@ def register_blueprints(app):
     app.register_blueprint(feedback_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(updater_bp)
-    app.register_blueprint(test_bp)

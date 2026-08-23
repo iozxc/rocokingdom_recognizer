@@ -116,7 +116,7 @@ class AppApi:
             return {"status": "error", "message": str(e)}
 
     def capture_and_recognize_by_map(self, map_num):
-        return self.capture_and_recognize("洛克王国：世界", map_num)
+        return self.capture_and_recognize(config.GAME_WINDOW_TITLE, map_num)
 
     def _process_single_item(self, i, name_img, item_img, map_num, map_name):
         """单个槽位的识别与匹配流程"""

@@ -1,13 +1,14 @@
 import os
 import tempfile
 
-from flask import Blueprint, jsonify, request, url_for
+from flask import Blueprint, request, url_for
 from PIL import Image
 
 from core.icon_names import scan_icon_names
 from core.ocr import ocr
 from core.processor import segment_icons
 import config
+from core.api.response import error, success
 from core.recognizer import ImageRecognizer
 from core.utils import get_top_k_matches, get_icon_full_path
 from logger import logger
@@ -81,7 +82,7 @@ def predict():
 
     if 'image' not in request.files:
         logger.warning("[/predict] 请求中无image字段")
-        return jsonify({"error": "No image"}), 400
+        return error("No image", 400)
 
     file = request.files.get('image')
     map_num = request.form.get('map_num', 1)
@@ -90,7 +91,7 @@ def predict():
 
     if not file:
         logger.warning("[/predict] image文件为空")
-        return jsonify({"error": "No image uploaded"}), 400
+        return error("No image uploaded", 400)
 
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
@@ -105,7 +106,7 @@ def predict():
 
         if err:
             logger.warning(f"[/predict] 特征匹配返回错误: {err}")
-            return jsonify({"error": err}), 500
+            return error(err, 500)
 
         ocr_results = ocr_top_k_match(temp_path, map_num, top_k)
         logger.debug(f"[/predict] OCR匹配结果数: {len(ocr_results)}")
@@ -139,18 +140,14 @@ def predict():
             top1 = final_list[0]
             logger.info(f"[/predict] 预测成功: top1={top1['filename']}({top1['score']:.3f}), "
                         f"共{len(final_list)}个候选")
-            return jsonify({
-                "status": "success",
-                "count": len(final_list),
-                "data": final_list  # 此时 data 是一个数组
-            })
+            return success(data=final_list, count=len(final_list))
 
         logger.info(f"[/predict] 无匹配结果, err={err}")
-        return jsonify({"status": "fail", "reason": err}), 404
+        return error(err or "未识别到匹配项", 404)
 
     except Exception as e:
         logger.error(f"[/predict] 处理异常: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        return error(str(e), 500)
 
 @bp.route('/init_batch', methods=['POST'])
 def predict_batch():
@@ -160,7 +157,7 @@ def predict_batch():
 
     if 'image' not in request.files:
         logger.warning("[/init_batch] 请求中无image字段")
-        return jsonify({"error": "No image uploaded"}), 400
+        return error("No image uploaded", 400)
 
     file = request.files['image']
     map_num = int(request.form.get('map_num', 1))
@@ -195,7 +192,7 @@ def predict_batch():
         if total_detected == 0:
             if temp_path and os.path.exists(temp_path): os.remove(temp_path)
             logger.info("[/init_batch] 未检测到图标或文字，返回404")
-            return jsonify({"status": "fail", "reason": "No icons or text detected"}), 404
+            return error("No icons or text detected", 404)
 
         batch_results = []
         map_name = f"map{map_num}"
@@ -265,15 +262,11 @@ def predict_batch():
         logger.info(f"[/init_batch] 批量预测完成: total={total_detected}, matched={matched}, "
                    f"unmatched={total_detected - matched}")
 
-        return jsonify({
-            "status": "success",
-            "total_detected": total_detected,
-            "results": batch_results
-        })
+        return success(total_detected=total_detected, results=batch_results)
 
     except Exception as e:
         logger.error(f"[/init_batch] 批量预测异常: {e}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        return error(str(e), 500)
 
     finally:
         if temp_path and os.path.exists(temp_path):

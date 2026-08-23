@@ -1,9 +1,10 @@
 import json
 
 import os
-from flask import Blueprint, Response, current_app, jsonify, send_from_directory, url_for
+from flask import Blueprint, Response, current_app, send_from_directory, url_for
 
 import config
+from core.api.response import error, success
 from core.db import get_db
 from logger import logger
 
@@ -45,7 +46,7 @@ def list_icons():
     try:
         if ICONS:
             logger.debug(f"[GET /icons] icons已缓存")
-            return {"status": "success", "data": ICONS}
+            return success(data=ICONS)
         db = get_db()
         cursor = db.execute("SELECT path FROM icons ORDER BY path ASC")
         all_paths = [row[0] for row in cursor.fetchall()]
@@ -67,7 +68,7 @@ def list_icons():
 
             icons_structure[map_name]["items"].append({
                 "name": filename,
-                    "url": url_for('main.get_icon_file', map_name=map_name, filename=filename, _external=True)
+                "url": url_for('main.get_icon_file', map_name=map_name, filename=filename, _external=True)
             })
             icons_structure[map_name]["count"] += 1
 
@@ -86,11 +87,11 @@ def list_icons():
             icons_structure[map_name]["items"].sort(key=sort_key)
 
         ICONS = icons_structure
-        return {"status": "success", "data": icons_structure}
+        return success(data=icons_structure)
 
     except Exception as e:
         logger.error(f"[GET /icons] 异常: {e}", exc_info=True)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return error(str(e), 500)
 
 @bp.route('/icons/<map_name>/<filename>')
 def get_icon_file(map_name, filename):

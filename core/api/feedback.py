@@ -1,12 +1,13 @@
 import requests
 from flask import Blueprint, request
 
+import config
 from logger import logger
 
 bp = Blueprint("feedback", __name__)
 
-# 你刚才保存的 Webhook 地址
-FEISHU_WEBHOOK_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab"
+# 飞书机器人 Webhook（环境变量 ROCO_FEISHU_WEBHOOK_URL 可覆盖）
+FEISHU_WEBHOOK_URL = config.FEISHU_WEBHOOK_URL
 
 @bp.route('/api/submit_feedback', methods=['POST'])
 def submit_feedback():

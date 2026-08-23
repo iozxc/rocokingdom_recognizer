@@ -3,6 +3,12 @@ import os
 import sys
 
 
+def _env(name: str, default):
+    """读取环境变量；未设置或为空时返回默认值。"""
+    value = os.environ.get(name)
+    return default if value in (None, "") else value
+
+
 # --- 路径处理核心逻辑 ---
 def get_resource_path(relative_path):
     """获取资源绝对路径（用于 icons, static, features_db.pt）"""
@@ -23,8 +29,21 @@ def get_external_path(filename):
 
     return os.path.normpath(os.path.join(base_path, filename))
 
-# 用户配置
-CAPTURE_MODE = "grab" # hwnd
+# 用户配置（可用环境变量覆盖）
+CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
+
+# --- 网络与外部服务（可用环境变量覆盖） ---
+GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
+APP_VERSION = _env("ROCO_APP_VERSION", "1.3.2")
+APP_EXE_NAME = _env("ROCO_APP_EXE_NAME", "RocoKingdomRecognizer.exe")
+UPDATE_CHECK_URL = _env(
+    "ROCO_UPDATE_CHECK_URL",
+    "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
+)
+FEISHU_WEBHOOK_URL = _env(
+    "ROCO_FEISHU_WEBHOOK_URL",
+    "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab",
+)
 
 # 基础路径
 ICONS_DIR = get_resource_path('icons')
@@ -59,4 +78,4 @@ BATCH_SIZE = 4
 EPOCHS = 20
 LR = 1e-4
 
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = getattr(logging, _env("ROCO_LOG_LEVEL", "DEBUG").upper(), logging.DEBUG)
