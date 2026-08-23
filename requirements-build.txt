@@ -1,0 +1,4 @@
+# 打包构建依赖
+# 安装：pip install -r requirements-build.txt
+# 打包：pyinstaller app.spec
+pyinstaller

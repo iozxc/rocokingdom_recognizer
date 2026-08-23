@@ -1,17 +1,20 @@
-from core.api.main import init_routes as main_init_routes
-from core.api.predict import init_routes as predict_init_routes
-from core.api.storage import init_routes as storage_init_routes
-from core.api.follow import init_routes as follow_init_routes
-from core.api.feedback import init_routes as feedback_init_routes
-from core.api.updater import init_routes as updater_init_routes
-from core.api.test import init_routes as test_init_routes
+from core.api.feedback import bp as feedback_bp
+from core.api.follow import bp as follow_bp
+from core.api.main import bp as main_bp
+from core.api.predict import bp as predict_bp
+from core.api.settings import bp as settings_bp
+from core.api.storage import bp as storage_bp
+from core.api.test import bp as test_bp
+from core.api.updater import bp as updater_bp
 
 
-def init_routes(app):
-    main_init_routes(app)
-    predict_init_routes(app)
-    storage_init_routes(app)
-    follow_init_routes(app)
-    feedback_init_routes(app)
-    updater_init_routes(app)
-    test_init_routes(app)
+def register_blueprints(app):
+    """注册全部 API 蓝图，URL 与重构前保持一致"""
+    app.register_blueprint(main_bp)
+    app.register_blueprint(predict_bp)
+    app.register_blueprint(storage_bp)
+    app.register_blueprint(follow_bp)
+    app.register_blueprint(feedback_bp)
+    app.register_blueprint(settings_bp)
+    app.register_blueprint(updater_bp)
+    app.register_blueprint(test_bp)

@@ -51,7 +51,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   // 每次打开弹窗时从 storage 同步最新值（确保远程数据加载后能及时更新）
   useEffect(() => {
     if (!isOpen) return;
-    setEffectLevel(storage.getSetting<number>('effectLevel', 1) as EffectLevel);
+    setEffectLevel(storage.getSetting<EffectLevel>('effectLevel', 0));
     setFloatingMode(storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal'));
     setIsSoundMuted(storage.getSetting<boolean>('isSoundMuted', false));
     const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'grab');

@@ -7,9 +7,12 @@ import time
 import py7zr
 import requests
 
+from flask import Blueprint
 from logger import logger
 from version import get_update_info
 import threading
+
+bp = Blueprint("updater", __name__)
 
 combined_zip = "RocoKingdomReg_Update_Package.7z"
 inner_zip = "RocoKingdomRecognizer.7z"
@@ -365,65 +368,64 @@ def apply_update():
         logger.error(f"解压或启动更新脚本失败: {e}", exc_info=True)
 
 
-def init_routes(app):
-    @app.route('/api/check_update')
-    def check_update_api():
-        logger.info("[API] 检查更新")
-        info = get_update_info()
-        updater.latest_info = info
-        has_update = info.get("has_update", False)
-        latest = info.get("latest_version", "未知")
-        logger.info(f"[API] 检查更新结果: has_update={has_update}, latest={latest}")
-        return info
+@bp.route('/api/check_update')
+def check_update_api():
+    logger.info("[API] 检查更新")
+    info = get_update_info()
+    updater.latest_info = info
+    has_update = info.get("has_update", False)
+    latest = info.get("latest_version", "未知")
+    logger.info(f"[API] 检查更新结果: has_update={has_update}, latest={latest}")
+    return info
 
-    @app.route('/api/start_download')
-    def start_download_api():
-        logger.info(f"[API] 请求开始下载, 当前状态={updater.status}")
-        if not updater.latest_info:
-            logger.warning("[API] 开始下载失败: latest_info为空")
-            return {"status": "error", "message": "无效操作"}
+@bp.route('/api/start_download')
+def start_download_api():
+    logger.info(f"[API] 请求开始下载, 当前状态={updater.status}")
+    if not updater.latest_info:
+        logger.warning("[API] 开始下载失败: latest_info为空")
+        return {"status": "error", "message": "无效操作"}
 
-        if updater.status == "downloading":
-            logger.debug("[API] 已在下载中，跳过")
-            return {"status": "downloading"}
-
-        # 开启新线程下载，防止阻塞 Flask 响应
-        thread = threading.Thread(target=real_download_logic)
-        thread.start()
-
+    if updater.status == "downloading":
+        logger.debug("[API] 已在下载中，跳过")
         return {"status": "downloading"}
 
-    @app.route('/api/download_progress')
-    def get_progress():
-        return {
-            "progress": updater.progress,
-            "total_bytes": updater.total_bytes,
-            "status": updater.status,
-            "speed_bps": round(updater.speed_bps, 1),  # 字节/秒，保留一位小数
-            "error": updater.error_msg
-        }
+    # 开启新线程下载，防止阻塞 Flask 响应
+    thread = threading.Thread(target=real_download_logic)
+    thread.start()
 
-    @app.route('/api/apply_update', methods=['GET'])
-    def apply_update_api():
-        """开始安装"""
-        logger.info("[API] 请求应用更新（安装）")
-        apply_update()
-        return {"status": "install"}
+    return {"status": "downloading"}
 
-    @app.route('/api/stop_download', methods=['GET'])
-    def stop_download():
-        """停止下载信号"""
-        logger.info("[API] 请求暂停下载")
-        updater.pause_requested = True
-        return {"status": "stopped"}
+@bp.route('/api/download_progress')
+def get_progress():
+    return {
+        "progress": updater.progress,
+        "total_bytes": updater.total_bytes,
+        "status": updater.status,
+        "speed_bps": round(updater.speed_bps, 1),  # 字节/秒，保留一位小数
+        "error": updater.error_msg
+    }
 
-    @app.route('/api/delete_download', methods=['GET'])
-    def delete_download():
-        """删除已下载的更新文件（无论是下完的还是没下完的）"""
-        logger.info("[API] 请求删除已下载的更新文件")
-        # 如果正在下载，先发停止信号
-        updater.stop_requested = True
-        updater.pause_requested = False
-        handle_cleanup("update_temp")
-        updater.status = "idle"  # 重置回空闲状态
-        return {"status": "deleted"}
+@bp.route('/api/apply_update', methods=['GET'])
+def apply_update_api():
+    """开始安装"""
+    logger.info("[API] 请求应用更新（安装）")
+    apply_update()
+    return {"status": "install"}
+
+@bp.route('/api/stop_download', methods=['GET'])
+def stop_download():
+    """停止下载信号"""
+    logger.info("[API] 请求暂停下载")
+    updater.pause_requested = True
+    return {"status": "stopped"}
+
+@bp.route('/api/delete_download', methods=['GET'])
+def delete_download():
+    """删除已下载的更新文件（无论是下完的还是没下完的）"""
+    logger.info("[API] 请求删除已下载的更新文件")
+    # 如果正在下载，先发停止信号
+    updater.stop_requested = True
+    updater.pause_requested = False
+    handle_cleanup("update_temp")
+    updater.status = "idle"  # 重置回空闲状态
+    return {"status": "deleted"}

@@ -1,3 +1,27 @@
+# Python 缓存与虚拟环境
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# 更新下载临时文件
+update_temp/
+new_version_files/
+update.bat
+*.7z
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
 /build/
 /dist/
 /.idea/

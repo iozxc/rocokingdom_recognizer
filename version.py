@@ -3,7 +3,7 @@ from packaging import version
 
 from logger import logger
 
-CURRENT_VERSION = "1.3.1"
+CURRENT_VERSION = "1.3.2"
 CHECK_URL = "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json"
 
 

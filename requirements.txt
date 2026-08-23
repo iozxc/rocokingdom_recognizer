@@ -1,0 +1,27 @@
+# RocoKingdomRecognizer 运行时依赖
+# 安装：pip install -r requirements.txt
+# 已在 Python 3.12+ / Windows 上测试
+
+# --- Web 服务 ---
+flask
+flask-cors
+waitress
+
+# --- 桌面 GUI (pywebview) ---
+pywebview
+
+# --- Windows 窗口与截图 ---
+pygetwindow
+pywin32
+
+# --- 网络与更新 ---
+requests
+packaging
+py7zr
+
+# --- OCR 与图像识别 ---
+rapidocr_onnxruntime
+onnxruntime
+opencv-python
+pillow
+numpy

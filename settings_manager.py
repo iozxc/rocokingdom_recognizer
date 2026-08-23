@@ -22,9 +22,9 @@ class SettingsManager:
         self._runtime_config = {
             "capture_mode": config.CAPTURE_MODE
         }
-        self._load_from_file()
-        logger.info(f"配置初始化完成，当前截图模式: {self.capture_mode}")
+        self.load_from_file()
         self._initialized = True
+        logger.info(f"配置初始化完成，当前截图模式: {self.capture_mode}")
 
     def load_from_file(self):
         if not os.path.exists(self.settings_file):

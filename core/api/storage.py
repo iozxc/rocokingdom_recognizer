@@ -2,11 +2,13 @@ import json
 import os
 import time
 
-from flask import jsonify, request
+from flask import Blueprint, jsonify, request
 
 import tools
 from config import DATA_FILE
 from logger import logger
+
+bp = Blueprint("storage", __name__)
 
 
 def load_storage_file():
@@ -61,30 +63,29 @@ def save_storage_file(payload: dict):
     return payload
 
 
-def init_routes(app):
-    @app.route("/api/storage/<version>", methods=["GET"])
-    def api_get_storage(version):
-        try:
-            client_version = int(version)
-        except (ValueError, TypeError):
-            logger.warning(f"版本参数非法 {version}")
-            return load_storage_file()
-
-        if client_version == VERSION:
-            return {"status": "ok"}
+@bp.route("/api/storage/<version>", methods=["GET"])
+def api_get_storage(version):
+    try:
+        client_version = int(version)
+    except (ValueError, TypeError):
+        logger.warning(f"版本参数非法 {version}")
         return load_storage_file()
 
-    @app.route("/api/storage", methods=["POST"])
-    def api_post_storage():
-        payload = request.get_json()
-        if not payload:
-            logger.warning("[POST /api/storage] 请求体为空或非JSON")
-            return jsonify({"ok": False, "error": "Invalid JSON"}), 400
+    if client_version == VERSION:
+        return {"status": "ok"}
+    return load_storage_file()
 
-        try:
-            new_data = save_storage_file(payload)
-            tools.USER_SETTINGS = new_data["appSettings"]
-            return jsonify({"ok": True, "version": new_data["version"]})
-        except Exception as e:
-            logger.error(f"[POST /api/storage] 保存异常: {e}", exc_info=True)
-            return jsonify({"ok": False, "error": str(e)}), 500
+@bp.route("/api/storage", methods=["POST"])
+def api_post_storage():
+    payload = request.get_json()
+    if not payload:
+        logger.warning("[POST /api/storage] 请求体为空或非JSON")
+        return jsonify({"ok": False, "error": "Invalid JSON"}), 400
+
+    try:
+        new_data = save_storage_file(payload)
+        tools.USER_SETTINGS = new_data["appSettings"]
+        return jsonify({"ok": True, "version": new_data["version"]})
+    except Exception as e:
+        logger.error(f"[POST /api/storage] 保存异常: {e}", exc_info=True)
+        return jsonify({"ok": False, "error": str(e)}), 500
