@@ -4,24 +4,24 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "增加设置功能，增加更新功能（更新变的更可靠了，并且可以增量更新了），增加新主页功能",
+  "update_log": "增加设置功能，增加更新功能（更新变的更可靠了，并且可以增量更新了），增加新主页功能，增加了名字修改",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.2/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "841ede6f358b5d29b08399f9723e309c",
+        "md5": "c9f962e39c73f9ccafa95a5ebe36fc88",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "d69b850bcc2b4a1deafea61f780a721f",
+        "md5": "29339422a94a9b32cc32a1c0144b2276",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "bd9d8b3863bd96812c098113861c289e",
-        "size": 26922109
+        "md5": "cdc4b3e68d4126fbdfbcb262688fad56",
+        "size": 26938655
       }
     ]
   }
