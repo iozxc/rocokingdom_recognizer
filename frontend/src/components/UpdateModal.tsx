@@ -255,8 +255,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         setIsInstalling(true);
         setIsActionLoading(true);
         try {
-            await api.installUpdate();
-            setInstallSuccessMessage('安装程序已启动！应用正在准备执行更新...');
+            const res = await api.installUpdate();
+            if (res.data.status === 'error') {
+                setDownloadStatus('error');
+                setDownloadError(res.data.message || '安装更新失败，请稍后重试');
+            } else {
+                setInstallSuccessMessage('安装程序已启动！应用正在准备执行更新...');
+            }
         } catch (err: unknown) {
             setInstallSuccessMessage('安装程序已唤起，请根据屏幕提示完成安装。');
         } finally {

@@ -811,7 +811,7 @@ export class ApiService {
 
   /**
    * 7. 提交确认安装更新
-   * GET /api/download_progress 或 /api/install_update
+   * GET /api/apply_update
    */
   public async installUpdate(): Promise<{
     data: InstallUpdateResponse;
@@ -820,12 +820,12 @@ export class ApiService {
     try {
       // 尝试调用安装接口，若接到返回即代表请求成功开始安装
       const response = await axios.get<InstallUpdateResponse>(
-          `${this.apiBase}/api/install_update`,
+          `${this.apiBase}/api/apply_update`,
           { timeout: 5000 }
       );
       return { data: response.data || { status: 'install' }, isOfflineMock: false };
     } catch (err: unknown) {
-      // 也有可能提前把 Kill app 收不到返回，视为成功触发安装
+      // 安装成功时会强制退出进程，可能收不到返回，视为成功触发安装
       return {
         data: { status: 'install' },
         isOfflineMock: true,

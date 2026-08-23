@@ -6,6 +6,7 @@ import time
 
 import py7zr
 import requests
+from py7zr.exceptions import UnsupportedCompressionMethodError
 
 import config
 from flask import Blueprint
@@ -236,6 +237,7 @@ def real_download_logic():
                 logger.error(f"分片下载后校验失败: {file_name}")
                 return
 
+            updater.status = "downloading"
             finished_part_bytes += this_file_total_size
             updater.progress = finished_part_bytes
             logger.info(f"分片下载完成 [{i+1}/{len(files)}]: {file_name}")
@@ -339,13 +341,17 @@ pause
 def apply_update():
     """
     解压并准备更新脚本
+    成功时启动 update.bat 并退出进程；失败时返回错误信息字符串。
     """
     logger.info("开始应用更新：解压并准备安装脚本")
     try:
+        if not os.path.exists(combined_zip):
+            return "未找到更新包文件，请重新下载"
+
         # 1. 第一层解压：提取出内部的 RocoKingdomRecognizer.7z
         logger.debug("第一层解压: 提取内部更新包")
         with py7zr.SevenZipFile(combined_zip, 'r') as z:
-            z.extract(inner_zip, ".")
+            z.extract(path=".", targets=[inner_zip])
 
         # 2. 第二层解压：将 RocoKingdomRecognizer.7z 解压到临时目录
         if os.path.exists(temp_extract_dir):
@@ -364,9 +370,16 @@ def apply_update():
         subprocess.Popen("update.bat", shell=True)
         os._exit(0)  # 强制关闭当前 Python 进程
 
+    except UnsupportedCompressionMethodError as e:
+        # 典型场景：更新包用 7-Zip 21.02+ 的 Zstandard 压缩（方法ID 0x0A），
+        # py7zr 只支持 LZMA/LZMA2/BZip2/Deflate/Copy 与插件版 Zstd(04F71101)。
+        logger.error(f"更新包压缩算法不受支持: {e}", exc_info=True)
+        return ("更新包使用了 py7zr 无法解析的压缩算法（通常是 7-Zip 的 Zstandard）。"
+                "请用 7-Zip 以 LZMA2 重新打包更新包，或运行 tools/pack_update.py 自动生成。")
     except Exception as e:
         # === 修复 === 增加 exc_info
         logger.error(f"解压或启动更新脚本失败: {e}", exc_info=True)
+        return f"安装失败: {e}"
 
 
 @bp.route('/api/check_update')
@@ -410,7 +423,11 @@ def get_progress():
 def apply_update_api():
     """开始安装"""
     logger.info("[API] 请求应用更新（安装）")
-    apply_update()
+    error_msg = apply_update()
+    if error_msg:
+        updater.status = "error"
+        updater.error_msg = error_msg
+        return {"status": "error", "message": error_msg}
     return {"status": "install"}
 
 @bp.route('/api/stop_download', methods=['GET'])
