@@ -192,6 +192,7 @@ export interface CheckUpdateResponse {
 export type DownloadStatus =
     | 'idle'
     | 'downloading'
+    | 'paused'
     | 'stopped'
     | 'merging'
     | 'ready'

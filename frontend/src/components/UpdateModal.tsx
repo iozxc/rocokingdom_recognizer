@@ -129,17 +129,19 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             try {
                 const progressRes = await api.getDownloadProgress();
                 const { progress, total_bytes, speed_bps, status, error } = progressRes.data;
+                // 服务端暂停后状态是 'paused'，前端统一按 'stopped' 处理，避免界面空白
+                const normalizedStatus = (status || 'idle') === 'paused' ? 'stopped' : (status || 'idle');
 
-                setDownloadStatus(status || 'idle');
+                setDownloadStatus(normalizedStatus);
                 setDownloadProgress(typeof progress === 'number' ? Math.max(0, progress) : 0);
                 setTotalBytes(typeof total_bytes === 'number' && total_bytes > 0 ? total_bytes : undefined);
                 setSpeedBps(typeof speed_bps === 'number' ? speed_bps : undefined);
 
-                if (status === 'downloading' || status.startsWith('verifying') || status === 'merging') {
+                if (normalizedStatus === 'downloading' || normalizedStatus.startsWith('verifying') || normalizedStatus === 'merging') {
                     startProgressPolling();
-                } else if (status === 'error') {
+                } else if (normalizedStatus === 'error') {
                     setDownloadError(error || '下载更新过程中发生错误');
-                } else if (status === 'idle') {
+                } else if (normalizedStatus === 'idle') {
                     setDownloadError(null);
                     stopPolling();
                 }
@@ -162,20 +164,21 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             try {
                 const res = await api.getDownloadProgress();
                 const { progress, total_bytes, speed_bps, status, error } = res.data;
+                const normalizedStatus = (status || 'idle') === 'paused' ? 'stopped' : (status || 'idle');
 
                 setDownloadProgress(typeof progress === 'number' ? Math.max(0, progress) : 0);
                 if (typeof total_bytes === 'number' && total_bytes > 0) {
                     setTotalBytes(total_bytes);
                 }
                 setSpeedBps(typeof speed_bps === 'number' ? speed_bps : undefined);
-                setDownloadStatus(status);
+                setDownloadStatus(normalizedStatus);
 
-                if (status === 'error') {
+                if (normalizedStatus === 'error') {
                     setDownloadError(error || '下载更新过程中发生错误');
                     stopPolling();
-                } else if (status === 'ready') {
+                } else if (normalizedStatus === 'ready') {
                     stopPolling();
-                } else if (status === 'stopped' || status === 'idle') {
+                } else if (normalizedStatus === 'stopped' || normalizedStatus === 'idle') {
                     stopPolling();
                 }
             } catch (err: unknown) {

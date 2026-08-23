@@ -282,19 +282,23 @@ def create_bat_script(temp_dir):
     exe_name = config.APP_EXE_NAME
 
     logger.debug("创建更新批处理脚本 update.bat")
+    bat_path = os.path.abspath("update.bat")
 
     # 批处理脚本内容
     # ping 127.0.0.1 -n 3 用于等待 2 秒（比 timeout 更兼容）
     bat_content = f"""@echo off
 setlocal enabledelayedexpansion
 
+:: 切换到脚本所在目录，避免工作目录不一致导致找不到文件
+cd /d "%~dp0"
+
 :: 设置最大重试次数
 set /a retry_count=0
 set /a max_retries=10
 
 echo [1/4] 正在强制结束残留进程...
-:: 强制杀掉主程序及其所有子进程 (/T 表示杀掉整个进程树)
-taskkill /f /im {exe_name} /t >nul 2>nul
+:: 强制杀掉主程序（不带 /T，避免误杀正在执行本脚本的 cmd 进程树）
+taskkill /f /im {exe_name} >nul 2>nul
 :: 如果有特定的 webview 进程也可以杀掉
 taskkill /f /im msedgewebview2.exe /t >nul 2>nul
 
@@ -342,9 +346,10 @@ pause
 (goto) 2>nul & del "%~f0"
 """
     # 必须使用 gbk 编码，否则 Windows 批处理显示中文会乱码
-    with open("update.bat", "w", encoding="gbk") as f:
+    with open(bat_path, "w", encoding="gbk") as f:
         f.write(bat_content)
-    logger.debug("更新批处理脚本创建完成")
+    logger.debug(f"更新批处理脚本创建完成: {bat_path}")
+    return bat_path
 
 
 def apply_update():
@@ -371,12 +376,22 @@ def apply_update():
             z.extractall(temp_extract_dir)
 
         # 3. 创建批处理脚本
-        create_bat_script(temp_extract_dir)
+        bat_path = create_bat_script(temp_extract_dir)
 
         # 4. 启动脚本并退出
-        # 使用 Popen 启动，不要等待它结束
+        # 打包后的 exe 是无控制台窗口的 GUI 进程，直接用 Popen(bat, shell=True)
+        # 启动 cmd 需要新建控制台，父进程一退出它就可能卡住/被连带结束，导致 bat 不执行。
+        # 因此用 os.startfile 让 bat 完全脱离当前进程运行；失败时降级为隐藏窗口方式。
         logger.info("启动更新脚本并退出当前进程")
-        subprocess.Popen("update.bat", shell=True)
+        try:
+            os.startfile(bat_path)
+        except OSError as e:
+            logger.warning(f"os.startfile 启动更新脚本失败，改用隐藏窗口方式: {e}")
+            subprocess.Popen(
+                ["cmd", "/c", bat_path],
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                close_fds=True,
+            )
         os._exit(0)  # 强制关闭当前 Python 进程
 
     except UnsupportedCompressionMethodError as e:
