@@ -23,6 +23,8 @@ interface HeaderProps {
     onOpenFeedback?: () => void;
     onOpenUpdate?: () => void;
     onOpenSettings?: () => void;
+    onOpenHub?: () => void;
+    showMapNav?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -36,6 +38,8 @@ export const Header: React.FC<HeaderProps> = ({
                                                   onOpenFeedback,
                                                   onOpenUpdate,
                                                   onOpenSettings,
+                                                  onOpenHub,
+                                                  showMapNav = true,
                                               }) => {
     const updateState = useUpdateStore();
     const isBusyDownloading =
@@ -56,7 +60,28 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
                     {/* Logo & Kingdom Branding */}
                     <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
-                        <div className="flex items-center gap-3">
+                        <div
+                            role="button"
+                            tabIndex={onOpenHub ? 0 : undefined}
+                            onClick={() => {
+                                if (onOpenHub) {
+                                    sound.playClick();
+                                    onOpenHub();
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && onOpenHub) {
+                                    sound.playClick();
+                                    onOpenHub();
+                                }
+                            }}
+                            title={onOpenHub ? '打开助手选择' : undefined}
+                            className={`flex items-center gap-3 rounded-2xl p-1.5 -m-1.5 transition-all duration-200 ${
+                                onOpenHub
+                                    ? 'cursor-pointer hover:bg-white/25 hover:shadow-sm active:scale-[0.98]'
+                                    : ''
+                            }`}
+                        >
                             <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-white shadow-sm border-2 border-white overflow-hidden p-0.5 shrink-0">
                                 <img
                                     src="./icon.jpg"
@@ -70,14 +95,13 @@ export const Header: React.FC<HeaderProps> = ({
                                 <div className="flex items-center gap-2">
                                     <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-1.5 drop-shadow-xs">
                                         <span>洛克王国</span>
-                                        <span className="text-[#FEE061] text-base sm:text-lg">徽章试炼助手</span>
-                                    </h1>
-                                </div>
-
-                                <p className="text-xs text-white/80 font-medium">
-                                    精灵图鉴识别 · 地图筛选 · 本地已遇见记录
-                                </p>
+                                    <span className="text-[#FEE061] text-base sm:text-lg">徽章试炼助手</span>
+                                </h1>
                             </div>
+                            <p className="text-xs text-white/80 font-medium">
+                                精灵图鉴识别 · 地图筛选 · 本地记录
+                            </p>
+                        </div>
                         </div>
 
                         {/* Mobile Actions: Feedback, Update, Sound & Settings */}
@@ -151,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Map Nav Buttons with Individual Counts */}
-                    <div className="flex items-center gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full">
+                    <div className={`flex items-center gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full ${showMapNav ? '' : 'invisible'}`}>
                         {MAP_CONFIGS.map((map) => {
                             const isActive = activeMapNum === map.num;
                             const mapStat = mapsStats.find((s) => s.num === map.num);

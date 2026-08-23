@@ -1,6 +1,6 @@
 {
   "name": "洛克王国草系徽章试炼助手",
-  "description": "洛克王国草系徽章试炼助手，精灵识别图鉴，支持图像预测、地图筛选与本地已遇见记录。",
+  "description": "洛克王国草系徽章试炼助手，精灵识别图鉴，支持图像预测、地图筛选与本地记录。",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

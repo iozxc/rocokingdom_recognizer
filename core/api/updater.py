@@ -579,6 +579,58 @@ def start_download_api():
 
     return {"status": "downloading"}
 
+
+@bp.route('/api/speed_test')
+def speed_test_api():
+    """从实际更新地址下载约 5 秒，测出真实下载速度（用于预估更新时间）。"""
+    logger.info("[API] 开始网速测试")
+
+    # 优先测增量包地址，否则用整包第一个分片
+    latest = updater.latest_info or {}
+    deltas = latest.get("deltas") or []
+    if not deltas and latest.get("delta"):
+        deltas = [latest["delta"]]
+
+    url = None
+    for d in deltas:
+        if d.get("base_version") == config.APP_VERSION and d.get("url"):
+            url = d["url"]
+            break
+    if not url:
+        auto_update = latest.get("auto_update") or {}
+        files = auto_update.get("files") or []
+        if files:
+            url = auto_update.get("base_url", "") + files[0]["name"]
+
+    if not url:
+        return {"status": "error", "message": "未找到可用的测速地址，请先检查更新"}
+
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    try:
+        start = time.time()
+        total = 0
+        with requests.get(url, headers=headers, stream=True, timeout=12) as resp:
+            resp.raise_for_status()
+            for chunk in resp.iter_content(chunk_size=65536):
+                total += len(chunk)
+                if time.time() - start >= 5.0:
+                    break
+        duration = max(time.time() - start, 0.001)
+        speed_bps = int(total / duration)
+        logger.info(
+            f"[API] 测速完成: {total / 1024 / 1024:.1f}MB / {duration:.1f}s -> "
+            f"{speed_bps / 1024 / 1024:.1f} MB/s"
+        )
+        return {
+            "status": "success",
+            "speed_bps": speed_bps,
+            "tested_bytes": total,
+            "duration": round(duration, 2),
+        }
+    except Exception as e:
+        logger.error(f"[API] 测速失败: {e}", exc_info=True)
+        return {"status": "error", "message": f"测速失败: {e}"}
+
 @bp.route('/api/download_progress')
 def get_progress():
     return {

@@ -32,7 +32,7 @@ def run(app) -> None:
 
     logger.info("启动主窗口...")
     window_manager.create_main_window()
-    webview.start()
+    webview.start(debug=True)
 
 
 def _wait_for_server(port: int, timeout_seconds: int = 30) -> None:

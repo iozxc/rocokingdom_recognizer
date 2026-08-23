@@ -308,29 +308,15 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
         ) : (
             <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end select-none">
               {isFABCollapsed ? (
-                  /* Collapsed Mini Floating FAB */
+                  /* Collapsed 小圆球 */
                   <button
                       type="button"
                       id="global-floating-expand-fab"
                       onClick={() => handleToggleCollapse(false)}
-                      className="flex items-center gap-2 px-3.5 py-2.5 bg-white/95 backdrop-blur-md hover:bg-white text-slate-700 rounded-full border-2 border-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 group cursor-pointer hover:scale-105"
+                      className="w-10 h-10 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white flex items-center justify-center shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white"
                       title="展开右侧快捷功能悬浮栏 (搜索与批量初始化)"
                   >
-                    <div className="w-5 h-5 rounded-full bg-slate-100 group-hover:bg-[#7ABCF4] group-hover:text-white text-slate-400 flex items-center justify-center transition-colors">
-                      <ChevronLeft className="w-3.5 h-3.5" />
-                    </div>
-
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] text-white flex items-center justify-center shadow-xs">
-                      <Search className="w-3.5 h-3.5" />
-                    </div>
-
-                    <span className="text-xs font-black text-slate-800">
-                功能
-              </span>
-
-                    <span className="text-xs font-mono font-black px-1.5 py-0.2 rounded-full bg-amber-100 text-[#854D0E]">
-                📸
-              </span>
+                    <Search className="w-5 h-5" />
                   </button>
               ) : (
                   /* Expanded FABs Stack */

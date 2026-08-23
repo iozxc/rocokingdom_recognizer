@@ -15,6 +15,9 @@ export interface UpdateState {
   speedBps?: number;
   error?: string;
   dotVisible: boolean;
+  measuredSpeedBps?: number;
+  speedTesting: boolean;
+  speedTestSeconds?: number;
 }
 
 const initialState: UpdateState = {
@@ -28,12 +31,23 @@ const initialState: UpdateState = {
   speedBps: undefined,
   error: undefined,
   dotVisible: false,
+  measuredSpeedBps: (() => {
+    try {
+      const v = Number(localStorage.getItem('roco_measured_speed_bps'));
+      return v > 0 ? v : undefined;
+    } catch {
+      return undefined;
+    }
+  })(),
+  speedTesting: false,
+  speedTestSeconds: undefined,
 };
 
 class UpdateStore {
   private state: UpdateState = { ...initialState };
   private listeners = new Set<() => void>();
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private settingsSubscribed = false;
 
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
@@ -62,11 +76,11 @@ class UpdateStore {
         checkError: undefined,
         hasUpdate,
         updateData: res.data,
-        // 静默检查（启动自检）发现更新时点亮右上角红点
-        dotVisible: silent
-            ? hasUpdate && !storage.getSetting<boolean>('hideUpdateDot', false)
-            : this.state.dotVisible,
       });
+      // 静默检查（启动自检）发现更新时点亮右上角红点
+      if (silent) {
+        this.applyDot();
+      }
     } catch (e) {
       this.setState({
         checking: false,
@@ -76,6 +90,11 @@ class UpdateStore {
   }
 
   clearDot = () => this.setState({ dotVisible: false });
+
+  private applyDot() {
+    const hide = storage.getSetting<boolean>('hideUpdateDot', false);
+    this.setState({ dotVisible: !!this.state.hasUpdate && !hide });
+  }
 
   markDownloadError = (message?: string) => {
     this.setState({ downloadStatus: 'error', error: message || '更新失败' });
@@ -182,7 +201,48 @@ class UpdateStore {
     return null;
   };
 
+  getEstimateBps = (): number => {
+    // 优先用实测速度，没有实测时按 Gitee 限流约 2MB/s 估算
+    if (this.state.measuredSpeedBps && this.state.measuredSpeedBps > 0) {
+      return this.state.measuredSpeedBps;
+    }
+    return 2 * 1024 * 1024;
+  };
+
+  async runSpeedTest() {
+    this.setState({ speedTesting: true });
+    try {
+      const res = await api.speedTest();
+      const bps = res.data.speed_bps;
+      if (res.data.status === 'success' && bps && bps > 0) {
+        try {
+          localStorage.setItem('roco_measured_speed_bps', String(bps));
+        } catch {
+          /* 忽略存储失败 */
+        }
+        this.setState({
+          measuredSpeedBps: bps,
+          speedTestSeconds: res.data.duration,
+          speedTesting: false,
+        });
+      } else {
+        this.setState({ speedTesting: false });
+      }
+    } catch {
+      this.setState({ speedTesting: false });
+    }
+  }
+
   init() {
+    // 订阅设置变化：切换“隐藏更新提示红点”时立即生效
+    if (!this.settingsSubscribed) {
+      this.settingsSubscribed = true;
+      storage.subscribeSettings((settings) => {
+        if (typeof settings.hideUpdateDot === 'boolean') {
+          this.applyDot();
+        }
+      });
+    }
     if (storage.getSetting<boolean>('autoCheckUpdate', true)) {
       this.checkUpdate(true);
     }

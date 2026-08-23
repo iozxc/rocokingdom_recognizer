@@ -12,6 +12,7 @@ import { FloatingFilterSwitch } from './components/FloatingFilterSwitch';
 import { FeedbackContactModal } from './components/FeedbackContactModal';
 import { UpdateModal } from './components/UpdateModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
+import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
 import { api } from './services/api';
@@ -34,6 +35,7 @@ export default function App() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
   const [isUpdateOpen, setIsUpdateOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [view, setView] = useState<'assistant' | 'hub'>('assistant');
 
   const [effectLevel, setEffectLevel] = useState<EffectLevel>(() => {
     return storage.getSetting<EffectLevel>('effectLevel', 0);
@@ -358,10 +360,12 @@ export default function App() {
               setIsUpdateOpen(true);
             }}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenHub={() => setView((v) => (v === 'hub' ? 'assistant' : 'hub'))}
+            showMapNav={view === 'assistant'}
         />
 
         {/* Sub-Header Toolbar: Displayed only when floating buttons are in 'hidden' mode */}
-        {floatingMode === 'hidden' && (
+        {view === 'assistant' && floatingMode === 'hidden' && (
             <SubHeaderToolbar
                 filterMode={filterMode}
                 onFilterChange={(mode) => setFilterMode(mode)}
@@ -375,45 +379,51 @@ export default function App() {
 
         {/* Main Content Area */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
-          {/* Map Banner & Stats */}
-          <StatsBanner
-              currentMap={currentMap}
-              encounteredCount={currentMapStats.encounteredCount}
-              totalMapPets={currentMapPets.length}
-              percentage={currentMapStats.percentage}
-              filterMode={filterMode}
-              onFilterChange={(mode) => setFilterMode(mode)}
-              searchQuery={searchQuery}
-              onSearchChange={(q) => setSearchQuery(q)}
-              onResetEncounters={handleResetCurrentMap}
-          />
+          {view === 'hub' ? (
+              <AssistantHub onSelectAssistant={() => setView('assistant')} />
+          ) : (
+              <>
+                {/* Map Banner & Stats */}
+                <StatsBanner
+                    currentMap={currentMap}
+                    encounteredCount={currentMapStats.encounteredCount}
+                    totalMapPets={currentMapPets.length}
+                    percentage={currentMapStats.percentage}
+                    filterMode={filterMode}
+                    onFilterChange={(mode) => setFilterMode(mode)}
+                    searchQuery={searchQuery}
+                    onSearchChange={(q) => setSearchQuery(q)}
+                    onResetEncounters={handleResetCurrentMap}
+                />
 
-          {/* Pet Image Recognition Module (BatchRecognizerCard: 3 columns layout + ? help button) */}
-          <BatchRecognizerCard
-              key={`${currentMap.id}_${recognizerKey}`}
-              currentMap={currentMap}
-              allMapsPets={mapsData}
-              records={records}
-              isEncountered={isPetEncountered}
-              onBatchEncounterSuccess={handleBatchEncounterSuccess}
-              onSelectMap={(num) => setActiveMapNum(num)}
-          />
+                {/* Pet Image Recognition Module (BatchRecognizerCard: 3 columns layout + ? help button) */}
+                <BatchRecognizerCard
+                    key={`${currentMap.id}_${recognizerKey}`}
+                    currentMap={currentMap}
+                    allMapsPets={mapsData}
+                    records={records}
+                    isEncountered={isPetEncountered}
+                    onBatchEncounterSuccess={handleBatchEncounterSuccess}
+                    onSelectMap={(num) => setActiveMapNum(num)}
+                />
 
-          {/* Map Pets Grid */}
-          <PetGrid
-              currentMap={currentMap}
-              pets={currentMapPets}
-              records={records}
-              onToggleEncounter={handleToggleEncounter}
-              filterMode={filterMode}
-              onFilterChange={(mode) => setFilterMode(mode)}
-              searchQuery={searchQuery}
-          />
+                {/* Map Pets Grid */}
+                <PetGrid
+                    currentMap={currentMap}
+                    pets={currentMapPets}
+                    records={records}
+                    onToggleEncounter={handleToggleEncounter}
+                    filterMode={filterMode}
+                    onFilterChange={(mode) => setFilterMode(mode)}
+                    searchQuery={searchQuery}
+                />
+              </>
+          )}
         </main>
 
         {/* Footer */}
         <footer className="mt-12 text-center text-xs text-slate-400">
-          <p>洛克王国草系徽章试炼 · 精灵图鉴识别 · 支持本地离线存储</p>
+          <p>洛克王国徽章试炼 · 精灵图鉴识别 · 支持本地离线存储</p>
         </footer>
 
         {/* Modals */}
@@ -461,28 +471,32 @@ export default function App() {
 
 
         {/* Floating Filter Switch on the bottom left */}
-        <FloatingFilterSwitch
-            currentMap={currentMap}
-            pets={currentMapPets}
-            records={records}
-            filterMode={filterMode}
-            onFilterChange={(mode) => setFilterMode(mode)}
-            onCycleMap={() => {
-              setActiveMapNum((prev) => (prev % MAP_CONFIGS.length) + 1);
-            }}
-        />
+        {view === 'assistant' && (
+            <FloatingFilterSwitch
+                currentMap={currentMap}
+                pets={currentMapPets}
+                records={records}
+                filterMode={filterMode}
+                onFilterChange={(mode) => setFilterMode(mode)}
+                onCycleMap={() => {
+                  setActiveMapNum((prev) => (prev % MAP_CONFIGS.length) + 1);
+                }}
+            />
+        )}
 
         {/* Global Floating Actions Component on the bottom right (4 buttons: 跟随识别, 单个精灵图鉴智能识别, 批量识别, 全域图鉴搜索) */}
-        <GlobalFloatingSearch
-            isOpen={isGlobalSearchOpen}
-            onOpenChange={(open) => setIsGlobalSearchOpen(open)}
-            allMapsPets={mapsData}
-            records={records}
-            onNavigateToPet={handleNavigateToPet}
-            onToggleEncounter={handleToggleEncounter}
-            onOpenSingleRecognizer={() => setIsSingleRecognizerOpen(true)}
-            onOpenBatchInit={() => setIsBatchInitOpen(true)}
-        />
+        {view === 'assistant' && (
+            <GlobalFloatingSearch
+                isOpen={isGlobalSearchOpen}
+                onOpenChange={(open) => setIsGlobalSearchOpen(open)}
+                allMapsPets={mapsData}
+                records={records}
+                onNavigateToPet={handleNavigateToPet}
+                onToggleEncounter={handleToggleEncounter}
+                onOpenSingleRecognizer={() => setIsSingleRecognizerOpen(true)}
+                onOpenBatchInit={() => setIsBatchInitOpen(true)}
+            />
+        )}
 
         {/* Feedback and Contact QQ Group Modal */}
         <FeedbackContactModal

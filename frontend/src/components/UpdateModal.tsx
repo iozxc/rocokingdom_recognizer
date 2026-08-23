@@ -86,6 +86,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
     const downloadError = updateState.error ?? null;
     const errorMsg = updateState.checkError ?? null;
     const isLoading = updateState.checking;
+    const measuredSpeedBps = updateState.measuredSpeedBps;
+    const speedTesting = updateState.speedTesting;
+    const speedTestSeconds = updateState.speedTestSeconds;
 
     // 包大小与预估/剩余时间
     const packageSize = updateStore.getPackageSize();
@@ -98,7 +101,10 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             return `剩余约 ${formatDuration(remaining / speedBps)}`;
         }
         if (packageSize) {
-            return `预计约 ${formatDuration(packageSize.bytes / (3 * 1024 * 1024))}`;
+            if (measuredSpeedBps && measuredSpeedBps > 0) {
+                return `实测预计约 ${formatDuration(packageSize.bytes / measuredSpeedBps)}`;
+            }
+            return `预计约 ${formatDuration(packageSize.bytes / updateStore.getEstimateBps())}`;
         }
         return null;
     })();
@@ -368,6 +374,26 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500 font-medium bg-[#F8FAFC] border border-slate-200 rounded-lg px-2.5 py-1.5">
                                         {pkgSizeText && <span className="text-slate-700 font-semibold">{pkgSizeText}</span>}
                                         {etaText && <span>· {etaText}</span>}
+                                        {measuredSpeedBps && (
+                                            <span className="text-emerald-600 font-semibold">· 实测 {formatSpeed(measuredSpeedBps)}</span>
+                                        )}
+                                        {speedTestSeconds && (
+                                            <span className="text-slate-400">· 测速用时 {speedTestSeconds.toFixed(1)} 秒</span>
+                                        )}
+                                        <button
+                                            type="button"
+                                            id="update-speed-test-btn"
+                                            onClick={() => updateStore.runSpeedTest()}
+                                            disabled={
+                                                speedTesting ||
+                                                downloadStatus === 'downloading' ||
+                                                downloadStatus === 'merging' ||
+                                                downloadStatus.startsWith('verifying')
+                                            }
+                                            className="ml-auto text-[11px] font-bold text-[#2B78C4] hover:text-[#1E5B99] bg-[#E1F0FE] border border-[#BCD7F2] rounded-md px-2 py-0.5 cursor-pointer disabled:opacity-50 transition-colors"
+                                        >
+                                            {speedTesting ? '测速中…' : measuredSpeedBps ? '重新测速' : '测速'}
+                                        </button>
                                     </div>
                                 )}
 

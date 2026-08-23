@@ -886,6 +886,29 @@ export class ApiService {
   }
 
   /**
+   * 8.5 实测下载速度（用于预估更新时间）
+   * GET /api/speed_test
+   */
+  public async speedTest(): Promise<{
+    data: { status: string; speed_bps?: number; tested_bytes?: number; duration?: number; message?: string };
+    isOfflineMock: boolean;
+  }> {
+    try {
+      const response = await axios.get(
+          `${this.apiBase}/api/speed_test`,
+          { timeout: 20000 }
+      );
+      return { data: response.data, isOfflineMock: false };
+    } catch (err: unknown) {
+      // 离线模拟：给一个约 2MB/s 的模拟速度
+      return {
+        data: { status: 'success', speed_bps: 2 * 1024 * 1024 },
+        isOfflineMock: true,
+      };
+    }
+  }
+
+  /**
    * 9. 提交用户反馈
    * POST /api/submit_feedback
    */

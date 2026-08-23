@@ -151,32 +151,16 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
             className="fixed bottom-6 left-6 z-40 flex flex-col items-start select-none"
         >
             {isCollapsed ? (
-                /* Collapsed Floating Pill */
+                /* Collapsed 小圆球 */
                 <button
                     type="button"
                     id="floating-filter-expand-btn"
                     onClick={() => handleToggleCollapse(false)}
-                    className="flex items-center gap-2 px-3.5 py-2.5 bg-white/95 backdrop-blur-md hover:bg-white text-slate-700 rounded-full border-2 border-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 group cursor-pointer hover:scale-105"
-                    title="展开左侧地图与图鉴筛选悬浮栏"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white"
+                    style={{ backgroundColor: currentMap.themeColor }}
+                    title={`当前: ${currentMap.name} (${encounteredCount}/${totalCount}) - 点击展开左侧筛选栏`}
                 >
-                    <div
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-black shadow-2xs"
-                        style={{ backgroundColor: currentMap.themeColor }}
-                    >
-                        {currentMap.num}
-                    </div>
-
-                    <span className="text-xs font-black text-slate-800">
-            {filterMode === 'all' ? '全部' : filterMode === 'encountered' ? '已遇' : '未遇'}
-          </span>
-
-                    <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded-full font-bold">
-            {filterMode === 'all' ? totalCount : filterMode === 'encountered' ? encounteredCount : unencounteredCount}
-          </span>
-
-                    <div className="w-5 h-5 rounded-full bg-slate-100 group-hover:bg-[#7ABCF4] group-hover:text-white text-slate-400 flex items-center justify-center transition-colors">
-                        <ChevronRight className="w-3.5 h-3.5" />
-                    </div>
+                    <span className="text-sm font-black drop-shadow-xs">{currentMap.num}</span>
                 </button>
             ) : (
                 /* Expanded Stack (Arranged vertically from bottom to top) */
@@ -314,4 +298,3 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
         </div>
     );
 };
-
