@@ -4,7 +4,7 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "增加设置功能，增加更新功能（更新变的更可靠了，并且指出增量更新了），增加新主页功能",
+  "update_log": "增加设置功能，增加更新功能（更新变的更可靠了，并且可以增量更新了），增加新主页功能",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.2/",
     "files": [
