@@ -18,6 +18,7 @@ bp = Blueprint("updater", __name__)
 
 combined_zip = "RocoKingdomReg_Update_Package.7z"
 inner_zip = "RocoKingdomRecognizer.7z"
+delta_zip = "RocoKingdomRecognizer_delta.7z"
 temp_extract_dir = "new_version_files"
 
 # py7zr 不支持的常见 7z 压缩方法/过滤器（用于给出可读的错误提示）
@@ -40,6 +41,8 @@ class UpdateManager:
         self.error_msg = ""
         self.stop_requested = False
         self.pause_requested = False
+        self.mode = "full"  # full=整包 / delta=增量包
+        self.download_target = combined_zip  # 下载合并后的目标包名
 
         # 用于计算下载速度
         self.speed_bps = 0  # 字节/秒
@@ -69,13 +72,50 @@ def handle_cleanup(temp_dir):
     try:
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
-        if os.path.exists(combined_zip):
-            os.remove(combined_zip)
+        if os.path.exists(updater.download_target):
+            os.remove(updater.download_target)
         updater.status = "stopped"
         updater.progress = 0
         logger.info("下载已停止并清理临时文件")
     except Exception as e:
         logger.info(f"清理失败: {e}")
+
+
+def build_download_plan():
+    """决定本次下载增量包还是整包。返回 (mode, base_url, files) 或 None。"""
+    latest = updater.latest_info or {}
+    deltas = latest.get("deltas") or []
+    if not deltas and latest.get("delta"):
+        # 兼容旧的单个 delta 字段
+        deltas = [latest["delta"]]
+
+    match = None
+    for d in deltas:
+        if (
+            d.get("base_version") == config.APP_VERSION
+            and d.get("url")
+            and d.get("md5")
+        ):
+            match = d
+            break
+
+    if match and os.path.exists(config.MANIFEST_FILE):
+        url = match["url"].rstrip("/")
+        name = url.rsplit("/", 1)[-1]
+        logger.info(
+            f"当前版本 {config.APP_VERSION} 匹配增量包 base {match['base_version']}，走增量更新"
+        )
+        return "delta", url.rsplit("/", 1)[0] + "/", [
+            {"name": name, "md5": match["md5"], "size": match.get("size", 0)}
+        ]
+
+    auto_update = latest.get("auto_update") or {}
+    files = auto_update.get("files") or []
+    base_url = auto_update.get("base_url", "")
+    if not files:
+        return None
+    logger.info("增量包不适用（版本不匹配或缺少本地文件清单），回退整包更新")
+    return "full", base_url, files
 
 
 def real_download_logic():
@@ -87,10 +127,18 @@ def real_download_logic():
     logger.info("开始执行更新下载流程")
 
     try:
-        auto_update_cfg = updater.latest_info.get('auto_update')
-        files = auto_update_cfg['files']
-        base_url = auto_update_cfg['base_url']
-        logger.info(f"下载配置: 分片数={len(files)}, 基地址={base_url}")
+        plan = build_download_plan()
+        if plan is None:
+            updater.status = "error"
+            updater.error_msg = "更新配置无效：未找到可用的下载地址。"
+            return
+        mode, base_url, files = plan
+        updater.mode = mode
+        updater.download_target = delta_zip if mode == "delta" else combined_zip
+        logger.info(
+            f"下载配置: 模式={'增量包' if mode == 'delta' else '整包'}, "
+            f"文件数={len(files)}, 基地址={base_url}"
+        )
 
         temp_dir = "update_temp"
         if not os.path.exists(temp_dir):
@@ -255,8 +303,8 @@ def real_download_logic():
         updater.status = "merging"
         updater.speed_bps = 0
         logger.info("所有分片下载完成，开始合并...")
-        combined_zip = "RocoKingdomReg_Update_Package.7z"
-        with open(combined_zip, "wb") as outfile:
+        target = updater.download_target
+        with open(target, "wb") as outfile:
             for file_item in files:
                 part_path = os.path.join(temp_dir, file_item['name'])
                 with open(part_path, "rb") as infile:
@@ -278,120 +326,206 @@ def real_download_logic():
         updater.speed_bps = 0
         logger.error(f"更新下载异常: {e}", exc_info=True)
 
-def create_bat_script(temp_dir):
+def create_update_ps1(update_mode="full"):
+    """生成 PowerShell 更新脚本：自定义美观窗口（无黑框 cmd），整包/增量通用。"""
     exe_name = config.APP_EXE_NAME
+    exe_stem = os.path.splitext(exe_name)[0]
+    ps1_path = os.path.abspath("update.ps1")
 
-    logger.debug("创建更新批处理脚本 update.bat")
-    bat_path = os.path.abspath("update.bat")
-
-    # 批处理脚本内容
-    # ping 127.0.0.1 -n 3 用于等待 2 秒（比 timeout 更兼容）
-    bat_content = f"""@echo off
-setlocal enabledelayedexpansion
-
-:: 切换到脚本所在目录，避免工作目录不一致导致找不到文件
-cd /d "%~dp0"
-
-:: 设置最大重试次数
-set /a retry_count=0
-set /a max_retries=10
-
-echo [1/4] 正在强制结束残留进程...
-:: 强制杀掉主程序（不带 /T，避免误杀正在执行本脚本的 cmd 进程树）
-taskkill /f /im {exe_name} >nul 2>nul
-:: 如果有特定的 webview 进程也可以杀掉
-taskkill /f /im msedgewebview2.exe /t >nul 2>nul
-
-:retry_delete
-echo [2/4] 正在尝试清理旧版本文件 (第 !retry_count! 次尝试)...
-ping 127.0.0.1 -n 2 > nul
-
-:: 尝试删除主程序
-if exist {exe_name} (
-    del /f /q {exe_name} >nul 2>nul
-)
-
-:: 尝试删除 libs 文件夹
-if exist libs (
-    rd /s /q libs >nul 2>nul
-)
-
-:: 检查是否还存在（即删除是否成功）
-if exist {exe_name} (
-    set /a retry_count+=1
-    if !retry_count! geq !max_retries! (
-        goto failed
+    # 整包更新：先清掉旧 exe/libs，避免残留旧文件
+    clear_old = (
+        f"Remove-Item -LiteralPath 'libs' -Recurse -Force -ErrorAction SilentlyContinue\n"
+        f"Remove-Item -LiteralPath '{exe_name}' -Force -ErrorAction SilentlyContinue"
+        if update_mode == "full"
+        else ""
     )
-    echo 文件仍被占用，正在等待重试...
-    goto retry_delete
-)
 
-echo [3/4] 正在应用新版本文件...
-xcopy /s /y /e "new_version_files\\*" "." >nul
+    template = r"""$ErrorActionPreference = 'SilentlyContinue'
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
 
-echo [4/4] 清理临时文件并启动...
-rd /s /q "new_version_files"
-del /f /q RocoKingdomRecognizer.7z
-del /f /q RocoKingdomReg_Update_Package.7z
+Set-Location -LiteralPath $PSScriptRoot
 
-start "" "{exe_name}"
-echo 更新成功！
-goto end
+# ---- 结束残留进程 ----
+Stop-Process -Name '{{EXE_STEM}}' -Force -ErrorAction SilentlyContinue
+Stop-Process -Name 'msedgewebview2' -Force -ErrorAction SilentlyContinue
 
-:failed
-echo [错误] 无法覆盖文件。请手动关闭所有相关程序，或尝试以管理员身份运行。
-pause
+# ---- 更新窗口 ----
+$form = $null
+try {
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = '正在更新'
+    $form.StartPosition = 'CenterScreen'
+    $form.FormBorderStyle = 'None'
+    $form.Size = New-Object System.Drawing.Size(400, 180)
+    $form.BackColor = [System.Drawing.Color]::FromArgb(31, 78, 121)
+    $form.ShowInTaskbar = $true
+    $form.TopMost = $true
 
-:end
-(goto) 2>nul & del "%~f0"
+    # 圆角
+    $path = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $d = 24
+    $path.AddArc(0, 0, $d, $d, 180, 90)
+    $path.AddArc($form.Width - $d, 0, $d, $d, 270, 90)
+    $path.AddArc($form.Width - $d, $form.Height - $d, $d, $d, 0, 90)
+    $path.AddArc(0, $form.Height - $d, $d, $d, 90, 90)
+    $path.CloseFigure()
+    $form.Region = New-Object System.Drawing.Region($path)
+
+    $title = New-Object System.Windows.Forms.Label
+    $title.Text = '洛克王国草系徽章助手'
+    $title.Font = New-Object System.Drawing.Font('Microsoft YaHei', 14, [System.Drawing.FontStyle]::Bold)
+    $title.ForeColor = 'White'
+    $title.AutoSize = $false
+    $title.Size = New-Object System.Drawing.Size(356, 42)
+    $title.Location = New-Object System.Drawing.Point(22, 20)
+    $title.TextAlign = 'MiddleLeft'
+    $form.Controls.Add($title)
+
+    $status = New-Object System.Windows.Forms.Label
+    $status.Text = '正在准备更新...'
+    $status.Font = New-Object System.Drawing.Font('Microsoft YaHei', 9)
+    $status.ForeColor = 'White'
+    $status.AutoSize = $false
+    $status.Size = New-Object System.Drawing.Size(356, 26)
+    $status.Location = New-Object System.Drawing.Point(22, 66)
+    $form.Controls.Add($status)
+
+    $bar = New-Object System.Windows.Forms.ProgressBar
+    $bar.Size = New-Object System.Drawing.Size(356, 18)
+    $bar.Location = New-Object System.Drawing.Point(22, 104)
+    $bar.Minimum = 0
+    $bar.Maximum = 100
+    $bar.Style = 'Continuous'
+    $form.Controls.Add($bar)
+
+    $form.Show()
+} catch {
+    $form = $null
+}
+
+function Set-Progress([string]$text, [int]$pct) {
+    if ($null -ne $form) {
+        try {
+            $status.Text = $text
+            $bar.Value = $pct
+            $form.Refresh()
+        } catch {}
+    }
+    Start-Sleep -Milliseconds 200
+}
+
+Set-Progress '正在结束旧进程...' 8
+
+# ---- 应用新文件（整包先清旧文件，增量只覆盖变更）----
+Set-Progress '正在应用更新文件...' 25
+$copied = $false
+for ($i = 0; $i -lt 10; $i++) {
+{{CLEAR_OLD}}
+    Copy-Item -Path 'new_version_files\*' -Destination '.' -Recurse -Force -ErrorAction SilentlyContinue
+    if (Test-Path -LiteralPath '{{EXE_NAME}}') {
+        $copied = $true
+        break
+    }
+    Start-Sleep -Milliseconds 600
+}
+
+# ---- 删除本版本移除的旧文件（增量包携带 removed.txt）----
+Set-Progress '正在清理旧文件...' 55
+if (Test-Path -LiteralPath 'new_version_files\removed.txt') {
+    Get-Content -LiteralPath 'new_version_files\removed.txt' | ForEach-Object {
+        $p = $_.Trim()
+        if ($p -and (Test-Path -LiteralPath $p)) {
+            Remove-Item -LiteralPath $p -Force -ErrorAction SilentlyContinue
+        }
+    }
+    Remove-Item -LiteralPath 'new_version_files\removed.txt' -Force -ErrorAction SilentlyContinue
+}
+
+# ---- 清理临时文件 ----
+Set-Progress '正在清理临时文件...' 78
+Remove-Item -LiteralPath 'removed.txt' -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath 'new_version_files' -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath 'RocoKingdomRecognizer_delta.7z' -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath 'RocoKingdomReg_Update_Package.7z' -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath 'RocoKingdomRecognizer.7z' -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath 'update.bat' -Force -ErrorAction SilentlyContinue
+
+# ---- 启动应用 ----
+Set-Progress '正在启动应用...' 95
+Start-Process -FilePath (Join-Path (Get-Location) '{{EXE_NAME}}') -ErrorAction SilentlyContinue
+
+if ($null -ne $form) {
+    try { $form.Close() } catch {}
+}
+
+# 延迟自删本脚本
+$self = $PSCommandPath
+Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile', '-WindowStyle', 'Hidden', '-Command', "Start-Sleep -Milliseconds 800; Remove-Item -LiteralPath '$self' -Force") -WindowStyle Hidden -ErrorAction SilentlyContinue
 """
-    # 必须使用 gbk 编码，否则 Windows 批处理显示中文会乱码
-    with open(bat_path, "w", encoding="gbk") as f:
-        f.write(bat_content)
-    logger.debug(f"更新批处理脚本创建完成: {bat_path}")
-    return bat_path
+
+    content = (
+        template
+        .replace("{{EXE_NAME}}", exe_name)
+        .replace("{{EXE_STEM}}", exe_stem)
+        .replace("{{CLEAR_OLD}}", clear_old)
+    )
+    # 必须带 BOM（utf-8-sig），否则 Windows PowerShell 5.1 读中文会乱码
+    with open(ps1_path, "w", encoding="utf-8-sig") as f:
+        f.write(content)
+    logger.debug(f"更新窗口脚本创建完成: {ps1_path}")
+    return ps1_path
 
 
 def apply_update():
     """
     解压并准备更新脚本
-    成功时启动 update.bat 并退出进程；失败时返回错误信息字符串。
+    成功时启动 update.ps1 并退出进程；失败时返回错误信息字符串。
     """
     logger.info("开始应用更新：解压并准备安装脚本")
     try:
-        if not os.path.exists(combined_zip):
-            return "未找到更新包文件，请重新下载"
+        if updater.mode == "delta":
+            if not os.path.exists(delta_zip):
+                return "未找到增量更新包文件，请重新下载"
+            if os.path.exists(temp_extract_dir):
+                shutil.rmtree(temp_extract_dir)
+            logger.debug("增量模式：直接解压增量包到临时目录")
+            with py7zr.SevenZipFile(delta_zip, 'r') as z:
+                z.extractall(temp_extract_dir)
+            ps1_path = create_update_ps1(update_mode="delta")
+        else:
+            if not os.path.exists(combined_zip):
+                return "未找到更新包文件，请重新下载"
 
-        # 1. 第一层解压：提取出内部的 RocoKingdomRecognizer.7z
-        logger.debug("第一层解压: 提取内部更新包")
-        with py7zr.SevenZipFile(combined_zip, 'r') as z:
-            z.extract(path=".", targets=[inner_zip])
+            # 1. 第一层解压：提取出内部的 RocoKingdomRecognizer.7z
+            logger.debug("第一层解压: 提取内部更新包")
+            with py7zr.SevenZipFile(combined_zip, 'r') as z:
+                z.extract(path=".", targets=[inner_zip])
 
-        # 2. 第二层解压：将 RocoKingdomRecognizer.7z 解压到临时目录
-        if os.path.exists(temp_extract_dir):
-            shutil.rmtree(temp_extract_dir)
+            # 2. 第二层解压：将 RocoKingdomRecognizer.7z 解压到临时目录
+            if os.path.exists(temp_extract_dir):
+                shutil.rmtree(temp_extract_dir)
 
-        logger.debug("第二层解压: 解压到临时目录")
-        with py7zr.SevenZipFile(inner_zip, 'r') as z:
-            z.extractall(temp_extract_dir)
+            logger.debug("第二层解压: 解压到临时目录")
+            with py7zr.SevenZipFile(inner_zip, 'r') as z:
+                z.extractall(temp_extract_dir)
 
-        # 3. 创建批处理脚本
-        bat_path = create_bat_script(temp_extract_dir)
+            # 3. 创建更新窗口脚本
+            ps1_path = create_update_ps1(update_mode="full")
 
         # 4. 启动脚本并退出
-        # 打包后的 exe 是无控制台窗口的 GUI 进程，直接用 Popen(bat, shell=True)
-        # 启动 cmd 需要新建控制台，父进程一退出它就可能卡住/被连带结束，导致 bat 不执行。
-        # 因此用 os.startfile 让 bat 完全脱离当前进程运行；失败时降级为隐藏窗口方式。
+        # 用隐藏方式启动 powershell（CREATE_NO_WINDOW 不会出现黑色控制台窗口），
+        # 更新进度由 PowerShell 自绘的美观窗口展示。
         logger.info("启动更新脚本并退出当前进程")
         try:
-            os.startfile(bat_path)
-        except OSError as e:
-            logger.warning(f"os.startfile 启动更新脚本失败，改用隐藏窗口方式: {e}")
             subprocess.Popen(
-                ["cmd", "/c", bat_path],
+                ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps1_path],
                 creationflags=subprocess.CREATE_NO_WINDOW,
                 close_fds=True,
             )
+        except Exception as e:
+            logger.error(f"启动更新脚本失败: {e}", exc_info=True)
+            return f"启动更新脚本失败: {e}"
         os._exit(0)  # 强制关闭当前 Python 进程
 
     except UnsupportedCompressionMethodError as e:

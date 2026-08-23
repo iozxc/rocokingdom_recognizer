@@ -16,6 +16,7 @@ htmlcov/
 update_temp/
 new_version_files/
 update.bat
+update.ps1
 *.7z
 
 # 系统文件

@@ -369,6 +369,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                             <span className="text-[11px] font-medium text-slate-500">
                                                 当前 v{updateData.current_version || '未知'}
                                             </span>
+                                            {(updateData.delta?.url || (updateData.deltas?.length ?? 0) > 0) && (
+                                                <span className="text-[11px] font-black px-1.5 py-0.5 rounded-md bg-[#E1F0FE] text-[#1E5B99] border border-[#BCD7F2]">
+                                                    增量更新
+                                                </span>
+                                            )}
                                         </div>
                                         <p className="text-xs text-slate-600 mt-0.5">建议更新以获得最新图鉴识别支持与功能修复</p>
                                     </div>

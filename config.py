@@ -9,6 +9,21 @@ def _env(name: str, default):
     return default if value in (None, "") else value
 
 
+APP_VERSION = _env("ROCO_APP_VERSION", "1.3.2")
+
+CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
+GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
+APP_EXE_NAME = _env("ROCO_APP_EXE_NAME", "RocoKingdomRecognizer.exe")
+UPDATE_CHECK_URL = _env(
+    "ROCO_UPDATE_CHECK_URL",
+    "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
+)
+FEISHU_WEBHOOK_URL = _env(
+    "ROCO_FEISHU_WEBHOOK_URL",
+    "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab",
+)
+
+
 # --- 路径处理核心逻辑 ---
 def get_resource_path(relative_path):
     """获取资源绝对路径（用于 icons, static, features_db.pt）"""
@@ -29,21 +44,6 @@ def get_external_path(filename):
 
     return os.path.normpath(os.path.join(base_path, filename))
 
-# 用户配置（可用环境变量覆盖）
-CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
-
-# --- 网络与外部服务（可用环境变量覆盖） ---
-GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
-APP_VERSION = _env("ROCO_APP_VERSION", "1.3.2")
-APP_EXE_NAME = _env("ROCO_APP_EXE_NAME", "RocoKingdomRecognizer.exe")
-UPDATE_CHECK_URL = _env(
-    "ROCO_UPDATE_CHECK_URL",
-    "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
-)
-FEISHU_WEBHOOK_URL = _env(
-    "ROCO_FEISHU_WEBHOOK_URL",
-    "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab",
-)
 
 # 基础路径
 ICONS_DIR = get_resource_path('icons')
@@ -53,6 +53,7 @@ ONNX_DIR = get_resource_path('onnx')
 ASSETS_FILE = get_resource_path('assets.db')
 PETS_FILE = get_resource_path('roco_all_pets.json')
 DATA_FILE = get_external_path('roco_user_data.json')
+MANIFEST_FILE = get_resource_path('file_manifest.json')
 
 # MAP_CLASSIFIER = get_resource_path(os.path.join('onnx', 'map_classifier.onnx'))
 RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))

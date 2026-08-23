@@ -678,6 +678,20 @@ export class ApiService {
               },
             ],
           },
+          delta: {
+            base_version: '0.0.0',
+            url: 'https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.0.0/RocoKingdomRecognizer_delta.7z',
+            md5: 'c8042c38c1a3781bdf40d63100456e9b',
+            size: 1024 * 1024,
+          },
+          deltas: [
+            {
+              base_version: '0.0.0',
+              url: 'https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.0.0/RocoKingdomRecognizer_delta_0.0.0.7z',
+              md5: 'c8042c38c1a3781bdf40d63100456e9b',
+              size: 1024 * 1024,
+            },
+          ],
         },
         isOfflineMock: true,
         errorMsg: `无法连接更新接口 (${error.code || error.message})，已展示模拟版本信息`,

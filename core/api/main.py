@@ -19,7 +19,6 @@ try:
         root = json.load(f)
     pet_list = root.get("pets", [])
     PET_NAME_TO_ID = {item["name"]: item["id"] for item in pet_list}
-    logger.info(f"宠物图鉴加载成功: {len(PET_NAME_TO_ID)} 个宠物")
 except Exception as e:
     # 读取失败，降级：所有图标排末尾
     logger.warning(f"宠物图鉴加载失败，将降级排序: {e}", exc_info=True)

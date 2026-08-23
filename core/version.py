@@ -40,7 +40,9 @@ def get_update_info():
                     # 获取下载地址字典，如果不存在则返回空字典
                     "mirrors": remote_data.get("mirrors", {}),
                     "update_log": remote_data.get("update_log", "作者很懒，没写更新说明。"),
-                    "auto_update": remote_data.get("auto_update", {})
+                    "auto_update": remote_data.get("auto_update", {}),
+                    "delta": remote_data.get("delta", {}),
+                    "deltas": remote_data.get("deltas", [])
                 }
             else:
                 logger.debug(f"当前已是最新版本 ({CURRENT_VERSION})")

@@ -1,6 +1,7 @@
 """RocoKingdomRecognizer 桌面端入口。"""
 import ctypes
 
+import config
 from core.logger import logger
 
 
@@ -16,7 +17,7 @@ def main() -> None:
     _enable_dpi_awareness()
 
     logger.info("=" * 50)
-    logger.info("程序启动，初始化模块...")
+    logger.info(f"程序启动，初始化模块 版本：{config.APP_VERSION}")
 
     from core import create_app
     from desktop import run

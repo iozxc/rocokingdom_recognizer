@@ -187,6 +187,18 @@ export interface CheckUpdateResponse {
       md5: string;
     }>;
   };
+  delta?: {
+    base_version?: string;
+    url?: string;
+    md5?: string;
+    size?: number;
+  };
+  deltas?: Array<{
+    base_version?: string;
+    url?: string;
+    md5?: string;
+    size?: number;
+  }>;
 }
 
 export type DownloadStatus =
