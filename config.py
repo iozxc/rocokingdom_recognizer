@@ -59,7 +59,7 @@ RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
 
 MAP_CLASSES = get_resource_path(os.path.join('onnx', 'map_classes.json'))
 
-FEATURES_DB = get_resource_path(os.path.join('onnx', 'features_db.pkl'))
+FEATURES_DB = get_resource_path(os.path.join('onnx', 'features_icon_db.pkl'))
 FEATURES2_DB = get_resource_path(os.path.join('onnx', 'features_title_db.pkl'))
 
 SCANNER = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
