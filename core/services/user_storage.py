@@ -3,8 +3,86 @@ import json
 import os
 import time
 
-from config import DATA_FILE
+import config
 from core.logger import logger
+
+DATA_FILE = config.DATA_FILE
+
+_IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".svg")
+
+
+def _strip_ext(name):
+    if not name:
+        return ""
+    n = str(name).strip()
+    lower = n.lower()
+    for ext in _IMAGE_EXTS:
+        if lower.endswith(ext):
+            return n[: -len(ext)]
+    return n
+
+
+def _load_renames():
+    """读取宠物改名映射：{旧名字: 新名字}（不含扩展名）。"""
+    try:
+        with open(config.RENAMES_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return {}
+    except Exception as e:
+        logger.warning(f"加载宠物改名映射失败: {e}")
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    renames = data.get("renames", {}) or {}
+    return {
+        _strip_ext(k): _strip_ext(v)
+        for k, v in renames.items()
+        if k and v
+    }
+
+
+def _apply_renames(pets):
+    """把遇到记录里的旧名字迁成新名字，保留 count 与时间。返回 (结果, 是否有变化)。"""
+    if not isinstance(pets, dict):
+        return pets, False
+    renames = _load_renames()
+    if not renames:
+        return pets, False
+
+    changed = False
+    out = {}
+    for key, rec in pets.items():
+        if not isinstance(rec, dict):
+            out[key] = rec
+            continue
+        rec = dict(rec)
+        fn = str(rec.get("filename") or "")
+        base = _strip_ext(fn)
+        if base and base in renames:
+            new_base = renames[base]
+            ext = fn[len(base):]  # 原扩展名，如 .png
+            rec["filename"] = new_base + ext
+            map_id = str(rec.get("mapId") or key.split("_", 1)[0])
+            rec["mapId"] = map_id
+            rec["key"] = f"{map_id}_{new_base}{ext}"
+            changed = True
+
+        new_key = rec.get("key") or key
+        if new_key in out:
+            prev = out[new_key]
+            prev["count"] = int(prev.get("count", 0)) + int(rec.get("count", 0))
+            prev["encountered"] = True
+            first_a = prev.get("firstSeenAt") or ""
+            first_b = rec.get("firstSeenAt") or ""
+            prev["firstSeenAt"] = (min(first_a, first_b) if first_a and first_b else (first_a or first_b))
+            last_a = prev.get("lastSeenAt") or ""
+            last_b = rec.get("lastSeenAt") or ""
+            prev["lastSeenAt"] = (max(last_a, last_b) if last_a and last_b else (last_a or last_b))
+            out[new_key] = prev
+        else:
+            out[new_key] = rec
+    return out, changed
 
 DEFAULT_STRUCTURE = {
     "version": 0,
@@ -35,6 +113,11 @@ class UserStorage:
         try:
             with open(self._data_file, "r", encoding="utf-8") as f:
                 self._cache = json.load(f)
+            pets, changed = _apply_renames(self._cache.get("encounteredPets", {}))
+            if changed:
+                self._cache["encounteredPets"] = pets
+                self._persist(self._cache)
+                logger.info("检测到宠物改名，已自动迁移遇到记录")
             pet_count = len(self._cache.get("encounteredPets", {}))
             logger.debug(f"存储文件加载成功: version={self._cache.get('version')}, 遇到精灵数={pet_count}")
         except Exception as e:
@@ -67,20 +150,26 @@ class UserStorage:
 
     def save(self, payload: dict) -> dict:
         """写回存储文件，更新内存缓存并刷新版本号。"""
+        pets, _ = _apply_renames(payload.get("encounteredPets", {}))
+        payload["encounteredPets"] = pets
         pet_count = len(payload.get("encounteredPets", {}))
-        new_version = int(time.time() * 1000)
-        payload["version"] = new_version
         try:
-            with open(self._data_file, "w", encoding="utf-8") as f:
-                json.dump(payload, f, ensure_ascii=False, indent=2)
-            self._cache = payload
+            result = self._persist(payload)
             logger.info(
                 f"保存存储文件: 遇到精灵数={pet_count}, "
-                f"阈值={len(payload.get('thresholds', {}))} version={payload['version']}"
+                f"阈值={len(payload.get('thresholds', {}))} version={result['version']}"
             )
         except Exception as e:
             logger.error(f"存储文件保存失败: {e}", exc_info=True)
             raise
+        return result
+
+    def _persist(self, payload: dict) -> dict:
+        """落盘并刷新内存缓存与版本号（不打印日志，供 load/save 复用）。"""
+        payload["version"] = int(time.time() * 1000)
+        with open(self._data_file, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        self._cache = payload
         return payload
 
 

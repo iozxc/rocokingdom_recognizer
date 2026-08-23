@@ -54,6 +54,7 @@ ASSETS_FILE = get_resource_path('assets.db')
 PETS_FILE = get_resource_path('roco_all_pets.json')
 DATA_FILE = get_external_path('roco_user_data.json')
 MANIFEST_FILE = get_resource_path('file_manifest.json')
+RENAMES_FILE = get_resource_path('pet_renames.json')
 
 # MAP_CLASSIFIER = get_resource_path(os.path.join('onnx', 'map_classifier.onnx'))
 RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
