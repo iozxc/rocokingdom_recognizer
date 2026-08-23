@@ -36,6 +36,7 @@ def get_update_info():
                 return {
                     "has_update": True,
                     "latest_version": remote_v_str,
+                    "current_version": CURRENT_VERSION,
                     # 获取下载地址字典，如果不存在则返回空字典
                     "mirrors": remote_data.get("mirrors", {}),
                     "update_log": remote_data.get("update_log", "作者很懒，没写更新说明。"),
@@ -50,4 +51,4 @@ def get_update_info():
         logger.error(f"检查更新失败 (网络问题或JSON格式错误): {e}")
 
     # 默认返回无更新
-    return {"has_update": False}
+    return {"has_update": False, "current_version": CURRENT_VERSION}

@@ -177,6 +177,7 @@ export interface AppSettings {
 export interface CheckUpdateResponse {
   has_update: boolean;
   latest_version?: string;
+  current_version?: string;
   update_log?: string;
   mirrors?: Record<string, string>;
   auto_update?: {

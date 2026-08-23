@@ -363,6 +363,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                             <span className="text-xs font-black px-2 py-0.5 rounded-full bg-[#15803D] text-white font-mono shadow-2xs">
                         v{updateData.latest_version || '1.0.0'}
                       </span>
+                                            <span className="text-[11px] font-medium text-slate-500">
+                                                当前 v{updateData.current_version || '未知'}
+                                            </span>
                                         </div>
                                         <p className="text-xs text-slate-600 mt-0.5">建议更新以获得最新图鉴识别支持与功能修复</p>
                                     </div>
@@ -676,7 +679,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                             <div className="w-12 h-12 rounded-2xl bg-[#E1F7DB] text-[#2D6613] flex items-center justify-center border-2 border-[#95D151] mb-1">
                                 <CheckCircle2 className="w-6 h-6" />
                             </div>
-                            <h4 className="text-sm font-black text-slate-800">当前已是最新版本</h4>
+                            <h4 className="text-sm font-black text-slate-800">
+                                当前已是最新版本 {updateData.current_version ? `v${updateData.current_version}` : ''}
+                            </h4>
                             <p className="text-xs text-slate-500 max-w-xs">
                                 您的助手已经搭载最新的识别算法与图鉴库，暂无更新。
                             </p>
