@@ -17,6 +17,7 @@ import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
 import { api } from './services/api';
 import { storage } from './services/storage';
 import { sound } from './services/sound';
+import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
 import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode } from './types';
 import { isPetEncounteredInRecords } from './utils/petHelper';
@@ -116,6 +117,7 @@ export default function App() {
   useEffect(() => {
     refreshRecords();
     fetchIconsData();
+    updateStore.init();
 
     // 订阅 storage 变更（当从 Flask 后端加载完成时自动更新 UI）
     const unsubscribeRecords = storage.subscribe((newRecords) => {
@@ -351,7 +353,10 @@ export default function App() {
             isSoundMuted={isSoundMuted}
             onToggleSound={handleToggleSound}
             onOpenFeedback={() => setIsFeedbackOpen(true)}
-            onOpenUpdate={() => setIsUpdateOpen(true)}
+            onOpenUpdate={() => {
+              updateStore.clearDot();
+              setIsUpdateOpen(true);
+            }}
             onOpenSettings={() => setIsSettingsOpen(true)}
         />
 
@@ -493,4 +498,3 @@ export default function App() {
       </div>
   );
 }
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     X,
     RefreshCw,
@@ -18,8 +18,8 @@ import {
     HardDrive,
 } from 'lucide-react';
 import { sound } from '../services/sound';
-import { api } from '../services/api';
-import { CheckUpdateResponse, DownloadStatus } from '../types';
+import { useUpdateStore } from '../services/useUpdateStore';
+import { updateStore } from '../services/updateStore';
 
 interface UpdateModalProps {
     isOpen: boolean;
@@ -49,6 +49,16 @@ export const formatSpeed = (speedBps?: number): string => {
     return `${(speedBps / (1024 * 1024)).toFixed(1)} MB/s`;
 };
 
+// 格式化预估/剩余时长
+export const formatDuration = (seconds?: number): string => {
+    if (typeof seconds !== 'number' || !isFinite(seconds) || seconds < 0) return '—';
+    if (seconds < 1) return '1 秒';
+    if (seconds < 60) return `${Math.ceil(seconds)} 秒`;
+    const m = Math.floor(seconds / 60);
+    const s = Math.round(seconds % 60);
+    return s > 0 ? `${m} 分 ${s} 秒` : `${m} 分钟`;
+};
+
 // 计算百分比 0 - 100
 export const calcPercentage = (downloaded: number, total?: number): number => {
     if (total && total > 0) {
@@ -62,29 +72,36 @@ export const calcPercentage = (downloaded: number, total?: number): number => {
 };
 
 export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => {
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const updateState = useUpdateStore();
     const [hasChecked, setHasChecked] = useState<boolean>(false);
-    const [updateData, setUpdateData] = useState<CheckUpdateResponse | null>(null);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-    // Auto Download & Update State: Fully driven by server API
-    const [downloadStatus, setDownloadStatus] = useState<DownloadStatus>('idle');
-    const [downloadProgress, setDownloadProgress] = useState<number>(0); // 已下载字节数 (bytes)
-    const [totalBytes, setTotalBytes] = useState<number | undefined>(undefined); // 总字节数 (bytes)
-    const [speedBps, setSpeedBps] = useState<number | undefined>(undefined); // 下载速度 (bytes/sec)
-    const [downloadError, setDownloadError] = useState<string | null>(null);
     const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
     const [isInstalling, setIsInstalling] = useState<boolean>(false);
     const [installSuccessMessage, setInstallSuccessMessage] = useState<string | null>(null);
 
-    const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const updateData = updateState.updateData;
+    const downloadStatus = updateState.downloadStatus;
+    const downloadProgress = updateState.progress;
+    const totalBytes = updateState.totalBytes;
+    const speedBps = updateState.speedBps;
+    const downloadError = updateState.error ?? null;
+    const errorMsg = updateState.checkError ?? null;
+    const isLoading = updateState.checking;
 
-    const stopPolling = () => {
-        if (pollTimerRef.current) {
-            clearInterval(pollTimerRef.current);
-            pollTimerRef.current = null;
+    // 包大小与预估/剩余时间
+    const packageSize = updateStore.getPackageSize();
+    const pkgSizeText = packageSize
+        ? `${packageSize.isDelta ? '增量更新包' : '完整安装包'} 约 ${formatBytes(packageSize.bytes)}`
+        : null;
+    const etaText = (() => {
+        if (downloadStatus === 'downloading' && speedBps && speedBps > 0 && totalBytes) {
+            const remaining = totalBytes - downloadProgress;
+            return `剩余约 ${formatDuration(remaining / speedBps)}`;
         }
-    };
+        if (packageSize) {
+            return `预计约 ${formatDuration(packageSize.bytes / (3 * 1024 * 1024))}`;
+        }
+        return null;
+    })();
 
     // Helper to format status display label
     const getStatusText = (status: string, percentage: number, speed?: number) => {
@@ -117,74 +134,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
     };
 
     const fetchUpdate = async () => {
-        setIsLoading(true);
-        setErrorMsg(null);
-        try {
-            // 1. 优先调用 /api/check_update 获取最新版本和分包配置信息
-            const res = await api.checkUpdate();
-            setUpdateData(res.data);
-            setHasChecked(true);
-
-            // 2. 查询当前真实下载进度状态
-            try {
-                const progressRes = await api.getDownloadProgress();
-                const { progress, total_bytes, speed_bps, status, error } = progressRes.data;
-                // 服务端暂停后状态是 'paused'，前端统一按 'stopped' 处理，避免界面空白
-                const normalizedStatus = (status || 'idle') === 'paused' ? 'stopped' : (status || 'idle');
-
-                setDownloadStatus(normalizedStatus);
-                setDownloadProgress(typeof progress === 'number' ? Math.max(0, progress) : 0);
-                setTotalBytes(typeof total_bytes === 'number' && total_bytes > 0 ? total_bytes : undefined);
-                setSpeedBps(typeof speed_bps === 'number' ? speed_bps : undefined);
-
-                if (normalizedStatus === 'downloading' || normalizedStatus.startsWith('verifying') || normalizedStatus === 'merging') {
-                    startProgressPolling();
-                } else if (normalizedStatus === 'error') {
-                    setDownloadError(error || '下载更新过程中发生错误');
-                } else if (normalizedStatus === 'idle') {
-                    setDownloadError(null);
-                    stopPolling();
-                }
-            } catch {
-                setDownloadStatus('idle');
-            }
-        } catch (err: unknown) {
-            const error = err as Error;
-            setErrorMsg(error.message || '检查更新失败，请稍后再试');
-            setHasChecked(true);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Poll /api/download_progress every 1 second
-    const startProgressPolling = () => {
-        stopPolling();
-        pollTimerRef.current = setInterval(async () => {
-            try {
-                const res = await api.getDownloadProgress();
-                const { progress, total_bytes, speed_bps, status, error } = res.data;
-                const normalizedStatus = (status || 'idle') === 'paused' ? 'stopped' : (status || 'idle');
-
-                setDownloadProgress(typeof progress === 'number' ? Math.max(0, progress) : 0);
-                if (typeof total_bytes === 'number' && total_bytes > 0) {
-                    setTotalBytes(total_bytes);
-                }
-                setSpeedBps(typeof speed_bps === 'number' ? speed_bps : undefined);
-                setDownloadStatus(normalizedStatus);
-
-                if (normalizedStatus === 'error') {
-                    setDownloadError(error || '下载更新过程中发生错误');
-                    stopPolling();
-                } else if (normalizedStatus === 'ready') {
-                    stopPolling();
-                } else if (normalizedStatus === 'stopped' || normalizedStatus === 'idle') {
-                    stopPolling();
-                }
-            } catch (err: unknown) {
-                console.warn('Polling download progress failed:', err);
-            }
-        }, 1000);
+        setHasChecked(true);
+        await updateStore.checkUpdate();
+        await updateStore.refreshProgressNow();
     };
 
     // 1. 开始更新 / 继续下载
@@ -193,63 +145,24 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
         sound.playClick();
         setIsActionLoading(true);
-        setDownloadError(null);
-        setDownloadStatus('downloading');
-
-        try {
-            const res = await api.startDownload();
-            if (res.data.status === 'error') {
-                setDownloadStatus('error');
-                setDownloadError(res.data.message || '发起更新失败，请稍后再试');
-            } else {
-                startProgressPolling();
-            }
-        } catch (err: unknown) {
-            const error = err as Error;
-            setDownloadStatus('error');
-            setDownloadError(error.message || '网络异常，发起更新请求失败');
-        } finally {
-            setIsActionLoading(false);
-        }
+        await updateStore.startDownload();
+        setIsActionLoading(false);
     };
 
     // 2. 暂停下载
     const handleStopDownload = async () => {
         sound.playClick();
         setIsActionLoading(true);
-        stopPolling();
-        try {
-            await api.stopDownload();
-            setDownloadStatus('stopped');
-            setSpeedBps(0);
-        } catch (err: unknown) {
-            console.warn('Stop download error:', err);
-            setDownloadStatus('stopped');
-            setSpeedBps(0);
-        } finally {
-            setIsActionLoading(false);
-        }
+        await updateStore.stopDownload();
+        setIsActionLoading(false);
     };
 
     // 3. 删除下载
     const handleDeleteDownload = async () => {
         sound.playClick();
         setIsActionLoading(true);
-        stopPolling();
-        try {
-            await api.deleteDownload();
-            setDownloadStatus('idle');
-            setDownloadProgress(0);
-            setSpeedBps(0);
-            setDownloadError(null);
-        } catch (err: unknown) {
-            console.warn('Delete download error:', err);
-            setDownloadStatus('idle');
-            setDownloadProgress(0);
-            setSpeedBps(0);
-        } finally {
-            setIsActionLoading(false);
-        }
+        await updateStore.deleteDownload();
+        setIsActionLoading(false);
     };
 
     // 4. 确认安装
@@ -258,10 +171,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         setIsInstalling(true);
         setIsActionLoading(true);
         try {
-            const res = await api.installUpdate();
+            const res = await updateStore.installUpdate();
             if (res.data.status === 'error') {
-                setDownloadStatus('error');
-                setDownloadError(res.data.message || '安装更新失败，请稍后重试');
+                updateStore.markDownloadError(res.data.message || '安装更新失败，请稍后重试');
             } else {
                 setInstallSuccessMessage('安装程序已启动！应用正在准备执行更新...');
             }
@@ -269,6 +181,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             setInstallSuccessMessage('安装程序已唤起，请根据屏幕提示完成安装。');
         } finally {
             setIsActionLoading(false);
+            setIsInstalling(false);
         }
     };
 
@@ -276,21 +189,10 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         if (isOpen) {
             fetchUpdate();
         } else {
-            stopPolling();
             setHasChecked(false);
-            setUpdateData(null);
-            setErrorMsg(null);
-            setDownloadStatus('idle');
-            setDownloadProgress(0);
-            setTotalBytes(undefined);
-            setSpeedBps(undefined);
-            setDownloadError(null);
             setIsInstalling(false);
             setInstallSuccessMessage(null);
         }
-        return () => {
-            stopPolling();
-        };
     }, [isOpen]);
 
     if (!isOpen) return null;
@@ -460,6 +362,14 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                         )}
                                     </div>
                                 </div>
+
+                                {/* 包大小与预估时间 */}
+                                {(pkgSizeText || etaText) && (
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500 font-medium bg-[#F8FAFC] border border-slate-200 rounded-lg px-2.5 py-1.5">
+                                        {pkgSizeText && <span className="text-slate-700 font-semibold">{pkgSizeText}</span>}
+                                        {etaText && <span>· {etaText}</span>}
+                                    </div>
+                                )}
 
                                 {/* Progress bar */}
                                 {(downloadStatus === 'downloading' ||

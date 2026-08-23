@@ -171,6 +171,9 @@ export interface AppSettings {
   showRecognitionSamples?: boolean; // 首页识别示例截图提示（test1~5）是否显示
   effectLevel?: EffectLevel; // 0: 关闭, 1: 轻微 (默认), 2: 标准, 3: 丰富
   floatingButtonsMode?: FloatingButtonsMode; // 'normal' 正常完整 | 'compact' 紧凑缩小 | 'hidden' 彻底隐藏
+  updateMode?: 'auto' | 'full'; // 'auto' 自动增量更新（默认）| 'full' 强制整包更新
+  autoCheckUpdate?: boolean; // 启动时是否自动检测更新（默认开启）
+  hideUpdateDot?: boolean; // 是否隐藏更新提示红点（默认不隐藏）
   [key: string]: unknown;
 }
 
@@ -185,6 +188,7 @@ export interface CheckUpdateResponse {
     files?: Array<{
       name: string;
       md5: string;
+      size?: number;
     }>;
   };
   delta?: {

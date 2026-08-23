@@ -9,7 +9,7 @@ import requests
 from py7zr.exceptions import UnsupportedCompressionMethodError
 
 import config
-from flask import Blueprint
+from flask import Blueprint, request
 from core.logger import logger
 from core.version import get_update_info
 import threading
@@ -43,6 +43,7 @@ class UpdateManager:
         self.pause_requested = False
         self.mode = "full"  # full=整包 / delta=增量包
         self.download_target = combined_zip  # 下载合并后的目标包名
+        self.force_full = False  # 用户选择强制整包更新
 
         # 用于计算下载速度
         self.speed_bps = 0  # 字节/秒
@@ -90,14 +91,15 @@ def build_download_plan():
         deltas = [latest["delta"]]
 
     match = None
-    for d in deltas:
-        if (
-            d.get("base_version") == config.APP_VERSION
-            and d.get("url")
-            and d.get("md5")
-        ):
-            match = d
-            break
+    if not updater.force_full:
+        for d in deltas:
+            if (
+                d.get("base_version") == config.APP_VERSION
+                and d.get("url")
+                and d.get("md5")
+            ):
+                match = d
+                break
 
     if match and os.path.exists(config.MANIFEST_FILE):
         url = match["url"].rstrip("/")
@@ -561,6 +563,11 @@ def start_download_api():
     if not updater.latest_info:
         logger.warning("[API] 开始下载失败: latest_info为空")
         return {"status": "error", "message": "无效操作"}
+
+    # 前端设置里选择的更新方式：auto=自动增量（默认），full=强制整包
+    mode = (request.args.get("mode") or "auto").lower()
+    updater.force_full = mode == "full"
+    logger.info(f"[API] 更新方式: {mode}, force_full={updater.force_full}")
 
     if updater.status == "downloading":
         logger.debug("[API] 已在下载中，跳过")

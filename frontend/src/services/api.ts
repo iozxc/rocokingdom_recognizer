@@ -667,14 +667,17 @@ export class ApiService {
               {
                 name: 'RocoKingdomRecognizer_part.7z.001',
                 md5: 'c8042c38c1a3781bdf40d63100456e9b',
+                size: 94371840,
               },
               {
                 name: 'RocoKingdomRecognizer_part.7z.002',
                 md5: '61897e197feaaba1b56606ca0ad767e9',
+                size: 94371840,
               },
               {
                 name: 'RocoKingdomRecognizer_part.7z.003',
                 md5: 'cfac22b59f623d574890e45556a8a6f8',
+                size: 26214400,
               },
             ],
           },
@@ -703,13 +706,13 @@ export class ApiService {
    * 4. 发起手动/自动下载更新
    * GET /api/start_download
    */
-  public async startDownload(): Promise<{
+  public async startDownload(mode: 'auto' | 'full' = 'auto'): Promise<{
     data: StartDownloadResponse;
     isOfflineMock: boolean;
   }> {
     try {
       const response = await axios.get<StartDownloadResponse>(
-          `${this.apiBase}/api/start_download`,
+          `${this.apiBase}/api/start_download?mode=${mode}`,
           { timeout: 5000 }
       );
       if (response.data) {
@@ -728,6 +731,9 @@ export class ApiService {
         };
       }
       // 离线/模拟测试模式：模拟下载步进 (字节单位)
+      // 模拟：增量约 20MB，整包约 210MB
+      this.simDownloadState.total_bytes = mode === 'full' ? 210 * 1024 * 1024 : 20 * 1024 * 1024;
+      this.simDownloadState.progress = 0;
       this.simDownloadState.status = 'downloading';
       this.simDownloadState.speed_bps = 2516582.4; // 2.4 MB/s
       if (this.simDownloadState.progress >= this.simDownloadState.total_bytes) {
