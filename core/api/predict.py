@@ -4,41 +4,16 @@ import tempfile
 from flask import Blueprint, request, url_for
 from PIL import Image
 
-from core.icon_names import scan_icon_names
 from core.ocr import ocr
 from core.processor import segment_icons
 import config
 from core.api.response import error, success
-from core.recognizer import ImageRecognizer
+from core.services.icon_catalog import icon_catalog
+from core.services.recognizers import models
 from core.utils import get_top_k_matches, get_icon_full_path
 from logger import logger
 
 bp = Blueprint("predict", __name__)
-
-names_dict = None
-
-
-def name_dicts():
-    global names_dict
-    if not names_dict:
-        logger.debug("names_dict未初始化，触发懒加载(api模块)")
-        names_dict = scan_icon_names()
-    return names_dict
-
-
-_recognizer = None
-
-
-def recognizer():
-    try:
-        global _recognizer
-        if not _recognizer:
-            logger.info(f"正在加载数据库: {config.FEATURES_DB}")
-            _recognizer = ImageRecognizer(config.RESNET50, config.FEATURES_DB)
-            logger.info("数据库加载成功！")
-        return _recognizer
-    except Exception as e:
-        logger.error(f"数据库加载失败: {e}", exc_info=True)
 
 
 def f(image):
@@ -58,7 +33,7 @@ def ocr_top_k_match(image, map_num, top_k=6):
     logger.debug(f"OCR识别文字: '{name}'")
 
     map_key = f"map{map_num}"
-    raw_result_list = get_top_k_matches(name, map_key, name_dicts(), top_k)
+    raw_result_list = get_top_k_matches(name, map_key, icon_catalog.get_names(), top_k)
 
     final_ocr_results = []
     for item in raw_result_list:
@@ -101,7 +76,7 @@ def predict():
         img = Image.open(temp_path).convert('RGB')
         logger.debug(f"[/predict] 图片尺寸: {img.size}")
 
-        feat_results, err = recognizer().match(img, map_num, threshold, top_k=top_k)
+        feat_results, err = models.get_icon_recognizer().match(img, map_num, threshold, top_k=top_k)
         logger.debug(f"[/predict] 特征匹配: 结果数={len(feat_results) if feat_results else 0}, err={err}")
 
         if err:
@@ -202,7 +177,7 @@ def predict_batch():
             feat_results = []
             if i < num_pil:
                 icon_img = pil_icons[i]
-                feat_results, err = recognizer().match(icon_img, map_num, threshold, top_k=top_k)
+                feat_results, err = models.get_icon_recognizer().match(icon_img, map_num, threshold, top_k=top_k)
                 if feat_results is None: feat_results = []
 
             # B. 获取 OCR 文字进行模糊匹配
@@ -210,7 +185,7 @@ def predict_batch():
             if i < num_ocr:
                 target_word = ocr_names[i]
                 # 获取匹配列表
-                matches = get_top_k_matches(target_word, map_name, name_dicts(), k=top_k)
+                matches = get_top_k_matches(target_word, map_name, icon_catalog.get_names(), k=top_k)
                 for m in matches:
                     # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
                     # 或者当没有图像块可用时，也接受这个结果

@@ -1,8 +1,4 @@
 import ctypes
-import json
-
-import config
-
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
 except Exception:
@@ -17,8 +13,8 @@ import win32ui
 from PIL import Image, ImageGrab
 
 from logger import logger
+from core.services.user_storage import user_storage
 
-USER_SETTINGS = {}
 SCENE_FEATURES = [
     # 记忆中的索米亚草原：索、米、亚；OCR经常识别错成 素
     ("map1", {"索", "米", "亚", "素"}),
@@ -58,42 +54,6 @@ def clean_debug_folder(folder_path: str, max_count: int = 30):
             logger.info(f"删除过期debug截图: {f.name}")
         except Exception as e:
             logger.warning(f"删除文件失败 {f.name}: {str(e)}")
-
-
-def load_setting_from_file_json():
-    global USER_SETTINGS
-    if not os.path.exists(config.DATA_FILE):
-        logger.debug("配置文件不存在，将使用默认配置")
-        return
-
-    try:
-        with open(config.DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        USER_SETTINGS = data.get("appSettings", {})
-
-    except json.JSONDecodeError:
-        logger.warning("配置文件格式损坏，将使用默认配置")
-    except Exception as e:
-        logger.warning(f"配置文件加载失败: {e}")
-
-
-def get_version_from_file_json():
-    print("==")
-    if not os.path.exists(config.DATA_FILE):
-        logger.debug("配置文件不存在，将使用默认配置")
-        return
-
-    try:
-        with open(config.DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        return data.get("version", 0)
-
-    except json.JSONDecodeError:
-        logger.warning("配置文件格式损坏，将使用默认配置")
-    except Exception as e:
-        logger.warning(f"配置文件加载失败: {e}")
 
 
 def capture_by_hwnd(hwnd):
@@ -185,10 +145,7 @@ def capture_by_grab(bbox):
 
 
 def capture_window(bbox=None, hwnd=None):
-    if "captureMode" not in USER_SETTINGS:
-        mode = "grab"
-    else:
-        mode = USER_SETTINGS["captureMode"]
+    mode = user_storage.get_app_settings().get("captureMode", "grab")
 
     if mode not in ("hwnd", "grab"):
         logger.error(f"capture_window: 不支持模式 {mode}，可选 grab/hwnd")
@@ -247,4 +204,4 @@ def match_scene_unique_char(ocr_raw_text: str):
     return None
 
 
-load_setting_from_file_json()
+user_storage.load()

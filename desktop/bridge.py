@@ -5,10 +5,9 @@ import time
 import pygetwindow as gw
 
 import config
-from core.api.predict import recognizer as recog
-from core.icon_names import scan_icon_names
-from core.map_classifier import MapClassifier
 from core.ocr import ocr
+from core.services.icon_catalog import icon_catalog
+from core.services.recognizers import models
 from core.utils import get_icon_full_path, get_top_k_matches
 from crop import crop_sections_from_pil_by_YOLOv8
 from logger import logger
@@ -24,8 +23,6 @@ class AppApi:
     def __init__(self, window_manager, app):
         self._windows = window_manager
         self._app = app
-        self._names_dict = None
-        self._map_classifier = None
 
     # ---------------- 窗口控制 ----------------
 
@@ -79,14 +76,12 @@ class AppApi:
             img.save(save_path, "JPEG", quality=90)
             logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
 
-            if not self._map_classifier:
-                logger.info("地图分类器未初始化，执行懒加载...")
-                self._map_classifier = MapClassifier(config.RESNET50, config.FEATURES2_DB)
+            map_classifier = models.get_map_classifier()
             if map_num is None:
                 ocr_map_name = ocr().recognize_text(title_pil)
                 map_name = match_scene_unique_char(ocr_map_name)
                 if map_name is None:
-                    map_name = self._map_classifier.match(title_pil)
+                    map_name = map_classifier.match(title_pil)
                     logger.info(f"map_name : ocr匹配失败")
                 else:
                     logger.info(f"map_name : ocr匹配{map_name}")
@@ -141,18 +136,15 @@ class AppApi:
                 "candidates": [{"name": f"{ocr_name}.png", "score": 1}]
             }
 
-        # OCR 辅助匹配
-        if not self._names_dict:
-            logger.debug(f"[槽位{i}] names_dict未初始化，触发懒加载")
-            self._names_dict = scan_icon_names(self._app)
-
-        ocr_results = get_top_k_matches(ocr_name, map_name, self._names_dict, k=9)
+        # OCR 辅助匹配（图标目录缓存由 IconCatalog 统一管理）
+        names_dict = icon_catalog.get_names(self._app)
+        ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=9)
         logger.debug(f"[槽位{i}] OCR模糊匹配候选数: {len(ocr_results)}")
 
         # 2. 特征匹配（主要瓶颈在 OCR，保持原有逻辑）
         feat_results = [[]]
         if item_img:
-            feat_results = recog().match(item_img, map_num, 0.25, 9)
+            feat_results = models.get_icon_recognizer().match(item_img, map_num, 0.25, 9)
         logger.debug(f"[槽位{i}] 特征匹配候选数: {len(feat_results[0]) if feat_results else 0}")
 
         # 合并逻辑（保持原有逻辑）
