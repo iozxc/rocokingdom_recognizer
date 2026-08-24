@@ -141,7 +141,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
             </div>
         ) : (
             /* Uniform Grid of Scaled Pet Icons */
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:gap-4">
+            <div className="grid grid-cols-[repeat(auto-fill,145px)] justify-center gap-3 sm:gap-4">
               {filteredPets.map((pet) => {
                 const key = `${currentMap.id}_${pet.name}`;
                 const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);
