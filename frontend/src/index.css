@@ -4,6 +4,15 @@
   html {
     /* 始终预留纵向滚动条，避免页面高度变化时滚动条出现/消失导致布局横向跳动 */
     overflow-y: scroll;
+    /* 隐藏右侧滚动条，但保留滚动能力 */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   body {
