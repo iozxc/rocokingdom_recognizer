@@ -33,6 +33,10 @@ _DEFAULT_MESSAGE = "正在启动，请稍候..."
 # 最长展示时间，避免异常情况下提示窗口一直挂着
 _MAX_LIFETIME_SECONDS = 30
 
+# 存活的提示窗口注册表：进程退出前统一 close，避免 Tk 解释器在错误的线程被清理
+_LIVE_HINTS = set()
+_LIVE_HINTS_LOCK = threading.Lock()
+
 
 def _round_rect(canvas, x1, y1, x2, y2, r, **kwargs):
     """在 Canvas 上画圆角矩形，返回 item id。"""
@@ -120,6 +124,9 @@ class _HintWindow:
                 except Exception:
                     pass
             logger.debug(f"提示窗口创建失败，忽略: {e}")
+        finally:
+            with _LIVE_HINTS_LOCK:
+                _LIVE_HINTS.discard(self)
 
     def _draw(self, canvas, title, message):
         # 外框：白底 + 蓝描边
@@ -206,14 +213,32 @@ class _HintWindow:
 
     def close(self):
         """请求关闭提示窗口并等待线程退出。"""
-        self._stop.set()
-        self._thread.join(timeout=2)
+        try:
+            self._stop.set()
+            self._thread.join(timeout=2)
+        finally:
+            with _LIVE_HINTS_LOCK:
+                _LIVE_HINTS.discard(self)
 
 
 def show_hint(title=_DEFAULT_TITLE, message=_DEFAULT_MESSAGE):
     """显示蓝白风格的启动/退出提示窗口，返回可 close 的对象；失败时返回 None。"""
     try:
-        return _HintWindow(title, message)
+        win = _HintWindow(title, message)
+        with _LIVE_HINTS_LOCK:
+            _LIVE_HINTS.add(win)
+        return win
     except Exception as e:
         logger.debug(f"提示窗口创建失败: {e}")
         return None
+
+
+def close_all_hints():
+    """关闭所有存活的提示窗口（供进程退出前调用，避免 Tcl 跨线程清理报错）。"""
+    with _LIVE_HINTS_LOCK:
+        windows = list(_LIVE_HINTS)
+    for win in windows:
+        try:
+            win.close()
+        except Exception as e:
+            logger.debug(f"关闭提示窗口失败: {e}")
