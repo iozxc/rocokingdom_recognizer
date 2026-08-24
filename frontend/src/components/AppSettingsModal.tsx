@@ -218,8 +218,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </button>
           </div>
 
-          {/* Content */}
-          <div className="p-5 space-y-5 text-xs text-slate-600">
+          {/* Content：主菜单与二级菜单横向滑动切换 */}
+          <div className="grid overflow-hidden">
+            <div className={`col-start-1 row-start-1 p-5 space-y-5 text-xs text-slate-600 transition-transform duration-300 ease-out ${view === 'main' ? 'translate-x-full' : 'translate-x-0'}`}>
             {view === 'update' ? (
                 <div className="space-y-5">
                   <div className="flex items-center justify-between">
@@ -282,7 +283,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     </div>
                   </div>
                 </div>
-            ) : view === 'system' ? (
+              ) : (
                 <div className="space-y-5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -302,8 +303,11 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     </button>
                   </div>
                 </div>
-            ) : (
-                <>
+              )}
+            </div>
+
+            {/* 主菜单 */}
+            <div className={`col-start-1 row-start-1 p-5 space-y-5 text-xs text-slate-600 transition-transform duration-300 ease-out ${view === 'main' ? 'translate-x-0' : '-translate-x-full'}`}>
             {/* Section 1: 视觉与特效 */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
@@ -638,9 +642,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
-                </>
-            )}
-
+            </div>
           </div>
 
           {/* Footer */}
