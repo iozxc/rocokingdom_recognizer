@@ -28,7 +28,7 @@ def run(app) -> None:
     _wait_for_server(port)
 
     window_manager = WindowManager(server_port=port)
-    api = AppApi(window_manager=window_manager, app=app)
+    api = AppApi(window_manager=window_manager)
     window_manager.js_api = api
 
     logger.info("启动主窗口...")

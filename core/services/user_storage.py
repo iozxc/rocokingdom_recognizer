@@ -6,7 +6,7 @@ import time
 import config
 from core.logger import logger
 
-DATA_FILE = config.DATA_FILE
+DATA_FILE = config.DATA_JSON
 
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".svg")
 
@@ -25,7 +25,7 @@ def _strip_ext(name):
 def _load_renames():
     """读取宠物改名映射：{旧名字: 新名字}（不含扩展名）。"""
     try:
-        with open(config.RENAMES_FILE, "r", encoding="utf-8") as f:
+        with open(config.RENAMES_JSON, "r", encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
         return {}

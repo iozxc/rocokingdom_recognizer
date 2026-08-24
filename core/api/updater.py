@@ -101,7 +101,7 @@ def build_download_plan():
                 match = d
                 break
 
-    if match and os.path.exists(config.MANIFEST_FILE):
+    if match and os.path.exists(config.MANIFEST_JSON):
         url = match["url"].rstrip("/")
         name = url.rsplit("/", 1)[-1]
         logger.info(

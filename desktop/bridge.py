@@ -20,9 +20,8 @@ SPECIAL_DIRECT_MATCH = ("魔力之源", "远行商人")
 class AppApi:
     """暴露给前端 window.pywebview.api 的对象。"""
 
-    def __init__(self, window_manager, app):
+    def __init__(self, window_manager):
         self._windows = window_manager
-        self._app = app
 
     # ---------------- 窗口控制 ----------------
 
@@ -137,7 +136,7 @@ class AppApi:
             }
 
         # OCR 辅助匹配（图标目录缓存由 IconCatalog 统一管理）
-        names_dict = icon_catalog.get_names(self._app)
+        names_dict = icon_catalog.get_names()
         ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=9)
         # 统一转换为数据集文件名（去掉 .png），便于与特征匹配结果按 name 去重
         for r in ocr_results:

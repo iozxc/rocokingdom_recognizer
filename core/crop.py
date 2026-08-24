@@ -10,7 +10,7 @@ from core.logger import logger
 from core.tools import clean_debug_folder
 
 # --- 配置 ---
-MODEL_PATH = config.SCANNER if config.SCANNER.endswith(".onnx") else config.SCANNER.replace(".pt", ".onnx")
+MODEL_PATH = config.SCANNER_MODAL if config.SCANNER_MODAL.endswith(".onnx") else config.SCANNER_MODAL.replace(".pt", ".onnx")
 INFER_IMGSZ = 1920
 CONF_THRESH = 0.1
 NMS_THRESH = 0.4

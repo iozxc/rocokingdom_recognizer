@@ -16,7 +16,7 @@ def load_map_pets():
     """
     global _map_pets_cache
     if _map_pets_cache is None:
-        with open(config.MAP_PETS_FILE1, "r", encoding="utf-8") as f:
+        with open(config.MAP_PETS_JSON1, "r", encoding="utf-8") as f:
             _map_pets_cache = json.load(f)
     return _map_pets_cache
 
@@ -42,10 +42,10 @@ def sprite_to_file(map_name, sprite_name):
     return None
 
 
-def scan_icon_names(app=None):
+def scan_icon_names():
     """从 map_pets1.json 读取所有精灵名（去掉 id 前缀与 .png 后缀）。
 
-    返回 {"map1": ["乌达_极夜", "迪莫"], ...}；app 参数仅为兼容旧签名保留。
+    返回 {"map1": ["乌达_极夜", "迪莫"], ...}
     """
     names_dict = {map_name: [] for map_name in config.MAP_LIST}
     try:

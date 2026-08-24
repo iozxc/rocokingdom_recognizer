@@ -8,14 +8,14 @@ class IconCatalog:
     def __init__(self):
         self._names_dict = None
 
-    def get_names(self, app=None):
+    def get_names(self):
         """返回 {"map1": ["小拉塔", ...], ...}；首次调用时扫描并缓存。
 
         - 在 Flask 请求上下文内调用可省略 app；
         - 在请求上下文外（如桌面桥接线程）需传入 Flask app 实例。
         """
         if self._names_dict is None:
-            self._names_dict = scan_icon_names(app)
+            self._names_dict = scan_icon_names()
         return self._names_dict
 
     def invalidate(self):

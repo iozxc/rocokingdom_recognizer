@@ -43,9 +43,9 @@ class OCREngine:
         """
         logger.debug("RapidOCR引擎初始化开始")
 
-        det_model_path = config.DET_MODEL_PATH
-        cls_model_path = config.CLS_MODEL_PATH
-        rec_model_path = config.REC_MODEL_PATH
+        det_model_path = config.DET_MODEL_MODAL
+        cls_model_path = config.CLS_MODEL_MODAL
+        rec_model_path = config.REC_MODEL_MODAL
 
         for name, path in [("det", det_model_path), ("cls", cls_model_path), ("rec", rec_model_path)]:
             if not os.path.exists(path):
