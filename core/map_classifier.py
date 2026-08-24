@@ -108,7 +108,7 @@ class MapClassifier:
         logger.debug(f"地图分类特征提取: 维度={len(feature)}, 耗时={elapsed:.1f}ms")
         return feature
 
-    def match(self, img_pil):
+    def match(self, img_pil, fallback_map="map1"):
         t0 = time.perf_counter()
         logger.debug("开始地图分类匹配")
 
@@ -116,13 +116,13 @@ class MapClassifier:
             query_feat = self.get_feature(img_pil)
         except Exception as e:
             logger.error(f"MapClassifier.match 输入图片处理失败: {e}", exc_info=True)
-            return "map1"
+            return fallback_map
 
         db = self.databases
 
         if not db or "features" not in db or len(db["features"]) == 0:
-            logger.warning("地图分类特征库为空，返回默认map1")
-            return "map1"
+            logger.warning(f"地图分类特征库为空，返回默认{fallback_map}")
+            return fallback_map
 
         similarities = np.dot(db["features"], query_feat)
         actual_k = min(1, len(db["features"]))
@@ -135,8 +135,8 @@ class MapClassifier:
             logger.info(f"地图分类结果: {result}, 最高相似度={max_sim:.4f}, 耗时={elapsed:.1f}ms")
             return result
 
-        logger.warning("地图分类无匹配结果，返回默认map1")
-        return "map1"
+        logger.warning(f"地图分类无匹配结果，返回默认{fallback_map}")
+        return fallback_map
 
 
 if __name__ == "__main__":

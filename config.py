@@ -62,6 +62,14 @@ TRIALS = [
         "collection_key": "encounteredPets",
         "dev_only": False,
         "map_list": ['map1', 'map2', 'map3'],
+        "scene_features": [
+            # 记忆中的索米亚草原：索、米、亚；OCR经常识别错成 素
+            ("map1", {"索", "米", "亚", "素"}),
+            # 记忆中的巨石阵：巨、石
+            ("map2", {"巨", "石"}),
+            # 记忆中的普拉塔草原：普、拉、塔
+            ("map3", {"普", "拉", "塔"}),
+        ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets1.json")),
         "icon_feature_path": get_resource_path(os.path.join("onnx", "features_icon_db_1.pkl")),
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_1.pkl"))
@@ -72,6 +80,8 @@ TRIALS = [
         "element": "fire",
         "collection_key": "encounteredPets2",
         "dev_only": True,
+        "map_list": ['map1', 'map2', 'map3'],
+        "scene_features": [],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets2.json")),
         "icon_feature_path": get_resource_path(os.path.join("onnx", "features_icon_db_2.pkl")),
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_2.pkl"))

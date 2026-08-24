@@ -17,16 +17,6 @@ from PIL import Image, ImageGrab
 from core.logger import logger
 from core.services.user_storage import user_storage
 
-SCENE_FEATURES = [
-    # 记忆中的索米亚草原：索、米、亚；OCR经常识别错成 素
-    ("map1", {"索", "米", "亚", "素"}),
-    # 记忆中的巨石阵：巨、石
-    ("map2", {"巨", "石"}),
-    # 记忆中的普拉塔草原：普、拉、塔
-    ("map3", {"普", "拉", "塔"})
-]
-
-
 def clean_debug_folder(folder_path: str, max_count: int = 30):
     """
     清理debug截图文件夹，最多保留max_count张，删除最旧的文件
@@ -194,12 +184,19 @@ def clean_text(raw_text: str):
     return s
 
 
-def match_scene_unique_char(ocr_raw_text: str):
+def get_scene_features(trial_key="grass"):
+    """按试炼返回场景独有字符特征（来自 config.TRIALS）。"""
+    from core.services.trials import get_trial_or_default
+    trial = get_trial_or_default(trial_key)
+    return trial.get("scene_features", [])
+
+
+def match_scene_unique_char(ocr_raw_text: str, trial_key="grass"):
     """
     独有单字匹配：只要命中该场景任意一个独有字符，返回场景名；都不命中返回None
     """
     txt = clean_text(ocr_raw_text)
-    for scene_name, char_set in SCENE_FEATURES:
+    for scene_name, char_set in get_scene_features(trial_key):
         for c in char_set:
             if c in txt:
                 return scene_name

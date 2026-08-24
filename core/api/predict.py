@@ -10,6 +10,7 @@ import config
 from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
 from core.services.recognizers import models
+from core.services.trials import get_trial
 from core.utils import get_top_k_matches, get_icon_file_name, strip_id_prefix
 from core.logger import logger
 
@@ -21,7 +22,7 @@ def f(image):
     return ocr_names
 
 
-def ocr_top_k_match(image, map_num, top_k=6):
+def ocr_top_k_match(image, map_num, top_k=6, trial_key="grass"):
     logger.debug(f"OCR top-k匹配开始: map_num={map_num}, top_k={top_k}")
 
     name = ocr().recognize_single_bottom_text(image)
@@ -33,11 +34,11 @@ def ocr_top_k_match(image, map_num, top_k=6):
     logger.debug(f"OCR识别文字: '{name}'")
 
     map_key = f"map{map_num}"
-    raw_result_list = get_top_k_matches(name, map_key, icon_catalog.get_names(), top_k)
+    raw_result_list = get_top_k_matches(name, map_key, icon_catalog.get_names(trial_key), top_k)
 
     final_ocr_results = []
     for item in raw_result_list:
-        file_name = strip_id_prefix(get_icon_file_name(map_key, item['name']))
+        file_name = strip_id_prefix(get_icon_file_name(map_key, item['name'], trial_key))
 
         if file_name:
             final_ocr_results.append({
@@ -53,7 +54,8 @@ def ocr_top_k_match(image, map_num, top_k=6):
 @bp.route('/predict', methods=['POST'])
 def predict():
     logger.info(f"[/predict] 请求开始, map_num={request.form.get('map_num')}, "
-                f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}")
+                f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
+                f"trial={request.form.get('trial', 'grass')}")
 
     if 'image' not in request.files:
         logger.warning("[/predict] 请求中无image字段")
@@ -61,8 +63,12 @@ def predict():
 
     file = request.files.get('image')
     map_num = request.form.get('map_num', 1)
+    trial_key = request.form.get('trial', 'grass')
     threshold = float(request.form.get('threshold', config.DEFAULT_THRESHOLD))
     top_k = int(request.form.get('top_k', config.DEFAULT_TOPK))
+
+    if get_trial(trial_key) is None:
+        return error(f"未知的徽章试炼: {trial_key}", 400)
 
     if not file:
         logger.warning("[/predict] image文件为空")
@@ -76,14 +82,17 @@ def predict():
         img = Image.open(temp_path).convert('RGB')
         logger.debug(f"[/predict] 图片尺寸: {img.size}")
 
-        feat_results, err = models.get_icon_recognizer().match(img, map_num, threshold, top_k=top_k)
+        recognizer = models.get_icon_recognizer(trial_key)
+        if recognizer is None:
+            return error(f"试炼 {trial_key} 的图标特征库不可用", 500)
+        feat_results, err = recognizer.match(img, map_num, threshold, top_k=top_k)
         logger.debug(f"[/predict] 特征匹配: 结果数={len(feat_results) if feat_results else 0}, err={err}")
 
         if err:
             logger.warning(f"[/predict] 特征匹配返回错误: {err}")
             return error(err, 500)
 
-        ocr_results = ocr_top_k_match(temp_path, map_num, top_k)
+        ocr_results = ocr_top_k_match(temp_path, map_num, top_k, trial_key)
         logger.debug(f"[/predict] OCR匹配结果数: {len(ocr_results)}")
 
         combined_results = feat_results + ocr_results
@@ -107,10 +116,14 @@ def predict():
         if final_list:
             map_name = f"map{map_num}"
             for res in final_list:
-                res['view_url'] = url_for('main.get_icon_file',
-                                          map_name=map_name,
-                                          filename=res['filename'],
-                                          _external=True)
+                icon_kwargs = {
+                    "map_name": map_name,
+                    "filename": res['filename'],
+                    "_external": True,
+                }
+                if trial_key != "grass":
+                    icon_kwargs["trial"] = trial_key
+                res['view_url'] = url_for('main.get_icon_file', **icon_kwargs)
 
             top1 = final_list[0]
             logger.info(f"[/predict] 预测成功: top1={top1['filename']}({top1['score']:.3f}), "
@@ -128,7 +141,7 @@ def predict():
 def predict_batch():
     logger.info(f"[/init_batch] 请求开始, map_num={request.form.get('map_num')}, "
                 f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
-                f"total_count={request.form.get('total_count')}")
+                f"total_count={request.form.get('total_count')}, trial={request.form.get('trial', 'grass')}")
 
     if 'image' not in request.files:
         logger.warning("[/init_batch] 请求中无image字段")
@@ -136,9 +149,13 @@ def predict_batch():
 
     file = request.files['image']
     map_num = int(request.form.get('map_num', 1))
+    trial_key = request.form.get('trial', 'grass')
     threshold = float(request.form.get('threshold', config.DEFAULT_THRESHOLD))
     top_k = int(request.form.get('top_k', 6))
     total_count = int(request.form.get('total_count', 999))
+
+    if get_trial(trial_key) is None:
+        return error(f"未知的徽章试炼: {trial_key}", 400)
 
     temp_path = None
     try:
@@ -177,7 +194,11 @@ def predict_batch():
             feat_results = []
             if i < num_pil:
                 icon_img = pil_icons[i]
-                feat_results, err = models.get_icon_recognizer().match(icon_img, map_num, threshold, top_k=top_k)
+                recognizer = models.get_icon_recognizer(trial_key)
+                if recognizer is None:
+                    logger.warning(f"试炼 {trial_key} 的图标特征库不可用，跳过特征匹配")
+                else:
+                    feat_results, err = recognizer.match(icon_img, map_num, threshold, top_k=top_k)
                 if feat_results is None: feat_results = []
 
             # B. 获取 OCR 文字进行模糊匹配
@@ -185,11 +206,11 @@ def predict_batch():
             if i < num_ocr:
                 target_word = ocr_names[i]
                 # 获取匹配列表
-                matches = get_top_k_matches(target_word, map_name, icon_catalog.get_names(), k=top_k)
+                matches = get_top_k_matches(target_word, map_name, icon_catalog.get_names(trial_key), k=top_k)
                 for m in matches:
                     # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
                     # 或者当没有图像块可用时，也接受这个结果
-                    file_name = strip_id_prefix(get_icon_file_name(map_name, m['name']))
+                    file_name = strip_id_prefix(get_icon_file_name(map_name, m['name'], trial_key))
                     if file_name:
                         ocr_match_results.append({
                             "match_path": file_name,
@@ -219,10 +240,14 @@ def predict_batch():
                 # if final_candidates[0]['score'] < 0.8: ...
 
                 for res in final_candidates:
-                    res['view_url'] = url_for('main.get_icon_file',
-                                              map_name=map_name,
-                                              filename=res['filename'],
-                                              _external=True)
+                    icon_kwargs = {
+                        "map_name": map_name,
+                        "filename": res['filename'],
+                        "_external": True,
+                    }
+                    if trial_key != "grass":
+                        icon_kwargs["trial"] = trial_key
+                    res['view_url'] = url_for('main.get_icon_file', **icon_kwargs)
                 res_item.update({"status": "matched", "candidates": final_candidates})
                 top1 = final_candidates[0]
                 logger.debug(f"[/init_batch] 槽位{i}: matched -> {top1['filename']}({top1['score']:.3f}), "

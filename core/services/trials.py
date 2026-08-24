@@ -1,7 +1,7 @@
 """徽章试炼目录与全图鉴读取服务。
 
-草系徽章试炼沿用原来的三张地图（map1/map2/map3）与 map_pets1.json；
-火系徽章试炼没有独立地图数据，因此使用全图鉴 roco_all_pets.json 提供自选入口。
+试炼相关的地图、数据文件与模型路径统一放在 config.TRIALS 里；
+草系沿用原来的三张地图与 map_pets1.json，火系等新试炼按各自配置加载。
 """
 import json
 
@@ -16,10 +16,21 @@ def available_trials():
     """
     dev = config.is_dev_environment()
     return [
-        dict(trial)
+        _json_safe(dict(trial))
         for trial in config.TRIALS
         if not trial.get("dev_only") or dev
     ]
+
+
+def _json_safe(value):
+    """把配置里的 set 等非 JSON 类型转成可序列化结构（set -> 排序后的 list）。"""
+    if isinstance(value, set):
+        return sorted(_json_safe(v) for v in value)
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
 
 
 def get_trial(trial_key):
@@ -28,6 +39,17 @@ def get_trial(trial_key):
         if trial.get("key") == trial_key:
             return dict(trial)
     return None
+
+
+def get_trial_or_default(trial_key):
+    """按 key 获取试炼定义；未知 key 回退到第一个正式试炼（草系）。"""
+    trial = get_trial(trial_key)
+    if trial is not None:
+        return trial
+    for fallback in config.TRIALS:
+        if not fallback.get("dev_only"):
+            return dict(fallback)
+    return {}
 
 
 def load_pokedex():
@@ -59,4 +81,3 @@ def load_pokedex():
             pet_id = 0
         result.append({"id": pet_id, "name": name})
     return result
-

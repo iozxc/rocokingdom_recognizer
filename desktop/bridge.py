@@ -11,6 +11,7 @@ from core.services.recognizers import models
 from core.utils import get_icon_file_name, get_top_k_matches, strip_id_prefix
 from core.crop import crop_sections_from_pil_by_YOLOv8
 from core.logger import logger
+from core.services.trials import get_trial_or_default
 from core.tools import capture_window, clean_debug_folder, match_scene_unique_char
 
 # OCR 命中这些名称时直接匹配，无需模糊匹配
@@ -41,11 +42,12 @@ class AppApi:
 
     # ---------------- 截图识别 ----------------
 
-    def capture_and_recognize(self, target_title="计算器", map_num=None):
+    def capture_and_recognize(self, target_title="计算器", map_num=None, trial_key="grass"):
         t_total = time.perf_counter()
-        logger.info(f"开始截图识别，目标窗口: {target_title}")
+        logger.info(f"开始截图识别，目标窗口: {target_title}, trial={trial_key}")
 
         try:
+            trial = get_trial_or_default(trial_key)
             windows = gw.getWindowsWithTitle(target_title)
             if not windows:
                 logger.warning(f"未找到目标窗口: {target_title}")
@@ -75,13 +77,19 @@ class AppApi:
             img.save(save_path, "JPEG", quality=90)
             logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
 
-            map_classifier = models.get_map_classifier()
+            map_classifier = models.get_map_classifier(trial_key)
             if map_num is None:
                 ocr_map_name = ocr().recognize_text(title_pil)
-                map_name = match_scene_unique_char(ocr_map_name)
+                map_name = match_scene_unique_char(ocr_map_name, trial_key)
                 if map_name is None:
-                    map_name = map_classifier.match(title_pil)
-                    logger.info(f"map_name : ocr匹配失败")
+                    if map_classifier is not None:
+                        map_name = map_classifier.match(
+                            title_pil, fallback_map=trial.get("map_list", ["map1"])[0]
+                        )
+                        logger.info(f"map_name : ocr匹配失败，使用分类器")
+                    else:
+                        map_name = trial.get("map_list", ["map1"])[0]
+                        logger.warning(f"map_name : 地图分类器不可用，使用默认 {map_name}")
                 else:
                     logger.info(f"map_name : ocr匹配{map_name}")
                 map_num = int(map_name[3])
@@ -97,7 +105,7 @@ class AppApi:
                     _items_pil = items_pil[i]
                 if len(names_pil) > i:
                     _names_pil = names_pil[i]
-                result = self._process_single_item(i, _names_pil, _items_pil, map_num, map_name)
+                result = self._process_single_item(i, _names_pil, _items_pil, map_num, map_name, trial_key)
                 all_results.append(result)
 
             elapsed_total = (time.perf_counter() - t_total) * 1000
@@ -112,13 +120,13 @@ class AppApi:
             logger.error(f"截图识别异常: {e}", exc_info=True)
             return {"status": "error", "message": str(e)}
 
-    def capture_and_recognize_by_map(self, map_num):
-        return self.capture_and_recognize(config.GAME_WINDOW_TITLE, map_num)
+    def capture_and_recognize_by_map(self, map_num, trial_key="grass"):
+        return self.capture_and_recognize(config.GAME_WINDOW_TITLE, map_num, trial_key)
 
-    def _process_single_item(self, i, name_img, item_img, map_num, map_name):
+    def _process_single_item(self, i, name_img, item_img, map_num, map_name, trial_key="grass"):
         """单个槽位的识别与匹配流程"""
         t_start = time.perf_counter()
-        logger.debug(f"[槽位{i}] 开始处理，地图={map_name}(map{map_num})")
+        logger.debug(f"[槽位{i}] 开始处理，试炼={trial_key}，地图={map_name}(map{map_num})")
 
         # 1. OCR 识别 (使用单例且跳过检测)
         engine = ocr()
@@ -136,11 +144,11 @@ class AppApi:
             }
 
         # OCR 辅助匹配（图标目录缓存由 IconCatalog 统一管理）
-        names_dict = icon_catalog.get_names()
+        names_dict = icon_catalog.get_names(trial_key)
         ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=9)
         # 统一转换为数据集文件名（去掉 .png），便于与特征匹配结果按 name 去重
         for r in ocr_results:
-            fname = get_icon_file_name(map_name, r['name'])
+            fname = get_icon_file_name(map_name, r['name'], trial_key)
             fname = strip_id_prefix(fname)
             r['name'] = fname[:-4] if fname.lower().endswith('.png') else fname
         logger.debug(f"[槽位{i}] OCR模糊匹配候选数: {len(ocr_results)}")
@@ -148,7 +156,11 @@ class AppApi:
         # 2. 特征匹配（主要瓶颈在 OCR，保持原有逻辑）
         feat_results = [[]]
         if item_img:
-            feat_results = models.get_icon_recognizer().match(item_img, map_num, 0.25, 9)
+            recognizer = models.get_icon_recognizer(trial_key)
+            if recognizer is None:
+                logger.warning(f"[槽位{i}] 试炼 {trial_key} 图标特征库不可用，跳过特征匹配")
+            else:
+                feat_results = recognizer.match(item_img, map_num, 0.25, 9)
         logger.debug(f"[槽位{i}] 特征匹配候选数: {len(feat_results[0]) if feat_results else 0}")
 
         # 合并逻辑（保持原有逻辑）
@@ -175,7 +187,7 @@ class AppApi:
 
         ocr_match_results = []
         for m in final_list:
-            file_name = strip_id_prefix(get_icon_file_name(map_name, m['name']))
+            file_name = strip_id_prefix(get_icon_file_name(map_name, m['name'], trial_key))
             if file_name:
                 ocr_match_results.append({
                     "filename": os.path.basename(file_name),

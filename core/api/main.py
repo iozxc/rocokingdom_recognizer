@@ -1,16 +1,16 @@
 import os
-from flask import Blueprint, Response, current_app, send_from_directory, url_for
+from flask import Blueprint, Response, current_app, request, send_from_directory, url_for
 
-import config
 from core.api.response import error, success
 from core.db import get_db
 from core.icon_names import load_map_pets, sprite_to_file
 from core.logger import logger
+from core.services.trials import get_trial_or_default
 from core.utils import strip_id_prefix
 
 bp = Blueprint("main", __name__)
 
-ICONS = None
+ICONS = {}
 ICON_FILE_CACHE = {}
 
 
@@ -29,16 +29,17 @@ def serve_file(path):
 
 @bp.route('/icons', methods=['GET'])
 def list_icons():
-    global ICONS
-    """从 map_pets1.json 读取每个 map 的精灵（数据集文件名）及其访问 URL，按图鉴 id 排序。"""
+    """读取指定试炼每个 map 的精灵（数据集文件名）及其访问 URL，按图鉴 id 排序。"""
+    trial_key = request.args.get("trial", "grass")
     try:
-        if ICONS:
-            logger.debug(f"[GET /icons] icons已缓存")
-            return success(data=ICONS)
+        if trial_key in ICONS:
+            logger.debug(f"[GET /icons] icons已缓存 trial={trial_key}")
+            return success(data=ICONS[trial_key])
 
+        trial = get_trial_or_default(trial_key)
         icons_structure = {}
-        map_pets = load_map_pets()
-        for map_name in config.TRIALS[0]["map_list"]:
+        map_pets = load_map_pets(trial_key)
+        for map_name in trial.get("map_list", []):
             entries = map_pets.get(map_name, {})
             items = []
             for filename, meta in sorted(
@@ -52,7 +53,7 @@ def list_icons():
                 })
             icons_structure[map_name] = {"count": len(items), "items": items}
 
-        ICONS = icons_structure
+        ICONS[trial_key] = icons_structure
         return success(data=icons_structure)
 
     except Exception as e:
@@ -63,6 +64,7 @@ def list_icons():
 def get_icon_file(map_name, filename):
     """从缓存/datasets.db 返回图片二进制流；兼容旧命名（精灵名）反查。"""
     global ICON_FILE_CACHE
+    trial_key = request.args.get("trial", "grass")
     try:
         db_path = filename[:-4] if filename.lower().endswith('.png') else filename
 
@@ -75,7 +77,7 @@ def get_icon_file(map_name, filename):
 
         if row is None:
             # 旧命名（如 乌达_极夜.png）通过关联 JSON 反查数据集文件名
-            mapped = sprite_to_file(map_name, filename)
+            mapped = sprite_to_file(map_name, filename, trial_key)
             if mapped:
                 db_path = mapped[:-4] if mapped.lower().endswith('.png') else mapped
                 if db_path in ICON_FILE_CACHE:

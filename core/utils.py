@@ -27,13 +27,13 @@ def strip_id_prefix(name):
     return m.group(1) if m else name
 
 
-def get_icon_file_name(map_name, icon_name):
+def get_icon_file_name(map_name, icon_name, trial_key="grass"):
     """返回该 map 精灵对应的数据集文件名（如 '258_乌达_极夜.png'）。
 
     兼容传入精灵名（'乌达_极夜'）或数据集文件名（带/不带 .png 后缀）。
     找不到映射时原样补 .png 后缀返回。
     """
-    fname = sprite_to_file(map_name, icon_name)
+    fname = sprite_to_file(map_name, icon_name, trial_key)
     if fname is None:
         base = icon_name[:-4] if icon_name.lower().endswith('.png') else icon_name
         fname = base + '.png'
