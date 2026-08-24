@@ -12,6 +12,7 @@ from core.utils import get_icon_file_name, get_top_k_matches, strip_id_prefix
 from core.crop import crop_sections_from_pil_by_YOLOv8
 from core.logger import logger
 from core.services.trials import get_trial_or_default
+from core.services.trial_filter import filter_candidates_by_trial
 from core.tools import capture_window, clean_debug_folder, match_scene_unique_char
 
 # OCR 命中这些名称时直接匹配，无需模糊匹配
@@ -145,7 +146,7 @@ class AppApi:
 
         # OCR 辅助匹配（图标目录缓存由 IconCatalog 统一管理）
         names_dict = icon_catalog.get_names(trial_key)
-        ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=9)
+        ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=36)
         # 统一转换为数据集文件名（去掉 .png），便于与特征匹配结果按 name 去重
         for r in ocr_results:
             fname = get_icon_file_name(map_name, r['name'], trial_key)
@@ -156,11 +157,11 @@ class AppApi:
         # 2. 特征匹配（主要瓶颈在 OCR，保持原有逻辑）
         feat_results = [[]]
         if item_img:
-            recognizer = models.get_icon_recognizer(trial_key)
+            recognizer = models.get_icon_recognizer()
             if recognizer is None:
                 logger.warning(f"[槽位{i}] 试炼 {trial_key} 图标特征库不可用，跳过特征匹配")
             else:
-                feat_results = recognizer.match(item_img, map_num, 0.25, 9)
+                feat_results = recognizer.match(item_img, 0.25, 36)
         logger.debug(f"[槽位{i}] 特征匹配候选数: {len(feat_results[0]) if feat_results else 0}")
 
         # 合并逻辑（保持原有逻辑）
@@ -182,8 +183,11 @@ class AppApi:
             logger.debug(f"[槽位{i}] 过滤后仅{len(filtered)}个，不足3个，回退保留原始前3个")
             final_list = sorted_all[:3]
         else:
-            # 最多 9 个
-            final_list = filtered[:9]
+            # 最多 36 个（先多取，白名单过滤后仍有足够候选）
+            final_list = filtered[:36]
+
+        # 全图鉴识别后的服务端筛选：草系只保留白名单精灵，火系不过滤
+        final_list = filter_candidates_by_trial(final_list, trial_key, map_name=map_name)
 
         ocr_match_results = []
         for m in final_list:
