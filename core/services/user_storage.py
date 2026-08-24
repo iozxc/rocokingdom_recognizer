@@ -92,6 +92,7 @@ def _apply_renames(pets):
 DEFAULT_STRUCTURE = {
     "version": 0,
     "encounteredPets": {},
+    "encounteredPets2": {},
     "thresholds": {},
     "appSettings": {},
 }
@@ -118,13 +119,26 @@ class UserStorage:
         try:
             with open(self._data_file, "r", encoding="utf-8") as f:
                 self._cache = json.load(f)
+
+            # 归一化：确保所有集合字段（草系/火系/阈值/设置）都存在。
+            # 只修正内存结构、不主动落盘，避免每次启动都刷新版本号；
+            # 下次 save() 时这些默认值会随合并写入一起持久化。
+            for key in ("encounteredPets", "encounteredPets2", "thresholds", "appSettings"):
+                if not isinstance(self._cache.get(key), dict):
+                    self._cache[key] = {}
+
             pets, changed = _apply_renames(self._cache.get("encounteredPets", {}))
             if changed:
                 self._cache["encounteredPets"] = pets
                 self._persist(self._cache)
                 logger.info("检测到宠物改名，已自动迁移遇到记录")
             pet_count = len(self._cache.get("encounteredPets", {}))
-            logger.debug(f"存储文件加载成功: version={self._cache.get('version')}, 遇到精灵数={pet_count}")
+            # fire_pet_count = len(self._cache.get("encounteredPets2", {}))
+            logger.debug(
+                f"存储文件加载成功: version={self._cache.get('version')}, "
+                f"遇到精灵数={pet_count}"
+                # f"遇到精灵数={pet_count}, 火系精灵数={fire_pet_count}"
+            )
         except Exception as e:
             logger.error(f"存储文件加载失败，返回默认结构: {e}", exc_info=True)
             self._cache = dict(DEFAULT_STRUCTURE)
@@ -154,15 +168,28 @@ class UserStorage:
         return self.save(data)
 
     def save(self, payload: dict) -> dict:
-        """写回存储文件，更新内存缓存并刷新版本号。"""
-        pets, _ = _apply_renames(payload.get("encounteredPets", {}))
-        payload["encounteredPets"] = pets
-        pet_count = len(payload.get("encounteredPets", {}))
+        """写回存储文件，更新内存缓存并刷新版本号。
+
+        与既有缓存合并：这样前端只提交某个试炼的字段时，不会误删其他试炼的数据
+        （例如草系前端提交时不会抹掉火系的 encounteredPets2）。
+        """
+        data = dict(self.load() or {})
+        if payload:
+            data.update(payload)
+
+        data.setdefault("encounteredPets", {})
+        data.setdefault("encounteredPets2", {})
+        data.setdefault("thresholds", {})
+        data.setdefault("appSettings", {})
+
+        pets, _ = _apply_renames(data.get("encounteredPets", {}))
+        data["encounteredPets"] = pets
+        pet_count = len(data.get("encounteredPets", {}))
         try:
-            result = self._persist(payload)
+            result = self._persist(data)
             logger.info(
                 f"保存存储文件: 遇到精灵数={pet_count}, "
-                f"阈值={len(payload.get('thresholds', {}))} version={result['version']}"
+                f"阈值={len(data.get('thresholds', {}))} version={result['version']}"
             )
         except Exception as e:
             logger.error(f"存储文件保存失败: {e}", exc_info=True)

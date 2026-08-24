@@ -14,13 +14,14 @@ import { UpdateModal } from './components/UpdateModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
+import { FireBadgeTrial } from './components/FireBadgeTrial';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
 import { api } from './services/api';
 import { storage } from './services/storage';
 import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
-import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode } from './types';
+import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial } from './types';
 import { isPetEncounteredInRecords } from './utils/petHelper';
 
 export default function App() {
@@ -36,6 +37,10 @@ export default function App() {
   const [isUpdateOpen, setIsUpdateOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [view, setView] = useState<'assistant' | 'hub'>('assistant');
+  const [trials, setTrials] = useState<Trial[]>([
+    { key: 'grass', title: '草系徽章试炼', element: 'grass', collection_key: 'encounteredPets', dev_only: false },
+  ]);
+  const [activeTrialKey, setActiveTrialKey] = useState<'grass' | 'fire'>('grass');
 
   const [effectLevel, setEffectLevel] = useState<EffectLevel>(() => {
     return storage.getSetting<EffectLevel>('effectLevel', 0);
@@ -120,6 +125,13 @@ export default function App() {
     refreshRecords();
     fetchIconsData();
     updateStore.init();
+
+    // 拉取后端可见的试炼列表（火系仅开发环境返回）
+    api.getTrials().then((res) => {
+      if (Array.isArray(res.trials)) {
+        setTrials(res.trials);
+      }
+    });
 
     // 订阅 storage 变更（当从 Flask 后端加载完成时自动更新 UI）
     const unsubscribeRecords = storage.subscribe((newRecords) => {
@@ -334,6 +346,19 @@ export default function App() {
     }, 150);
   };
 
+  const fireTrialAvailable = trials.some((t) => t.key === 'fire');
+
+  if (view === 'assistant' && activeTrialKey === 'fire' && fireTrialAvailable) {
+    return (
+        <FireBadgeTrial
+            onBack={() => {
+              setActiveTrialKey('grass');
+              setView('hub');
+            }}
+        />
+    );
+  }
+
   return (
       <div className="min-h-screen flex flex-col selection:bg-sky-200 selection:text-sky-900 pb-12 relative">
         {/* Sleek Commercial Feedback Pop Notification & Confetti */}
@@ -385,8 +410,10 @@ export default function App() {
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
           {view === 'hub' ? (
               <AssistantHub
-                  onSelectAssistant={() => {
+                  trials={trials}
+                  onSelectAssistant={(trialKey) => {
                     window.scrollTo(0, 0);
+                    setActiveTrialKey(trialKey === 'fire' ? 'fire' : 'grass');
                     setView('assistant');
                   }}
               />

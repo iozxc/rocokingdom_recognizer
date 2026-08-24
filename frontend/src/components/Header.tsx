@@ -1,6 +1,7 @@
 import React from 'react';
 import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
+import { MapConfig } from '../types';
 import { sound } from '../services/sound';
 import { useUpdateStore } from '../services/useUpdateStore';
 
@@ -25,6 +26,8 @@ interface HeaderProps {
     onOpenSettings?: () => void;
     onOpenHub?: () => void;
     showMapNav?: boolean;
+    mapsConfig?: MapConfig[];
+    devBadge?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -40,6 +43,8 @@ export const Header: React.FC<HeaderProps> = ({
                                                   onOpenSettings,
                                                   onOpenHub,
                                                   showMapNav = true,
+                                                  mapsConfig,
+                                                  devBadge,
                                               }) => {
     const updateState = useUpdateStore();
     const isBusyDownloading =
@@ -97,6 +102,11 @@ export const Header: React.FC<HeaderProps> = ({
                                         <span>洛克王国</span>
                                     <span className="text-[#FEE061] text-base sm:text-lg">徽章试炼助手</span>
                                 </h1>
+                                    {devBadge && (
+                                        <span className="text-[10px] font-black text-orange-100 bg-orange-500/40 border border-white/30 px-2 py-0.5 rounded-full">
+                                            DEV
+                                        </span>
+                                    )}
                             </div>
                             <p className="text-xs text-white/80 font-medium">
                                 精灵图鉴识别 · 地图筛选 · 本地记录
@@ -176,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {/* Map Nav Buttons with Individual Counts */}
                     <div className={`flex items-center gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full ${showMapNav ? '' : 'invisible'}`}>
-                        {MAP_CONFIGS.map((map) => {
+                        {(mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS).map((map) => {
                             const isActive = activeMapNum === map.num;
                             const mapStat = mapsStats.find((s) => s.num === map.num);
                             const mapEnc = mapStat?.encountered ?? 0;
@@ -205,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({
                                   : 'bg-[#60A5FA]'
                       }`}
                   />
-                                    <span>{map.num}、{map.name.replace('记忆中的', '')}</span>
+                                    <span>{map.num}、{map.name.replace('记忆中的', '').replace('火系徽章试炼', '')}</span>
 
                                     {/* Individual Map Count Tag inside tab */}
                                     <span

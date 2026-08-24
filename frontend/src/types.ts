@@ -110,6 +110,37 @@ export interface EncounterRecord {
   note?: string;
 }
 
+export interface Trial {
+  key: string; // 'grass' | 'fire'
+  title: string;
+  element: string;
+  collection_key: string;
+  dev_only: boolean;
+}
+
+export interface TrialsApiResponse {
+  status: 'success' | 'error';
+  data: {
+    trials: Trial[];
+  };
+  message?: string;
+}
+
+export interface FirePokedexEntry {
+  id: number;
+  name: string;
+  url?: string;
+}
+
+export interface FirePokedexApiResponse {
+  status: 'success' | 'error';
+  data: {
+    pets: FirePokedexEntry[];
+    count: number;
+  };
+  message?: string;
+}
+
 export interface MapConfig {
   id: string; // 'map1', 'map2', 'map3'
   num: number; // 1, 2, 3

@@ -18,6 +18,10 @@ import {
   DownloadStatus,
   SubmitFeedbackPayload,
   SubmitFeedbackResponse,
+  TrialsApiResponse,
+  FirePokedexApiResponse,
+  FirePokedexEntry,
+  Trial,
 } from '../types';
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
 
@@ -66,6 +70,56 @@ export class ApiService {
         online: false,
         message: error.message || '无法连接到后端 (http://127.0.0.1:5000)',
       };
+    }
+  }
+
+  /**
+   * 获取当前环境可见的徽章试炼列表（打包环境不返回火系试炼）。
+   */
+  public async getTrials(): Promise<{ trials: Trial[]; isOfflineMock: boolean }> {
+    try {
+      const response = await axios.get<TrialsApiResponse>(`${this.apiBase}/api/trials`, {
+        timeout: 4000,
+      });
+      if (response.data?.status === 'success' && Array.isArray(response.data.data?.trials)) {
+        return { trials: response.data.data.trials, isOfflineMock: false };
+      }
+      throw new Error('试炼列表接口返回数据格式不符合规范');
+    } catch (err: unknown) {
+      const error = err as AxiosError;
+      console.warn('API getTrials failed, falling back to grass-only trial:', error.message);
+      return {
+        trials: [
+          {
+            key: 'grass',
+            title: '草系徽章试炼',
+            element: 'grass',
+            collection_key: 'encounteredPets',
+            dev_only: false,
+          },
+        ],
+        isOfflineMock: true,
+      };
+    }
+  }
+
+  /**
+   * 火系试炼：读取全图鉴精灵列表，供用户自选。
+   */
+  public async getFireTrialPets(): Promise<{ pets: FirePokedexEntry[]; isOfflineMock: boolean }> {
+    try {
+      const response = await axios.get<FirePokedexApiResponse>(
+          `${this.apiBase}/api/trials/fire/pets`,
+          { timeout: 6000 }
+      );
+      if (response.data?.status === 'success' && Array.isArray(response.data.data?.pets)) {
+        return { pets: response.data.data.pets, isOfflineMock: false };
+      }
+      throw new Error('火系全图鉴接口返回数据格式不符合规范');
+    } catch (err: unknown) {
+      const error = err as AxiosError;
+      console.warn('API getFireTrialPets failed:', error.message);
+      return { pets: [], isOfflineMock: true };
     }
   }
 
