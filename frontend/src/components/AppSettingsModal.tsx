@@ -70,7 +70,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setEffectLevel(storage.getSetting<EffectLevel>('effectLevel', 0));
     setFloatingMode(storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal'));
     setIsSoundMuted(storage.getSetting<boolean>('isSoundMuted', false));
-    const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'grab');
+    const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'hwnd');
     if (savedCaptureMode === 'hwnd' || savedCaptureMode === 'grab') {
       setCaptureMode(savedCaptureMode);
     }

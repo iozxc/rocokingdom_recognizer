@@ -40,7 +40,8 @@ def is_dev_environment() -> bool:
 
 
 APP_VERSION = _env("ROCO_APP_VERSION", "1.3.3")
-CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
+# 默认内存截图（hwnd）；失败时由 tools.capture_window 自动降级为屏幕抓取（grab）
+CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "hwnd")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
 APP_EXE_NAME = _env("ROCO_APP_EXE_NAME", "RocoKingdomRecognizer.exe")
 UPDATE_CHECK_URL = _env(
