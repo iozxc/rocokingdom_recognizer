@@ -10,18 +10,18 @@
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "e269071b7b87cb0c3e68666da13ea97f",
+        "md5": "14a26709ff13aaa7da09e82a327eb34d",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "d3734b03d94ac814fde7d5f71cbd109e",
+        "md5": "8a56672c5a6c31eb11cb27de753d431f",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "1502a1bb47218b80150108ec2f468989",
-        "size": 31145436
+        "md5": "1b497eaaf50524aa23d9a634cd0dea83",
+        "size": 31074869
       }
     ]
   },
@@ -29,8 +29,8 @@
     {
       "base_version": "1.3.2",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.3/RocoKingdomRecognizer_delta_1.3.2.7z",
-      "md5": "1b80f94dc31a85ca6cac7606d7aeef8c",
-      "size": 48280806,
+      "md5": "54a8820d84a9332d54b0d872f0c9d092",
+      "size": 48283999,
       "changed": 943,
       "removed": 10
     }
