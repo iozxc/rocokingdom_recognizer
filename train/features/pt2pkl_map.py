@@ -25,7 +25,11 @@ def convert_pt_to_pkl_numpy(pt_path, pkl_path):
     print(f"✅ 转换完成！新数据库存放在: {pkl_path}")
 
 
+def convert(trials_num):
+    convert_pt_to_pkl_numpy(train_config.TRIALS_META[trials_num]["title_feature_path"]["pt"],
+                            train_config.TRIALS_META[trials_num]["title_feature_path"]["pkl"])
+
+
 if __name__ == "__main__":
     # 执行转换
-    convert_pt_to_pkl_numpy(train_config.DATABASE_TITLE_PATH, train_config.DATABASE_TITLE_PKL_PATH)
-
+    convert(0)

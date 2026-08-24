@@ -38,7 +38,7 @@ def list_icons():
 
         icons_structure = {}
         map_pets = load_map_pets()
-        for map_name in config.MAP_LIST:
+        for map_name in config.TRIALS[0]["map_list"]:
             entries = map_pets.get(map_name, {})
             items = []
             for filename, meta in sorted(

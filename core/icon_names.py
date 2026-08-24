@@ -16,7 +16,7 @@ def load_map_pets():
     """
     global _map_pets_cache
     if _map_pets_cache is None:
-        with open(config.MAP_PETS_JSON1, "r", encoding="utf-8") as f:
+        with open(config.TRIALS[0]["map_pets_json_list"], "r", encoding="utf-8") as f:
             _map_pets_cache = json.load(f)
     return _map_pets_cache
 
@@ -47,10 +47,10 @@ def scan_icon_names():
 
     返回 {"map1": ["乌达_极夜", "迪莫"], ...}
     """
-    names_dict = {map_name: [] for map_name in config.MAP_LIST}
+    names_dict = {map_name: [] for map_name in config.TRIALS[0]["map_list"]}
     try:
         data = load_map_pets()
-        for map_name in config.MAP_LIST:
+        for map_name in config.TRIALS[0]["map_list"]:
             for fname in data.get(map_name, {}):
                 base = fname[:-4]
                 if "_" in base:

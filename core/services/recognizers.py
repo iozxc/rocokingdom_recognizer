@@ -16,8 +16,8 @@ class _ModelRegistry:
         """ImageRecognizer（图标特征匹配）单例。"""
         try:
             if self._icon_recognizer is None:
-                logger.info(f"正在加载图标特征库: {config.FEATURES_ICON}")
-                self._icon_recognizer = ImageRecognizer(config.RESNET50, config.FEATURES_ICON)
+                logger.info(f"正在加载图标特征库: {config.TRIALS[0]["icon_feature_path"]}")
+                self._icon_recognizer = ImageRecognizer(config.RESNET50, config.TRIALS[0]["icon_feature_path"])
                 logger.info("图标特征库加载成功！")
             return self._icon_recognizer
         except Exception as e:
@@ -28,7 +28,7 @@ class _ModelRegistry:
         """MapClassifier（地图识别）单例。"""
         if self._map_classifier is None:
             logger.info("地图分类器未初始化，执行懒加载...")
-            self._map_classifier = MapClassifier(config.RESNET50, config.FEATURES_TITLE)
+            self._map_classifier = MapClassifier(config.RESNET50, config.TRIALS[0]["title_feature_path"])
         return self._map_classifier
 
 

@@ -9,21 +9,6 @@ def _env(name: str, default):
     return default if value in (None, "") else value
 
 
-APP_VERSION = _env("ROCO_APP_VERSION", "1.3.3")
-
-CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
-GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
-APP_EXE_NAME = _env("ROCO_APP_EXE_NAME", "RocoKingdomRecognizer.exe")
-UPDATE_CHECK_URL = _env(
-    "ROCO_UPDATE_CHECK_URL",
-    "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
-)
-FEISHU_WEBHOOK_URL = _env(
-    "ROCO_FEISHU_WEBHOOK_URL",
-    "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab",
-)
-
-
 # --- 路径处理核心逻辑 ---
 def get_resource_path(relative_path):
     """获取资源绝对路径（用于 icons, static, features_db.pt）"""
@@ -45,30 +30,75 @@ def get_external_path(filename):
     return os.path.normpath(os.path.join(base_path, filename))
 
 
+def is_dev_environment() -> bool:
+    """判断当前是否为开发环境（未使用 PyInstaller 打包）。
+
+    PyInstaller 打包后会注入 sys._MEIPASS（解包资源目录），因此用它作为判据；
+    开发环境直接 `python main.py` 运行时不存在该属性。
+    """
+    return not hasattr(sys, "_MEIPASS")
+
+
+APP_VERSION = _env("ROCO_APP_VERSION", "1.3.3")
+CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
+GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
+APP_EXE_NAME = _env("ROCO_APP_EXE_NAME", "RocoKingdomRecognizer.exe")
+UPDATE_CHECK_URL = _env(
+    "ROCO_UPDATE_CHECK_URL",
+    "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
+)
+FEISHU_WEBHOOK_URL = _env(
+    "ROCO_FEISHU_WEBHOOK_URL",
+    "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab",
+)
+
+# 徽章试炼定义：草系为正式内容，火系为开发环境专属。
+# collection_key 对应 roco_user_data.json 中独立的“已遇见精灵”集合。
+TRIALS = [
+    {
+        "key": "grass",
+        "title": "草系徽章试炼",
+        "element": "grass",
+        "collection_key": "encounteredPets",
+        "dev_only": False,
+        "map_list": ['map1', 'map2', 'map3'],
+        "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets1.json")),
+        "icon_feature_path": get_resource_path(os.path.join("onnx", "features_icon_db_1.pkl")),
+        "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_1.pkl"))
+    },
+    {
+        "key": "fire",
+        "title": "火系徽章试炼",
+        "element": "fire",
+        "collection_key": "encounteredPets2",
+        "dev_only": True,
+        "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets2.json")),
+        "icon_feature_path": get_resource_path(os.path.join("onnx", "features_icon_db_2.pkl")),
+        "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_2.pkl"))
+    }
+]
+
 # 基础路径
 ICONS_DIR = get_resource_path('icons')
 OCR_DIR = get_resource_path('ocr_models')
 ONNX_DIR = get_resource_path('onnx')
 
+# 全局信息
 ALL_PETS_JSON = get_resource_path(os.path.join('datasets', 'roco_all_pets.json'))
 DATASETS_PETS = get_resource_path(os.path.join('datasets', 'datasets.db'))
-MAP_PETS_JSON1 = get_resource_path(os.path.join('datasets', 'map_pets1.json'))
 DATA_JSON = get_external_path('roco_user_data.json')
 MANIFEST_JSON = get_resource_path('file_manifest.json')
 RENAMES_JSON = get_resource_path('pet_renames.json')
 
+# 全局模型
 RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
-FEATURES_ICON = get_resource_path(os.path.join('onnx', 'features_icon_db.pkl'))
-FEATURES_TITLE = get_resource_path(os.path.join('onnx', 'features_title_db.pkl'))
 SCANNER_MODAL = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
-DET_MODEL_MODAL = get_resource_path(os.path.join("ocr_models", "ch_PP-OCRv4_det_infer.onnx"))
-CLS_MODEL_MODAL = get_resource_path(os.path.join("ocr_models", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))
-REC_MODEL_MODAL = get_resource_path(os.path.join("ocr_models", "ch_PP-OCRv4_rec_infer.onnx"))
+DET_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_det_infer.onnx"))
+CLS_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))
+REC_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_rec_infer.onnx"))
 
+# 全局设置
 DEFAULT_THRESHOLD = 0.9
 DEFAULT_TOPK = 6
-
-# 地图列表
-MAP_LIST = ['map1', 'map2', 'map3']
 
 LOG_LEVEL = getattr(logging, _env("ROCO_LOG_LEVEL", "DEBUG").upper(), logging.DEBUG)

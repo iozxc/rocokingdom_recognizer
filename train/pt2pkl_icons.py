@@ -18,5 +18,11 @@ def convert_pt_to_pkl_numpy(pt_path: str, pkl_path: str):
         pickle.dump(out_data, f)
     print(f"转换完成(numpy版)！\npt:{pt_path}\npkl:{pkl_path}")
 
+
+def convert_pt(trials_num: int):
+    convert_pt_to_pkl_numpy(train_config.TRIALS_META[trials_num]["icon_feature_path"]["pt"],
+                            train_config.TRIALS_META[trials_num]["icon_feature_path"]["pkl"])
+
+
 if __name__ == "__main__":
-    convert_pt_to_pkl_numpy(train_config.DATABASE_ICON_PATH, train_config.DATABASE_ICON_PKL_PATH)
+    convert_pt(0)
