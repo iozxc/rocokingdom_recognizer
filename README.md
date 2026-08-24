@@ -29,23 +29,21 @@
 
 ![5e7edeec8005c1c561443980042e1ec3](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/5e7edeec8005c1c561443980042e1ec3.jpg)
 
-## 初始化
-
-### 主页面同步展示
+## 主页面同步展示
 
 ![image-20260825054648863](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825054648863.png)
 
-### 单个精灵识别（通过截图或者上传图片）
+## 单个精灵识别（通过截图或者上传图片）
 
 ![image-20260819035235016](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260819035235016.png)
 
-### 批量初始化
+## 批量初始化
 
 在冒险日志里截图，行数不限
 
 ![image-20260819035347119](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260819035347119.png)
 
-### 下载
+# 下载
 
 1. 【**推荐**】下载安装程序 `RocoKingdomRecognizer_Setup`
 2. 直接下载打包好的zip文件
@@ -53,7 +51,7 @@
 - 由于仓库限制需要分别下载多个压缩文件然后一起选中再解压（gitee）
 
 
-### 🌟 项目简介
+# 🌟 项目简介
 
 **RocoKingdomRecognizer** 是一款专为《洛克王国》玩家开发的辅助识别工具。通过深度学习技术，自动识别游戏中的精灵、场景及关键信息，并结合流畅的桌面端交互，提升游戏体验。
 
@@ -61,7 +59,7 @@
 
 ---
 
-### 🛠️ 技术栈
+# 🛠️ 技术栈
 
 识别链路：窗口截图 → 版面检测 → 文字识别 / 特征检索 → 结果融合。
 
@@ -77,7 +75,7 @@
 
 ---
 
-### 📱 联系我们 & 反馈
+# 📱 联系我们 & 反馈
 
 如果你在使用过程中遇到 Bug，或者有精灵图鉴需要纠错，欢迎加入交流群：
 
@@ -87,7 +85,7 @@
 
 ---
 
-### 📥 安装与运行
+# 📥 安装与运行
 
 1. 前往 [Releases（Github）](https://github.com/iozxc/rocokingdom_recognizer/releases/tag/1.0.0) 页面下载。
 1. 前往 [Releases（国内Gitee）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/tag/v1.0.0) 页面下载。
@@ -96,7 +94,7 @@
 
 ---
 
-### 🤝 参与贡献
+# 🤝 参与贡献
 
 如果你也想为洛克王国生态出一份力：
 
@@ -106,7 +104,7 @@
 
 ---
 
-### 📄 开源协议
+# 📄 开源协议
 
 本项目基于 [MIT License](LICENSE) 协议开源。
 
