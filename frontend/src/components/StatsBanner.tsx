@@ -177,7 +177,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             id="search-pet-input"
                             value={searchQuery}
                             onChange={(e) => onSearchChange(e.target.value)}
-                            placeholder="搜索精灵名称..."
+                            placeholder="搜索精灵名、图鉴id..."
                             className="w-full pl-11 pr-10 py-2.5 text-sm bg-white border-2 border-[#7ABCF4]/50 focus:border-[#7ABCF4] rounded-2xl shadow-sm focus:shadow-md outline-hidden transition-all text-slate-800 placeholder:text-slate-400 placeholder:font-medium font-semibold"
                         />
                         {searchQuery && (

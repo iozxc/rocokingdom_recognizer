@@ -437,7 +437,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
       const cleanName = formatPetName(item.matchedPet?.name || item.filename).toLowerCase();
       const rawName = (item.matchedPet?.name || item.filename || '').toLowerCase();
       const reasonMatch = (item.reason || '').toLowerCase().includes(q);
-      if (!cleanName.includes(q) && !rawName.includes(q) && !reasonMatch) return false;
+      const idMatch = String(item.matchedPet?.id ?? '').includes(q);
+      if (!cleanName.includes(q) && !rawName.includes(q) && !reasonMatch && !idMatch) return false;
     }
 
     if (filterTab === 'unencountered') return item.status === 'matched' && !item.isAlreadyEncountered;
@@ -819,7 +820,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       type="text"
                       value={searchFilter}
                       onChange={(e) => setSearchFilter(e.target.value)}
-                      placeholder="按精灵名筛选..."
+                          placeholder="按精灵名、图鉴id筛选..."
                       className="w-full pl-8 pr-3 py-1 text-xs bg-[#F5F9FF] border border-[#E2E8F0] rounded-xl outline-hidden focus:border-[#7ABCF4] focus:bg-white text-slate-800 font-medium"
                   />
                 </div>
@@ -1291,7 +1292,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       type="text"
                       value={pickerSearch}
                       onChange={(e) => setPickerSearch(e.target.value)}
-                      placeholder="搜索精灵名称或编号..."
+                      placeholder="搜索精灵名、图鉴id..."
                       className="w-full pl-9 pr-3 py-2 text-xs bg-[#F5F9FF] border border-[#E2E8F0] rounded-xl outline-hidden focus:border-[#7ABCF4] focus:bg-white text-slate-800 font-medium"
                       autoFocus
                   />
@@ -1299,7 +1300,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
                 <div className="flex-1 overflow-y-auto mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-1">
                   {targetMapPets
-                      .filter((p) => formatPetName(p.name).toLowerCase().includes(pickerSearch.toLowerCase().trim()))
+                      .filter((p) => {
+                        const q = pickerSearch.toLowerCase().trim();
+                        const cleanName = formatPetName(p.name).toLowerCase();
+                        const idMatch = String(p.id ?? '').includes(q);
+                        return cleanName.includes(q) || idMatch;
+                      })
                       .map((pet) => {
                         const already = checkAlreadyEncountered(targetMap.id, pet.name);
                         return (

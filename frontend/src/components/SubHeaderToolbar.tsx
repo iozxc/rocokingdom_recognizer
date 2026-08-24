@@ -10,6 +10,7 @@ import {
     HelpCircle,
 } from 'lucide-react';
 import { sound } from '../services/sound';
+import { openFollowScanner } from '../services/followScanner';
 
 interface SubHeaderToolbarProps {
     filterMode: 'all' | 'encountered' | 'unencountered';
@@ -104,30 +105,9 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                         <button
                             type="button"
                             id="sub-header-scanner-btn"
-                            onClick={async () => {
+                            onClick={() => {
                                 sound.playClick();
-                                let openedViaPywebview = false;
-                                try {
-                                    const pyApi = (window as any).pywebview?.api;
-                                    if (pyApi) {
-                                        if (typeof pyApi.open_scanner_to_app === 'function') {
-                                            await pyApi.open_scanner_to_app('洛克王国：世界');
-                                            openedViaPywebview = true;
-                                        } else if (typeof pyApi.open_scanner_window === 'function') {
-                                            await pyApi.open_scanner_window();
-                                            openedViaPywebview = true;
-                                        }
-                                    }
-                                } catch (e) {
-                                    console.warn('调用 pywebview 失败:', e);
-                                }
-                                if (!openedViaPywebview) {
-                                    window.open(
-                                        '/scanner.html',
-                                        'RocoFollowScanner',
-                                        'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
-                                    );
-                                }
+                                openFollowScanner();
                             }}
                             className="px-2.5 py-1.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                             title="窗口跟随识别"

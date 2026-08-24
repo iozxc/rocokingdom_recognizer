@@ -54,7 +54,8 @@ export const ManualSelectModal: React.FC<ManualSelectModalProps> = ({
     const cleanName = formatPetName(p.name).toLowerCase();
     const baseName = getBasePetName(p.name).toLowerCase();
     const rawName = p.name.toLowerCase();
-    return cleanName.includes(q) || rawName.includes(q) || baseName.includes(q);
+    const idMatch = String(p.id ?? '').includes(q);
+    return cleanName.includes(q) || rawName.includes(q) || baseName.includes(q) || idMatch;
   });
 
   const handleConfirm = () => {
@@ -223,7 +224,7 @@ export const ManualSelectModal: React.FC<ManualSelectModalProps> = ({
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="搜索精灵名称..."
+                  placeholder="搜索精灵名、图鉴id..."
                   className="w-full pl-9 pr-8 py-1.5 text-xs bg-[#F5F9FF] focus:bg-white border-2 border-[#E6EEF8] focus:border-[#7ABCF4] rounded-xl outline-hidden text-slate-800 font-medium transition-all"
                   autoFocus
               />

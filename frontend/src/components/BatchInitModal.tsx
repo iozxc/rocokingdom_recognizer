@@ -466,7 +466,8 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
       const cleanName = formatPetName(item.matchedPet?.name || item.filename).toLowerCase();
       const rawName = (item.matchedPet?.name || item.filename || '').toLowerCase();
       const reasonMatch = (item.reason || '').toLowerCase().includes(q);
-      if (!cleanName.includes(q) && !rawName.includes(q) && !reasonMatch) return false;
+      const idMatch = String(item.matchedPet?.id ?? '').includes(q);
+      if (!cleanName.includes(q) && !rawName.includes(q) && !reasonMatch && !idMatch) return false;
     }
 
     if (filterTab === 'unencountered') return item.status === 'matched' && !item.isAlreadyEncountered;
@@ -921,7 +922,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                           type="text"
                           value={searchFilter}
                           onChange={(e) => setSearchFilter(e.target.value)}
-                          placeholder="按精灵名筛选..."
+                          placeholder="按精灵名、图鉴id筛选..."
                           className="w-full pl-8 pr-3 py-1 text-xs bg-[#F5F9FF] border border-[#E2E8F0] rounded-xl outline-hidden focus:border-[#7ABCF4] focus:bg-white text-slate-800 font-medium"
                       />
                     </div>
@@ -1310,7 +1311,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                         type="text"
                         value={pickerSearch}
                         onChange={(e) => setPickerSearch(e.target.value)}
-                        placeholder="搜索精灵名称..."
+                        placeholder="搜索精灵名、图鉴id..."
                         className="w-full pl-9 pr-4 py-2 text-xs bg-[#F5F9FF] border-2 border-[#E6EEF8] rounded-xl outline-hidden focus:border-[#7ABCF4] focus:bg-white text-slate-800 font-medium"
                     />
                   </div>
@@ -1323,7 +1324,8 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                           const q = pickerSearch.toLowerCase().trim();
                           const cleanName = formatPetName(p.name).toLowerCase();
                           const rawName = p.name.toLowerCase();
-                          return cleanName.includes(q) || rawName.includes(q);
+                          const idMatch = String(p.id ?? '').includes(q);
+                          return cleanName.includes(q) || rawName.includes(q) || idMatch;
                         })
                         .map((pet) => {
                           const isAlready = checkAlreadyEncountered(targetMap.id, pet.name);
