@@ -1,0 +1,8 @@
+{
+  "name": "rocokingdom-recognizer-root",
+  "private": true,
+  "description": "根目录构建入口：自动进入 frontend 执行构建，并同步产物到 static/",
+  "scripts": {
+    "build": "npm --prefix frontend run build"
+  }
+}
