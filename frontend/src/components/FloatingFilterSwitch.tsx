@@ -13,6 +13,7 @@ interface FloatingFilterSwitchProps {
     filterMode: 'all' | 'encountered' | 'unencountered';
     onFilterChange: (mode: 'all' | 'encountered' | 'unencountered') => void;
     onCycleMap?: () => void;
+    mapsConfig?: MapConfig[];
 }
 
 export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
@@ -22,6 +23,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                                                               filterMode,
                                                                               onFilterChange,
                                                                               onCycleMap,
+                                                                              mapsConfig,
                                                                           }) => {
     const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
         return storage.getSetting<boolean>('isFilterSwitchCollapsed', false);
@@ -60,9 +62,10 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
 
     // Next map name for tooltip
     const nextMap = useMemo(() => {
-        const nextNum = (currentMap.num % MAP_CONFIGS.length) + 1;
-        return MAP_CONFIGS.find((m) => m.num === nextNum) || MAP_CONFIGS[0];
-    }, [currentMap.num]);
+        const list = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
+        const nextNum = (currentMap.num % list.length) + 1;
+        return list.find((m) => m.num === nextNum) || list[0];
+    }, [currentMap.num, mapsConfig]);
 
     // If hidden, do not render floating UI
     if (floatingMode === 'hidden') {
