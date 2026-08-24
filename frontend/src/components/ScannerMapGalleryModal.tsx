@@ -129,27 +129,27 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
             {/* 1. Modal Top Bar (Matching ScannerApp top bar exactly: #7ABCF4) */}
             <div className="pywebview-drag-region cursor-move h-11 px-3 bg-[#7ABCF4] border-b border-[#5DA8E8] flex items-center justify-between gap-2 shrink-0 text-white rounded-none">
                 <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-6 h-6 rounded-lg bg-white/20 border border-white/40 flex items-center justify-center shrink-0">
-                        <BookOpen className="w-3.5 h-3.5 text-white" />
+                    <div className="w-7 h-7 rounded-xl bg-white/20 border-2 border-white/40 flex items-center justify-center shrink-0">
+                        <BookOpen className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-xs font-black text-white truncate tracking-tight">
+                    <span className="text-xs sm:text-sm font-black text-white truncate tracking-tight">
             精灵图鉴
           </span>
-                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#FEE061] text-[#854D0E] border border-[#E5C43B] shrink-0 font-mono">
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FEE061] text-[#854D0E] border-2 border-[#E5C43B] shrink-0 font-mono">
             {grandEncountered}/{grandTotal} ({grandPercent}%)
           </span>
                 </div>
 
                 <button
                     type="button"
-                    className="pywebview-no-drag w-6 h-6 rounded-lg bg-white/20 hover:bg-rose-500 text-white border border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer shrink-0 active:opacity-80"
+                    className="pywebview-no-drag w-7 h-7 rounded-xl bg-white/20 hover:bg-rose-500 text-white border-2 border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer shrink-0 active:opacity-80"
                     onClick={() => {
                         sound.playClick();
                         onClose();
                     }}
                     title="返回识别主界面"
                 >
-                    <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <X className="w-4 h-4 stroke-[2.5]" />
                 </button>
             </div>
 
