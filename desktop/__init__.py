@@ -53,9 +53,19 @@ def run(app, hint=None) -> None:
     logger.info(f"webview 调试模式: {debug_mode}")
     webview.start(debug=debug_mode)
 
-    # 所有窗口已关闭：先给最后一批 HTTP 请求一点落盘时间，再关闭服务并强制退出，
-    # 避免 waitress 工作线程等非守护线程把进程拖在后台，导致用户再次启动 exe 时报错。
+    # 所有窗口已关闭：先关闭存活的 Tk 提示窗口，再给最后一批 HTTP 请求一点落盘时间，
+    # 关闭服务并强制退出，避免 Tcl 异步处理器被错误的线程删除。
+    _close_all_hints()
     _shutdown(server, server_thread)
+
+
+def _close_all_hints() -> None:
+    """进程退出前关闭所有 Tk 提示窗口，避免 Tcl 异步处理器被错误的线程删除。"""
+    try:
+        from bootstrap.splash import close_all_hints
+        close_all_hints()
+    except Exception as e:
+        logger.debug(f"关闭全部提示窗口失败: {e}")
 
 
 def _install_exit_watchdog(main_window) -> None:
@@ -64,6 +74,7 @@ def _install_exit_watchdog(main_window) -> None:
     def _watchdog():
         time.sleep(_WATCHDOG_TIMEOUT_SECONDS)
         logger.warning("窗口已关闭但进程未正常退出，强制执行退出")
+        _close_all_hints()
         os._exit(0)
 
     def _on_main_closed():
@@ -89,6 +100,7 @@ def _install_exit_watchdog(main_window) -> None:
 def _shutdown(server, server_thread) -> None:
     """窗口全部关闭后停止 Flask 服务，并确保进程立即退出。"""
     time.sleep(_EXIT_GRACE_SECONDS)
+    _close_all_hints()
     try:
         server.close()
         server_thread.join(timeout=2)
