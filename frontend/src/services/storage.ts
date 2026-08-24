@@ -5,7 +5,6 @@ import { sound } from './sound';
 import {
   isPetEncounteredInRecords,
   findMatchingRecordKeys,
-  applyPetRenames,
   formatPetName,
   getBasePetName,
   isSamePetName,
@@ -19,7 +18,6 @@ export interface StoragePayload {
   encounteredPets?: Record<string, EncounterRecord>;
   thresholds?: Record<string, number>;
   appSettings?: AppSettings;
-  renames?: Record<string, string>;
   version?: number;
 }
 
@@ -142,8 +140,7 @@ export class StorageService {
     let hasSettingsChanges = false;
 
     if (remote.encounteredPets) {
-      // 先用改名映射规范化，避免用户本地还存着旧名字导致界面不显示
-      this.records = applyPetRenames(remote.encounteredPets, remote.renames);
+      this.records = remote.encounteredPets;
       hasRecordsChanges = true;
     }
     if (remote.thresholds) {

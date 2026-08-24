@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 
 from core.api.response import error, success
-from core.services.user_storage import user_storage, get_renames
+from core.services.user_storage import user_storage
 from core.logger import logger
 
 bp = Blueprint("storage", __name__)
@@ -17,10 +17,7 @@ def api_get_storage(version):
 
     if client_version == user_storage.version:
         return {"status": "ok"}
-    data = dict(user_storage.load())
-    # 附带改名映射，前端可据此规范化本地旧记录
-    data["renames"] = get_renames()
-    return data
+    return user_storage.load()
 
 
 @bp.route("/api/storage", methods=["POST"])
