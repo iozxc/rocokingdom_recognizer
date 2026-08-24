@@ -681,7 +681,7 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         <div
             id="scanner-titlebar"
-            className="h-11 px-3 bg-[#7ABCF4] border-b-4 border-[#5DA8E8] flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 text-white rounded-none"
+            className="h-11 px-3 bg-[#7ABCF4] border-b border-[#5DA8E8] flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 text-white rounded-none"
         >
           <div className="flex items-center gap-2 min-w-0 pointer-events-none">
             <div className="w-7 h-7 rounded-xl bg-white/20 border-2 border-white/40 flex items-center justify-center shrink-0">

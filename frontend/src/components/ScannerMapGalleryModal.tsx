@@ -107,7 +107,8 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                 (item) =>
                     formatPetName(item.pet.name).toLowerCase().includes(q) ||
                     item.pet.name.toLowerCase().includes(q) ||
-                    item.mapName.toLowerCase().includes(q)
+                    item.mapName.toLowerCase().includes(q) ||
+                    String(item.pet.id ?? '').includes(q)
             );
         }
 
@@ -126,7 +127,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     return (
         <div className="absolute inset-0 z-50 w-full h-full bg-[#FDF9F3] text-slate-800 flex flex-col justify-between select-none overflow-hidden font-sans animate-in fade-in duration-150 rounded-none">
             {/* 1. Modal Top Bar (Matching ScannerApp top bar exactly: #7ABCF4) */}
-            <div className="h-10 px-3 bg-[#7ABCF4] border-b-4 border-[#5DA8E8] flex items-center justify-between gap-2 shrink-0 text-white rounded-none">
+            <div className="pywebview-drag-region cursor-move h-11 px-3 bg-[#7ABCF4] border-b border-[#5DA8E8] flex items-center justify-between gap-2 shrink-0 text-white rounded-none">
                 <div className="flex items-center gap-2 min-w-0">
                     <div className="w-6 h-6 rounded-lg bg-white/20 border border-white/40 flex items-center justify-center shrink-0">
                         <BookOpen className="w-3.5 h-3.5 text-white" />
@@ -141,11 +142,11 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
 
                 <button
                     type="button"
+                    className="pywebview-no-drag w-6 h-6 rounded-lg bg-white/20 hover:bg-rose-500 text-white border border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer shrink-0 active:opacity-80"
                     onClick={() => {
                         sound.playClick();
                         onClose();
                     }}
-                    className="w-6 h-6 rounded-lg bg-white/20 hover:bg-rose-500 text-white border border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer shrink-0 active:opacity-80"
                     title="返回识别主界面"
                 >
                     <X className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -212,7 +213,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                         <Search className="w-3 h-3 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
                         <input
                             type="text"
-                            placeholder="搜索精灵..."
+                            placeholder="搜索精灵名、图鉴id..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-6 pr-5 py-1 bg-[#F8FBFE] border-2 border-[#D5E3F0] rounded-lg text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#7ABCF4] focus:bg-white transition-all"
