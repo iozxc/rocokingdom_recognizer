@@ -23,7 +23,7 @@
 
 - 具体样式：
 
-<img src="https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825054912897.png" alt="image-20260825054912897" style="zoom: 67%;" /><img src="C:\Users\Zhouxc\AppData\Roaming\Typora\typora-user-images\image-20260825054933867.png" alt="image-20260825054933867" style="zoom: 67%;" />
+<img src="https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825054912897.png" alt="image-20260825054912897" style="zoom: 67%;" />
 
 ### 特殊点位识别
 
