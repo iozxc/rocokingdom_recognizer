@@ -26,6 +26,13 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
 
   const isEncountered = !!record?.encountered;
 
+  const formatTime = (iso?: string): string => {
+    if (!iso) return '未知';
+    const date = new Date(iso);
+    if (isNaN(date.getTime())) return iso;
+    return date.toLocaleString('zh-CN', { hour12: false });
+  };
+
   const handleToggle = () => {
     sound.playClick();
     if (!isEncountered) {
@@ -74,11 +81,33 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
             <h3 className="text-xl font-black text-slate-800">
               {pet.displayName || pet.name}
             </h3>
-            <p className="text-xs font-bold text-[#7ABCF4] mt-1">
-              分布于：{currentMap.name} (Map {currentMap.num})
-            </p>
+            {pet.id != null && (
+                <p className="text-xs font-bold text-[#7ABCF4] mt-1">
+                  图鉴编号 #{pet.id}
+                </p>
+            )}
           </div>
-        </div>
+
+          {/* 遇见信息：时间与置信度/备注（来自用户记录） */}
+          {isEncountered && record && (
+              <div className="mt-4 w-full rounded-2xl bg-[#F5F9FF] border border-[#E6EEF8] p-3 space-y-2 text-left">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="text-slate-500 font-bold shrink-0">遇见时间</span>
+                  <span className="text-slate-800 font-black font-mono truncate">
+                    {formatTime(record.lastSeenAt)}
+                  </span>
+                </div>
+                {record.note && (
+                    <div className="flex items-start justify-between gap-2 text-xs">
+                      <span className="text-slate-500 font-bold shrink-0">置信度/备注</span>
+                      <span className="text-slate-800 font-bold text-right">
+                        {record.note}
+                      </span>
+                    </div>
+                )}
+              </div>
+          )}
+          </div>
 
         {/* Action Toggle Button */}
         <div className="mt-6 flex gap-3">
