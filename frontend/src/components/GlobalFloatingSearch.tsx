@@ -18,6 +18,7 @@ import { MapConfig, PetItem, EncounterRecord, FloatingButtonsMode } from '../typ
 import { MAP_CONFIGS } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
+import { openFollowScanner } from '../services/followScanner';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 
 export interface GlobalSearchPetResult {
@@ -235,30 +236,9 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   <button
                       type="button"
                       id="global-compact-follow-fab"
-                      onClick={async () => {
+                      onClick={() => {
                         sound.playClick();
-                        let openedViaPywebview = false;
-                        try {
-                          const pyApi = (window as any).pywebview?.api;
-                          if (pyApi) {
-                            if (typeof pyApi.open_scanner_to_app === 'function') {
-                              await pyApi.open_scanner_to_app('洛克王国：世界');
-                              openedViaPywebview = true;
-                            } else if (typeof pyApi.open_scanner_window === 'function') {
-                              await pyApi.open_scanner_window();
-                              openedViaPywebview = true;
-                            }
-                          }
-                        } catch (e) {
-                          console.warn('调用 pywebview 失败:', e);
-                        }
-                        if (!openedViaPywebview) {
-                          window.open(
-                              '/scanner.html',
-                              'RocoFollowScanner',
-                              'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
-                          );
-                        }
+                        openFollowScanner();
                       }}
                       className="w-11 h-11 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white flex items-center justify-center shadow-xl shadow-purple-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                       title="游戏窗口跟随识别 (AI 智能实时识别)"
@@ -350,33 +330,9 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         <button
                             id="global-floating-follow-fab"
                             type="button"
-                            onClick={async () => {
+                            onClick={() => {
                               sound.playClick();
-
-                              let openedViaPywebview = false;
-
-                              // 尝试调用 pywebview API 打开独立窗口 (open_scanner_to_app)
-                              try {
-                                const pyApi = (window as any).pywebview?.api;
-                                if (pyApi) {
-                                  if (typeof pyApi.open_scanner_to_app === 'function') {
-                                    await pyApi.open_scanner_to_app('洛克王国：世界');
-                                    openedViaPywebview = true;
-                                  } else if (typeof pyApi.open_scanner_window === 'function') {
-                                    await pyApi.open_scanner_window();
-                                    openedViaPywebview = true;
-                                  }
-                                }
-                              } catch (e) {
-                                console.warn('调用 pywebview.api 失败，使用兜底直接打开:', e);
-                              }
-                              if (!openedViaPywebview) {
-                                window.open(
-                                    '/scanner.html',
-                                    'RocoFollowScanner',
-                                    'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
-                                );
-                              }
+                              openFollowScanner();
                             }}
                             className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] via-[#6366F1] to-[#4F46E5] hover:from-[#7C3AED] hover:via-[#4F46E5] hover:to-[#4338CA] text-white font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                             title="窗口跟随识别"
@@ -524,7 +480,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           setFocusedIndex(0);
                         }}
                         onKeyDown={handleKeyDownInInput}
-                        placeholder="输入任意精灵名称、拼音或地图名称实时查找..."
+                        placeholder="输入精灵名、图鉴id实时查找..."
                         className="w-full pl-12 pr-10 py-3 text-sm sm:text-base bg-white border-2 border-[#BCD7F2] focus:border-[#7ABCF4] rounded-2xl outline-hidden text-slate-800 font-bold shadow-inner transition-all placeholder:text-slate-400 placeholder:font-normal"
                     />
                     {searchQuery && (
