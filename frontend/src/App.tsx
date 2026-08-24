@@ -5,6 +5,7 @@ import { StatsBanner } from './components/StatsBanner';
 import { BatchRecognizerCard } from './components/BatchRecognizerCard';
 import { SinglePetRecognizerModal } from './components/SinglePetRecognizerModal';
 import { PetGrid } from './components/PetGrid';
+import { PetDetailModal } from './components/PetDetailModal';
 import { ManualSelectModal } from './components/ManualSelectModal';
 import { BatchInitModal } from './components/BatchInitModal';
 import { GlobalFloatingSearch } from './components/GlobalFloatingSearch';
@@ -36,6 +37,8 @@ export default function App() {
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
   });
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
+  const [detailPet, setDetailPet] = useState<PetItem | null>(null);
+  const [feedbackInitialType, setFeedbackInitialType] = useState<string>('');
   const [isUpdateOpen, setIsUpdateOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [view, setView] = useState<'assistant' | 'hub'>('assistant');
@@ -303,6 +306,12 @@ export default function App() {
     }
   };
 
+  // 详情弹窗内的点亮/取消（弹窗自己播放音效与动效，这里只落库刷新）
+  const handleDetailToggleEncounter = (mapId: string, filename: string) => {
+    storage.toggleEncountered(mapId, filename);
+    refreshRecords();
+  };
+
   // Reset Encounters for Current Map
   const handleResetCurrentMap = () => {
     storage.resetMap(currentMap.id);
@@ -416,7 +425,7 @@ export default function App() {
         )}
 
         {/* Main Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
+        <main className="flex-1 w-full mx-auto px-8 sm:px-16 pt-6">
           {view === 'hub' ? (
               <AssistantHub
                   trials={trials}
@@ -461,6 +470,11 @@ export default function App() {
                     filterMode={filterMode}
                     onFilterChange={(mode) => setFilterMode(mode)}
                     searchQuery={searchQuery}
+                    onOpenPetDetail={(pet) => setDetailPet(pet)}
+                    onOpenFeedback={(type) => {
+                      setFeedbackInitialType(type);
+                      setIsFeedbackOpen(true);
+                    }}
                 />
               </>
           )}
@@ -549,6 +563,17 @@ export default function App() {
         <FeedbackContactModal
             isOpen={isFeedbackOpen}
             onClose={() => setIsFeedbackOpen(false)}
+            initialType={feedbackInitialType}
+        />
+
+        {/* 精灵详情弹窗（右键菜单进入） */}
+        <PetDetailModal
+            isOpen={detailPet !== null}
+            onClose={() => setDetailPet(null)}
+            pet={detailPet}
+            currentMap={currentMap}
+            record={detailPet ? storage.getRecord(currentMap.id, detailPet.name) : undefined}
+            onToggleEncounter={handleDetailToggleEncounter}
         />
 
         {/* Check Update Modal */}

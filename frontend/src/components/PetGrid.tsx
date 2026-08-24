@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Sparkles, Check, Sparkle, Filter } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Sparkles, Check, Sparkle, Filter, Info, Bug } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord } from '../types';
 import { sound } from '../services/sound';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
@@ -12,6 +12,8 @@ interface PetGridProps {
   filterMode: 'all' | 'encountered' | 'unencountered';
   onFilterChange?: (mode: 'all' | 'encountered' | 'unencountered') => void;
   searchQuery: string;
+  onOpenPetDetail?: (pet: PetItem) => void;
+  onOpenFeedback?: (type: string, pet: PetItem) => void;
 }
 
 export const PetGrid: React.FC<PetGridProps> = ({
@@ -22,11 +24,31 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                                   filterMode,
                                                   onFilterChange,
                                                   searchQuery,
+                                                  onOpenPetDetail,
+                                                  onOpenFeedback,
                                                 }) => {
   // Track keys of pets that were just toggled to encountered / unencountered
   const [animatingKeys, setAnimatingKeys] = useState<Record<string, boolean>>({});
   const [unanimatingKeys, setUnanimatingKeys] = useState<Record<string, boolean>>({});
+  const [contextMenu, setContextMenu] = useState<{ pet: PetItem; x: number; y: number } | null>(null);
   const totalCount = pets.length;
+
+  // 右键菜单：点击其他位置或按 ESC 关闭
+  useEffect(() => {
+    if (!contextMenu) return;
+    const close = () => setContextMenu(null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('click', close);
+    window.addEventListener('contextmenu', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('click', close);
+      window.removeEventListener('contextmenu', close);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [contextMenu]);
   const encounteredCount = useMemo(() => {
     return pets.filter((p) => isPetEncounteredInRecords(records, currentMap.id, p.name)).length;
   }, [pets, records, currentMap.id]);
@@ -73,7 +95,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
       const cleanName = formatPetName(pet.name).toLowerCase();
       const baseName = getBasePetName(pet.name).toLowerCase();
       const rawName = pet.name.toLowerCase();
-      return cleanName.includes(q) || rawName.includes(q) || baseName.includes(q);
+      const idMatch = String(pet.id ?? '').includes(q);
+      return cleanName.includes(q) || rawName.includes(q) || baseName.includes(q) || idMatch;
     }
 
     return true;
@@ -118,7 +141,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
             </div>
         ) : (
             /* Uniform Grid of Scaled Pet Icons */
-            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 sm:gap-4">
               {filteredPets.map((pet) => {
                 const key = `${currentMap.id}_${pet.name}`;
                 const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);
@@ -129,6 +152,11 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         key={pet.name}
                         id={`pet-card-${currentMap.id}-${pet.name.replace('.', '-')}`}
                         onClick={() => handleCardClick(pet.name, isEnc)}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setContextMenu({ pet, x: e.clientX, y: e.clientY });
+                        }}
                         className={`group relative rounded-2xl p-2.5 flex flex-col items-center cursor-pointer transition-all duration-200 select-none ${
                             isJustEncountered
                                 ? 'encounter-pop-active bg-[#F2FBF0] border-2 border-[#95D151] ring-2 ring-[#95D151]/40'
@@ -147,6 +175,11 @@ export const PetGrid: React.FC<PetGridProps> = ({
 
                       {/* Fixed Uniform Image Container - 1:1 Aspect Ratio with object-contain */}
                       <div className="relative w-full aspect-square rounded-xl bg-white p-1.5 flex items-center justify-center overflow-hidden border border-[#E6EEF8]">
+                        {pet.id != null && (
+                            <span className="absolute top-1 right-1 z-10 text-[9px] font-mono font-black px-1.5 py-0.5 rounded-md bg-slate-800/70 text-white/90">
+                              #{pet.id}
+                            </span>
+                        )}
                         <img
                             src={pet.url}
                             alt={pet.name}
@@ -186,6 +219,42 @@ export const PetGrid: React.FC<PetGridProps> = ({
                     </div>
                 );
               })}
+            </div>
+        )}
+
+        {/* 右键菜单：精灵详情 / 反馈 */}
+        {contextMenu && (
+            <div
+                className="fixed z-50 w-48 bg-white rounded-xl border-2 border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+                style={{
+                  left: Math.min(contextMenu.x, window.innerWidth - 200),
+                  top: Math.min(contextMenu.y, window.innerHeight - 250),
+                }}
+                onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                  type="button"
+                  onClick={() => {
+                    onOpenPetDetail?.(contextMenu.pet);
+                    setContextMenu(null);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-black text-slate-700 hover:bg-[#F0F7FF] hover:text-[#2B78C4] transition-colors cursor-pointer"
+              >
+                <Info className="w-4 h-4 text-[#7ABCF4]" />
+                精灵详情
+              </button>
+
+              <button
+                  type="button"
+                  onClick={() => {
+                    onOpenFeedback?.('精灵图鉴纠错', contextMenu.pet);
+                    setContextMenu(null);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer"
+              >
+                <Bug className="w-4 h-4 text-slate-400" />
+                反馈错误
+              </button>
             </div>
         )}
       </div>

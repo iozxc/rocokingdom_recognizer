@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <header className="bg-[#7ABCF4] border-b-4 border-[#5DA8E8] sticky top-0 z-30 shadow-md text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5">
+            <div className="mx-auto px-8 sm:px-16 py-2.5">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
                     {/* Logo & Kingdom Branding */}
                     <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
@@ -311,3 +311,4 @@ export const Header: React.FC<HeaderProps> = ({
         </header>
     );
 };
+

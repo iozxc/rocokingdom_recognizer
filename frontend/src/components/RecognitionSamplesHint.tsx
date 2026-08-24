@@ -5,15 +5,19 @@ import { sound } from '../services/sound';
 
 interface RecognitionSamplesHintProps {
   onLoadSample: (file: File) => void;
+  count?: number;
 }
 
-// 5 张示例截图，按用户要求直接写 ./assets/test1.png ~ test5.png
-const SAMPLE_IMAGES = Array.from({ length: 5 }, (_, i) => ({
-  url: `./assets/test${i + 1}.png`,
-  name: `test${i + 1}.png`,
-}));
-
-export const RecognitionSamplesHint: React.FC<RecognitionSamplesHintProps> = ({ onLoadSample }) => {
+export const RecognitionSamplesHint: React.FC<RecognitionSamplesHintProps> = ({
+                                                                                onLoadSample,
+                                                                                count = 5,
+                                                                            }) => {
+  const sampleCount = Math.max(1, Math.min(9, count));
+  // 示例截图，按用户要求直接写 ./assets/test1.png ~ test{n}.png
+  const SAMPLE_IMAGES = Array.from({ length: sampleCount }, (_, i) => ({
+    url: `./assets/test${i + 1}.png`,
+    name: `test${i + 1}.png`,
+  }));
   const [isVisible, setIsVisible] = useState<boolean>(() => storage.getSetting<boolean>('showRecognitionSamples', true));
   const [isHover, setIsHover] = useState<boolean>(false);
 
@@ -58,7 +62,7 @@ export const RecognitionSamplesHint: React.FC<RecognitionSamplesHintProps> = ({ 
             type="button"
             id="recognition-samples-hint-btn"
             className="text-xs font-black text-[#2B78C4] hover:text-white bg-[#EBF4FE] hover:bg-[#7ABCF4] border border-[#BCD7F2] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
-            title="查看正确截图格式示例（5 张）"
+            title={`查看正确截图格式示例（${sampleCount} 张）`}
         >
           <ImageIcon className="w-3.5 h-3.5" />
           <span>实例演示</span>

@@ -6,11 +6,13 @@ import { api } from '../services/api';
 interface FeedbackContactModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialType?: string;
 }
 
 export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                                                               isOpen,
                                                                               onClose,
+                                                                              initialType,
                                                                           }) => {
     const [copiedQQGroup, setCopiedQQGroup] = useState<boolean>(false);
     const [showQRCode, setShowQRCode] = useState<boolean>(false);
@@ -20,6 +22,13 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
     const [submitMessage, setSubmitMessage] = useState<string>('');
+
+    // 外部传入 initialType 时（如右键反馈），打开弹窗后预选该类型
+    React.useEffect(() => {
+        if (isOpen && initialType) {
+            setFeedbackType(initialType);
+        }
+    }, [isOpen, initialType]);
 
     if (!isOpen) return null;
 

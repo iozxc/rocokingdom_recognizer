@@ -38,7 +38,7 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
       }));
 
   return (
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-12">
+      <main className="flex-1 w-full mx-auto px-8 sm:px-16 pt-12 pb-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 max-w-3xl mx-auto">
           {assistants.map((a) => {
             const Icon = a.Icon;

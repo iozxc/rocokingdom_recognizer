@@ -183,7 +183,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
         const rawMatch = item.rawName.toLowerCase().includes(q);
         const baseMatch = getBasePetName(item.rawName).toLowerCase().includes(q);
         const mapMatch = item.mapConfig.name.toLowerCase().includes(q);
-        return cleanMatch || rawMatch || baseMatch || mapMatch;
+        const idMatch = String(item.pet.id ?? '').includes(q);
+        return cleanMatch || rawMatch || baseMatch || mapMatch || idMatch;
       }
 
       return true;

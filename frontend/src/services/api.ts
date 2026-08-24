@@ -153,6 +153,7 @@ export class ApiService {
 
             return {
               name: item.name,
+              id: item.id ?? fallbackItem?.id,
               url: fullUrl || fallbackItem?.url || '',
               element: fallbackItem?.element || 'grass',
               rarity: fallbackItem?.rarity || 'common',
@@ -437,13 +438,13 @@ export class ApiService {
             filename: pet.name,
             score,
             view_url: pet.url,
-            match_path: `icons/map${mapNum}/${pet.name}`,
+            match_path: `icons/${pet.name}`,
           },
           {
             filename: secondPet.name,
             score: Number(score2.toFixed(3)),
             view_url: secondPet.url,
-            match_path: `icons/map${mapNum}/${secondPet.name}`,
+            match_path: `icons/${secondPet.name}`,
           },
         ];
 

@@ -7,6 +7,7 @@ import { sound } from '../services/sound';
 import { Header } from './Header';
 import { StatsBanner } from './StatsBanner';
 import { PetGrid } from './PetGrid';
+import { PetDetailModal } from './PetDetailModal';
 import { FloatingFilterSwitch } from './FloatingFilterSwitch';
 import { GlobalFloatingSearch } from './GlobalFloatingSearch';
 import { SubHeaderToolbar } from './SubHeaderToolbar';
@@ -34,6 +35,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
   });
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
+  const [detailPet, setDetailPet] = useState<PetItem | null>(null);
+  const [feedbackInitialType, setFeedbackInitialType] = useState<string>('');
   const [isUpdateOpen, setIsUpdateOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState<boolean>(false);
@@ -203,7 +206,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             />
         )}
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
+        <main className="flex-1 w-full mx-auto px-8 sm:px-16 pt-6">
           <StatsBanner
               currentMap={currentMap}
               encounteredCount={currentMapStats.encounteredCount}
@@ -224,6 +227,11 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               filterMode={filterMode}
               onFilterChange={(mode) => setFilterMode(mode)}
               searchQuery={searchQuery}
+              onOpenPetDetail={(pet) => setDetailPet(pet)}
+              onOpenFeedback={(type) => {
+                setFeedbackInitialType(type);
+                setIsFeedbackOpen(true);
+              }}
           />
         </main>
 
@@ -260,6 +268,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         <FeedbackContactModal
             isOpen={isFeedbackOpen}
             onClose={() => setIsFeedbackOpen(false)}
+            initialType={feedbackInitialType}
         />
         <UpdateModal
             isOpen={isUpdateOpen}
@@ -269,6 +278,18 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
             onTestEffect={() => {}}
+        />
+
+        {/* 精灵详情弹窗（右键菜单进入） */}
+        <PetDetailModal
+            isOpen={detailPet !== null}
+            onClose={() => setDetailPet(null)}
+            pet={detailPet}
+            currentMap={currentMap}
+            record={detailPet ? records[`${currentMap.id}_${detailPet.name}`] : undefined}
+            onToggleEncounter={(mapId, filename) => {
+              fireStorage.toggleEncountered(mapId, filename);
+            }}
         />
       </div>
   );

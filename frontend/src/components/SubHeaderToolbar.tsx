@@ -37,7 +37,7 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
     return (
         <div
             id="sub-header-toolbar"
-            className="max-w-7xl w-full mx-auto px-4 sm:px-6 pt-3 flex justify-end animate-in fade-in slide-in-from-top-2 duration-200"
+            className="w-full mx-auto px-8 sm:px-16 pt-3 flex justify-end animate-in fade-in slide-in-from-top-2 duration-200"
         >
             {/* Layered Glassmorphism Sub-Header Bar */}
             <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 p-1.5 bg-white/90 backdrop-blur-md rounded-2xl border-2 border-white/80 shadow-md shadow-slate-900/5">

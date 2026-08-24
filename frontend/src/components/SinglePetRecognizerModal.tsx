@@ -357,7 +357,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                   </span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-[11px] text-slate-400 font-medium">支持 Ctrl+V 直接粘贴</span>
-                      <RecognitionSamplesHint onLoadSample={handleFileSelected} />
+                      <RecognitionSamplesHint onLoadSample={handleFileSelected} count={3} />
                     </div>
                   </div>
 
