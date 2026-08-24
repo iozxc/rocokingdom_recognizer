@@ -19,6 +19,7 @@ interface SubHeaderToolbarProps {
     onOpenSingleRecognizer?: () => void;
     onOpenBatchInit?: () => void;
     onOpenGlobalSearch?: () => void;
+    showFollow?: boolean;
 }
 
 export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
@@ -29,6 +30,7 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                                                                       onOpenSingleRecognizer,
                                                                       onOpenBatchInit,
                                                                       onOpenGlobalSearch,
+                                                                      showFollow = true,
                                                                   }) => {
     const unencounteredCount = Math.max(0, totalCount - encounteredCount);
 
@@ -97,41 +99,43 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
 
                 {/* Right Side in Toolbar: Action Buttons */}
                 <div className="flex items-center gap-1.5 flex-wrap">
-                    {/* 1. 跟随识别 */}
-                    <button
-                        type="button"
-                        id="sub-header-scanner-btn"
-                        onClick={async () => {
-                            sound.playClick();
-                            let openedViaPywebview = false;
-                            try {
-                                const pyApi = (window as any).pywebview?.api;
-                                if (pyApi) {
-                                    if (typeof pyApi.open_scanner_to_app === 'function') {
-                                        await pyApi.open_scanner_to_app('洛克王国：世界');
-                                        openedViaPywebview = true;
-                                    } else if (typeof pyApi.open_scanner_window === 'function') {
-                                        await pyApi.open_scanner_window();
-                                        openedViaPywebview = true;
+                    {/* 1. 跟随识别（火系页可关闭） */}
+                    {showFollow && (
+                        <button
+                            type="button"
+                            id="sub-header-scanner-btn"
+                            onClick={async () => {
+                                sound.playClick();
+                                let openedViaPywebview = false;
+                                try {
+                                    const pyApi = (window as any).pywebview?.api;
+                                    if (pyApi) {
+                                        if (typeof pyApi.open_scanner_to_app === 'function') {
+                                            await pyApi.open_scanner_to_app('洛克王国：世界');
+                                            openedViaPywebview = true;
+                                        } else if (typeof pyApi.open_scanner_window === 'function') {
+                                            await pyApi.open_scanner_window();
+                                            openedViaPywebview = true;
+                                        }
                                     }
+                                } catch (e) {
+                                    console.warn('调用 pywebview 失败:', e);
                                 }
-                            } catch (e) {
-                                console.warn('调用 pywebview 失败:', e);
-                            }
-                            if (!openedViaPywebview) {
-                                window.open(
-                                    '/scanner.html',
-                                    'RocoFollowScanner',
-                                    'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
-                                );
-                            }
-                        }}
-                        className="px-2.5 py-1.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-                        title="窗口跟随识别"
-                    >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>跟随识别</span>
-                    </button>
+                                if (!openedViaPywebview) {
+                                    window.open(
+                                        '/scanner.html',
+                                        'RocoFollowScanner',
+                                        'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
+                                    );
+                                }
+                            }}
+                            className="px-2.5 py-1.5 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                            title="窗口跟随识别"
+                        >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>跟随识别</span>
+                        </button>
+                    )}
 
                     {/* 2. 单个识别 */}
                     {onOpenSingleRecognizer && (
