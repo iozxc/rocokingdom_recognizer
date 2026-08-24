@@ -4,7 +4,7 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "增加设置功能，增加更新功能（更新变的更可靠了，并且可以增量更新了），增加新主页功能，增加了名字修改",
+  "update_log": "全图鉴精灵识别：统一识别全图鉴精灵，自动过滤不在图鉴内的精灵\n支持按图鉴编号搜索，首页、全域搜索、批量识别等所有搜索入口均可直接输入 id\n精灵卡片新增编号角标与右键菜单（精灵详情 / 反馈错误），详情页展示遇见时间与置信度。启动提速：识别模型改为按需加载，首次打开明显更快",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.3/",
     "files": [
