@@ -169,16 +169,16 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                 </div>
 
                 {/* Search Input with Clear (X) button */}
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:w-72">
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="flex items-center gap-2 w-full lg:w-auto">
+                    <div className="relative w-full sm:w-96">
+                        <Search className="w-5 h-5 text-[#7ABCF4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                             type="text"
                             id="search-pet-input"
                             value={searchQuery}
                             onChange={(e) => onSearchChange(e.target.value)}
                             placeholder="搜索精灵名称..."
-                            className="w-full pl-9 pr-8 py-1.5 text-xs bg-[#F5F9FF] focus:bg-white border-2 border-[#E2E8F0] focus:border-[#7ABCF4] rounded-xl outline-hidden transition-all text-slate-800 placeholder:text-slate-400 font-medium"
+                            className="w-full pl-11 pr-10 py-2.5 text-sm bg-white border-2 border-[#7ABCF4]/50 focus:border-[#7ABCF4] rounded-2xl shadow-sm focus:shadow-md outline-hidden transition-all text-slate-800 placeholder:text-slate-400 placeholder:font-medium font-semibold"
                         />
                         {searchQuery && (
                             <button
@@ -188,10 +188,10 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                     sound.playClick();
                                     onSearchChange('');
                                 }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                                 title="清空输入内容"
                             >
-                                <X className="w-3 h-3" />
+                                <X className="w-4 h-4" />
                             </button>
                         )}
                     </div>
