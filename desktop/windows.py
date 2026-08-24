@@ -1,9 +1,28 @@
 """桌面窗口管理：主窗口与“跟随识别”子窗口的创建、关闭、移动与自适应。"""
+import ctypes
 import threading
 
 import webview
 
 from core.logger import logger
+
+# 主窗口的默认配置尺寸；低分辨率屏幕下会自动降级为全屏
+_MAIN_WINDOW_WIDTH = 1500
+_MAIN_WINDOW_HEIGHT = 1000
+_MAIN_WINDOW_MIN_WIDTH = 1200
+_MAIN_WINDOW_MIN_HEIGHT = 700
+
+
+def _get_screen_size():
+    """返回主显示器分辨率 (宽, 高)；读取失败时回退 1920x1080。"""
+    try:
+        width = int(ctypes.windll.user32.GetSystemMetrics(0))  # SM_CXSCREEN
+        height = int(ctypes.windll.user32.GetSystemMetrics(1))  # SM_CYSCREEN
+        if width > 0 and height > 0:
+            return width, height
+    except Exception as e:
+        logger.warning(f"读取屏幕分辨率失败，使用默认 1920x1080: {e}")
+    return 1920, 1080
 
 
 class WindowManager:
@@ -22,15 +41,36 @@ class WindowManager:
         return f"http://127.0.0.1:{self.server_port}"
 
     def create_main_window(self):
-        """创建主窗口。"""
-        self.main_window = webview.create_window(
-            '洛克王国徽章试炼助手',
-            self.base_url,
-            width=1500,
-            height=1000,
-            min_size=(1200, 700),
-            js_api=self.js_api,
+        """创建主窗口。
+
+        如果配置的窗口尺寸大于桌面分辨率（低分辨率小屏幕），
+        则直接以全屏方式显示，避免窗口超出屏幕无法操作。
+        """
+        screen_w, screen_h = _get_screen_size()
+        use_fullscreen = (
+            _MAIN_WINDOW_WIDTH > screen_w or _MAIN_WINDOW_HEIGHT > screen_h
         )
+
+        window_kwargs = {
+            "title": '洛克王国徽章试炼助手',
+            "url": self.base_url,
+            "width": screen_w if use_fullscreen else _MAIN_WINDOW_WIDTH,
+            "height": screen_h if use_fullscreen else _MAIN_WINDOW_HEIGHT,
+            "js_api": self.js_api,
+        }
+        if use_fullscreen:
+            logger.info(
+                f"桌面分辨率 {screen_w}x{screen_h} 小于配置窗口尺寸，"
+                f"主窗口改为全屏显示"
+            )
+            window_kwargs["fullscreen"] = True
+        else:
+            window_kwargs["min_size"] = (
+                _MAIN_WINDOW_MIN_WIDTH,
+                _MAIN_WINDOW_MIN_HEIGHT,
+            )
+
+        self.main_window = webview.create_window(**window_kwargs)
         self.main_window.events.closed += self._on_main_closed
         logger.info("主窗口创建完成")
         return self.main_window
@@ -119,3 +159,4 @@ class WindowManager:
         except Exception as e:
             logger.error(f"resize_scanner_window 异常: {e}")
             return {"status": "error", "message": str(e)}
+
