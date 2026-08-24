@@ -1,0 +1,191 @@
+# -*- coding: utf-8 -*-
+"""Build a single JSON that maps each map sprite to its dataset image file.
+
+The image database is train/dataset/image, where filenames are
+    {id}_{pet_name}[_{form}].png      e.g. 258_乌达_极夜.png
+
+For every PNG in the three source maps
+    train/features/assets/pic/icons_only/map1|map2|map3
+the corresponding dataset filename is chosen as the JSON key:
+
+    1. unique file whose content (md5) is identical to the map image;
+    2. otherwise the dataset file with the same sprite name;
+    3. otherwise (base form with no dataset counterpart, e.g. map has
+       "小星光.png" but the database only has "080_小星光_星光.png")
+       the closest image of the same pet, picked by perceptual hash,
+       and reported on stdout for review.
+
+Output:
+    {
+      "map1": {
+        "008_水蓝蓝.png":   {"id": 8,   "name": "水蓝蓝"},
+        "258_乌达_极夜.png": {"id": 258, "name": "乌达"}
+      },
+      "map2": { ... },
+      "map3": { ... }
+    }
+"""
+
+import json
+import os
+import re
+import sys
+from collections import defaultdict
+from hashlib import md5
+
+from PIL import Image
+
+
+ROOT = os.path.dirname(__file__)
+DATASET_DIR = os.path.join(ROOT, "dataset", "image")
+PIC_ROOT = os.path.join(ROOT, "features", "assets", "pic", "icons_only")
+MAPS = ["map1", "map2", "map3"]
+OUT_PATH = os.path.join(ROOT, "dataset", "map_pets.json")
+
+
+def file_md5(path):
+    h = md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def dhash(path, size=9):
+    """64-bit perceptual hash (difference hash)."""
+    img = Image.open(path).convert("L").resize((size + 1, size))
+    px = list(img.getdata())
+    bits = 0
+    for i in range(size):
+        row = i * (size + 1)
+        for j in range(size):
+            bits = (bits << 1) | (1 if px[row + j] > px[row + j + 1] else 0)
+    return bits
+
+
+def hamming(a, b):
+    return bin(a ^ b).count("1")
+
+
+def load_pet_names():
+    with open(os.path.join(os.path.dirname(ROOT), "roco_all_pets.json"),
+              encoding="utf-8") as f:
+        pets = json.load(f)["pets"]
+    return {p["id"]: p["name"] for p in pets}
+
+
+def build_dataset_index():
+    """Dataset filename -> (id, rest, md5, dhash)."""
+    pat = re.compile(r"^(\d+)_(.+)\.png$")
+    files = {}
+    for fname in sorted(os.listdir(DATASET_DIR)):
+        m = pat.match(fname)
+        if not m:
+            continue
+        pid, rest = int(m.group(1)), m.group(2)
+        path = os.path.join(DATASET_DIR, fname)
+        files[fname] = (pid, rest, file_md5(path), dhash(path))
+    return files
+
+
+def resolve_pet(rest, pet_names):
+    """Pet id/name for a map sprite name, using JSON pet names."""
+    if rest in pet_names:
+        pid = pet_names[rest]
+        return pid, rest
+    prefix = [n for n in pet_names if rest.startswith(n + "_")]
+    if prefix:
+        n = max(prefix, key=len)
+        return pet_names[n], n
+    embedded = [n for n in pet_names if n in rest]
+    if embedded:
+        n = max(embedded, key=len)
+        return pet_names[n], n
+    return None, None
+
+
+def pick_by_name(rest, candidates):
+    """Prefer exact sprite name, then the '_本来' base form, else first."""
+    for fname in candidates:
+        if fname.split("_", 1)[1][:-4] == rest:
+            return fname
+    for fname in candidates:
+        if "_本来" in fname:
+            return fname
+    return sorted(candidates)[0]
+
+
+def main():
+    name_by_id = load_pet_names()
+    pet_names = {name: pid for pid, name in name_by_id.items()}
+    ds = build_dataset_index()
+    by_hash = defaultdict(list)
+    by_rest = defaultdict(list)
+    by_pid = defaultdict(list)
+    for fname, (pid, rest, h, _) in ds.items():
+        by_hash[h].append(fname)
+        by_rest[rest].append(fname)
+        by_pid[pid].append(fname)
+
+    result = {}
+    guessed = []
+    nulls = []
+    for mp in MAPS:
+        mdir = os.path.join(PIC_ROOT, mp)
+        entries = {}
+        for fname in sorted(os.listdir(mdir)):
+            if not fname.lower().endswith(".png"):
+                continue
+            rest = os.path.splitext(fname)[0]
+            pid, pname = resolve_pet(rest, pet_names)
+            path = os.path.join(mdir, fname)
+            h = file_md5(path)
+
+            key = None
+            method = None
+            if by_hash.get(h):
+                key = pick_by_name(rest, by_hash[h])
+                method = "content"
+            elif by_rest.get(rest):
+                key = by_rest[rest][0]
+                method = "name"
+            elif pid is not None and by_pid.get(pid):
+                # Base form missing from the database: pick the perceptually
+                # closest image of the same pet.
+                target = dhash(path)
+                best = min(by_pid[pid],
+                           key=lambda f: hamming(target, ds[f][3]))
+                key = best
+                method = "perceptual"
+
+            if key is None:
+                entries[rest + ".png"] = {"id": None, "name": None}
+                nulls.append((mp, fname))
+                continue
+
+            kid = ds[key][0]
+            if pid is not None and kid != pid:
+                print(f"WARNING: {mp}/{fname} -> {key} (id {kid}), "
+                      f"expected id {pid} ({pname})")
+            entries[key] = {"id": kid, "name": name_by_id.get(kid)}
+            if method == "perceptual":
+                guessed.append((mp, fname, key))
+        result[mp] = entries
+
+    with open(OUT_PATH, "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+
+    total = sum(len(v) for v in result.values())
+    print(f"written: {OUT_PATH}")
+    print(f"map entries: map1={len(result['map1'])}, "
+          f"map2={len(result['map2'])}, map3={len(result['map3'])} (total {total})")
+    print(f"perceptual guesses (no same-name or same-content file): {len(guessed)}")
+    for mp, src, key in guessed:
+        print(f"    {mp}/{src} -> {key}")
+    print(f"unresolved (null): {len(nulls)}")
+    for mp, src in nulls:
+        print(f"    {mp}/{src}")
+
+
+if __name__ == "__main__":
+    main()

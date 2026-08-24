@@ -27,6 +27,8 @@ DATABASE_TITLE_PATH = config.get_resource_path(os.path.join("assets", "features_
 DATABASE_TITLE_PKL_PATH = config.get_resource_path(os.path.join("assets", "features_title_db.pkl"))
 MAP_MODEL_SAVE_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pt"))
 MAP_MODEL_SAVE_PKL_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pkl"))
+DATASET_PATH = config.get_resource_path(os.path.join("dataset", "image"))
+DATASET_DB = config.get_resource_path(os.path.join("dataset", "datasets.db"))
 
 # --- 训练超参数 ---
 BATCH_SIZE = 4
