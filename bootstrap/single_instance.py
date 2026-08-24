@@ -1,16 +1,31 @@
 """单实例保护：防止用户重复打开程序导致本地用户数据互相覆盖。"""
 import ctypes
 import sys
+import time
 
 from core.logger import logger
 
 # 会话级命名互斥体：进程正常退出或崩溃后由系统自动释放，不会残留锁文件
 _MUTEX_NAME = "Local\\RocoKingdomRecognizer_SingleInstance"
+# 旧实例正在退出时，新实例最多等待它完全退出再接管
+_WAIT_EXIT_SECONDS = 5.0
 # 新标题优先；保留旧标题，便于唤起仍在运行的旧版本实例
 _MAIN_WINDOW_TITLES = ("洛克王国徽章试炼助手", "洛克王国草系徽章试炼助手")
 
 # 持有句柄直到进程结束，防止句柄被 GC 回收导致锁失效
 _held_mutex = None
+
+
+def activate_existing_if_visible() -> bool:
+    """若已存在可见的应用主窗口，唤起它并返回 True（本进程应直接退出，不弹提示）。"""
+    try:
+        if _find_main_window() is not None:
+            logger.info("检测到程序已在运行，仅唤起已有窗口")
+            _activate_existing_window()
+            return True
+    except Exception as e:
+        logger.warning(f"检查已有窗口失败: {e}")
+    return False
 
 
 def acquire() -> bool:
@@ -31,9 +46,14 @@ def acquire() -> bool:
         error_code = ctypes.get_last_error()
         if error_code == 183:  # ERROR_ALREADY_EXISTS
             kernel32.CloseHandle(handle)
-            logger.info("检测到程序已在运行，仅唤起已有窗口")
-            _activate_existing_window()
-            return False
+            # 有可见主窗口：实例正在运行，唤起后退出
+            if _find_main_window() is not None:
+                logger.info("检测到程序已在运行，仅唤起已有窗口")
+                _activate_existing_window()
+                return False
+            # 没有可见窗口：旧实例正在退出/启动中，等它释放互斥体再继续
+            logger.info("检测到程序正在退出，等待其完全退出后继续启动")
+            return _wait_for_exit(kernel32)
 
         _held_mutex = handle
         # 兜底：互斥体虽由本进程创建成功，但屏幕上已存在同名主窗口
@@ -46,6 +66,27 @@ def acquire() -> bool:
     except Exception as e:
         logger.warning(f"单实例检查异常，放行启动: {e}")
         return True
+
+
+def _wait_for_exit(kernel32) -> bool:
+    """等待旧实例完全退出并尝试接管互斥体。返回 True 表示本进程已成为唯一实例。"""
+    global _held_mutex
+    deadline = time.monotonic() + _WAIT_EXIT_SECONDS
+    while time.monotonic() < deadline:
+        time.sleep(0.15)
+        # 等待期间另一实例的窗口出现了（并发启动/旧实例恢复），直接唤起后退出
+        if _find_main_window() is not None:
+            _activate_existing_window()
+            return False
+        handle = kernel32.CreateMutexW(None, False, _MUTEX_NAME)
+        if not handle:
+            return False
+        if ctypes.get_last_error() != 183:
+            _held_mutex = handle
+            return True
+        kernel32.CloseHandle(handle)
+    logger.warning("等待旧实例退出超时，放弃本次启动")
+    return False
 
 
 def _find_main_window(user32=None):

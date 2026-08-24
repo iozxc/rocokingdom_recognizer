@@ -18,7 +18,7 @@ _EXIT_GRACE_SECONDS = 0.6
 _WATCHDOG_TIMEOUT_SECONDS = 3.0
 
 
-def run(app, splash=None) -> None:
+def run(app, hint=None) -> None:
     """启动 Flask 服务与主窗口（阻塞直到全部窗口关闭）。"""
     port = pick_free_port()
     logger.info(f"动态端口已分配: {port}")
@@ -42,12 +42,12 @@ def run(app, splash=None) -> None:
     window_manager.create_main_window()
     _install_exit_watchdog(window_manager.main_window)
     # 主窗口显示后关闭启动提示
-    if splash is not None:
+    if hint is not None:
         try:
-            window_manager.main_window.events.shown += lambda *args: splash.close()
+            window_manager.main_window.events.shown += lambda *args: hint.close()
         except Exception as e:
             logger.debug(f"绑定主窗口 shown 事件失败: {e}")
-            splash.close()
+            hint.close()
     # PyInstaller 打包后 sys.frozen 为 True：自动关闭 webview 调试模式，无需手动改
     debug_mode = not bool(getattr(sys, "frozen", False))
     logger.info(f"webview 调试模式: {debug_mode}")
@@ -67,6 +67,16 @@ def _install_exit_watchdog(main_window) -> None:
         os._exit(0)
 
     def _on_main_closed():
+        # 关闭时立即显示“正在退出”提示，避免用户马上再打开时误以为卡住
+        try:
+            from bootstrap.settings import hints_enabled
+            if hints_enabled():
+                from bootstrap.splash import show_hint
+                # 保持引用，防止被 GC 回收
+                globals()["_closing_hint"] = show_hint(message="正在退出，请稍候...")
+        except Exception as e:
+            logger.debug(f"显示退出提示失败: {e}")
+
         threading.Thread(
             target=_watchdog,
             daemon=True,

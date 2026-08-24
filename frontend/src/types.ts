@@ -174,6 +174,7 @@ export interface AppSettings {
   updateMode?: 'auto' | 'full'; // 'auto' 自动增量更新（默认）| 'full' 强制整包更新
   autoCheckUpdate?: boolean; // 启动时是否自动检测更新（默认开启）
   hideUpdateDot?: boolean; // 是否隐藏更新提示红点（默认不隐藏）
+  showHints?: boolean; // 启动/退出提示窗口是否显示（默认显示）
   [key: string]: unknown;
 }
 

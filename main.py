@@ -21,20 +21,30 @@ def main() -> None:
 
     _enable_dpi_awareness()
 
+    # 已有实例窗口可见：直接唤起后退出（不弹提示，避免重复点击闪出弹窗）
+    from bootstrap.single_instance import activate_existing_if_visible
+    if activate_existing_if_visible():
+        return
+
+    # 启动提示：立即给出反馈，避免模型加载慢时误以为闪退（可在系统设置里关闭）
+    hint = None
+    from bootstrap.settings import hints_enabled
+    if hints_enabled():
+        from bootstrap.splash import show_hint
+        hint = show_hint(message="正在启动，请稍候...")
+
     # 单实例保护：已有实例在运行时直接退出，避免两个进程同时读写用户数据
     from bootstrap.single_instance import acquire
     if not acquire():
+        if hint is not None:
+            hint.close()
         return
-
-    # 启动提示：模型加载可能较慢，先给用户一个“正在启动”的反馈，避免误以为闪退
-    from bootstrap.splash import show_splash
-    splash = show_splash()
 
     from core import create_app
     from desktop import run
 
     app = create_app()
-    run(app, splash=splash)
+    run(app, hint=hint)
 
 
 if __name__ == '__main__':

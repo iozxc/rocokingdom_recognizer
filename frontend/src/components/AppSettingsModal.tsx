@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, ChevronLeft, Volume2, VolumeX, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, RotateCcw, Camera, Image as ImageIcon } from 'lucide-react';
+import { X, Play, ChevronLeft, Volume2, VolumeX, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, RotateCcw, Camera, Image as ImageIcon, Settings2 } from 'lucide-react';
 import { EffectLevel, FloatingButtonsMode, CaptureMode } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
@@ -37,12 +37,15 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [updateMode, setUpdateMode] = useState<'auto' | 'full'>(() => {
     return storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
   });
-  const [view, setView] = useState<'main' | 'update'>('main');
+  const [view, setView] = useState<'main' | 'update' | 'system'>('main');
   const [autoCheckUpdate, setAutoCheckUpdate] = useState<boolean>(() => {
     return storage.getSetting<boolean>('autoCheckUpdate', true);
   });
   const [hideUpdateDot, setHideUpdateDot] = useState<boolean>(() => {
     return storage.getSetting<boolean>('hideUpdateDot', false);
+  });
+  const [showHints, setShowHints] = useState<boolean>(() => {
+    return storage.getSetting<boolean>('showHints', true);
   });
 
   // Sync settings updates
@@ -56,6 +59,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (settings.updateMode === 'auto' || settings.updateMode === 'full') setUpdateMode(settings.updateMode);
       if (typeof settings.autoCheckUpdate === 'boolean') setAutoCheckUpdate(settings.autoCheckUpdate);
       if (typeof settings.hideUpdateDot === 'boolean') setHideUpdateDot(settings.hideUpdateDot);
+      if (typeof settings.showHints === 'boolean') setShowHints(settings.showHints);
     });
     return () => unsubscribe();
   }, []);
@@ -77,6 +81,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     }
     setAutoCheckUpdate(storage.getSetting<boolean>('autoCheckUpdate', true));
     setHideUpdateDot(storage.getSetting<boolean>('hideUpdateDot', false));
+    setShowHints(storage.getSetting<boolean>('showHints', true));
     setView('main');
   }, [isOpen]);
 
@@ -160,6 +165,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     storage.setSetting('hideUpdateDot', next);
   };
 
+  const handleToggleHints = () => {
+    sound.playClick();
+    const next = !showHints;
+    setShowHints(next);
+    storage.setSetting('showHints', next);
+  };
+
   return (
       <div
           id="app-settings-modal-backdrop"
@@ -174,7 +186,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
           {/* Header */}
           <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
             <div className="flex items-center gap-2">
-              {view === 'update' && (
+              {view !== 'main' && (
                   <button
                       type="button"
                       id="app-settings-back-btn"
@@ -189,7 +201,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </button>
               )}
               <h3 className="text-sm font-bold text-slate-800 tracking-tight">
-                {view === 'update' ? '更新设置' : '偏好设置'}
+                {view === 'update' ? '更新设置' : view === 'system' ? '系统设置' : '偏好设置'}
               </h3>
             </div>
             <button
@@ -268,6 +280,26 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                           ? '优先下载增量包（只下载变更文件，更快），无法增量时自动回退整包'
                           : '始终下载完整安装包，覆盖旧版本所有文件'}
                     </div>
+                  </div>
+                </div>
+            ) : view === 'system' ? (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-slate-800">启动/退出提示</div>
+                      <div className="text-[10px] text-slate-400">启动与退出时显示蓝白提示窗口，关闭后不再弹出</div>
+                    </div>
+                    <button
+                        type="button"
+                        id="settings-hints-switch-btn"
+                        onClick={handleToggleHints}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showHints ? 'bg-[#95D151]' : 'bg-slate-200'}`}
+                        title={showHints ? '点击关闭提示' : '点击开启提示'}
+                    >
+                      <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showHints ? 'translate-x-4' : 'translate-x-0'}`}
+                      />
+                    </button>
                   </div>
                 </div>
             ) : (
@@ -471,31 +503,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </div>
             </div>
 
-            {/* Section 3.5: 更新设置入口 */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
-                  <ArrowUpCircle className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-slate-800">更新设置</div>
-                  <div className="text-[10px] text-slate-400">启动自检、提示红点与更新方式</div>
-                </div>
-              </div>
-              <button
-                  type="button"
-                  id="open-update-settings-btn"
-                  onClick={() => {
-                    sound.playClick();
-                    setView('update');
-                  }}
-                  className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
-              >
-                <span>设置</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-
             {/* Section 4: 声音 */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -579,6 +586,56 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                         showSamples ? 'translate-x-4' : 'translate-x-0'
                     }`}
                 />
+              </button>
+            </div>
+
+            {/* Section 7: 系统设置入口（二级设置，点进去是独立子页） */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <Settings2 className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800">系统设置</div>
+                  <div className="text-[10px] text-slate-400">启动/退出提示等系统级开关</div>
+                </div>
+              </div>
+              <button
+                  type="button"
+                  id="open-system-settings-btn"
+                  onClick={() => {
+                    sound.playClick();
+                    setView('system');
+                  }}
+                  className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+              >
+                <span>设置</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
+            {/* Section 8: 更新设置入口（与系统设置入口放在一起，置于最底部） */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <ArrowUpCircle className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800">更新设置</div>
+                  <div className="text-[10px] text-slate-400">启动自检、提示红点与更新方式</div>
+                </div>
+              </div>
+              <button
+                  type="button"
+                  id="open-update-settings-btn"
+                  onClick={() => {
+                    sound.playClick();
+                    setView('update');
+                  }}
+                  className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+              >
+                <span>设置</span>
+                <ArrowRight className="w-3 h-3" />
               </button>
             </div>
                 </>
