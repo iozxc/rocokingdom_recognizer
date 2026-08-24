@@ -1,4 +1,4 @@
-"""图标目录服务：负责从 assets.db 扫描并缓存图标名称。"""
+"""图标目录服务：负责从 map_pets1.json 读取并缓存精灵名称。"""
 from core.icon_names import scan_icon_names
 
 

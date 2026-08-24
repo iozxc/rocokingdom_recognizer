@@ -1,28 +1,17 @@
-import json
-
 import os
 from flask import Blueprint, Response, current_app, send_from_directory, url_for
 
 import config
 from core.api.response import error, success
 from core.db import get_db
+from core.icon_names import load_map_pets, sprite_to_file
 from core.logger import logger
+from core.utils import strip_id_prefix
 
 bp = Blueprint("main", __name__)
 
-PET_NAME_TO_ID = {}
 ICONS = None
 ICON_FILE_CACHE = {}
-
-try:
-    with open(config.PETS_FILE, "r", encoding="utf-8") as f:
-        root = json.load(f)
-    pet_list = root.get("pets", [])
-    PET_NAME_TO_ID = {item["name"]: item["id"] for item in pet_list}
-except Exception as e:
-    # 读取失败，降级：所有图标排末尾
-    logger.warning(f"宠物图鉴加载失败，将降级排序: {e}", exc_info=True)
-    PET_NAME_TO_ID = {}
 
 
 @bp.route('/')
@@ -41,49 +30,27 @@ def serve_file(path):
 @bp.route('/icons', methods=['GET'])
 def list_icons():
     global ICONS
-    """从数据库读取所有图片的名字及其对应的访问 URL，按图鉴id排序；支持_后缀变体形态"""
+    """从 map_pets1.json 读取每个 map 的精灵（数据集文件名）及其访问 URL，按图鉴 id 排序。"""
     try:
         if ICONS:
             logger.debug(f"[GET /icons] icons已缓存")
             return success(data=ICONS)
-        db = get_db()
-        cursor = db.execute("SELECT path FROM icons ORDER BY path ASC")
-        all_paths = [row[0] for row in cursor.fetchall()]
 
         icons_structure = {}
-
-        for p in all_paths:
-            parts = p.split('/')
-            if len(parts) != 2:
-                continue
-
-            map_name, filename = parts[0], parts[1]
-
-            if map_name not in icons_structure:
-                icons_structure[map_name] = {
-                    "count": 0,
-                    "items": []
-                }
-
-            icons_structure[map_name]["items"].append({
-                "name": filename,
-                "url": url_for('main.get_icon_file', map_name=map_name, filename=filename, _external=True)
-            })
-            icons_structure[map_name]["count"] += 1
-
-        # 排序key：去掉后缀，按下划线切分取主名查图鉴ID；无匹配返回无穷大放末尾
-        def sort_key(item):
-            filename = item["name"]
-            # 去除文件扩展名
-            no_ext = filename.rsplit(".", 1)[0]
-            # 按下划线分割，取前面主体名字
-            main_name = no_ext.split("_")[0]
-            pet_id = PET_NAME_TO_ID.get(main_name, float("inf"))
-            # 次要key：保留原始文件名，同一个主宠的多个变体内部按文件名字典序排
-            return (pet_id, filename)
-
-        for map_name in icons_structure:
-            icons_structure[map_name]["items"].sort(key=sort_key)
+        map_pets = load_map_pets()
+        for map_name in config.MAP_LIST:
+            entries = map_pets.get(map_name, {})
+            items = []
+            for filename, meta in sorted(
+                    entries.items(),
+                    key=lambda kv: (kv[1].get("id", float("inf")), kv[0])):
+                items.append({
+                    # 对外/用户数据不保留 id 前缀；URL 仍指向真实数据集文件
+                    "name": strip_id_prefix(filename),
+                    "url": url_for('main.get_icon_file', map_name=map_name,
+                                   filename=filename, _external=True)
+                })
+            icons_structure[map_name] = {"count": len(items), "items": items}
 
         ICONS = icons_structure
         return success(data=icons_structure)
@@ -94,18 +61,27 @@ def list_icons():
 
 @bp.route('/icons/<map_name>/<filename>')
 def get_icon_file(map_name, filename):
-    """从缓存/数据库直接返回图片二进制流，无锁版本"""
+    """从缓存/datasets.db 返回图片二进制流；兼容旧命名（精灵名）反查。"""
     global ICON_FILE_CACHE
     try:
-        db_path = f"{map_name}/{filename}"
+        db_path = filename[:-4] if filename.lower().endswith('.png') else filename
 
         # 缓存命中直接返回
         if db_path in ICON_FILE_CACHE:
             return Response(ICON_FILE_CACHE[db_path], mimetype='image/png')
 
         db = get_db()
-        cursor = db.execute("SELECT data FROM icons WHERE path = ?", (db_path,))
-        row = cursor.fetchone()
+        row = db.execute("SELECT data FROM icons WHERE path = ?", (db_path,)).fetchone()
+
+        if row is None:
+            # 旧命名（如 乌达_极夜.png）通过关联 JSON 反查数据集文件名
+            mapped = sprite_to_file(map_name, filename)
+            if mapped:
+                db_path = mapped[:-4] if mapped.lower().endswith('.png') else mapped
+                if db_path in ICON_FILE_CACHE:
+                    return Response(ICON_FILE_CACHE[db_path], mimetype='image/png')
+                row = db.execute("SELECT data FROM icons WHERE path = ?",
+                                 (db_path,)).fetchone()
 
         if row:
             # 未命中，查询后存入缓存

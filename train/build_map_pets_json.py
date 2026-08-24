@@ -38,7 +38,7 @@ from PIL import Image
 
 ROOT = os.path.dirname(__file__)
 DATASET_DIR = os.path.join(ROOT, "dataset", "image")
-PIC_ROOT = os.path.join(ROOT, "features", "assets", "pic", "icons_only")
+PIC_ROOT = os.path.join(ROOT, "assets", "pic", "icons_only")
 MAPS = ["map1", "map2", "map3"]
 OUT_PATH = os.path.join(ROOT, "dataset", "map_pets.json")
 
@@ -68,7 +68,8 @@ def hamming(a, b):
 
 
 def load_pet_names():
-    with open(os.path.join(os.path.dirname(ROOT), "roco_all_pets.json"),
+    pets_path = os.path.join(os.path.dirname(ROOT), "datasets", "roco_all_pets.json")
+    with open(pets_path,
               encoding="utf-8") as f:
         pets = json.load(f)["pets"]
     return {p["id"]: p["name"] for p in pets}

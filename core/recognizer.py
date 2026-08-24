@@ -5,6 +5,7 @@ import os
 import pickle
 import time
 from core.logger import logger
+from core.utils import strip_id_prefix
 from PIL import Image
 
 
@@ -141,7 +142,7 @@ class ImageRecognizer:
             score = float(similarities[idx])
             if score < threshold:
                 continue
-            match_path = db["paths"][idx]
+            match_path = strip_id_prefix(db["paths"][idx])
             results.append({
                 "match_path": match_path,
                 "filename": os.path.basename(match_path),

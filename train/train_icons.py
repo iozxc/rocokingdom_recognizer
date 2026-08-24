@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from pathlib import Path
@@ -100,22 +101,32 @@ def run_train():
     recognizer = ImageRecognizer(device=train_config.DEVICE)
     db_to_save = {}
 
-    for map_name in config.MAP_LIST:
-        folder_path = os.path.join(train_config.DATA_ICON_ROOT, map_name)
-        if not os.path.exists(folder_path): continue
+    # 按关联 JSON 读取：{"map1": {"258_乌达_极夜.png": {"id": 258, "name": "乌达"}, ...}}
+    with open(train_config.MAP_PETS_JSON, "r", encoding="utf-8") as f:
+        map_pets = json.load(f)
 
-        print(f"正在处理 {map_name}...")
+    for map_name in config.MAP_LIST:
+        entries = map_pets.get(map_name, {})
+        if not entries:
+            print(f"跳过 {map_name}（map_pets1.json 中无条目）")
+            continue
+
+        print(f"正在处理 {map_name}（{len(entries)} 个条目）...")
         feats, paths = [], []
 
-        for f in os.listdir(folder_path):
-            if f.endswith('.png'):
-                p = os.path.join(folder_path, f)
-                feat = recognizer.get_feature(p)
-                feats.append(feat.cpu())
-                paths.append(os.path.basename(f))
+        for fname in sorted(entries):
+            p = os.path.join(train_config.DATASET_PATH, fname)
+            if not os.path.exists(p):
+                print(f"    警告：图片不存在，跳过 {fname}")
+                continue
+            feat = recognizer.get_feature(p)
+            feats.append(feat.cpu())
+            # 保存数据集文件名（含 .png），与 map_pets1.json / datasets.db 一致
+            paths.append(fname)
 
         if feats:
             db_to_save[map_name] = {"features": torch.stack(feats), "paths": paths}
+            print(f"{map_name} 完成：{len(feats)} 张")
 
     torch.save(db_to_save, train_config.DATABASE_ICON_PATH)
     print(f"训练完成！特征库保存至: {train_config.DATABASE_ICON_PATH}")

@@ -10,7 +10,7 @@ import config
 from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
 from core.services.recognizers import models
-from core.utils import get_top_k_matches, get_icon_full_path
+from core.utils import get_top_k_matches, get_icon_file_name, strip_id_prefix
 from core.logger import logger
 
 bp = Blueprint("predict", __name__)
@@ -37,12 +37,12 @@ def ocr_top_k_match(image, map_num, top_k=6):
 
     final_ocr_results = []
     for item in raw_result_list:
-        full_path = get_icon_full_path(map_key, item['name'])
+        file_name = strip_id_prefix(get_icon_file_name(map_key, item['name']))
 
-        if full_path:
+        if file_name:
             final_ocr_results.append({
-                "match_path": full_path,
-                "filename": os.path.basename(full_path),  # 自动带上 .png 后缀
+                "match_path": file_name,
+                "filename": os.path.basename(file_name),  # 数据集文件名，如 258_乌达_极夜.png
                 "score": item['score']
             })
 
@@ -189,11 +189,11 @@ def predict_batch():
                 for m in matches:
                     # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
                     # 或者当没有图像块可用时，也接受这个结果
-                    full_path = get_icon_full_path(map_name, m['name'])
-                    if full_path:
+                    file_name = strip_id_prefix(get_icon_file_name(map_name, m['name']))
+                    if file_name:
                         ocr_match_results.append({
-                            "match_path": full_path,
-                            "filename": os.path.basename(full_path),
+                            "match_path": file_name,
+                            "filename": os.path.basename(file_name),
                             "score": m['score']
                         })
 

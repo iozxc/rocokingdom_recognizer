@@ -8,7 +8,7 @@ import config
 from core.ocr import ocr
 from core.services.icon_catalog import icon_catalog
 from core.services.recognizers import models
-from core.utils import get_icon_full_path, get_top_k_matches
+from core.utils import get_icon_file_name, get_top_k_matches, strip_id_prefix
 from core.crop import crop_sections_from_pil_by_YOLOv8
 from core.logger import logger
 from core.tools import capture_window, clean_debug_folder, match_scene_unique_char
@@ -139,6 +139,11 @@ class AppApi:
         # OCR 辅助匹配（图标目录缓存由 IconCatalog 统一管理）
         names_dict = icon_catalog.get_names(self._app)
         ocr_results = get_top_k_matches(ocr_name, map_name, names_dict, k=9)
+        # 统一转换为数据集文件名（去掉 .png），便于与特征匹配结果按 name 去重
+        for r in ocr_results:
+            fname = get_icon_file_name(map_name, r['name'])
+            fname = strip_id_prefix(fname)
+            r['name'] = fname[:-4] if fname.lower().endswith('.png') else fname
         logger.debug(f"[槽位{i}] OCR模糊匹配候选数: {len(ocr_results)}")
 
         # 2. 特征匹配（主要瓶颈在 OCR，保持原有逻辑）
@@ -171,10 +176,10 @@ class AppApi:
 
         ocr_match_results = []
         for m in final_list:
-            full_path = get_icon_full_path(map_name, m['name'])
-            if full_path:
+            file_name = strip_id_prefix(get_icon_file_name(map_name, m['name']))
+            if file_name:
                 ocr_match_results.append({
-                    "filename": os.path.basename(full_path),
+                    "filename": os.path.basename(file_name),
                     "score": m['score']
                 })
 

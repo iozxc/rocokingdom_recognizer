@@ -6,10 +6,10 @@ import config
 
 
 def get_db():
-    """获取数据库连接（Flask 推荐写法）"""
+    """获取数据库连接（Flask 推荐写法），连接打包后的精灵图片库 datasets.db。"""
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(config.ASSETS_FILE)
+        db = g._database = sqlite3.connect(config.DATASETS_PETS)
     return db
 
 

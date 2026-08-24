@@ -29,6 +29,7 @@ MAP_MODEL_SAVE_PATH = config.get_resource_path(os.path.join("assets", "features_
 MAP_MODEL_SAVE_PKL_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pkl"))
 DATASET_PATH = config.get_resource_path(os.path.join("dataset", "image"))
 DATASET_DB = config.get_resource_path(os.path.join("dataset", "datasets.db"))
+MAP_PETS_JSON = config.get_resource_path(os.path.join("dataset", "map_pets1.json"))
 
 # --- 训练超参数 ---
 BATCH_SIZE = 4

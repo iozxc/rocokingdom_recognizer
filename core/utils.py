@@ -2,16 +2,42 @@ import config
 from difflib import SequenceMatcher
 
 import os
+import re
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import numpy as np
 from PIL import Image
 
+from core.icon_names import sprite_to_file
 from core.logger import logger
 
 
-def get_icon_full_path(map_name, icon_name_without_ext):
-    return os.path.normpath(os.path.join(config.ICONS_DIR, map_name, icon_name_without_ext + '.png'))
+_ID_PREFIX_RE = re.compile(r"^\d+_(.*)$")
+
+
+def strip_id_prefix(name):
+    """去掉数据集文件名/精灵名开头的数字 id 前缀。
+
+    '013_咔咔壳_蜕皮.png' -> '咔咔壳_蜕皮.png'；
+    '咔咔壳_蜕皮.png' 或 '咔咔壳_蜕皮' 等无数字前缀的名字原样返回。
+    """
+    if not name:
+        return name
+    m = _ID_PREFIX_RE.match(name)
+    return m.group(1) if m else name
+
+
+def get_icon_file_name(map_name, icon_name):
+    """返回该 map 精灵对应的数据集文件名（如 '258_乌达_极夜.png'）。
+
+    兼容传入精灵名（'乌达_极夜'）或数据集文件名（带/不带 .png 后缀）。
+    找不到映射时原样补 .png 后缀返回。
+    """
+    fname = sprite_to_file(map_name, icon_name)
+    if fname is None:
+        base = icon_name[:-4] if icon_name.lower().endswith('.png') else icon_name
+        fname = base + '.png'
+    return fname
 
 
 def get_best_match(user_name, map_key, names_dict):

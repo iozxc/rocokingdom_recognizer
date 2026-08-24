@@ -50,6 +50,6 @@ keys/
 /train/yolo/runs/
 /train/yolo/test/
 /train/yolo/*.pt
-/train/features/assets/
 /tools/
 /train/dataset/
+/train/assets/
