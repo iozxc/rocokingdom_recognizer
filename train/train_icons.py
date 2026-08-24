@@ -1,4 +1,3 @@
-import json
 import os
 import sys
 from pathlib import Path
@@ -9,7 +8,6 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import torch
-import config
 import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
@@ -19,7 +17,7 @@ from config import get_resource_path
 from train import train_config
 
 class ImageRecognizer:
-    def __init__(self, database_path=None, device="cpu"):
+    def __init__(self, device="cpu"):
         self.device = device
 
         # 加载 ResNet50 模型
@@ -37,16 +35,6 @@ class ImageRecognizer:
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
 
-        self.map_databases = {}
-        if database_path and os.path.exists(database_path):
-            self.load_db(database_path)
-
-    def load_db(self, path):
-        self.map_databases = torch.load(path, map_location='cpu')
-        for m in self.map_databases:
-            self.map_databases[m]['features'] = self.map_databases[m]['features'].to(self.device)
-        print(f"--- 成功加载特征库: {path} ---")
-
     def get_feature(self, img):
         """支持传入路径或 PIL Image 对象"""
         if isinstance(img, str):
@@ -58,79 +46,37 @@ class ImageRecognizer:
             feature = feature / feature.norm(p=2)
         return feature
 
-    def match(self, img_pil, map_num, threshold=0.7, top_k=3):
-        map_key = f"map{map_num}"
-        if map_key not in self.map_databases:
-            return None, f"Map {map_key} 不存在"
 
-        query_feat = self.get_feature(img_pil)
-        db = self.map_databases[map_key]
+def run_train_full():
+    """训练全图鉴特征库：遍历 train/dataset/image 下全部图片（含多形态），
 
-        with torch.no_grad():
-            # 计算余弦相似度（由于特征已归一化，矩阵乘法即相似度）
-            similarities = torch.mv(db["features"], query_feat)
-
-        # 获取前 top_k 个结果
-        # 注意：如果数据库图片数量少于 top_k，取实际数量
-        actual_k = min(top_k, len(db["features"]))
-        scores, indices = torch.topk(similarities, k=actual_k)
-
-        results = []
-        for score, idx in zip(scores, indices):
-            s = score.item()
-            # 过滤掉低于阈值的结果
-            if s < threshold:
-                continue
-
-            idx_val = idx.item()
-            results.append({
-                "match_path": db["paths"][idx_val],
-                "filename": os.path.basename(db["paths"][idx_val]),
-                "name": os.path.basename(db["paths"][idx_val]).split(".")[0],
-                "score": round(s, 4)
-            })
-
-        if not results:
-            return None, "未找到匹配程度足够高的图标"
-
-        return results, None
-
-
-def run_train(trials_num):
-    # 初始化识别器 (无需加载旧库)
+    输出 onnx/feature_icon.pt（结构为 {"features": ..., "paths": [...]}）。
+    识别时统一用这个全图鉴库，再由服务端按试炼白名单过滤 topk。
+    """
     recognizer = ImageRecognizer(device=train_config.DEVICE)
-    db_to_save = {}
+    image_dir = train_config.DATASET_PATH
+    files = sorted(
+        f for f in os.listdir(image_dir)
+        if f.lower().endswith((".png", ".jpg", ".jpeg"))
+    )
+    if not files:
+        print(f"未在 {image_dir} 找到任何图片，请检查训练数据路径")
+        return
 
-    # 按关联 JSON 读取：{"map1": {"258_乌达_极夜.png": {"id": 258, "name": "乌达"}, ...}}
-    with open(train_config.TRIALS_META[0]["map_pets_json_list"], "r", encoding="utf-8") as f:
-        map_pets = json.load(f)
+    print(f"全图鉴训练开始：共 {len(files)} 张图片")
+    feats, paths = [], []
+    for fname in files:
+        p = os.path.join(image_dir, fname)
+        feat = recognizer.get_feature(p)
+        feats.append(feat.cpu())
+        paths.append(fname)
 
-    for map_name in config.TRIALS[0]["map_list"]:
-        entries = map_pets.get(map_name, {})
-        if not entries:
-            print(f"跳过 {map_name}（map_pets1.json 中无条目）")
-            continue
-
-        print(f"正在处理 {map_name}（{len(entries)} 个条目）...")
-        feats, paths = [], []
-
-        for fname in sorted(entries):
-            p = os.path.join(train_config.DATASET_PATH, fname)
-            if not os.path.exists(p):
-                print(f"    警告：图片不存在，跳过 {fname}")
-                continue
-            feat = recognizer.get_feature(p)
-            feats.append(feat.cpu())
-            # 保存数据集文件名（含 .png），与 map_pets1.json / datasets.db 一致
-            paths.append(fname)
-
-        if feats:
-            db_to_save[map_name] = {"features": torch.stack(feats), "paths": paths}
-            print(f"{map_name} 完成：{len(feats)} 张")
-
-    torch.save(db_to_save, train_config.TRIALS_META[trials_num]["icon_feature_path"])
-    print(f"训练完成！特征库保存至: {train_config.TRIALS_META[trials_num]["icon_feature_path"]}")
+    db_to_save = {"features": torch.stack(feats), "paths": paths}
+    os.makedirs(os.path.dirname(train_config.FULL_ICON_FEATURE_PT), exist_ok=True)
+    torch.save(db_to_save, train_config.FULL_ICON_FEATURE_PT)
+    print(f"全图鉴特征库训练完成！保存至: {train_config.FULL_ICON_FEATURE_PT}")
 
 
 if __name__ == "__main__":
-    run_train(0) # 训练草系徽章
+    # run_train(0)
+    run_train_full()

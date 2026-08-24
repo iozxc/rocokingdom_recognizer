@@ -13,10 +13,9 @@ def _list_fire_pets(trial_key="fire"):
     """枚举 datasets.db 中的全部精灵图标（每个形态一条），并补上库里没有的全图鉴条目。
 
     数据集 path 形如 "258_乌达_极夜"（id_名称_形态），展示时只去掉 id 前缀，
-    保留形态后缀：乌达_极夜；图片复用原有 /icons/<map>/<filename> 接口。
+    保留形态后缀：乌达_极夜；图片复用原有 /icons/<filename> 接口。
     """
     trial = get_trial(trial_key) or get_trial("fire") or {}
-    icon_map = (trial.get("map_list") or ["map1"])[0]
     db = get_db()
     rows = db.execute("SELECT path FROM icons ORDER BY path").fetchall()
 
@@ -34,7 +33,6 @@ def _list_fire_pets(trial_key="fire"):
             "name": rest,  # 保留形态后缀，如 乌达_极夜
             "url": url_for(
                 "main.get_icon_file",
-                map_name=icon_map,
                 filename=f"{path}.png",
                 trial=trial_key,
                 _external=True,

@@ -11,6 +11,7 @@ from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
 from core.services.recognizers import models
 from core.services.trials import get_trial
+from core.services.trial_filter import filter_candidates_by_trial
 from core.utils import get_top_k_matches, get_icon_file_name, strip_id_prefix
 from core.logger import logger
 
@@ -82,10 +83,12 @@ def predict():
         img = Image.open(temp_path).convert('RGB')
         logger.debug(f"[/predict] 图片尺寸: {img.size}")
 
-        recognizer = models.get_icon_recognizer(trial_key)
+        recognizer = models.get_icon_recognizer()
         if recognizer is None:
             return error(f"试炼 {trial_key} 的图标特征库不可用", 500)
-        feat_results, err = recognizer.match(img, map_num, threshold, top_k=top_k)
+        # 全图鉴匹配时多取候选，白名单过滤后仍能凑够 topk
+        match_pool_k = max(top_k * 4, 24)
+        feat_results, err = recognizer.match(img, threshold, top_k=match_pool_k)
         logger.debug(f"[/predict] 特征匹配: 结果数={len(feat_results) if feat_results else 0}, err={err}")
 
         if err:
@@ -104,7 +107,9 @@ def predict():
             if path not in unique_results or res['score'] > unique_results[path]['score']:
                 unique_results[path] = res
 
-        final_list = list(unique_results.values())
+        final_list = filter_candidates_by_trial(
+            list(unique_results.values()), trial_key, map_name=f"map{map_num}"
+        )
 
         final_list.sort(key=lambda x: x['score'], reverse=True)
 
@@ -117,7 +122,6 @@ def predict():
             map_name = f"map{map_num}"
             for res in final_list:
                 icon_kwargs = {
-                    "map_name": map_name,
                     "filename": res['filename'],
                     "_external": True,
                 }
@@ -194,11 +198,13 @@ def predict_batch():
             feat_results = []
             if i < num_pil:
                 icon_img = pil_icons[i]
-                recognizer = models.get_icon_recognizer(trial_key)
+                recognizer = models.get_icon_recognizer()
                 if recognizer is None:
                     logger.warning(f"试炼 {trial_key} 的图标特征库不可用，跳过特征匹配")
                 else:
-                    feat_results, err = recognizer.match(icon_img, map_num, threshold, top_k=top_k)
+                    # 全图鉴匹配时多取候选，白名单过滤后仍能凑够 topk
+                    match_pool_k = max(top_k * 4, 24)
+                    feat_results, err = recognizer.match(icon_img, threshold, top_k=match_pool_k)
                 if feat_results is None: feat_results = []
 
             # B. 获取 OCR 文字进行模糊匹配
@@ -227,6 +233,9 @@ def predict_batch():
 
             # 排序并截断
             final_candidates = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)
+            final_candidates = filter_candidates_by_trial(
+                final_candidates, trial_key, map_name=map_name
+            )
             final_candidates = final_candidates[:top_k]
 
             # 剔除逻辑：多于1个结果时剔除最低分
@@ -241,7 +250,6 @@ def predict_batch():
 
                 for res in final_candidates:
                     icon_kwargs = {
-                        "map_name": map_name,
                         "filename": res['filename'],
                         "_external": True,
                     }

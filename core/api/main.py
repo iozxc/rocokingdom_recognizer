@@ -3,7 +3,7 @@ from flask import Blueprint, Response, current_app, request, send_from_directory
 
 from core.api.response import error, success
 from core.db import get_db
-from core.icon_names import load_map_pets, sprite_to_file
+from core.icon_names import load_map_pets, sprite_to_file, sprite_to_file_any
 from core.logger import logger
 from core.services.trials import get_trial_or_default
 from core.utils import strip_id_prefix
@@ -48,8 +48,8 @@ def list_icons():
                 items.append({
                     # 对外/用户数据不保留 id 前缀；URL 仍指向真实数据集文件
                     "name": strip_id_prefix(filename),
-                    "url": url_for('main.get_icon_file', map_name=map_name,
-                                   filename=filename, _external=True)
+                    "id": meta.get("id"),
+                    "url": url_for('main.get_icon_file', filename=filename, _external=True)
                 })
             icons_structure[map_name] = {"count": len(items), "items": items}
 
@@ -60,8 +60,19 @@ def list_icons():
         logger.error(f"[GET /icons] 异常: {e}", exc_info=True)
         return error(str(e), 500)
 
+@bp.route('/icons/<filename>')
+def get_icon_file(filename):
+    """从缓存/datasets.db 返回图片二进制流（不再依赖地图约束）。"""
+    return _serve_icon(filename)
+
+
 @bp.route('/icons/<map_name>/<filename>')
-def get_icon_file(map_name, filename):
+def get_icon_file_with_map(map_name, filename):
+    """兼容旧地址 /icons/<map>/<filename>，行为与新地址一致。"""
+    return _serve_icon(filename, map_name=map_name)
+
+
+def _serve_icon(filename, map_name=None):
     """从缓存/datasets.db 返回图片二进制流；兼容旧命名（精灵名）反查。"""
     global ICON_FILE_CACHE
     trial_key = request.args.get("trial", "grass")
@@ -77,7 +88,11 @@ def get_icon_file(map_name, filename):
 
         if row is None:
             # 旧命名（如 乌达_极夜.png）通过关联 JSON 反查数据集文件名
-            mapped = sprite_to_file(map_name, filename, trial_key)
+            mapped = None
+            if map_name:
+                mapped = sprite_to_file(map_name, filename, trial_key)
+            if mapped is None:
+                mapped = sprite_to_file_any(filename, trial_key)
             if mapped:
                 db_path = mapped[:-4] if mapped.lower().endswith('.png') else mapped
                 if db_path in ICON_FILE_CACHE:
@@ -94,5 +109,5 @@ def get_icon_file(map_name, filename):
             return "Icon Not Found", 404
 
     except Exception as e:
-        logger.error(f"[GET /icons] 获取图标异常 {map_name}/{filename}: {e}", exc_info=True)
+        logger.error(f"[GET /icons] 获取图标异常 {filename}: {e}", exc_info=True)
         return str(e), 500

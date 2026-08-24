@@ -31,7 +31,7 @@ class ImageRecognizer:
         self.mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape((1, 1, 3))
         self.std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape((1, 1, 3))
 
-        self.map_databases = {}
+        self.database = {}
         if database_path and os.path.exists(database_path):
             self.load_db(database_path)
         else:
@@ -42,10 +42,10 @@ class ImageRecognizer:
         logger.debug(f"开始加载特征库: {path}")
         try:
             with open(path, 'rb') as f:
-                self.map_databases = pickle.load(f)
-            summary = ", ".join(f"{k}={len(v.get('features', []))}" for k, v in self.map_databases.items())
+                self.database = pickle.load(f)
+            feat_count = len(self.database.get("features", []))
             logger.info(f"--- 成功加载特征库 (NumPy): {path} ---")
-            logger.info(f"特征库概览: {summary}")
+            logger.info(f"特征库概览: features={feat_count}")
         except Exception as e:
             logger.error(f"加载特征库失败 {path}: {e}", exc_info=True)
             raise
@@ -109,14 +109,14 @@ class ImageRecognizer:
         logger.debug(f"ImageRecognizer特征提取: 维度={len(feature)}, 耗时={elapsed:.1f}ms")
         return feature
 
-    def match(self, img_pil, map_num, threshold=0.7, top_k=3):
+    def match(self, img_pil, threshold=0.7, top_k=3):
         t0 = time.perf_counter()
-        map_key = f"map{map_num}"
-        logger.debug(f"ImageRecognizer.match: map={map_key}, threshold={threshold}, top_k={top_k}")
+        logger.debug(f"ImageRecognizer.match: threshold={threshold}, top_k={top_k}")
 
-        if map_key not in self.map_databases:
-            logger.warning(f"ImageRecognizer.match: 地图 {map_key} 不在特征库中")
-            return None, f"Map {map_key} 不存在"
+        db = self.database
+        if not db or "features" not in db or len(db["features"]) == 0:
+            logger.warning("ImageRecognizer.match: 特征库为空")
+            return None, "特征库为空"
 
         # 捕获图片处理异常，不再抛出cv2错误到上层
         try:
@@ -125,7 +125,6 @@ class ImageRecognizer:
             logger.error(f"ImageRecognizer.match 图片预处理失败: {e}", exc_info=True)
             return None, "图片预处理失败"
 
-        db = self.map_databases[map_key]
         db_size = len(db["features"])
         logger.debug(f"ImageRecognizer.match: 特征库大小={db_size}")
 

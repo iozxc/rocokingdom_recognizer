@@ -105,7 +105,6 @@ TRIALS = [
             },
         ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets1.json")),
-        "icon_feature_path": get_resource_path(os.path.join("onnx", "features_icon_db_1.pkl")),
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_1.pkl"))
     },
     {
@@ -151,7 +150,6 @@ TRIALS = [
             },
         ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets2.json")),
-        "icon_feature_path": get_resource_path(os.path.join("onnx", "features_icon_db_2.pkl")),
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_2.pkl"))
     }
 ]
@@ -165,6 +163,8 @@ RENAMES_JSON = get_resource_path('pet_renames.json')
 
 # 全局模型
 RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
+# 全图鉴图标特征库：识别统一用它，具体试炼的 topk 过滤由服务端按白名单完成
+FEATURES_ICON = get_resource_path(os.path.join('onnx', 'feature_icon.pkl'))
 SCANNER_MODAL = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
 DET_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_det_infer.onnx"))
 CLS_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))

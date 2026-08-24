@@ -22,14 +22,22 @@ DATA_MAP_ROOT = config.get_resource_path(os.path.join("assets", "pic", "title"))
 
 MAP_MODEL_SAVE_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pt"))
 MAP_MODEL_SAVE_PKL_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pkl"))
+# 全图鉴训练数据：train/dataset/image 下所有精灵图片（含多形态）
 DATASET_PATH = config.get_resource_path(os.path.join("dataset", "image"))
 DATASET_DB = config.get_resource_path(os.path.join("dataset", "datasets.db"))
 
-TRIALS_META = [{
-    "map_pets_json_list" : config.get_resource_path(os.path.join("dataset", "map_pets1.json")),
-    "icon_feature_path" : config.get_resource_path(os.path.join("assets", "features_icon_db_1.pt")),
-    "title_feature_path": config.get_resource_path(os.path.join("assets", "features_title_db_1.pt"))
-}]
+# 全图鉴特征库：识别不再按试炼训练，统一输出 feature_icon.pt / feature_icon.pkl
+FULL_ICON_FEATURE_PT = config.get_resource_path(os.path.join("onnx", "feature_icon.pt"))
+FULL_ICON_FEATURE_PKL = config.get_resource_path(os.path.join("onnx", "feature_icon.pkl"))
+
+# 地图标题特征库仍按试炼区分（title_feature_path 保留在 config.TRIALS 中）
+TRIALS_META = [
+    {
+        "map_pets_json_list": trial.get("map_pets_json_list"),
+        "title_feature_path": trial.get("title_feature_path"),
+    }
+    for trial in config.TRIALS
+]
 
 
 # --- 训练超参数 ---

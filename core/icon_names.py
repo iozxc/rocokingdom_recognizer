@@ -54,6 +54,16 @@ def sprite_to_file(map_name, sprite_name, trial_key="grass"):
     return None
 
 
+def sprite_to_file_any(sprite_name, trial_key="grass"):
+    """跨该试炼的所有地图反查数据集文件名（图标访问不再受地图约束）。"""
+    data = load_map_pets(trial_key)
+    for map_name in data:
+        found = sprite_to_file(map_name, sprite_name, trial_key)
+        if found:
+            return found
+    return None
+
+
 def scan_icon_names(trial_key="grass"):
     """读取指定试炼的所有精灵名（去掉 id 前缀与 .png 后缀）。
 
