@@ -57,15 +57,14 @@ DATA_FILE = get_external_path('roco_user_data.json')
 MANIFEST_FILE = get_resource_path('file_manifest.json')
 RENAMES_FILE = get_resource_path('pet_renames.json')
 
-# MAP_CLASSIFIER = get_resource_path(os.path.join('onnx', 'map_classifier.onnx'))
 RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
-
 MAP_CLASSES = get_resource_path(os.path.join('onnx', 'map_classes.json'))
-
 FEATURES_DB = get_resource_path(os.path.join('onnx', 'features_icon_db.pkl'))
 FEATURES2_DB = get_resource_path(os.path.join('onnx', 'features_title_db.pkl'))
-
 SCANNER = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
+DET_MODEL_PATH = get_resource_path(os.path.join("ocr_models", "ch_PP-OCRv4_det_infer.onnx"))
+CLS_MODEL_PATH = get_resource_path(os.path.join("ocr_models", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))
+REC_MODEL_PATH = get_resource_path(os.path.join("ocr_models", "ch_PP-OCRv4_rec_infer.onnx"))
 
 DEFAULT_THRESHOLD = 0.9
 DEFAULT_TOPK = 6
