@@ -95,12 +95,15 @@ class WindowManager:
         def _open():
             try:
                 if self.scanner_window is not None:
-                    self.scanner_window.show()
-                    self.scanner_window.restore()
-                    self.scanner_window.on_top = True
-                    logger.debug("子窗口已存在，执行show/restore")
-                    return
+                    try:
+                        self.scanner_window.show()
+                        logger.debug("子窗口已存在，执行show")
+                        return
+                    except Exception as e:
+                        logger.warning(f"复用跟随识别窗口失败: {e}")
+                        self.scanner_window = None
 
+                logger.info("正在创建跟随识别窗口...")
                 self.scanner_window = webview.create_window(
                     title='精灵识别跟随',
                     url=f'{self.base_url}/?view=scanner',
@@ -110,6 +113,8 @@ class WindowManager:
                     transparent=False,
                     on_top=True,
                     resizable=True,
+                    # 只允许标题栏（前端 pywebview-drag-region）拖动窗口
+                    easy_drag=False,
                     background_color='#F0F6FC',
                     js_api=self.js_api,
                 )
@@ -128,13 +133,13 @@ class WindowManager:
         logger.info("子窗口被手动关闭")
 
     def close_scanner(self):
+        """关闭跟随识别窗口：隐藏复用，避免反复创建/销毁导致卡死。"""
         if self.scanner_window is not None:
             try:
-                self.scanner_window.destroy()
-                logger.info("子窗口已关闭")
+                self.scanner_window.hide()
+                logger.info("跟随识别窗口已隐藏（复用，不销毁）")
             except Exception as e:
-                logger.error(f"destroy异常: {e}")
-            self.scanner_window = None
+                logger.error(f"跟随识别窗口 hide 异常: {e}")
         return {"status": "closed"}
 
     def move_scanner(self, dx, dy):
