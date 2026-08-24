@@ -310,12 +310,17 @@ export const ManualSelectModal: React.FC<ManualSelectModalProps> = ({
                         </div>
 
                         {/* Pet Avatar */}
-                        <div className="w-14 h-14 rounded-xl bg-white p-1 flex items-center justify-center border border-[#E6EEF8] shadow-inner group-hover:scale-105 transition-transform">
+                        <div className="relative w-14 h-14 rounded-xl bg-white p-1 flex items-center justify-center border border-[#E6EEF8] shadow-inner group-hover:scale-105 transition-transform">
                           <img
                               src={pet.url}
                               alt={cleanPetName}
                               className="w-full h-full object-contain"
                           />
+                          {pet.id != null && (
+                              <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                #{pet.id}
+                              </span>
+                          )}
                         </div>
 
                         {/* Pet Name */}

@@ -893,22 +893,27 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           {/* Main Selected Pet Display (Centered clean layout matching BatchInitModal) */}
                           <div className="flex flex-col items-center text-center my-1">
                             <div className="relative w-16 h-16 rounded-xl bg-white p-1 border border-[#E6EEF8] shadow-inner flex items-center justify-center">
-                              {isMatched && item.matchedPet ? (
-                                  <img
-                                      src={item.view_url || item.matchedPet.url}
+                                  {isMatched && item.matchedPet ? (
+                                      <img
+                                          src={item.view_url || item.matchedPet.url}
                                       alt={displayName}
                                       className="w-full h-full object-contain"
                                       onError={(e) => {
                                         if (item.matchedPet?.url) {
                                           (e.target as HTMLImageElement).src = item.matchedPet.url;
                                         }
-                                      }}
-                                  />
-                              ) : (
-                                  <HelpCircle className="w-8 h-8 text-rose-300" />
-                              )}
+                                          }}
+                                      />
+                                  ) : (
+                                      <HelpCircle className="w-8 h-8 text-rose-300" />
+                                  )}
+                                  {item.matchedPet?.id != null && (
+                                      <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                        #{item.matchedPet.id}
+                                      </span>
+                                  )}
 
-                              {item.isChecked && isMatched && (
+                                  {item.isChecked && isMatched && (
                                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white">
                                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                                   </div>
@@ -1315,8 +1320,13 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                 onClick={() => handleApplyPetCorrection(pet)}
                                 className="p-2 rounded-xl border border-slate-200 hover:border-[#7ABCF4] hover:bg-[#F5F9FF] transition-all flex flex-col items-center text-center cursor-pointer group"
                             >
-                              <div className="w-14 h-14 rounded-lg bg-[#F5F9FF] p-1 flex items-center justify-center group-hover:scale-105 transition-transform">
+                              <div className="relative w-14 h-14 rounded-lg bg-[#F5F9FF] p-1 flex items-center justify-center group-hover:scale-105 transition-transform">
                                 <img src={pet.url} alt={pet.name} className="w-full h-full object-contain" />
+                                {pet.id != null && (
+                                    <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                      #{pet.id}
+                                    </span>
+                                )}
                               </div>
                               <p className="text-xs font-black text-slate-800 mt-1 truncate w-full">
                                 {formatPetName(pet.name)}

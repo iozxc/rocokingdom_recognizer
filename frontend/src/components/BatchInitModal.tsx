@@ -1001,6 +1001,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                 ) : (
                                     <HelpCircle className="w-8 h-8 text-rose-300" />
                                 )}
+                                {item.matchedPet?.id != null && (
+                                    <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                      #{item.matchedPet.id}
+                                    </span>
+                                )}
 
                                 {item.isChecked && isMatched && (
                                     <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white">
@@ -1340,12 +1345,17 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                           : 'border-[#E6EEF8] bg-[#F5F9FF] hover:bg-white hover:border-[#7ABCF4]'
                                   }`}
                               >
-                                <div className="w-14 h-14 rounded-xl bg-white p-1 flex items-center justify-center border border-[#E6EEF8] shadow-inner group-hover:scale-105 transition-transform">
+                                <div className="relative w-14 h-14 rounded-xl bg-white p-1 flex items-center justify-center border border-[#E6EEF8] shadow-inner group-hover:scale-105 transition-transform">
                                   <img
                                       src={pet.url}
                                       alt={cleanPetName}
                                       className="w-full h-full object-contain"
                                   />
+                                  {pet.id != null && (
+                                      <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                        #{pet.id}
+                                      </span>
+                                  )}
                                 </div>
                                 <p className="mt-1.5 text-xs font-black text-slate-800 truncate w-full" title={cleanPetName}>
                                   {cleanPetName}

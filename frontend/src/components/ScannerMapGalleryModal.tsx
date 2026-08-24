@@ -303,13 +303,18 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                     )}
 
                                     {/* Pet Avatar Container */}
-                                    <div className="w-full aspect-square rounded-xl bg-white p-1 flex items-center justify-center border-2 border-[#E9F2FA] overflow-hidden">
+                                    <div className="relative w-full aspect-square rounded-xl bg-white p-1 flex items-center justify-center border-2 border-[#E9F2FA] overflow-hidden">
                                         <img
                                             src={pet.url}
                                             alt={displayName}
                                             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-150"
                                             loading="lazy"
                                         />
+                                        {pet.id != null && (
+                                            <span className="absolute top-0.5 right-0.5 z-10 text-[9px] font-mono font-black leading-none px-1.5 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                              #{pet.id}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Pet Name */}

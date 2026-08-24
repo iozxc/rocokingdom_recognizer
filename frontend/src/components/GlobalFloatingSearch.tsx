@@ -634,6 +634,11 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                       className="w-full h-full object-contain"
                                       loading="lazy"
                                   />
+                                  {item.pet.id != null && (
+                                      <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                        #{item.pet.id}
+                                      </span>
+                                  )}
                                   {item.isEncountered && (
                                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white">
                                         <Check className="w-2.5 h-2.5 stroke-[3]" />
