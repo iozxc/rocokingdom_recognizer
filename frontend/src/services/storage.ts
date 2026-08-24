@@ -42,9 +42,41 @@ export class StorageService {
   constructor() {
     this.loadFromLocalStorage();
     this.startPoll(); // 启动轮询替代websocket
+    this.flushOnUnload(); // 窗口关闭前把未落盘的改动刷到后端
     this.fetchRemote().catch(() => {
       // 降级使用localStorage
     });
+  }
+
+  /**
+   * 窗口/页面关闭时，把尚未落盘的改动通过 sendBeacon 提交到后端，
+   * 避免用户改完立刻关窗导致最后一步数据丢失。
+   */
+  private flushOnUnload() {
+    if (typeof window === 'undefined') return;
+    const flush = () => {
+      if (!this.hasPendingLocalChanges && !this.saveTimeout) return;
+      try {
+        const blob = new Blob([JSON.stringify(this.getPayload())], {
+          type: 'application/json',
+        });
+        navigator.sendBeacon(`${api.getApiBase()}/api/storage`, blob);
+      } catch (e) {
+        console.warn('flush on unload failed', e);
+      }
+    };
+    // pagehide 在 Chromium/WebView2 下比 beforeunload 更可靠，两者都挂，重复发送同一份数据无副作用
+    window.addEventListener('beforeunload', flush);
+    window.addEventListener('pagehide', flush);
+  }
+
+  public getPayload(): StoragePayload {
+    return {
+      encounteredPets: { ...this.records },
+      thresholds: { ...this.thresholds },
+      appSettings: { ...this.appSettings },
+      version: this.localVersion,
+    };
   }
 
   /**
@@ -188,12 +220,7 @@ export class StorageService {
    * 全部使用http post，移除socket逻辑
    */
   public async saveToRemote(): Promise<boolean> {
-    const payload: StoragePayload = {
-      encounteredPets: { ...this.records },
-      thresholds: { ...this.thresholds },
-      appSettings: { ...this.appSettings },
-      version: this.localVersion,
-    };
+    const payload = this.getPayload();
     const apiBase = api.getApiBase();
     try {
       const res = await axios.post<{ version?: number }>(`${apiBase}/api/storage`, payload, {

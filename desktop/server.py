@@ -1,8 +1,8 @@
-"""Flask 服务启动：动态端口与 waitress 配置。"""
+"""Flask 服务启动：动态端口、waitress 配置与可控关闭。"""
 import multiprocessing
 import socket
 
-from waitress import serve
+from waitress.server import create_server as _create_waitress_server
 
 from core.logger import logger
 
@@ -26,11 +26,14 @@ def get_waitress_threads() -> int:
     return threads
 
 
-def start_server(app, port: int, host: str = "127.0.0.1") -> None:
-    """以 waitress 启动 Flask 应用（阻塞）。桌面客户端只监听本机。"""
+def create_server(app, port: int, host: str = "127.0.0.1"):
+    """
+    创建 waitress 服务器对象（不阻塞）。
+    调用方负责 server.run() 启动、退出时 server.close() 停止，以便窗口关闭后能立即退出进程。
+    """
     threads = get_waitress_threads()
-    logger.info(f"waitress start, threads={threads}")
-    serve(
+    logger.info(f"waitress create, threads={threads}")
+    return _create_waitress_server(
         app,
         host=host,
         port=port,
@@ -38,3 +41,9 @@ def start_server(app, port: int, host: str = "127.0.0.1") -> None:
         connection_limit=60,   # 最大并发连接
         channel_timeout=90,    # 慢请求超时，避免僵死连接占住线程
     )
+
+
+def start_server(app, port: int, host: str = "127.0.0.1") -> None:
+    """以 waitress 启动 Flask 应用（阻塞）。桌面客户端只监听本机。"""
+    server = create_server(app, port=port, host=host)
+    server.run()

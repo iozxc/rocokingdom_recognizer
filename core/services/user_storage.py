@@ -170,10 +170,18 @@ class UserStorage:
         return result
 
     def _persist(self, payload: dict) -> dict:
-        """落盘并刷新内存缓存与版本号（不打印日志，供 load/save 复用）。"""
+        """落盘并刷新内存缓存与版本号（不打印日志，供 load/save 复用）。
+
+        采用“临时文件 + os.replace”的原子写入：即使进程在写入中途被杀，
+        也不会留下截断/损坏的 roco_user_data.json。
+        """
         payload["version"] = int(time.time() * 1000)
-        with open(self._data_file, "w", encoding="utf-8") as f:
+        tmp_path = f"{self._data_file}.tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, self._data_file)
         self._cache = payload
         return payload
 
