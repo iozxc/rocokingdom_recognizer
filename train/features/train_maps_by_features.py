@@ -94,7 +94,7 @@ class ImageRecognizer:
         return results, None
 
 
-def run_train():
+def run_train(trials_num):
     # 初始化识别器 (无需加载旧库)
     recognizer = ImageRecognizer(device=train_config.DEVICE)
     db_to_save = {}
@@ -112,9 +112,9 @@ def run_train():
     db_to_save = {"features": torch.stack(feats), "paths": paths}
 
 
-    torch.save(db_to_save, train_config.DATABASE_TITLE_PATH)
-    print(f"训练完成！特征库保存至: {train_config.DATABASE_TITLE_PATH}")
+    torch.save(db_to_save, train_config.TRIALS_META[trials_num]["title_feature_path"])
+    print(f"训练完成！特征库保存至: {train_config.TRIALS_META[trials_num]["title_feature_path"]}")
 
 
 if __name__ == "__main__":
-    run_train()
+    run_train(0)

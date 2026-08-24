@@ -14,22 +14,23 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import MAP_LIST  # noqa: E402  复用运行时地图列表，避免两处维护
-
 # --- 数据与模型路径 ---
 ASSETS_PATH = config.get_resource_path("assets")
 DATA_ICON_ROOT = config.get_resource_path(os.path.join("assets", "pic", "icons_only"))
 ASSETS_DB = config.get_resource_path(os.path.join("assets", "assets.db"))
 DATA_MAP_ROOT = config.get_resource_path(os.path.join("assets", "pic", "title"))
-DATABASE_ICON_PATH = config.get_resource_path(os.path.join("assets", "features_icon_db.pt"))
-DATABASE_ICON_PKL_PATH = config.get_resource_path(os.path.join("assets", "features_icon_db.pkl"))
-DATABASE_TITLE_PATH = config.get_resource_path(os.path.join("assets", "features_title_db.pt"))
-DATABASE_TITLE_PKL_PATH = config.get_resource_path(os.path.join("assets", "features_title_db.pkl"))
+
 MAP_MODEL_SAVE_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pt"))
 MAP_MODEL_SAVE_PKL_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pkl"))
 DATASET_PATH = config.get_resource_path(os.path.join("dataset", "image"))
 DATASET_DB = config.get_resource_path(os.path.join("dataset", "datasets.db"))
-MAP_PETS_JSON = config.get_resource_path(os.path.join("dataset", "map_pets1.json"))
+
+TRIALS_META = [{
+    "map_pets_json_list" : config.get_resource_path(os.path.join("dataset", "map_pets1.json")),
+    "icon_feature_path" : config.get_resource_path(os.path.join("assets", "features_icon_db_1.pt")),
+    "title_feature_path": config.get_resource_path(os.path.join("assets", "features_title_db_1.pt"))
+}]
+
 
 # --- 训练超参数 ---
 BATCH_SIZE = 4
@@ -40,4 +41,4 @@ LR = 1e-4
 DEVICE = "cpu"
 
 # --- 类别数 ---
-NUM_CLASSES = len(MAP_LIST)
+NUM_CLASSES = len(config.TRIALS[0]["map_list"])

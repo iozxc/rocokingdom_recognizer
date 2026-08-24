@@ -26,8 +26,8 @@ def convert_pt_to_pkl_numpy(pt_path, pkl_path):
 
 
 def convert(trials_num):
-    convert_pt_to_pkl_numpy(train_config.TRIALS_META[trials_num]["title_feature_path"]["pt"],
-                            train_config.TRIALS_META[trials_num]["title_feature_path"]["pkl"])
+    convert_pt_to_pkl_numpy(train_config.TRIALS_META[trials_num]["title_feature_path"],
+                            f"{train_config.TRIALS_META[trials_num]["title_feature_path"]}.pkl")
 
 
 if __name__ == "__main__":

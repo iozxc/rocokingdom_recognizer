@@ -20,8 +20,8 @@ def convert_pt_to_pkl_numpy(pt_path: str, pkl_path: str):
 
 
 def convert_pt(trials_num: int):
-    convert_pt_to_pkl_numpy(train_config.TRIALS_META[trials_num]["icon_feature_path"]["pt"],
-                            train_config.TRIALS_META[trials_num]["icon_feature_path"]["pkl"])
+    convert_pt_to_pkl_numpy(train_config.TRIALS_META[trials_num]["icon_feature_path"],
+                            f"{train_config.TRIALS_META[trials_num]["icon_feature_path"].split('.')[0]}.pkl")
 
 
 if __name__ == "__main__":

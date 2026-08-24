@@ -96,16 +96,16 @@ class ImageRecognizer:
         return results, None
 
 
-def run_train():
+def run_train(trials_num):
     # 初始化识别器 (无需加载旧库)
     recognizer = ImageRecognizer(device=train_config.DEVICE)
     db_to_save = {}
 
     # 按关联 JSON 读取：{"map1": {"258_乌达_极夜.png": {"id": 258, "name": "乌达"}, ...}}
-    with open(train_config.MAP_PETS_JSON, "r", encoding="utf-8") as f:
+    with open(train_config.TRIALS_META[0]["map_pets_json_list"], "r", encoding="utf-8") as f:
         map_pets = json.load(f)
 
-    for map_name in config.MAP_LIST:
+    for map_name in config.TRIALS[0]["map_list"]:
         entries = map_pets.get(map_name, {})
         if not entries:
             print(f"跳过 {map_name}（map_pets1.json 中无条目）")
@@ -128,9 +128,9 @@ def run_train():
             db_to_save[map_name] = {"features": torch.stack(feats), "paths": paths}
             print(f"{map_name} 完成：{len(feats)} 张")
 
-    torch.save(db_to_save, train_config.DATABASE_ICON_PATH)
-    print(f"训练完成！特征库保存至: {train_config.DATABASE_ICON_PATH}")
+    torch.save(db_to_save, train_config.TRIALS_META[trials_num]["icon_feature_path"])
+    print(f"训练完成！特征库保存至: {train_config.TRIALS_META[trials_num]["icon_feature_path"]}")
 
 
 if __name__ == "__main__":
-    run_train()
+    run_train(0) # 训练草系徽章
