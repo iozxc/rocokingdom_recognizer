@@ -19,15 +19,11 @@
 
 - 游戏画面可直接识别出当前地图和精灵
 
-![20260819033712341](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/20260819033712341.png)
+![image-20260825055259984](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825055259984.png)
 
-- 刷新小狮鹫再点击立即识别可以识别到`未遇见过的精灵`
+- 具体样式：
 
-![20260819033827638](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/20260819033827638.png)
-
-- 具体样式如下：
-
-<img src="https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260819034826688.png" alt="image-20260819034826688" style="zoom:50%;" />
+<img src="https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825054912897.png" alt="image-20260825054912897" style="zoom: 67%;" /><img src="C:\Users\Zhouxc\AppData\Roaming\Typora\typora-user-images\image-20260825054933867.png" alt="image-20260825054933867" style="zoom: 67%;" />
 
 ### 特殊点位识别
 
@@ -37,7 +33,7 @@
 
 ### 主页面同步展示
 
-![image-20260819053851357](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260819053851357.png)
+![image-20260825054648863](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825054648863.png)
 
 ### 单个精灵识别（通过截图或者上传图片）
 
@@ -49,7 +45,7 @@
 
 ![image-20260819035347119](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260819035347119.png)
 
-# 下载
+### 下载
 
 1. 【**推荐**】下载安装程序 `RocoKingdomRecognizer_Setup`
 2. 直接下载打包好的zip文件
@@ -67,14 +63,17 @@
 
 ### 🛠️ 技术栈
 
-| 模块                    | 技术实现                                                                                                           |
-|:----------------------|:---------------------------------------------------------------------------------------------------------------|
-| **前端 (Frontend)**     | [React](https://reactjs.org/) + [Vite](https://vitejs.dev/) + [TailwindCSS](https://tailwindcss.com/)          |
-| **后端 (Backend)**      | [Flask](https://flask.palletsprojects.com/)                                                                    |
-| **AI 引擎 (AI Engine)** | [Ultralytics YOLOv8](https://docs.ultralytics.com/) + [RapidOCR‑ONNXRuntime](https://rapidocr.readthedocs.io/) |
-| **深度学习框架**            | [PyTorch](https://pytorch.org/) + [ONNX Runtime](https://onnxruntime.ai/)                                      
-| **GUI 容器**            | [PyWebView](https://pywebview.flowrl.com/)                                                                     |
-| **打包分发**              | [PyInstaller](https://pyinstaller.org/) + [Inno Setup](https://jrsoftware.org/isinfo.php)                      |
+识别链路：窗口截图 → 版面检测 → 文字识别 / 特征检索 → 结果融合。
+
+| 模块 | 技术 |
+|:---|:---|
+| 前端 | React + TypeScript + Vite + Tailwind CSS |
+| 后端 | Flask + Waitress（本机服务） |
+| 桌面端 | pywebview（主界面 + 跟随识别悬浮窗） |
+| AI 识别 | YOLOv8 版面检测 + PP-OCRv4 文字识别 + ResNet50 特征检索，ONNX Runtime 推理 |
+| 训练框架 | PyTorch + Ultralytics，模型统一导出 ONNX |
+| 数据存储 | SQLite（图鉴库）+ JSON（用户数据） |
+| 打包分发 | PyInstaller + Inno Setup |
 
 ---
 
