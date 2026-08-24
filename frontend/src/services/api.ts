@@ -656,7 +656,7 @@ export class ApiService {
           has_update: true,
           latest_version: '1.0.0',
           current_version: '0.0.0',
-          update_log: '1.0.0正式发布版，洛克王国草系徽章图鉴：跟随识别、初始化、单个识别、批量识别',
+          update_log: '1.0.0正式发布版，洛克王国徽章图鉴：跟随识别、初始化、单个识别、批量识别',
           mirrors: {
             'Gitee': 'https://gitee.com/iozxc/rocokingdom_recognizer/releases',
             'GitHub': 'https://github.com/iozxc/rocokingdom_recognizer/releases',

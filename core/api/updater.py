@@ -375,7 +375,7 @@ try {
     $form.Region = New-Object System.Drawing.Region($path)
 
     $title = New-Object System.Windows.Forms.Label
-    $title.Text = '洛克王国草系徽章助手'
+    $title.Text = '洛克王国徽章助手'
     $title.Font = New-Object System.Drawing.Font('Microsoft YaHei', 14, [System.Drawing.FontStyle]::Bold)
     $title.ForeColor = 'White'
     $title.AutoSize = $false

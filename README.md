@@ -1,4 +1,4 @@
-# 🎮 洛克王国草系徽章助手 RocoKingdomRecognizer
+# 🎮 洛克王国徽章助手 RocoKingdomRecognizer
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.12+-blue.svg" alt="Python">
@@ -13,7 +13,7 @@
 ---
 
 
-# 洛克王国草系徽章试炼小助手
+# 洛克王国徽章试炼小助手
 
 ### 游戏跟随识别
 

@@ -24,7 +24,7 @@ class WindowManager:
     def create_main_window(self):
         """创建主窗口。"""
         self.main_window = webview.create_window(
-            '洛克王国草系徽章试炼助手',
+            '洛克王国徽章试炼助手',
             self.base_url,
             width=1500,
             height=1000,
@@ -38,12 +38,13 @@ class WindowManager:
     def _on_main_closed(self):
         """主窗口关闭时销毁子识别窗口"""
         logger.info("主窗口关闭，销毁子识别窗口")
-        if self.scanner_window is not None:
+        scanner = self.scanner_window
+        self.scanner_window = None
+        if scanner is not None:
             try:
-                self.scanner_window.destroy()
+                scanner.destroy()
             except Exception as e:
                 logger.error(f"销毁子窗口异常:{e}")
-            self.scanner_window = None
 
     def open_scanner(self):
         """打开（或复用）跟随识别子窗口，避免并发重复创建。"""
