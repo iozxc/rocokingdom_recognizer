@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode } from '../types';
-import { api } from '../services/api';
 import { fireStorage } from '../services/fireStorage';
+import { getCachedFirePets, getFireTrialPetsCached } from '../services/fireTrialData';
 import { storage } from '../services/storage';
 import { sound } from '../services/sound';
 import { Header } from './Header';
 import { StatsBanner } from './StatsBanner';
 import { PetGrid } from './PetGrid';
 import { FloatingFilterSwitch } from './FloatingFilterSwitch';
-import { FireGlobalSearch } from './FireGlobalSearch';
+import { GlobalFloatingSearch } from './GlobalFloatingSearch';
 import { SubHeaderToolbar } from './SubHeaderToolbar';
 import { FeedbackContactModal } from './FeedbackContactModal';
 import { UpdateModal } from './UpdateModal';
@@ -17,50 +17,19 @@ import { createSvgPetAvatar } from '../data/mockPets';
 import { isPetEncounteredInRecords } from '../utils/petHelper';
 import { updateStore } from '../services/updateStore';
 
-const FIRE_MAP_CONFIGS: MapConfig[] = [
-  {
-    id: 'map1',
-    num: 1,
-    name: '火系徽章试炼图一',
-    description: '火系徽章试炼第一张地图，全图鉴精灵均可在此自选点亮。',
-    themeColor: '#f97316', // Orange
-    bgGradient: 'from-orange-500/20 via-red-500/10 to-amber-600/20',
-    badgeBg: 'bg-orange-500/15 text-orange-700 border-orange-400',
-    iconName: 'Flame',
-  },
-  {
-    id: 'map2',
-    num: 2,
-    name: '火系徽章试炼图二',
-    description: '火系徽章试炼第二张地图，全图鉴精灵均可在此自选点亮。',
-    themeColor: '#ef4444', // Red
-    bgGradient: 'from-red-500/20 via-rose-500/10 to-orange-600/20',
-    badgeBg: 'bg-red-500/15 text-red-700 border-red-400',
-    iconName: 'Flame',
-  },
-  {
-    id: 'map3',
-    num: 3,
-    name: '火系徽章试炼图三',
-    description: '火系徽章试炼第三张地图，全图鉴精灵均可在此自选点亮。',
-    themeColor: '#ea580c', // Amber/Orange
-    bgGradient: 'from-amber-500/20 via-orange-500/10 to-red-600/20',
-    badgeBg: 'bg-amber-500/15 text-amber-800 border-amber-400',
-    iconName: 'Flame',
-  },
-];
-
 interface FireBadgeTrialProps {
+  maps: MapConfig[];
   onBack: () => void;
 }
 
-export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ onBack }) => {
+export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) => {
+  const initialPets = getCachedFirePets();
   const [activeMapNum, setActiveMapNum] = useState<number>(1);
-  const [pokedex, setPokedex] = useState<FirePokedexEntry[]>([]);
+  const [pokedex, setPokedex] = useState<FirePokedexEntry[]>(initialPets ?? []);
   const [records, setRecords] = useState<Record<string, EncounterRecord>>(() => fireStorage.getAll());
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [loaded, setLoaded] = useState<boolean>(false);
+  const [loaded, setLoaded] = useState<boolean>(initialPets !== null);
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
   });
@@ -74,10 +43,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ onBack }) => {
 
   useEffect(() => {
     const unsubscribe = fireStorage.subscribe((newRecords) => setRecords(newRecords));
-    api.getFireTrialPets().then((res) => {
-      if (Array.isArray(res.pets)) {
-        setPokedex(res.pets);
-      }
+    getFireTrialPetsCached().then((pets) => {
+      setPokedex(pets);
       setLoaded(true);
     });
     return unsubscribe;
@@ -109,15 +76,15 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ onBack }) => {
   }, [pokedex]);
 
   const currentMap: MapConfig = useMemo(() => {
-    return FIRE_MAP_CONFIGS.find((m) => m.num === activeMapNum) || FIRE_MAP_CONFIGS[0];
-  }, [activeMapNum]);
+    return maps.find((m) => m.num === activeMapNum) || maps[0];
+  }, [activeMapNum, maps]);
 
   const currentMapPets: PetItem[] = useMemo(() => {
     return fireMapsPets[`map${activeMapNum}`]?.items || [];
   }, [activeMapNum, fireMapsPets]);
 
   const allMapsStats = useMemo(() => {
-    return FIRE_MAP_CONFIGS.map((map) => {
+    return maps.map((map) => {
       const list = fireMapsPets[map.id]?.items || [];
       const encountered = list.filter((p) =>
           isPetEncounteredInRecords(records, map.id, p.name)
@@ -130,13 +97,13 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ onBack }) => {
         total: list.length,
       };
     });
-  }, [fireMapsPets, records]);
+  }, [fireMapsPets, records, maps]);
 
   const totalPetsCount = useMemo(() => {
-    return FIRE_MAP_CONFIGS.reduce((sum, map) => {
+    return maps.reduce((sum, map) => {
       return sum + (fireMapsPets[map.id]?.items.length || 0);
     }, 0);
-  }, [fireMapsPets]);
+  }, [fireMapsPets, maps]);
 
   const totalEncounteredCount = useMemo(() => {
     return allMapsStats.reduce((sum, s) => sum + s.encountered, 0);
@@ -178,7 +145,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ onBack }) => {
   const handleNavigateToPet = (mapNum: number, petName: string) => {
     setActiveMapNum(mapNum);
     setTimeout(() => {
-      const targetMap = FIRE_MAP_CONFIGS.find((m) => m.num === mapNum);
+      const targetMap = maps.find((m) => m.num === mapNum);
       if (!targetMap) return;
       const elementId = `pet-card-${targetMap.id}-${petName.replace('.', '-')}`;
       const el = document.getElementById(elementId);
@@ -196,8 +163,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ onBack }) => {
   // 避免地图切换区先显示 0/0、加载后突然变成真实计数导致缩放跳动。
   if (!loaded) {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center selection:bg-orange-200 selection:text-orange-900">
-          <div className="text-center text-slate-400 text-sm font-medium">正在加载火系全图鉴...</div>
+        <div className="min-h-screen flex flex-col items-center justify-center selection:bg-orange-200 selection:text-orange-900 bg-gradient-to-b from-[#7ABCF4]/10 to-white">
+          <div className="text-center text-slate-500 text-sm font-medium">正在加载火系全图鉴...</div>
         </div>
     );
   }
@@ -220,7 +187,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ onBack }) => {
             }}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenHub={onBack}
-            mapsConfig={FIRE_MAP_CONFIGS}
+            mapsConfig={maps}
             devBadge
         />
 
@@ -272,14 +239,15 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ onBack }) => {
             filterMode={filterMode}
             onFilterChange={(mode) => setFilterMode(mode)}
             onCycleMap={() => {
-              setActiveMapNum((prev) => (prev % FIRE_MAP_CONFIGS.length) + 1);
+              setActiveMapNum((prev) => (prev % maps.length) + 1);
             }}
-            mapsConfig={FIRE_MAP_CONFIGS}
+            mapsConfig={maps}
         />
 
-        {/* 右下角：仅保留全域搜索 */}
-        <FireGlobalSearch
-            mapsConfig={FIRE_MAP_CONFIGS}
+        {/* 右下角：复用通用全域搜索（仅搜索模式） */}
+        <GlobalFloatingSearch
+            mapsConfig={maps}
+            searchOnly
             allMapsPets={fireMapsPets}
             records={records}
             onNavigateToPet={handleNavigateToPet}

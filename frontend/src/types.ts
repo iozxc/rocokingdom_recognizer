@@ -116,6 +116,22 @@ export interface Trial {
   element: string;
   collection_key: string;
   dev_only: boolean;
+  map_list?: string[];
+  scene_features?: unknown[];
+  supports_recognition?: boolean;
+  pets_source?: string;
+  maps?: TrialMap[];
+}
+
+export interface TrialMap {
+  id: string;
+  num: number;
+  name: string;
+  description: string;
+  themeColor: string;
+  bgGradient: string;
+  badgeBg: string;
+  iconName: string;
 }
 
 export interface TrialsApiResponse {

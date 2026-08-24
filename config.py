@@ -70,6 +70,40 @@ TRIALS = [
             # 记忆中的普拉塔草原：普、拉、塔
             ("map3", {"普", "拉", "塔"}),
         ],
+        "supports_recognition": True,
+        "pets_source": "map_pets",
+        "maps": [
+            {
+                "id": "map1",
+                "num": 1,
+                "name": "记忆中的索米亚草原",
+                "description": "绿草如茵的古老草原，微风中飘荡着青草香气，常能遇到草系与萌系小精灵。",
+                "themeColor": "#10b981",
+                "bgGradient": "from-emerald-500/20 via-teal-500/10 to-green-600/20",
+                "badgeBg": "bg-emerald-500/15 text-emerald-700 border-emerald-400",
+                "iconName": "Sparkles",
+            },
+            {
+                "id": "map2",
+                "num": 2,
+                "name": "记忆中的巨石阵",
+                "description": "庄严神秘的古代巨石遗迹，凝聚着古老的石系与土系魔力，隐藏着坚毅的守卫者。",
+                "themeColor": "#f59e0b",
+                "bgGradient": "from-amber-500/20 via-orange-500/10 to-stone-600/20",
+                "badgeBg": "bg-amber-500/15 text-amber-800 border-amber-400",
+                "iconName": "Shield",
+            },
+            {
+                "id": "map3",
+                "num": 3,
+                "name": "记忆中的普拉塔草原",
+                "description": "王国最广袤的试炼草原，阳光明媚，栖息着各种活泼灵动、身手敏捷的初级精灵。",
+                "themeColor": "#3b82f6",
+                "bgGradient": "from-sky-500/20 via-indigo-500/10 to-blue-600/20",
+                "badgeBg": "bg-sky-500/15 text-sky-800 border-sky-400",
+                "iconName": "Compass",
+            },
+        ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets1.json")),
         "icon_feature_path": get_resource_path(os.path.join("onnx", "features_icon_db_1.pkl")),
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_1.pkl"))
@@ -82,16 +116,45 @@ TRIALS = [
         "dev_only": True,
         "map_list": ['map1', 'map2', 'map3'],
         "scene_features": [],
+        "supports_recognition": False,
+        "pets_source": "pokedex",
+        "maps": [
+            {
+                "id": "map1",
+                "num": 1,
+                "name": "火系徽章试炼图一",
+                "description": "火系徽章试炼第一张地图，全图鉴精灵均可在此自选点亮。",
+                "themeColor": "#f97316",
+                "bgGradient": "from-orange-500/20 via-red-500/10 to-amber-600/20",
+                "badgeBg": "bg-orange-500/15 text-orange-700 border-orange-400",
+                "iconName": "Flame",
+            },
+            {
+                "id": "map2",
+                "num": 2,
+                "name": "火系徽章试炼图二",
+                "description": "火系徽章试炼第二张地图，全图鉴精灵均可在此自选点亮。",
+                "themeColor": "#ef4444",
+                "bgGradient": "from-red-500/20 via-rose-500/10 to-orange-600/20",
+                "badgeBg": "bg-red-500/15 text-red-700 border-red-400",
+                "iconName": "Flame",
+            },
+            {
+                "id": "map3",
+                "num": 3,
+                "name": "火系徽章试炼图三",
+                "description": "火系徽章试炼第三张地图，全图鉴精灵均可在此自选点亮。",
+                "themeColor": "#ea580c",
+                "bgGradient": "from-amber-500/20 via-orange-500/10 to-red-600/20",
+                "badgeBg": "bg-amber-500/15 text-amber-800 border-amber-400",
+                "iconName": "Flame",
+            },
+        ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets2.json")),
         "icon_feature_path": get_resource_path(os.path.join("onnx", "features_icon_db_2.pkl")),
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_2.pkl"))
     }
 ]
-
-# 基础路径
-ICONS_DIR = get_resource_path('icons')
-OCR_DIR = get_resource_path('ocr_models')
-ONNX_DIR = get_resource_path('onnx')
 
 # 全局信息
 ALL_PETS_JSON = get_resource_path(os.path.join('datasets', 'roco_all_pets.json'))

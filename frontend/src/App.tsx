@@ -16,8 +16,10 @@ import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
 import { FireBadgeTrial } from './components/FireBadgeTrial';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
+import { resolveTrialMaps } from './data/trials';
 import { api } from './services/api';
 import { storage } from './services/storage';
+import { getFireTrialPetsCached } from './services/fireTrialData';
 import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
@@ -41,6 +43,7 @@ export default function App() {
     { key: 'grass', title: '草系徽章试炼', element: 'grass', collection_key: 'encounteredPets', dev_only: false },
   ]);
   const [activeTrialKey, setActiveTrialKey] = useState<'grass' | 'fire'>('grass');
+  const activeTrialMaps = useMemo(() => resolveTrialMaps(trials, activeTrialKey), [trials, activeTrialKey]);
 
   const [effectLevel, setEffectLevel] = useState<EffectLevel>(() => {
     return storage.getSetting<EffectLevel>('effectLevel', 0);
@@ -132,6 +135,8 @@ export default function App() {
         setTrials(res.trials);
       }
     });
+    // 预热火系全图鉴，进入火系试炼时不闪加载页
+    getFireTrialPetsCached().catch(() => {});
 
     // 订阅 storage 变更（当从 Flask 后端加载完成时自动更新 UI）
     const unsubscribeRecords = storage.subscribe((newRecords) => {
@@ -225,22 +230,24 @@ export default function App() {
   // Total count of pets across all 3 maps
   const totalAllPetsCount = useMemo(() => {
     let total = 0;
-    ['map1', 'map2', 'map3'].forEach((k) => {
+    activeTrialMaps.forEach((m) => {
+      const k = m.id;
       const items = mapsData[k]?.items || FALLBACK_MAPS_DATA[k]?.items || [];
       total += items.length;
     });
     return total || 24;
-  }, [mapsData]);
+  }, [mapsData, activeTrialMaps]);
 
   // Total encountered pets count across all maps
   const totalEncounteredCount = useMemo(() => {
     let total = 0;
-    ['map1', 'map2', 'map3'].forEach((k) => {
+    activeTrialMaps.forEach((m) => {
+      const k = m.id;
       const items = mapsData[k]?.items || FALLBACK_MAPS_DATA[k]?.items || [];
       total += items.filter((p) => isPetEncounteredInRecords(records, k, p.name)).length;
     });
     return total;
-  }, [mapsData, records]);
+  }, [mapsData, records, activeTrialMaps]);
 
   // Per-map stats for 3 maps
   const allMapsStats = useMemo(() => {
@@ -351,6 +358,7 @@ export default function App() {
   if (view === 'assistant' && activeTrialKey === 'fire' && fireTrialAvailable) {
     return (
         <FireBadgeTrial
+            maps={activeTrialMaps}
             onBack={() => {
               setActiveTrialKey('grass');
               setView('hub');
@@ -391,6 +399,7 @@ export default function App() {
               setView((v) => (v === 'hub' ? 'assistant' : 'hub'));
             }}
             showMapNav={view === 'assistant'}
+            mapsConfig={activeTrialMaps}
         />
 
         {/* Sub-Header Toolbar: Displayed only when floating buttons are in 'hidden' mode */}
@@ -517,6 +526,7 @@ export default function App() {
                 onCycleMap={() => {
                   setActiveMapNum((prev) => (prev % MAP_CONFIGS.length) + 1);
                 }}
+                mapsConfig={activeTrialMaps}
             />
         )}
 
@@ -531,6 +541,7 @@ export default function App() {
                 onToggleEncounter={handleToggleEncounter}
                 onOpenSingleRecognizer={() => setIsSingleRecognizerOpen(true)}
                 onOpenBatchInit={() => setIsBatchInitOpen(true)}
+                mapsConfig={activeTrialMaps}
             />
         )}
 

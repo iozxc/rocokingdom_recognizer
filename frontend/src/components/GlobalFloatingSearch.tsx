@@ -37,6 +37,8 @@ interface GlobalFloatingSearchProps {
   onOpenSingleRecognizer?: () => void;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  mapsConfig?: MapConfig[];
+  searchOnly?: boolean;
 }
 
 export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
@@ -48,7 +50,10 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                                                             onOpenSingleRecognizer,
                                                                             isOpen: controlledIsOpen,
                                                                             onOpenChange,
+                                                                            mapsConfig,
+                                                                            searchOnly,
                                                                           }) => {
+  const maps = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
   const [internalIsOpen, setInternalIsOpen] = useState<boolean>(false);
   const isSearchOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
@@ -133,7 +138,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
   const allPetsList: GlobalSearchPetResult[] = useMemo(() => {
     const list: GlobalSearchPetResult[] = [];
 
-    MAP_CONFIGS.forEach((map) => {
+    maps.forEach((map) => {
       const mapKey = `map${map.num}`;
       const items = allMapsPets[mapKey]?.items || [];
 
@@ -152,7 +157,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
     });
 
     return list;
-  }, [allMapsPets, records]);
+  }, [allMapsPets, records, maps]);
 
   // Filtered search list
   const filteredResults = useMemo(() => {
@@ -224,40 +229,42 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 id="global-floating-fabs-compact"
                 className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 select-none animate-in fade-in zoom-in-95 duration-200"
             >
-              {/* 1. 跟随识别 Icon */}
-              <button
-                  type="button"
-                  id="global-compact-follow-fab"
-                  onClick={async () => {
-                    sound.playClick();
-                    let openedViaPywebview = false;
-                    try {
-                      const pyApi = (window as any).pywebview?.api;
-                      if (pyApi) {
-                        if (typeof pyApi.open_scanner_to_app === 'function') {
-                          await pyApi.open_scanner_to_app('洛克王国：世界');
-                          openedViaPywebview = true;
-                        } else if (typeof pyApi.open_scanner_window === 'function') {
-                          await pyApi.open_scanner_window();
-                          openedViaPywebview = true;
+              {/* 1. 跟随识别 Icon（仅非 searchOnly 模式） */}
+              {!searchOnly && (
+                  <button
+                      type="button"
+                      id="global-compact-follow-fab"
+                      onClick={async () => {
+                        sound.playClick();
+                        let openedViaPywebview = false;
+                        try {
+                          const pyApi = (window as any).pywebview?.api;
+                          if (pyApi) {
+                            if (typeof pyApi.open_scanner_to_app === 'function') {
+                              await pyApi.open_scanner_to_app('洛克王国：世界');
+                              openedViaPywebview = true;
+                            } else if (typeof pyApi.open_scanner_window === 'function') {
+                              await pyApi.open_scanner_window();
+                              openedViaPywebview = true;
+                            }
+                          }
+                        } catch (e) {
+                          console.warn('调用 pywebview 失败:', e);
                         }
-                      }
-                    } catch (e) {
-                      console.warn('调用 pywebview 失败:', e);
-                    }
-                    if (!openedViaPywebview) {
-                      window.open(
-                          '/scanner.html',
-                          'RocoFollowScanner',
-                          'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
-                      );
-                    }
-                  }}
-                  className="w-11 h-11 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white flex items-center justify-center shadow-xl shadow-purple-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                  title="游戏窗口跟随识别 (AI 智能实时识别)"
-              >
-                <Sparkles className="w-5 h-5 text-white" />
-              </button>
+                        if (!openedViaPywebview) {
+                          window.open(
+                              '/scanner.html',
+                              'RocoFollowScanner',
+                              'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
+                          );
+                        }
+                      }}
+                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white flex items-center justify-center shadow-xl shadow-purple-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                      title="游戏窗口跟随识别 (AI 智能实时识别)"
+                  >
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </button>
+              )}
 
               {/* 2. 单个识别 Icon */}
               {onOpenSingleRecognizer && (
@@ -337,49 +344,51 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                       </button>
                     </div>
 
-                    {/* 1. 跟随识别 */}
-                    <button
-                        id="global-floating-follow-fab"
-                        type="button"
-                        onClick={async () => {
-                          sound.playClick();
+                    {/* 1. 跟随识别（仅非 searchOnly 模式） */}
+                    {!searchOnly && (
+                        <button
+                            id="global-floating-follow-fab"
+                            type="button"
+                            onClick={async () => {
+                              sound.playClick();
 
-                          let openedViaPywebview = false;
+                              let openedViaPywebview = false;
 
-                          // 尝试调用 pywebview API 打开独立窗口 (open_scanner_to_app)
-                          try {
-                            const pyApi = (window as any).pywebview?.api;
-                            if (pyApi) {
-                              if (typeof pyApi.open_scanner_to_app === 'function') {
-                                await pyApi.open_scanner_to_app('洛克王国：世界');
-                                openedViaPywebview = true;
-                              } else if (typeof pyApi.open_scanner_window === 'function') {
-                                await pyApi.open_scanner_window();
-                                openedViaPywebview = true;
+                              // 尝试调用 pywebview API 打开独立窗口 (open_scanner_to_app)
+                              try {
+                                const pyApi = (window as any).pywebview?.api;
+                                if (pyApi) {
+                                  if (typeof pyApi.open_scanner_to_app === 'function') {
+                                    await pyApi.open_scanner_to_app('洛克王国：世界');
+                                    openedViaPywebview = true;
+                                  } else if (typeof pyApi.open_scanner_window === 'function') {
+                                    await pyApi.open_scanner_window();
+                                    openedViaPywebview = true;
+                                  }
+                                }
+                              } catch (e) {
+                                console.warn('调用 pywebview.api 失败，使用兜底直接打开:', e);
                               }
-                            }
-                          } catch (e) {
-                            console.warn('调用 pywebview.api 失败，使用兜底直接打开:', e);
-                          }
-                          if (!openedViaPywebview) {
-                            window.open(
-                                '/scanner.html',
-                                'RocoFollowScanner',
-                                'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
-                            );
-                          }
-                        }}
-                        className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] via-[#6366F1] to-[#4F46E5] hover:from-[#7C3AED] hover:via-[#4F46E5] hover:to-[#4338CA] text-white font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-                        title="窗口跟随识别"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shadow-2xs">
-                        <Sparkles className="w-3.5 h-3.5 text-white" />
-                      </div>
+                              if (!openedViaPywebview) {
+                                window.open(
+                                    '/scanner.html',
+                                    'RocoFollowScanner',
+                                    'width=540,height=340,resizable=yes,scrollbars=no,status=no,location=no,toolbar=no,menubar=no'
+                                );
+                              }
+                            }}
+                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] via-[#6366F1] to-[#4F46E5] hover:from-[#7C3AED] hover:via-[#4F46E5] hover:to-[#4338CA] text-white font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                            title="窗口跟随识别"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shadow-2xs">
+                            <Sparkles className="w-3.5 h-3.5 text-white" />
+                          </div>
 
-                      <span className="text-xs sm:text-sm font-bold tracking-wide">
-                  跟随识别
-                </span>
-                    </button>
+                          <span className="text-xs sm:text-sm font-bold tracking-wide">
+                    跟随识别
+                  </span>
+                        </button>
+                    )}
 
                     {/* 2. 单个识别 */}
                     {onOpenSingleRecognizer && (
@@ -480,7 +489,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
                           全域精灵图鉴检索
                           <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2]">
-                        跨 3 张地图共 {totalAllPets} 只精灵
+                        跨 {maps.length} 张地图共 {totalAllPets} 只精灵
                       </span>
                         </h3>
                       </div>
@@ -549,7 +558,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                       >
                         全部地图
                       </button>
-                      {MAP_CONFIGS.map((m) => (
+                      {maps.map((m) => (
                           <button
                               key={m.id}
                               onClick={() => {
