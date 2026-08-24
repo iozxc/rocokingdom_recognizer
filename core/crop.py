@@ -1,9 +1,9 @@
 import os
+import threading
 import time
 import numpy as np
 import cv2
 from PIL import Image, ImageDraw, ImageFont  # 增加了 ImageDraw 和 ImageFont
-import onnxruntime as ort
 
 import config
 from core.logger import logger
@@ -23,6 +23,8 @@ COLORS = {0: (255, 0, 0), 1: (0, 255, 0), 2: (0, 0, 255)}  # RGB
 
 class YOLOv8ORT:
     def __init__(self, model_path):
+        # 延迟导入 onnxruntime，避免启动阶段加载重模块
+        import onnxruntime as ort
         logger.info(f"正在加载YOLO模型: {model_path}")
         providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
         if ort.get_device() == 'CPU':
@@ -143,12 +145,18 @@ def visualize_detections(pil_image, detections, save_name="yolo_debug.png"):
     return save_path
 
 
-# --- 初始化逻辑 ---
-try:
-    yolo_model = YOLOv8ORT(MODEL_PATH)
-except Exception as e:
-    logger.error(f"YOLO模型初始化失败: {e}", exc_info=True)
-    raise
+_yolo_model = None
+_yolo_lock = threading.Lock()
+
+
+def get_yolo_model():
+    """YOLO 模型懒加载单例：首次裁剪时才加载，不拖慢启动。"""
+    global _yolo_model
+    if _yolo_model is None:
+        with _yolo_lock:
+            if _yolo_model is None:
+                _yolo_model = YOLOv8ORT(MODEL_PATH)
+    return _yolo_model
 
 
 def crop_sections_from_pil_by_YOLOv8(pil_image: Image.Image, debug=True):
@@ -156,7 +164,7 @@ def crop_sections_from_pil_by_YOLOv8(pil_image: Image.Image, debug=True):
     使用 ONNX 推理进行动态裁剪，并可选开启可视化调试
     """
     logger.debug("开始YOLO动态裁剪")
-    detections = yolo_model.predict(pil_image, conf_threshold=CONF_THRESH)
+    detections = get_yolo_model().predict(pil_image, conf_threshold=CONF_THRESH)
 
     # --- 调用可视化 ---
     if debug:

@@ -4,12 +4,9 @@ import tempfile
 from flask import Blueprint, request, url_for
 from PIL import Image
 
-from core.ocr import ocr
-from core.processor import segment_icons
 import config
 from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
-from core.services.recognizers import models
 from core.services.trials import get_trial
 from core.services.trial_filter import filter_candidates_by_trial
 from core.utils import get_top_k_matches, get_icon_file_name, strip_id_prefix
@@ -19,11 +16,13 @@ bp = Blueprint("predict", __name__)
 
 
 def f(image):
+    from core.ocr import ocr
     ocr_names = ocr().recognize_bottom_text(image)
     return ocr_names
 
 
 def ocr_top_k_match(image, map_num, top_k=6, trial_key="grass"):
+    from core.ocr import ocr
     logger.debug(f"OCR top-k匹配开始: map_num={map_num}, top_k={top_k}")
 
     name = ocr().recognize_single_bottom_text(image)
@@ -76,6 +75,7 @@ def predict():
         return error("No image uploaded", 400)
 
     try:
+        from core.services.recognizers import models
         with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
             temp_path = temp_file.name
             file.save(temp_path)
@@ -163,6 +163,9 @@ def predict_batch():
 
     temp_path = None
     try:
+        from core.ocr import ocr
+        from core.processor import segment_icons
+        from core.services.recognizers import models
         with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
             temp_path = tmp.name
             file.save(temp_path)

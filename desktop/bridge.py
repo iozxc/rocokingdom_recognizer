@@ -5,9 +5,7 @@ import time
 import pygetwindow as gw
 
 import config
-from core.ocr import ocr
 from core.services.icon_catalog import icon_catalog
-from core.services.recognizers import models
 from core.utils import get_icon_file_name, get_top_k_matches, strip_id_prefix
 from core.crop import crop_sections_from_pil_by_YOLOv8
 from core.logger import logger
@@ -44,6 +42,9 @@ class AppApi:
     # ---------------- 截图识别 ----------------
 
     def capture_and_recognize(self, target_title="计算器", map_num=None, trial_key="grass"):
+        # 首次识别时才加载 OCR 与识别模型，避免拖慢启动
+        from core.ocr import ocr
+        from core.services.recognizers import models
         t_total = time.perf_counter()
         logger.info(f"开始截图识别，目标窗口: {target_title}, trial={trial_key}")
 
@@ -126,6 +127,8 @@ class AppApi:
 
     def _process_single_item(self, i, name_img, item_img, map_num, map_name, trial_key="grass"):
         """单个槽位的识别与匹配流程"""
+        from core.ocr import ocr
+        from core.services.recognizers import models
         t_start = time.perf_counter()
         logger.debug(f"[槽位{i}] 开始处理，试炼={trial_key}，地图={map_name}(map{map_num})")
 
