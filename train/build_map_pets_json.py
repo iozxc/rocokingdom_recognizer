@@ -68,7 +68,7 @@ def hamming(a, b):
 
 
 def load_pet_names():
-    pets_path = os.path.join(os.path.dirname(ROOT), "datasets", "roco_all_pets.json")
+    pets_path = os.path.join(os.path.dirname(ROOT), "resource", "roco_all_pets.json")
     with open(pets_path,
               encoding="utf-8") as f:
         pets = json.load(f)["pets"]
