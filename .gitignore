@@ -12,6 +12,8 @@ env/
 htmlcov/
 *.egg-info/
 
+server_info.json
+
 # 更新下载临时文件
 update_temp/
 new_version_files/
