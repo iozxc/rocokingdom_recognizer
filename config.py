@@ -9,7 +9,7 @@ def _env(name: str, default):
     return default if value in (None, "") else value
 
 
-APP_VERSION = _env("ROCO_APP_VERSION", "1.3.2")
+APP_VERSION = _env("ROCO_APP_VERSION", "1.3.3")
 
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")

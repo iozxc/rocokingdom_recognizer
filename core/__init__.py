@@ -1,17 +1,24 @@
-from flask import Flask
+"""Flask 应用工厂。
 
-from config import get_resource_path
-from core.api import register_blueprints
-from core.api.response import error as api_error
-from core.db import close_db_connection
-from flask_cors import CORS
-from core.logger import logger
+保持包导入轻量：重依赖（flask、API 蓝图、模型等）只在 create_app() 内加载，
+避免 main.py 顶部 `from core.logger import logger` 提前触发模型/用户数据加载，
+导致启动日志顺序错乱。
+"""
 
 
 def create_app():
-    app = Flask(__name__,
-                static_folder=get_resource_path('static'),
-                template_folder=get_resource_path('static'))
+    from flask import Flask
+    from flask_cors import CORS
+
+    from config import get_resource_path
+    from core.api import register_blueprints
+    from core.db import close_db_connection
+
+    app = Flask(
+        __name__,
+        static_folder=get_resource_path('static'),
+        template_folder=get_resource_path('static'),
+    )
     CORS(app)
     app.teardown_appcontext(close_db_connection)
     register_blueprints(app)
@@ -21,6 +28,8 @@ def create_app():
 
 def _register_error_handlers(app):
     """全局错误处理：未捕获异常与 404 统一返回 JSON 而非 HTML 错误页。"""
+    from core.api.response import error as api_error
+    from core.logger import logger
 
     @app.errorhandler(404)
     def not_found(e):

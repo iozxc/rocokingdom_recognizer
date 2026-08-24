@@ -14,19 +14,21 @@ def _enable_dpi_awareness() -> None:
 
 
 def main() -> None:
+    # 启动分隔符必须最先打印：desktop 包的导入会触发模型/用户数据加载，
+    # 如果放在 acquire() 之后，那些加载日志会排在分隔符前面
+    logger.info("=" * 50)
+    logger.info(f"程序启动，初始化模块 版本：{config.APP_VERSION}")
+
     _enable_dpi_awareness()
 
     # 单实例保护：已有实例在运行时直接退出，避免两个进程同时读写用户数据
-    from desktop.single_instance import acquire
+    from bootstrap.single_instance import acquire
     if not acquire():
         return
 
     # 启动提示：模型加载可能较慢，先给用户一个“正在启动”的反馈，避免误以为闪退
-    from desktop.splash import show_splash
+    from bootstrap.splash import show_splash
     splash = show_splash()
-
-    logger.info("=" * 50)
-    logger.info(f"程序启动，初始化模块 版本：{config.APP_VERSION}")
 
     from core import create_app
     from desktop import run
