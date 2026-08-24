@@ -1116,7 +1116,7 @@ export const ScannerApp: React.FC = () => {
             className="h-7 px-3 bg-[#E9F2FA] border-t-2 border-[#D5E3F0] text-[11px] font-mono text-slate-600 flex items-center justify-between shrink-0 font-bold rounded-none"
         >
           <span>上次捕获: {lastScanTime}</span>
-          <span className="text-[10px] text-slate-400 font-sans">洛克王国草系徽章试炼助手</span>
+          <span className="text-[10px] text-slate-400 font-sans">洛克王国徽章试炼助手</span>
         </div>
 
         {/* ------------------------------------------------------------- */}
