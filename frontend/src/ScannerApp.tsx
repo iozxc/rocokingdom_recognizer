@@ -238,6 +238,9 @@ export const ScannerApp: React.FC = () => {
 
   // 上次同步给 Python 的窗口高度，避免重复 resize 造成抖动
   const lastWindowHeightRef = useRef<number | null>(null);
+  // 节流：resize 首边立即生效（无卡顿），但限制频率，避免高频跨线程操作
+  const lastResizeAtRef = useRef<number>(0);
+  const resizeTrailingTimerRef = useRef<number | null>(null);
 
   // 依据前端内容自然高度，动态调整 pywebview 子窗口高度（宽度保持当前值）
   const syncScannerWindowHeight = useCallback(() => {
@@ -276,19 +279,55 @@ export const ScannerApp: React.FC = () => {
     pyApi.resize_scanner_window(window.innerWidth, targetHeight);
   }, []);
 
-  // 首次加载等待字体/图片布局完成后再同步一次
-  useEffect(() => {
-    const rafId = requestAnimationFrame(() => syncScannerWindowHeight());
-    const timer = window.setTimeout(syncScannerWindowHeight, 300);
-    return () => {
-      cancelAnimationFrame(rafId);
-      clearTimeout(timer);
-    };
+  // 节流包装（leading + trailing）：内容一变化立即调一次，间隔内的高频变化合并到间隔后一次
+  const throttledResize = useCallback(() => {
+    const INTERVAL = 120;
+    const now = Date.now();
+    const remaining = INTERVAL - (now - lastResizeAtRef.current);
+    if (remaining <= 0) {
+      lastResizeAtRef.current = now;
+      syncScannerWindowHeight();
+    } else if (resizeTrailingTimerRef.current === null) {
+      resizeTrailingTimerRef.current = window.setTimeout(() => {
+        resizeTrailingTimerRef.current = null;
+        throttledResize();
+      }, remaining);
+    }
   }, [syncScannerWindowHeight]);
+
+  // 首次加载：等 pywebview 就绪 + 内容布局稳定后再同步一次，
+  // 避免在窗口刚创建/WebView2 未完全就绪时反复调整尺寸触发原生断点。
+  useEffect(() => {
+    let timer: number | null = null;
+    const onReady = () => {
+      throttledResize();
+      // 布局稳定后兜底再同步一次（字体/图片可能晚加载）
+      timer = window.setTimeout(throttledResize, 300);
+    };
+
+    // pywebview 注入完成会派发 pywebviewready 事件；若 api 已就绪则直接同步
+    if ((window as any).pywebview?.api) {
+      onReady();
+    } else {
+      window.addEventListener('pywebviewready', onReady);
+    }
+
+    return () => {
+      window.removeEventListener('pywebviewready', onReady);
+      if (timer !== null) {
+        window.clearTimeout(timer);
+      }
+      if (resizeTrailingTimerRef.current !== null) {
+        window.clearTimeout(resizeTrailingTimerRef.current);
+        resizeTrailingTimerRef.current = null;
+      }
+      lastResizeAtRef.current = 0;
+    };
+  }, [throttledResize]);
 
   // 内容变化（识别结果、收起/展开、地图切换、钉住等）后同步窗口高度
   useEffect(() => {
-    syncScannerWindowHeight();
+    throttledResize();
   });
 
   // Calculate statistics across all maps
