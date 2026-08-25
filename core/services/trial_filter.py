@@ -7,6 +7,7 @@
 import os
 import re
 
+from core.pet_path import format_display_name
 from core.services.trials import get_trial
 
 _ID_PREFIX_RE = re.compile(r"^\d+_(.*)$")
@@ -26,8 +27,8 @@ def _pet_name(candidate):
     """从候选里取出标准化精灵名（去掉 id 前缀与扩展名）。"""
     name = candidate.get("name") or os.path.basename(candidate.get("filename") or "")
     name = _strip_ext(name)
-    m = _ID_PREFIX_RE.match(name)
-    return m.group(1) if m else name
+    # 去掉 id 前缀与形态序号（新命名 <id>_<seq>_<name>），得到展示名。
+    return format_display_name(name)
 
 
 def allowed_pet_names(trial_key, map_name=None):

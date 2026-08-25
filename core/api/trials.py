@@ -12,25 +12,30 @@ bp = Blueprint("trials", __name__)
 def _list_fire_pets(trial_key="fire"):
     """枚举 datasets.db 中的全部精灵图标（每个形态一条），并补上库里没有的全图鉴条目。
 
-    数据集 path 形如 "258_乌达_极夜"（id_名称_形态），展示时只去掉 id 前缀，
-    保留形态后缀：乌达_极夜；图片复用原有 /icons/<filename> 接口。
+    数据集 path 形如 "001_01_迪莫"（id_形态序号_名字）或 "002_喵喵"（id_名字）。
+    数据库已存 id/seq/name 字段：展示名直接用 name（已去 id 与形态序号）；
+    排序按 (id, seq) 分多形态排序，seq 为 NULL 视为 0。
+    图片复用原有 /icons/<filename> 接口。
     """
     trial = get_trial(trial_key) or get_trial("fire") or {}
     db = get_db()
-    rows = db.execute("SELECT path FROM icons ORDER BY path").fetchall()
+    rows = db.execute(
+        "SELECT path, id, seq, name FROM icons"
+    ).fetchall()
 
     seen_ids = set()
     items = []
-    for (path,) in rows:
+    for path, pet_id, seq, name in rows:
         path = str(path)
-        prefix, sep, rest = path.partition("_")
-        if not sep or not prefix.isdigit() or not rest:
+        if pet_id is None:
             continue
-        pet_id = int(prefix)
+        pet_id = int(pet_id)
         seen_ids.add(pet_id)
+        display_name = name if name else str(path)
         items.append({
             "id": pet_id,
-            "name": rest,  # 保留形态后缀，如 乌达_极夜
+            "seq": int(seq) if seq is not None else None,
+            "name": display_name,
             "url": url_for(
                 "main.get_icon_file",
                 filename=f"{path}.png",
@@ -44,7 +49,7 @@ def _list_fire_pets(trial_key="fire"):
         if pet["id"] not in seen_ids:
             items.append({"id": pet["id"], "name": pet["name"]})
 
-    items.sort(key=lambda x: (x["id"], x["name"]))
+    items.sort(key=lambda x: (x["id"], x.get("seq") or 0, x.get("name") or ""))
     return items
 
 

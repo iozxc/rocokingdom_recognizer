@@ -4,6 +4,7 @@ export interface PetItem {
   url: string;  // 图标地址
   element?: 'grass' | 'fire' | 'water' | 'electric' | 'normal' | 'ghost' | 'dragon' | 'light' | 'stone';
   id?: number;
+  seq?: number; // 形态序号（同 id 多形态时使用，单形态无）
   rarity?: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
