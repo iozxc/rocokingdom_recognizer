@@ -8,6 +8,7 @@ from rapidocr_onnxruntime import RapidOCR  # 导入 RapidOCR
 import config
 from config import get_resource_path
 from core.logger import logger
+from core.ocr_corrections import correct_ocr_text
 
 # 彻底移除对 torch 和 ssl 的依赖
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -141,6 +142,7 @@ class OCREngine:
         target_line = lines[0]
         target_line.sort(key=lambda b: b['x'])
         result = [b['text'] for b in target_line]
+        result = [correct_ocr_text(t) for t in result]
         logger.debug(f"recognize_bottom_text: 聚类行数={len(lines)}, 底部行结果={result}")
         return result
 
@@ -202,6 +204,7 @@ class OCREngine:
 
         target_line.sort(key=lambda b: b['x'])
         final_name = "".join([b['text'] for b in target_line])
+        final_name = correct_ocr_text(final_name)
         logger.debug(f"recognize_single_bottom_text: 结果='{final_name}', 候选块={len(blocks)}")
         return final_name if final_name else None
 
@@ -256,6 +259,7 @@ class OCREngine:
         if result:
             # result 格式会变化，只需提取文字
             text = clean_ocr_text(result[0][0])
+            text = correct_ocr_text(text)
             logger.debug(f"recognize_crop_only: 识别结果='{text}'")
             return text
         logger.debug("recognize_crop_only: 无识别结果")
