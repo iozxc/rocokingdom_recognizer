@@ -3,11 +3,28 @@ from flask import Blueprint, request
 
 import config
 from core.logger import logger
+from core.ocr_corrections import add_correction
 
 bp = Blueprint("feedback", __name__)
 
 # 飞书机器人 Webhook（环境变量 ROCO_FEISHU_WEBHOOK_URL 可覆盖）
 FEISHU_WEBHOOK_URL = config.FEISHU_WEBHOOK_URL
+
+
+@bp.route('/api/ocr_correction', methods=['POST'])
+def submit_ocr_correction():
+    """人工修正回流：把「识别到的旧名 → 用户选中的正确名」写入 OCR 纠错表。
+
+    入参: {wrong: "干棘海针", right: "千棘海针", kind?: "word"|"char"}
+    """
+    data = request.json or {}
+    wrong = str(data.get("wrong") or "").strip()
+    right = str(data.get("right") or "").strip()
+    kind = data.get("kind") or "word"
+    if not wrong or not right or wrong == right:
+        return {"status": "error", "message": "wrong/right 无效"}
+    ok = add_correction(wrong, right, kind)
+    return {"status": "success" if ok else "error"}
 
 @bp.route('/api/submit_feedback', methods=['POST'])
 def submit_feedback():
