@@ -110,7 +110,6 @@ TRIALS = [
             },
         ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets1.json")),
-        "map_pets_url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/map_pets1.json",
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_1.pkl"))
     },
     {
@@ -156,7 +155,6 @@ TRIALS = [
             },
         ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets2.json")),
-        "map_pets_url": "",
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_2.pkl"))
     }
 ]

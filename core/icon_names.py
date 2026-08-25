@@ -14,40 +14,15 @@ def load_map_pets(trial_key="grass"):
 
     结构: {"map1": {"258_乌达_极夜.png": {"id": 258, "name": "乌达"}, ...}, ...}
     key 即精灵图片在 datasets.db / dataset/image 中的文件名。
-    优先从服务器 map_pets_url 动态拉取，失败回退本地文件。
+    数据更新由 data_updater 负责，这里只读本地文件。
     """
     if trial_key in _map_pets_cache:
         return _map_pets_cache[trial_key]
 
     trial = get_trial_or_default(trial_key)
-    data = {}
-
-    url = trial.get("map_pets_url")
-    if url:
-        data = _fetch_map_pets(url, trial_key)
-
-    if not data:
-        data = _read_local_map_pets(trial.get("map_pets_json_list"), trial_key)
-
+    data = _read_local_map_pets(trial.get("map_pets_json_list"), trial_key)
     _map_pets_cache[trial_key] = data
     return data
-
-
-def _fetch_map_pets(url, trial_key):
-    """从服务器动态获取地图数据；失败返回空 dict。"""
-    try:
-        import requests
-        logger.info(f"试炼 {trial_key} 从服务器拉取地图数据: {url}")
-        resp = requests.get(url, timeout=8)
-        resp.raise_for_status()
-        data = resp.json()
-        if isinstance(data, dict):
-            logger.info(f"试炼 {trial_key} 服务器地图数据获取成功")
-            return data
-        logger.warning(f"试炼 {trial_key} 服务器地图数据格式异常")
-    except Exception as e:
-        logger.warning(f"试炼 {trial_key} 服务器地图数据获取失败，回退本地: {e}")
-    return {}
 
 
 def _read_local_map_pets(path, trial_key):
@@ -61,6 +36,15 @@ def _read_local_map_pets(path, trial_key):
     except Exception as e:
         logger.error(f"读取试炼 {trial_key} 本地地图数据失败 {path}: {e}", exc_info=True)
         return {}
+
+
+def invalidate_map_pets_cache(trial_key=None):
+    """清空地图数据缓存（数据更新后调用）；不传则清空全部试炼。"""
+    global _map_pets_cache
+    if trial_key is None:
+        _map_pets_cache = {}
+    else:
+        _map_pets_cache.pop(trial_key, None)
 
 
 def sprite_to_file(map_name, sprite_name, trial_key="grass"):
