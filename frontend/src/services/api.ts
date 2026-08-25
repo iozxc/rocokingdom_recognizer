@@ -197,11 +197,15 @@ export class ApiService {
               fullUrl = `${this.apiBase}/${fullUrl.replace(/^\//, '')}`;
             }
 
+            const elements = Array.isArray(item.elements) && item.elements.length
+                ? item.elements
+                : (fallbackItem?.elements ?? []);
             return {
               name: item.name,
               id: item.id ?? fallbackItem?.id,
               seq: item.seq ?? fallbackItem?.seq,
               url: fullUrl || fallbackItem?.url || '',
+              elements,
               element: fallbackItem?.element || 'grass',
               rarity: fallbackItem?.rarity || 'common',
             };

@@ -3,6 +3,7 @@ import { X, Check, RotateCcw, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { MapConfig, PetItem, EncounterRecord } from '../types';
 import { sound } from '../services/sound';
+import { ElementBadges } from './ElementBadges';
 
 interface PetDetailModalProps {
   isOpen: boolean;
@@ -85,6 +86,11 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
                 <p className="text-xs font-bold text-[#7ABCF4] mt-1">
                   图鉴编号 #{pet.id}
                 </p>
+            )}
+            {pet.elements && pet.elements.length > 0 && (
+                <div className="mt-2 flex justify-center">
+                  <ElementBadges elements={pet.elements} size="md" horizontal />
+                </div>
             )}
           </div>
 

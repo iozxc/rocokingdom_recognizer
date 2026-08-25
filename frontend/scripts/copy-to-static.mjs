@@ -26,4 +26,14 @@ for (const name of readdirSync(srcAssets)) {
   copyFileSync(join(srcAssets, name), join(dstAssets, name));
 }
 
-console.log('[copy-to-static] 已同步: static/index.html + static/assets/*');
+// 同步属性图标目录（frontend/public/elements -> dist/elements -> static/elements）
+const srcElements = join(distDir, 'elements');
+const dstElements = join(staticDir, 'elements');
+if (existsSync(srcElements)) {
+  mkdirSync(dstElements, { recursive: true });
+  for (const name of readdirSync(srcElements)) {
+    copyFileSync(join(srcElements, name), join(dstElements, name));
+  }
+}
+
+console.log('[copy-to-static] 已同步: static/index.html + static/assets/* + static/elements/*');

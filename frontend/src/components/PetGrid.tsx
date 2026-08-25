@@ -3,6 +3,7 @@ import { Sparkles, Check, Sparkle, Filter, Info, Bug } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord } from '../types';
 import { sound } from '../services/sound';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
+import { ElementBadges } from './ElementBadges';
 
 interface PetGridProps {
   currentMap: MapConfig;
@@ -180,6 +181,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
                               #{pet.id}
                             </span>
                         )}
+                        <ElementBadges
+                            elements={pet.elements}
+                            className="absolute top-1 left-1 z-10"
+                        />
                         <img
                             src={pet.url}
                             alt={pet.name}

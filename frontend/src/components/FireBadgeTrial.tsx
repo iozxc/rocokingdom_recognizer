@@ -70,7 +70,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
     const items: PetItem[] = pokedex.map((pet) => ({
       name: `${pet.name}.png`,
       id: pet.id,
-      element: 'fire',
+      seq: pet.seq,
+      elements: pet.elements ?? [],
       rarity: 'common',
       url: pet.url || createSvgPetAvatar(pet.name, '火', (pet.id * 47) % 360, '#ef4444', '🔥'),
     }));

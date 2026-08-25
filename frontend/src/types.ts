@@ -2,7 +2,8 @@ export interface PetItem {
   name: string; // 精灵名称 (后端返回的精灵名字)
   displayName?: string;
   url: string;  // 图标地址
-  element?: 'grass' | 'fire' | 'water' | 'electric' | 'normal' | 'ghost' | 'dragon' | 'light' | 'stone';
+  element?: 'grass' | 'fire' | 'water' | 'electric' | 'normal' | 'ghost' | 'dragon' | 'light' | 'stone'; // 旧字段（英文枚举，用于兜底头像颜色）
+  elements?: string[]; // 属性列表（中文），第一个为主属性，如 ['光'] / ['光','火']
   id?: number;
   seq?: number; // 形态序号（同 id 多形态时使用，单形态无）
   rarity?: 'common' | 'rare' | 'epic' | 'legendary';
@@ -147,6 +148,8 @@ export interface FirePokedexEntry {
   id: number;
   name: string;
   url?: string;
+  seq?: number; // 形态序号
+  elements?: string[]; // 属性列表（中文），第一个为主属性
 }
 
 export interface FirePokedexApiResponse {
