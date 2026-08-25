@@ -39,7 +39,7 @@ def is_dev_environment() -> bool:
     return not hasattr(sys, "_MEIPASS")
 
 
-APP_VERSION = _env("ROCO_APP_VERSION", "1.3.3")
+APP_VERSION = _env("ROCO_APP_VERSION", "1.3.4")
 # 默认内存截图（hwnd）；失败时由 tools.capture_window 自动降级为屏幕抓取（grab）
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "hwnd")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
@@ -106,6 +106,7 @@ TRIALS = [
             },
         ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets1.json")),
+        "map_pets_url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/map_pets1.json",
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_1.pkl"))
     },
     {
@@ -151,6 +152,7 @@ TRIALS = [
             },
         ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets2.json")),
+        "map_pets_url": "",
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_2.pkl"))
     }
 ]
