@@ -76,10 +76,7 @@ def hamming(a, b):
 
 
 def load_pet_names():
-    pets_path = os.path.join(os.path.dirname(ROOT), "resource", "roco_all_pets.json")
-    if not os.path.exists(pets_path):
-        # 兼容路径：项目根/资源
-        pets_path = os.path.join(PROJECT_ROOT, "resource", "roco_all_pets.json")
+    pets_path = os.path.join(PROJECT_ROOT, "datasets", "roco_all_pets_info.json")
     with open(pets_path, encoding="utf-8") as f:
         pets = json.load(f)["pets"]
     return {p["id"]: p["name"] for p in pets}

@@ -160,8 +160,8 @@ TRIALS = [
 ]
 
 # 全局信息
-ALL_PETS_JSON = get_resource_path(os.path.join('datasets', 'roco_all_pets.json'))
-POKEDEX_INFO_JSON = get_resource_path(os.path.join('datasets', 'roco_all_pets_info.json'))
+# 全图鉴唯一数据源（含 id/seq/name/form_name/elements）
+POKEDEX_JSON = get_resource_path(os.path.join('datasets', 'roco_all_pets_info.json'))
 DATASETS_PETS = get_resource_path(os.path.join('datasets', 'datasets.db'))
 DATA_JSON = get_external_path('roco_user_data.json')
 MANIFEST_JSON = get_resource_path('file_manifest.json')

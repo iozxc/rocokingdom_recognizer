@@ -36,6 +36,7 @@ import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
 import { formatPetName, isSamePetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
+import { ElementBadges } from './ElementBadges';
 
 interface BatchInitModalProps {
   isOpen: boolean;
@@ -1071,6 +1072,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                 ) : (
                                     <HelpCircle className="w-8 h-8 text-rose-300" />
                                 )}
+                                <ElementBadges
+                                    elements={item.matchedPet?.elements}
+                                    className="absolute top-0.5 left-0.5 z-10"
+                                    size="sm"
+                                />
                                 {item.matchedPet?.id != null && (
                                     <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
                                       #{item.matchedPet.id}

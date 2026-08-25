@@ -24,6 +24,7 @@ import { storage } from '../services/storage';
 import { formatPetName } from '../utils/petHelper';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { RecognitionSamplesHint } from './RecognitionSamplesHint';
+import { ElementBadges } from './ElementBadges';
 
 interface SinglePetRecognizerModalProps {
   isOpen: boolean;
@@ -540,6 +541,11 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                                         (e.target as HTMLImageElement).src = activeCandidate.matchedPet.url;
                                       }
                                     }}
+                                />
+                                <ElementBadges
+                                    elements={activeCandidate.matchedPet?.elements}
+                                    className="absolute top-0.5 left-0.5 z-10"
+                                    size="sm"
                                 />
                                 {currentPetAlreadyEncountered ? (
                                     <div className="encountered-badge-check" title="该精灵已在图鉴中标记遇见">

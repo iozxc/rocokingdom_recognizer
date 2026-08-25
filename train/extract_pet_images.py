@@ -5,7 +5,7 @@ Source layout:
     train/features/assets/pic/icons_only/map1|map2|map3/*.png
 
 Each image is copied once (duplicates across maps are skipped, map1 takes
-priority) and renamed with its pet id from roco_all_pets.json:
+priority) and renamed with its pet id from roco_all_pets_info.json:
 
     乌达_极夜.png  ->  258_乌达_极夜.png
 
@@ -25,12 +25,17 @@ def load_pets(json_path):
     with open(json_path, encoding="utf-8") as f:
         data = json.load(f)
     pets = data["pets"]
+    seen = set()
+    unique_pets = []
     name_to_id = {}
     for p in pets:
-        if p["name"] in name_to_id:
-            raise ValueError(f"duplicate pet name in JSON: {p['name']}")
+        name = p["name"]
+        if name in seen:
+            continue
+        seen.add(name)
+        unique_pets.append(p)
         name_to_id[p["name"]] = p["id"]
-    return pets, name_to_id
+    return unique_pets, name_to_id
 
 
 def match_pet_id(filename, name_to_id):
@@ -74,7 +79,7 @@ def main():
         os.path.dirname(__file__), "features", "assets", "pic", "icons_only"))
     parser.add_argument("--maps", nargs="+", default=["map1", "map2", "map3"])
     parser.add_argument("--json", default=os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "roco_all_pets.json"))
+        os.path.dirname(os.path.dirname(__file__)), "datasets", "roco_all_pets_info.json"))
     parser.add_argument("--out", default=os.path.join(
         os.path.dirname(__file__), "dataset", "image"))
     args = parser.parse_args()

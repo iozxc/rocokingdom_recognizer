@@ -14,7 +14,7 @@
 Name notes:
    * id 19 is 冬羽雀 in the JSON and in the existing seasonal forms
      (19_冬羽雀_夏天/春天/秋天.png); the requested 冬雨雀 is treated as a typo.
-   * id 382 is 晶尾蝎 per the game (碎晶蝎 -> 晶尾蝎 -> 蝎子王); roco_all_pets.json
+   * id 382 is 晶尾蝎 per the game (碎晶蝎 -> 晶尾蝎 -> 蝎子王); roco_all_pets_info.json
      currently contains the typo 品尾蝎.
 """
 

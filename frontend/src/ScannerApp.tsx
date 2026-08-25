@@ -30,6 +30,7 @@ import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect'
 import { EffectLevel } from './types';
 import { ScannerMapGalleryModal } from './components/ScannerMapGalleryModal';
 import { ImageZoom } from './components/ImageZoom';
+import { ElementBadges } from './components/ElementBadges';
 import {
   formatPetName,
   isSamePetName,
@@ -42,7 +43,7 @@ interface DetectedPetSlot {
   name: string;
   score: number;
   view_url?: string;
-  candidates: { filename: string; score: number }[];
+  candidates: { filename: string; score: number; elements?: string[] }[];
   selectedCandidateIndex: number;
   selectedPetName: string;
   matchedPet?: PetItem;
@@ -51,7 +52,7 @@ interface DetectedPetSlot {
 
 // 候选置信度排行分页导航组件（保持原版大尺寸卡片，每页3项，左右翻页，无滑动条）
 const CandidateCarousel: React.FC<{
-  candidates: { filename: string; score: number }[];
+  candidates: { filename: string; score: number; elements?: string[] }[];
   selectedCandidateIndex: number;
   slotId: string;
   sourceMapNum?: number;
@@ -143,7 +144,7 @@ const CandidateCarousel: React.FC<{
                   {/* 一行布局：左图 + 右文本（紧凑，避免撑成两行） */}
                   <div className="flex items-center gap-1.5">
                     {/* 候选精灵预览图（悬停/点击放大） */}
-                    <div className="w-9 h-9 shrink-0 rounded-lg bg-white border border-[#E2E8F0] p-0.5 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-9 h-9 shrink-0 rounded-lg bg-white border border-[#E2E8F0] p-0.5 flex items-center justify-center overflow-hidden">
                       <ImageZoom
                           src={candViewUrl}
                           alt={candName}
@@ -153,6 +154,11 @@ const CandidateCarousel: React.FC<{
                           zoomHeight={280}
                           maxWidth={60}
                           maxHeight={60}
+                      />
+                      <ElementBadges
+                          elements={cand.elements}
+                          className="absolute top-0 left-0 z-10"
+                          size="xs"
                       />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -607,6 +613,7 @@ export const ScannerApp: React.FC = () => {
         candidates: candidateList.map((c) => ({
           filename: c.filename || '未知精灵',
           score: typeof c.score === 'number' ? c.score : 0.85,
+          elements: findPetMetadata(c.filename || '')?.elements,
         })),
         selectedCandidateIndex: 0,
         selectedPetName: initialName,
@@ -1020,16 +1027,22 @@ export const ScannerApp: React.FC = () => {
                             <div className="flex items-center justify-between gap-2.5 mb-2.5">
                               <div className="flex items-center gap-2.5 min-w-0">
                                 {/* Pet Image（悬停/点击放大预览） */}
-                                <ImageZoom
-                                    src={slot.matchedPet?.url || `${api.getApiBase()}/icons/${displayName}.png`}
-                                    alt={displayName}
-                                    className="w-12 h-12 rounded-2xl bg-white border-2 border-[#D5E3F0] p-1 flex items-center justify-center shrink-0 overflow-hidden"
-                                    imgClassName="w-full h-full object-contain"
-                                    zoomWidth={360}
-                                    zoomHeight={360}
-                                    maxWidth={80}
-                                    maxHeight={80}
-                                />
+                                <div className="relative shrink-0">
+                                  <ImageZoom
+                                      src={slot.matchedPet?.url || `${api.getApiBase()}/icons/${displayName}.png`}
+                                      alt={displayName}
+                                      className="w-12 h-12 rounded-2xl bg-white border-2 border-[#D5E3F0] p-1 flex items-center justify-center overflow-hidden"
+                                      imgClassName="w-full h-full object-contain"
+                                      zoomWidth={360}
+                                      zoomHeight={360}
+                                      maxWidth={80}
+                                      maxHeight={80}
+                                  />
+                                  <ElementBadges
+                                      elements={slot.matchedPet?.elements}
+                                      className="absolute top-0.5 left-0.5 z-10"
+                                  />
+                                </div>
 
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5">

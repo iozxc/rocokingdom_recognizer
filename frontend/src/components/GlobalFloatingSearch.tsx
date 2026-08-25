@@ -20,6 +20,7 @@ import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { openFollowScanner } from '../services/followScanner';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
+import { ElementBadges } from './ElementBadges';
 
 export interface GlobalSearchPetResult {
   pet: PetItem;
@@ -639,6 +640,11 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                         #{item.pet.id}
                                       </span>
                                   )}
+                                  <ElementBadges
+                                      elements={item.pet.elements}
+                                      className="absolute top-0.5 left-0.5 z-10"
+                                      size="sm"
+                                  />
                                   {item.isEncountered && (
                                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white">
                                         <Check className="w-2.5 h-2.5 stroke-[3]" />
