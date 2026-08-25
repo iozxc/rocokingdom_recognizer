@@ -5,6 +5,7 @@ from core.api.response import error, success
 from core.db import get_db
 from core.icon_names import load_map_pets, sprite_to_file, sprite_to_file_any
 from core.logger import logger
+from core.pet_path import sort_key
 from core.services.trials import get_trial_or_default
 from core.utils import strip_id_prefix
 
@@ -50,11 +51,12 @@ def list_icons():
             items = []
             for filename, meta in sorted(
                     entries.items(),
-                    key=lambda kv: (kv[1].get("id", float("inf")), kv[0])):
+                    key=lambda kv: sort_key(kv[0])):
                 items.append({
                     # 对外/用户数据不保留 id 前缀；URL 仍指向真实数据集文件
                     "name": strip_id_prefix(filename),
                     "id": meta.get("id"),
+                    "seq": meta.get("seq"),
                     "url": url_for('main.get_icon_file', filename=filename, _external=True)
                 })
             icons_structure[map_name] = {"count": len(items), "items": items}

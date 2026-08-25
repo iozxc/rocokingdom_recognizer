@@ -15,6 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # --- 数据与模型路径 ---
+# 训练/打包脚本统一以项目根为基准，避免因 cwd 不同导致路径解析错误。
 ASSETS_PATH = config.get_resource_path("assets")
 DATA_ICON_ROOT = config.get_resource_path(os.path.join("assets", "pic", "icons_only"))
 ASSETS_DB = config.get_resource_path(os.path.join("assets", "assets.db"))
@@ -22,9 +23,13 @@ DATA_MAP_ROOT = config.get_resource_path(os.path.join("assets", "pic", "title"))
 
 MAP_MODEL_SAVE_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pt"))
 MAP_MODEL_SAVE_PKL_PATH = config.get_resource_path(os.path.join("assets", "features_resnet50_map_classifier.pkl"))
-# 全图鉴训练数据：train/dataset/image 下所有精灵图片（含多形态）
-DATASET_PATH = config.get_resource_path(os.path.join("dataset", "image"))
-DATASET_DB = config.get_resource_path(os.path.join("dataset", "datasets.db"))
+# 全图鉴训练数据：train/dataset/image 下所有精灵图片（含多形态）。
+# 以项目根为准拼接，非相对 cwd，保证从任意目录运行 pack/train 脚本都不失效。
+DATASET_PATH = str(PROJECT_ROOT / "train" / "dataset" / "image")
+# 打包输出：app 运行时读取的库放在 datasets/datasets.db（与 config.DATASETS_PETS 一致）
+DATASET_DB = str(PROJECT_ROOT / "datasets" / "datasets.db")
+# 训练目录内的库副本（供 train/dataset 本地校验）
+DATASET_DB_TRAIN = str(PROJECT_ROOT / "train" / "dataset" / "datasets.db")
 
 # 全图鉴特征库：识别不再按试炼训练，统一输出 feature_icon.pt / feature_icon.pkl
 FULL_ICON_FEATURE_PT = config.get_resource_path(os.path.join("onnx", "feature_icon.pt"))

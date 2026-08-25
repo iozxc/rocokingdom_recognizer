@@ -1,8 +1,10 @@
 """图标名目录：按试炼读取对应 map_pets JSON 下的精灵名称。"""
 import json
+import re
 
 import config
 from core.logger import logger
+from core.pet_path import format_display_name, split_pet_filename, sort_key
 from core.services.trials import get_trial_or_default
 
 
@@ -50,7 +52,10 @@ def invalidate_map_pets_cache(trial_key=None):
 def sprite_to_file(map_name, sprite_name, trial_key="grass"):
     """把精灵名反查为数据集文件名，如 "乌达_极夜" -> "258_乌达_极夜.png"。
 
-    兼容传入精灵名（乌达_极夜）、数据集文件名（带/不带 .png 均可）。
+    兼容传入：
+      - 精灵名（乌达_极夜）
+      - 完整数据集文件名（258_乌达_极夜.png / 258_02_乌达_极夜.png / 不带 .png）
+      - 带 id 但缺形态序号（064_蹦蹦草_象牙球）——按 id+名字匹配到带序号的完整文件
     找不到时返回 None。
     """
     data = load_map_pets(trial_key).get(map_name, {})
@@ -59,12 +64,24 @@ def sprite_to_file(map_name, sprite_name, trial_key="grass"):
     base = sprite_name[:-4] if sprite_name.lower().endswith(".png") else sprite_name
     if base in data:
         return base
+
+    # 解析传入名字：拿到 (id, name)；缺失序号也没关系，用 id+名字去匹配。
+    _info = split_pet_filename(base)
+    _q_id = _info["id"] if _info else None
+    _q_name = _info["name"] if _info else base
+    _q_name_norm = re.sub(r"[_\\s]+", "", _q_name or "")
+
     for fname in data:
         if fname[:-4] == base:
             return fname
-        stripped = fname.split("_", 1)[1][:-4] if "_" in fname else fname[:-4]
-        if stripped == base:
+        info = split_pet_filename(fname)
+        display = info["name"] if info else fname[:-4]
+        if display == base:
             return fname
+        # id 相同 + 名字（去下划线）相同 -> 命中（即使形态序号不同/缺失）
+        if info and _q_id is not None and info["id"] == _q_id:
+            if _q_name == info["name"] or _q_name_norm == re.sub(r"[_\\s]+", "", info["name"] or ""):
+                return fname
     return None
 
 
@@ -81,18 +98,17 @@ def sprite_to_file_any(sprite_name, trial_key="grass"):
 def scan_icon_names(trial_key="grass"):
     """读取指定试炼的所有精灵名（去掉 id 前缀与 .png 后缀）。
 
-    返回 {"map1": ["乌达_极夜", "迪莫"], ...}
+    返回 {"map1": ["叶冕魔力猫", "迪莫"], ...}（已去掉 id 前缀与形态序号）。
     """
     trial = get_trial_or_default(trial_key)
     names_dict = {map_name: [] for map_name in trial.get("map_list", [])}
     try:
         data = load_map_pets(trial_key)
         for map_name in trial.get("map_list", []):
-            for fname in data.get(map_name, {}):
-                base = fname[:-4]
-                if "_" in base:
-                    base = base.split("_", 1)[1]
-                names_dict[map_name].append(base)
+            # 按原始文件名排序（sort_key 能解析 id+形态序号），再取展示名，
+            # 保证多形态顺序稳定（普通在前、首领在后）。
+            for fname in sorted(data.get(map_name, {}), key=sort_key):
+                names_dict[map_name].append(format_display_name(fname))
 
         total = sum(len(v) for v in names_dict.values())
         logger.info(f"图标名扫描完成，共 {total} 个图标: " +

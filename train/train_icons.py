@@ -6,6 +6,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import torch
 import torch.nn as nn
@@ -14,7 +16,8 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 from config import get_resource_path
-from train import train_config
+import train_config
+from core.pet_path import sort_key
 
 class ImageRecognizer:
     def __init__(self, device="cpu"):
@@ -55,9 +58,11 @@ def run_train_full():
     """
     recognizer = ImageRecognizer(device=train_config.DEVICE)
     image_dir = train_config.DATASET_PATH
+    # 按 (id, 形态序号, 名字) 排序后再训练，保证特征库 paths 顺序与前端展示排序一致。
     files = sorted(
-        f for f in os.listdir(image_dir)
-        if f.lower().endswith((".png", ".jpg", ".jpeg"))
+        (f for f in os.listdir(image_dir)
+         if f.lower().endswith((".png", ".jpg", ".jpeg"))),
+        key=sort_key,
     )
     if not files:
         print(f"未在 {image_dir} 找到任何图片，请检查训练数据路径")
