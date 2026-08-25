@@ -25,6 +25,16 @@ class MapClassifier:
         self.session = ort.InferenceSession(onnx_model_path, providers=['CPUExecutionProvider'])
         logger.info("MapClassifier ONNX模型加载成功 (CPU)")
 
+        # 从 ONNX 输入推断输入尺寸（resnet=224, dino=518 自动适配）
+        self.input_size = 224
+        try:
+            in_shape = self.session.get_inputs()[0].shape
+            if len(in_shape) == 4 and isinstance(in_shape[2], int) and isinstance(in_shape[3], int):
+                self.input_size = int(in_shape[2])
+        except Exception:
+            pass
+        logger.info(f"MapClassifier 输入尺寸: {self.input_size}")
+
         # 2. 预处理参数 (必须与 Torchvision 的 Normalize 一致)
         self.mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape((1, 1, 3))
         self.std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape((1, 1, 3))
@@ -74,8 +84,20 @@ class MapClassifier:
         # 1. 统一转为 RGB 格式
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
-        # 2. Resize (224, 224)
-        img_resized = cv2.resize(img_rgb, (224, 224), interpolation=cv2.INTER_LINEAR)
+        # 2. 保持长宽比缩放 + 居中 pad 到输入尺寸(防标题等长条图变形)。
+        #    resnet=224, dino=518 自动适配；与 title 特征库生成时的 pad_resize 一致。
+        sz = self.input_size
+        h, w = img_rgb.shape[:2]
+        scale = sz / max(h, w)
+        nh, nw = max(1, int(h * scale)), max(1, int(w * scale))
+        img_resized = cv2.resize(img_rgb, (nw, nh), interpolation=cv2.INTER_LINEAR)
+        top = (sz - nh) // 2
+        left = (sz - nw) // 2
+        pad_color = (255, 255, 255)
+        img_resized = cv2.copyMakeBorder(
+            img_resized, top, sz - nh - top, left, sz - nw - left,
+            cv2.BORDER_CONSTANT, value=pad_color,
+        )
 
         # 3. ToTensor: 转为 float32 并缩放到 [0, 1]
         img_float = img_resized.astype(np.float32) / 255.0
@@ -83,7 +105,7 @@ class MapClassifier:
         # 4. Normalize: (img - mean) / std
         img_norm = (img_float - self.mean) / self.std
 
-        # 5. HWC 转 CHW 并增加 Batch 维度: (1, 3, 224, 224)
+        # 5. HWC 转 CHW 并增加 Batch 维度: (1, 3, sz, sz)
         img_final = img_norm.transpose(2, 0, 1)[np.newaxis, :]
         return img_final.astype(np.float32)
 
@@ -141,6 +163,6 @@ class MapClassifier:
 
 if __name__ == "__main__":
     # 使用示例
-    clf = MapClassifier("resnet50.onnx", "features_title_db.pkl")
-    result = clf.match("4.png")
+    clf = MapClassifier(r"D:\game\RocoKingdom\onnx\dino_backbone.onnx", r"D:\game\RocoKingdom\onnx\features_title_db_1.pkl")
+    result = clf.match(r"D:\game\RocoKingdom\assets\pic\test\title_test.png")
     print(result)

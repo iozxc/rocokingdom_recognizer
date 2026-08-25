@@ -68,11 +68,11 @@ TRIALS = [
         "dev_only": False,
         "map_list": ['map1', 'map2', 'map3'],
         "scene_features": [
-            # 记忆中的索米亚草原：索、米、亚；OCR经常识别错成 素
+            # 记忆中的 [索米亚] 草原：索、米、亚；OCR经常识别错成 素
             ("map1", {"索", "米", "亚", "素"}),
-            # 记忆中的巨石阵：巨、石
-            ("map2", {"巨", "石"}),
-            # 记忆中的普拉塔草原：普、拉、塔
+            # 记忆中的 [巨石阵] ：巨、石
+            ("map2", {"巨", "石", "阵"}),
+            # 记忆中的 [普拉塔草原] ：普、拉、塔
             ("map3", {"普", "拉", "塔"}),
         ],
         "supports_recognition": True,
@@ -169,9 +169,11 @@ OCR_CORRECTIONS_JSON = get_resource_path(os.path.join('datasets', 'ocr_correctio
 DATA_MANIFEST_JSON = get_resource_path(os.path.join("datasets", "data_manifest.json"))
 
 # 全局模型
-RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
 # 全图鉴图标特征库：识别统一用它，具体试炼的 topk 过滤由服务端按白名单完成
-FEATURES_ICON = get_resource_path(os.path.join('onnx', 'feature_icon.pkl'))
+DINO_BACKBONE = get_resource_path(os.path.join('onnx', 'dino_backbone.onnx'))
+DINO_FEATURE_FULL = get_resource_path(os.path.join('onnx', 'feature_icon_dino_full.pkl'))
+DINO = (DINO_BACKBONE, DINO_FEATURE_FULL)
+
 SCANNER_MODAL = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
 DET_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_det_infer.onnx"))
 CLS_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))

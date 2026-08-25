@@ -57,3 +57,4 @@ keys/
 /train/assets/
 /train/onnx/
 /build.bat
+/train/onnx_dino/

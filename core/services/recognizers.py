@@ -16,19 +16,20 @@ class _ModelRegistry:
         self._map_classifiers = {}
 
     def get_icon_recognizer(self):
-        """ImageRecognizer（全图鉴图标特征匹配）全局单例，不再按试炼区分。"""
+        """ImageRecognizer（全图鉴图标特征匹配）全局单例。固定使用 dino_full。"""
         if self._icon_recognizer is not None:
             return self._icon_recognizer
 
-        feature_path = config.FEATURES_ICON
+        scheme = "DINOv2"
+        model_path, feature_path = config.DINO
         if not feature_path or not os.path.exists(feature_path):
             logger.warning(f"全图鉴图标特征库不存在: {feature_path}，跳过加载")
             return None
 
         try:
-            logger.info(f"正在加载全图鉴图标特征库: {feature_path}")
-            self._icon_recognizer = ImageRecognizer(config.RESNET50, feature_path)
-            logger.info("全图鉴图标特征库加载成功！")
+            logger.info(f"正在加载 icon 识别器 backend={scheme}: 模型={model_path}, 特征库={feature_path}")
+            self._icon_recognizer = ImageRecognizer(model_path, feature_path)
+            logger.info(f"全图鉴图标特征库加载成功！(backend={scheme})")
             return self._icon_recognizer
         except Exception as e:
             logger.error(f"全图鉴图标特征库加载失败: {e}", exc_info=True)
@@ -49,7 +50,8 @@ class _ModelRegistry:
 
         try:
             logger.info(f"试炼 {trial_key} 地图分类器未初始化，执行懒加载...")
-            classifier = MapClassifier(config.RESNET50, feature_path)
+            # title 识别也统一用 DINOv2 backbone（自动适配 518 输入），不再用 resnet50
+            classifier = MapClassifier(config.DINO_BACKBONE, feature_path)
             self._map_classifiers[trial_key] = classifier
             return classifier
         except Exception as e:
