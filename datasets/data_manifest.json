@@ -1,23 +1,23 @@
 {
-  "version": "1.3.3",
+  "version": "1.3.4",
   "files": [
     {
       "name": "datasets/datasets.db",
       "md5": "f63004ac49813968fc782820a6402352",
       "size": 9125888,
-      "url": ""
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/datasets/datasets.db"
     },
     {
       "name": "datasets/map_pets1.json",
-      "md5": "c8eaf8365be4a47e534c78ac789d7be9",
-      "size": 61515,
-      "url": ""
+      "md5": "2e241fe8aca7c6341e85da6ff55234b0",
+      "size": 61518,
+      "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/map_pets1.json"
     },
     {
       "name": "datasets/roco_all_pets.json",
       "md5": "9b1d286e645d4cb2c78c49b90a8f9a4c",
       "size": 26750,
-      "url": ""
+      "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/roco_all_pets.json"
     },
     {
       "name": "onnx/feature_icon.pkl",
