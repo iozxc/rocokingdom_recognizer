@@ -1,0 +1,29 @@
+{
+  "version": "1.3.3",
+  "files": [
+    {
+      "name": "datasets/datasets.db",
+      "md5": "f63004ac49813968fc782820a6402352",
+      "size": 9125888,
+      "url": ""
+    },
+    {
+      "name": "datasets/map_pets1.json",
+      "md5": "c8eaf8365be4a47e534c78ac789d7be9",
+      "size": 61515,
+      "url": ""
+    },
+    {
+      "name": "datasets/roco_all_pets.json",
+      "md5": "9b1d286e645d4cb2c78c49b90a8f9a4c",
+      "size": 26750,
+      "url": ""
+    },
+    {
+      "name": "onnx/feature_icon.pkl",
+      "md5": "5d380dd1fd59b6a7bc775a92fe260a48",
+      "size": 4452597,
+      "url": ""
+    }
+  ]
+}
