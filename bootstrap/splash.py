@@ -49,155 +49,154 @@ def _round_rect(canvas, x1, y1, x2, y2, r, **kwargs):
     return canvas.create_polygon(points, smooth=True, **kwargs)
 
 
-class _HintWindow:
-    def __init__(self, title: str, message: str):
-        self._stop = threading.Event()
-        self._thread = threading.Thread(
-            target=self._run,
-            args=(title, message),
-            daemon=True,
-            name="hint-window",
-        )
+class _TkThread:
+    """单一 tkinter 后台线程 + 共享 Tk root。
+
+    所有提示窗口(Toplevel)的创建、动画、关闭都在这条线程内执行，
+    保证 Tcl/Tk 对象只被同一线程访问，从根本上避免
+    "Tcl_AsyncDelete: async handler deleted by the wrong thread"。
+    """
+    def __init__(self):
+        self._tk = None
+        self._root = None
+        self._ready = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True, name="tk-hint-thread")
         self._thread.start()
 
-    def _run(self, title: str, message: str):
+    def _run(self):
         try:
             import tkinter as tk
         except Exception as e:
             logger.debug(f"无法加载 tkinter，跳过提示窗口: {e}")
+            self._ready.set()
             return
-
-        root = None
+        self._tk = tk
         try:
-            root = tk.Tk()
-            root.overrideredirect(True)
-            root.attributes("-topmost", True)
-            root.attributes("-alpha", ALPHA)
-            root.configure(bg=BORDER_COLOR)
-
-            screen_w = root.winfo_screenwidth()
-            screen_h = root.winfo_screenheight()
-            x = max(0, (screen_w - WIDTH) // 2)
-            y = max(0, (screen_h - HEIGHT) // 2)
-            root.geometry(f"{WIDTH}x{HEIGHT}+{x}+{y}")
-
-            canvas = tk.Canvas(
-                root,
-                width=WIDTH,
-                height=HEIGHT,
-                bg=BODY_COLOR,
-                highlightthickness=0,
-            )
-            canvas.pack(fill="both", expand=True)
-
-            self._draw(canvas, title, message)
-            self._bind_close_button(canvas, root)
-            root.update()  # 先渲染一帧，避免首屏白屏/文字不显示
-            start_time = time.monotonic()
-
-            # Windows 11 下开启圆角
+            self._root = tk.Tk()
+            self._root.withdraw()  # 隐藏根窗口，只用 Toplevel 子窗口
+        except Exception as e:
+            logger.debug(f"创建 Tk root 失败: {e}")
+            self._root = None
+        self._ready.set()
+        if self._root is not None:
             try:
-                hwnd = ctypes.windll.user32.GetParent(root.winfo_id())
-                preference = ctypes.c_int(2)  # DWMWCP_ROUND
-                ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                    hwnd, 33, ctypes.byref(preference), ctypes.sizeof(preference)
-                )
+                self._root.mainloop()
             except Exception:
                 pass
 
+    def wait_ready(self, timeout=3.0):
+        self._ready.wait(timeout=timeout)
+
+    def after(self, ms, fn):
+        """把 fn 调度到 tk 线程执行，保证线程安全。"""
+        root = self._root
+        if root is None:
+            return False
+        try:
+            root.after(ms, fn)
+            return True
+        except Exception:
+            return False
+
+    def shutdown(self):
+        root = self._root
+        if root is not None:
+            try:
+                root.after(0, root.destroy)
+            except Exception:
+                pass
+
+
+_TK = None
+_TK_LOCK = threading.Lock()
+
+
+def _get_tk():
+    global _TK
+    if _TK is None:
+        with _TK_LOCK:
+            if _TK is None:
+                t = _TkThread()
+                t.wait_ready()
+                _TK = t
+    return _TK
+
+
+class _HintWindow:
+    """基于共享 _TkThread 的提示窗口(Toplevel)。"""
+    def __init__(self, title, message):
+        self._stop = threading.Event()
+        self._tk_thread = _get_tk()
+        self._started = threading.Event()
+        self._tk_thread.after(0, lambda: self._run_on_tk(title, message))
+        self._started.wait(timeout=3)
+
+    def _run_on_tk(self, title, message):
+        tk = self._tk_thread._tk
+        root = self._tk_thread._root
+        if tk is None or root is None:
+            self._started.set()
+            return
+        try:
+            top = tk.Toplevel(root)
+            top.overrideredirect(True)
+            top.attributes("-topmost", True)
+            top.attributes("-alpha", ALPHA)
+            top.configure(bg=BORDER_COLOR)
+            screen_w = top.winfo_screenwidth()
+            screen_h = top.winfo_screenheight()
+            x = max(0, (screen_w - WIDTH) // 2)
+            y = max(0, (screen_h - HEIGHT) // 2)
+            top.geometry(f"{WIDTH}x{HEIGHT}+{x}+{y}")
+
+            canvas = tk.Canvas(top, width=WIDTH, height=HEIGHT, bg=BODY_COLOR,
+                               highlightthickness=0)
+            canvas.pack(fill="both", expand=True)
+            self._draw(canvas, title, message)
+            top.update()
+            self._top = top
+            self._canvas = canvas
+
+            start_time = time.monotonic()
+
             def _animate(frame=0):
                 if self._stop.is_set():
-                    root.destroy()
+                    self._destroy()
                     return
                 if time.monotonic() - start_time > _MAX_LIFETIME_SECONDS:
-                    root.destroy()
+                    self._destroy()
                     return
                 self._move_bar(canvas, frame)
-                root.after(30, lambda: _animate(frame + 1))
+                self._tk_thread.after(30, lambda: _animate(frame + 1))
 
-            root.after(30, lambda: _animate(0))
-            root.mainloop()
+            self._tk_thread.after(30, lambda: _animate(0))
+            self._started.set()
         except Exception as e:
-            if root is not None:
-                try:
-                    root.destroy()
-                except Exception:
-                    pass
-            logger.debug(f"提示窗口创建失败，忽略: {e}")
-        finally:
-            with _LIVE_HINTS_LOCK:
-                _LIVE_HINTS.discard(self)
+            logger.debug(f"提示窗口创建失败: {e}")
+            self._started.set()
 
     def _draw(self, canvas, title, message):
-        # 外框：白底 + 蓝描边
-        _round_rect(
-            canvas, 2, 2, WIDTH - 3, HEIGHT - 3, 16,
-            fill=BODY_COLOR, outline=BORDER_COLOR, width=3,
-        )
-        # 顶部蓝色标题栏
-        _round_rect(
-            canvas, 2, 2, WIDTH - 3, HEADER_HEIGHT + 2, 16,
-            fill=HEADER_COLOR, outline="",
-        )
-        canvas.create_text(
-            WIDTH / 2, HEADER_HEIGHT / 2 + 2,
-            text=title, fill=TITLE_COLOR, font=("Microsoft YaHei", 14, "bold"),
-        )
-        # 消息文字
-        canvas.create_text(
-            WIDTH / 2, HEADER_HEIGHT + 38,
-            text=message, fill=BODY_TEXT_COLOR, font=("Microsoft YaHei", 10),
-        )
-        # 进度条底槽 + 初始滑块
+        canvas.create_rectangle(0, 0, WIDTH, HEADER_HEIGHT, fill=HEADER_COLOR, outline="")
+        canvas.create_text(20, HEADER_HEIGHT // 2, anchor="w", text=title,
+                           fill=TITLE_COLOR, font=("Microsoft YaHei", 15, "bold"))
+        canvas.create_text(20, HEADER_HEIGHT + 40, anchor="w", text=message,
+                           fill=BODY_TEXT_COLOR, font=("Microsoft YaHei", 11))
         bar_y1 = HEIGHT - 42
         bar_y2 = bar_y1 + BAR_HEIGHT
-        bar_x1 = (WIDTH - BAR_TROUGH_WIDTH) / 2
-        bar_x2 = bar_x1 + BAR_TROUGH_WIDTH
-        _round_rect(canvas, bar_x1, bar_y1, bar_x2, bar_y2, 5,
-                    fill=TRACK_COLOR, outline="")
-        self._bar_item = _round_rect(
-            canvas, bar_x1, bar_y1, bar_x1 + 60, bar_y2, 5,
-            fill=BAR_COLOR, outline="",
-        )
-
-    def _bind_close_button(self, canvas, root):
-        """右上角“×”关闭按钮：点击后隐藏提示窗口，不影响应用继续启动/退出。"""
-        cx = WIDTH - 28
-        cy = HEADER_HEIGHT / 2 + 2
-        radius = 13
-        canvas.create_oval(
-            cx - radius, cy - radius, cx + radius, cy + radius,
-            fill=CLOSE_BG, outline="", tags=("close-circle",),
-        )
-        canvas.create_text(
-            cx, cy, text="×", fill=BODY_TEXT_COLOR,
-            font=("Microsoft YaHei", 13, "bold"),
-            tags=("close-text",),
-        )
-
-        def _on_click(_event):
-            self._dismiss(root)
-
-        def _on_enter(_event):
-            canvas.itemconfigure("close-circle", fill="#FFFFFF")
-            canvas.itemconfigure("close-text", fill="#5DA8E8")
-
-        def _on_leave(_event):
-            canvas.itemconfigure("close-circle", fill=CLOSE_BG)
-            canvas.itemconfigure("close-text", fill=BODY_TEXT_COLOR)
-
-        for tag in ("close-circle", "close-text"):
-            canvas.tag_bind(tag, "<Button-1>", _on_click)
-            canvas.tag_bind(tag, "<Enter>", _on_enter)
-            canvas.tag_bind(tag, "<Leave>", _on_leave)
-
-    def _dismiss(self, root):
-        """用户手动隐藏提示窗口（应用继续运行）。"""
-        self._stop.set()
-        try:
-            root.destroy()
-        except Exception:
-            pass
+        canvas.create_rectangle(20, bar_y1, 20 + BAR_TROUGH_WIDTH, bar_y2,
+                                fill=TRACK_COLOR, outline="")
+        self._bar_item = _round_rect(canvas, 20, bar_y1, 20 + 60, bar_y2, 5,
+                                     fill=BAR_COLOR, outline="")
+        close_size = 20
+        c_x = WIDTH - close_size - 12
+        c_y = 12
+        close_tag = "close"
+        canvas.create_rectangle(c_x, c_y, c_x + close_size, c_y + close_size,
+                                fill=CLOSE_BG, outline="", tags=(close_tag,))
+        canvas.create_text(c_x + close_size // 2, c_y + close_size // 2,
+                           text="×", fill="#3B82F6", font=("Microsoft YaHei", 13, "bold"),
+                           tags=(close_tag,))
+        canvas.tag_bind(close_tag, "<Button-1>", lambda e: self.close())
 
     def _move_bar(self, canvas, frame):
         bar_y1 = HEIGHT - 42
@@ -206,19 +205,22 @@ class _HintWindow:
         max_x = bar_x1 + BAR_TROUGH_WIDTH - 60
         x = bar_x1 + (frame * BAR_STEP) % max(1, int(max_x - bar_x1))
         canvas.delete(self._bar_item)
-        self._bar_item = _round_rect(
-            canvas, x, bar_y1, x + 60, bar_y2, 5,
-            fill=BAR_COLOR, outline="",
-        )
+        self._bar_item = _round_rect(canvas, x, bar_y1, x + 60, bar_y2, 5,
+                                     fill=BAR_COLOR, outline="")
+
+    def _destroy(self):
+        top = getattr(self, "_top", None)
+        if top is not None:
+            try:
+                top.destroy()
+            except Exception:
+                pass
 
     def close(self):
-        """请求关闭提示窗口并等待线程退出。"""
-        try:
-            self._stop.set()
-            self._thread.join(timeout=2)
-        finally:
-            with _LIVE_HINTS_LOCK:
-                _LIVE_HINTS.discard(self)
+        self._stop.set()
+        self._tk_thread.after(0, self._destroy)
+        with _LIVE_HINTS_LOCK:
+            _LIVE_HINTS.discard(self)
 
 
 def show_hint(title=_DEFAULT_TITLE, message=_DEFAULT_MESSAGE):
