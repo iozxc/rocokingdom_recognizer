@@ -39,7 +39,7 @@ def is_dev_environment() -> bool:
     return not hasattr(sys, "_MEIPASS")
 
 
-APP_VERSION = _env("ROCO_APP_VERSION", "1.3.4")
+APP_VERSION = _env("ROCO_APP_VERSION", "1.4.0")
 # 默认内存截图（hwnd）；失败时由 tools.capture_window 自动降级为屏幕抓取（grab）
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "hwnd")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
@@ -165,6 +165,7 @@ DATASETS_PETS = get_resource_path(os.path.join('datasets', 'datasets.db'))
 DATA_JSON = get_external_path('roco_user_data.json')
 MANIFEST_JSON = get_resource_path('file_manifest.json')
 RENAMES_JSON = get_resource_path('pet_renames.json')
+OCR_CORRECTIONS_JSON = get_resource_path(os.path.join('datasets', 'ocr_corrections.json'))
 DATA_MANIFEST_JSON = get_resource_path(os.path.join("datasets", "data_manifest.json"))
 
 # 全局模型
