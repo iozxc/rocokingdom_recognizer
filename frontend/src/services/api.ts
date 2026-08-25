@@ -26,6 +26,7 @@ import {
   DataUpdateStatusData,
 } from '../types';
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
+import { formatPetName } from '../utils/petHelper';
 
 const DEFAULT_API_BASE = 'http://127.0.0.1:5000';
 
@@ -199,10 +200,23 @@ export class ApiService {
             return {
               name: item.name,
               id: item.id ?? fallbackItem?.id,
+              seq: item.seq ?? fallbackItem?.seq,
               url: fullUrl || fallbackItem?.url || '',
               element: fallbackItem?.element || 'grass',
               rarity: fallbackItem?.rarity || 'common',
             };
+          });
+
+          // 多形态排序兜底：按 (id 升序, seq 升序, name) 稳定排序，
+          // 保证同 id 的多个形态（普通在前、首领在后）顺序固定。
+          enrichedItems.sort((a, b) => {
+            const idA = a.id ?? Number.MAX_SAFE_INTEGER;
+            const idB = b.id ?? Number.MAX_SAFE_INTEGER;
+            if (idA !== idB) return idA - idB;
+            const seqA = a.seq ?? 0;
+            const seqB = b.seq ?? 0;
+            if (seqA !== seqB) return seqA - seqB;
+            return (a.name || '').localeCompare(b.name || '', 'zh');
           });
 
           normalized[mapKey] = {
@@ -271,8 +285,11 @@ export class ApiService {
             viewUrl = `${this.apiBase}/${viewUrl.replace(/^\//, '')}`;
           }
 
-          const matchedPet = fallbackList.find((p) => p.name === item.filename) || {
-            name: item.filename,
+          // 后端返回的 item.filename 带 id 与形态序号（如 064_04_蹦蹦草_象牙球.png），
+          // 这里用剥离序号后的展示名与图鉴列表匹配，避免因序号不同而匹配失败。
+          const displayName = formatPetName(item.filename);
+          const matchedPet = fallbackList.find((p) => p.name === displayName) || {
+            name: displayName,
             url: viewUrl,
             element: 'grass',
           };
@@ -1042,6 +1059,29 @@ export class ApiService {
         message: '等待后端连接恢复时！',
         isOfflineMock: true,
       };
+    }
+  }
+
+  /**
+   * 人工修正回流：把「识别到的名字 -> 用户修正后的正确名」上报，
+   * 写入 OCR 纠错表，后续同类误识会被自动纠正。
+   */
+  public async submitOcrCorrection(
+      wrong: string, right: string, kind: 'word' | 'char' = 'word'
+  ): Promise<{ success: boolean }> {
+    if (!wrong || !right || wrong === right) {
+      return { success: false };
+    }
+    try {
+      await axios.post(
+          `${this.apiBase}/api/ocr_correction`,
+          { wrong, right, kind },
+          { timeout: 4000 }
+      );
+      return { success: true };
+    } catch (err: unknown) {
+      console.warn('API submitOcrCorrection failed:', (err as AxiosError).message);
+      return { success: false };
     }
   }
 
