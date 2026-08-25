@@ -100,18 +100,23 @@ export const Header: React.FC<HeaderProps> = ({
                                 <div className="flex items-center gap-2">
                                     <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-1.5 drop-shadow-xs">
                                         <span>洛克王国</span>
-                                    <span className="text-[#FEE061] text-base sm:text-lg">徽章试炼助手</span>
-                                </h1>
+                                        <span className="text-[#FEE061] text-base sm:text-lg">徽章试炼助手</span>
+                                    </h1>
                                     {devBadge && (
                                         <span className="text-[10px] font-black text-orange-100 bg-orange-500/40 border border-white/30 px-2 py-0.5 rounded-full">
                                             DEV
                                         </span>
                                     )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-xs text-white/80 font-medium">
+                                        精灵图鉴识别 · 地图筛选 · 本地记录
+                                    </p>
+                                    <span className="text-[10px] font-mono text-white/40 tracking-wider select-none font-normal">
+                                        v{updateState.updateData?.current_version || '1.0.0'}
+                                    </span>
+                                </div>
                             </div>
-                            <p className="text-xs text-white/80 font-medium">
-                                精灵图鉴识别 · 地图筛选 · 本地记录
-                            </p>
-                        </div>
                         </div>
 
                         {/* Mobile Actions: Feedback, Update, Sound & Settings */}

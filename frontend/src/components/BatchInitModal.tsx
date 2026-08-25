@@ -21,6 +21,7 @@ import {
   ChevronUp,
   Trash2,
   Sparkle,
+  Maximize2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -71,8 +72,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
   const [filterTab, setFilterTab] = useState<'all' | 'unencountered' | 'alreadyEncountered' | 'checked' | 'unmatched'>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
 
-  // Original Image Comparison View State
-  const [isImageSectionExpanded, setIsImageSectionExpanded] = useState<boolean>(true);
+  // Original Image Lightbox Modal View State
   const [showOriginalImageLightbox, setShowOriginalImageLightbox] = useState<boolean>(false);
 
   // Editing single item modal/picker
@@ -81,6 +81,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
 
   // Reset or initialize on open
   useEffect(() => {
@@ -320,6 +321,13 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
       setReviewItems(processed);
       sound.playClick();
+
+      // Smoothly scroll down just past the upload/scan box to clearly reveal the control strip and pet cards
+      setTimeout(() => {
+        if (reviewSectionRef.current) {
+          reviewSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 120);
     } catch (err: unknown) {
       const error = err as Error;
       setScanError(error.message || '批量识别请求失败，请检查网络或后端接口');
@@ -608,114 +616,208 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                 </div>
               </div>
 
-              {/* Upload Box */}
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-12 gap-4">
-                <div
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    className={`md:col-span-8 border-3 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all flex items-center justify-between min-h-[110px] relative ${
-                        isDragOver
-                            ? 'border-[#95D151] bg-[#F4FDF0] scale-[1.01]'
-                            : previewUrl
-                                ? 'border-[#7ABCF4] bg-white'
-                                : 'border-[#BCD7F2] bg-white hover:bg-[#EBF4FE] hover:border-[#7ABCF4]'
-                    }`}
-                >
-                  <input
-                      type="file"
-                      ref={fileInputRef}
-                      accept="image/png,image/jpeg,image/jpg"
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          handleFileSelect(e.target.files[0]);
-                        }
-                      }}
-                  />
-
-                  {previewUrl ? (
-                      <div className="flex items-center gap-4 text-left w-full pr-12">
-                        <img
-                            src={previewUrl}
-                            alt="预览图片"
-                            className="w-18 h-18 rounded-xl object-contain bg-[#F5F9FF] border border-[#E6EEF8] p-1 shadow-inner shrink-0"
+              {/* Upload Box & Control Station */}
+              <div className="mt-4">
+                {!previewUrl ? (
+                    /* Pre-upload: Balanced 2-Column Landing State */
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+                      {/* Left: Upload Dropzone (7 Cols) */}
+                      <div
+                          onClick={() => fileInputRef.current?.click()}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                          className={`lg:col-span-7 border-2 border-dashed rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[160px] bg-white group ${
+                              isDragOver
+                                  ? 'border-[#95D151] bg-[#F4FDF0] scale-[1.01]'
+                                  : 'border-[#BCD7F2] hover:border-[#2B78C4] hover:bg-[#F5F9FF]'
+                          }`}
+                      >
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/png,image/jpeg,image/jpg"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                handleFileSelect(e.target.files[0]);
+                              }
+                            }}
                         />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-black text-slate-800 truncate">
-                            {selectedFile ? selectedFile.name : '已选择样本截图'}
+
+                        <div className="w-12 h-12 rounded-2xl bg-[#EBF4FE] text-[#2B78C4] group-hover:bg-[#2B78C4] group-hover:text-white transition-all flex items-center justify-center shadow-2xs mb-2.5">
+                          <UploadCloud className="w-6 h-6" />
+                        </div>
+
+                        <p className="text-xs sm:text-sm font-black text-slate-700 group-hover:text-[#1E5B99] transition-colors">
+                          点击选择图片 或 拖拽截图至此
+                        </p>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          也可在页面任意位置直接按 <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px] text-slate-600 font-bold">Ctrl + V</kbd> 粘贴
+                        </p>
+                      </div>
+
+                      {/* Right: Ready Status & Disabled Button (5 Cols) */}
+                      <div className="lg:col-span-5 bg-white rounded-2xl border border-[#E6EEF8] p-4 sm:p-5 flex flex-col justify-between shadow-2xs">
+                        <div>
+                          <div className="flex items-center justify-between pb-2.5 border-b border-[#F1F5F9]">
+                            <span className="text-xs font-black text-slate-700">识别状态</span>
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black">
+                              等待上传
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-3 leading-relaxed">
+                            请先上传或粘贴游戏全景截图，系统将自动分割识别图中的所有精灵。
                           </p>
-                          <p className="text-[11px] text-[#7ABCF4] font-bold mt-0.5">
-                            点击更换图片 · 也可直接 Ctrl+V 粘贴截图
-                          </p>
+                        </div>
+
+                        <div className="pt-3 border-t border-[#F1F5F9]">
+                          <button
+                              disabled
+                              className="w-full py-3 px-4 rounded-xl bg-slate-100 text-slate-400 font-black text-xs sm:text-sm cursor-not-allowed flex items-center justify-center gap-1.5"
+                          >
+                            <Sparkles className="w-4 h-4 text-slate-300" />
+                            <span>请先上传游戏截图</span>
+                          </button>
                         </div>
                       </div>
-                  ) : (
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#F5F9FF] text-[#7ABCF4] flex items-center justify-center border border-[#E6EEF8]">
-                          <UploadCloud className="w-5 h-5" />
+                    </div>
+                ) : (
+                    /* Post-upload: Balanced Split View (Left: Clear Preview Viewport, Right: Control Station) */
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                      {/* Left: Clear Screenshot Preview Viewport (7-8 Cols) */}
+                      <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl border-2 border-[#BCD7F2] p-3 sm:p-4 shadow-xs flex flex-col">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#E6EEF8]">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="px-2 py-0.5 rounded-md bg-[#2B78C4] text-white text-[10px] font-black shrink-0">
+                              已选截图
+                            </span>
+                            <span className="text-xs font-bold text-slate-700 truncate" title={selectedFile ? selectedFile.name : '游戏截图'}>
+                              {selectedFile ? selectedFile.name : '已选择样本截图'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => setShowOriginalImageLightbox(true)}
+                                className="px-2.5 py-1 rounded-lg bg-[#F0F7FF] hover:bg-[#E0EFFF] border border-[#BCD7F2] text-[#2B78C4] text-[11px] font-black flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                                title="点击放大查看原图"
+                            >
+                              <ZoomIn className="w-3.5 h-3.5 text-[#2B78C4]" />
+                              <span>放大原图</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="px-2 py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                                title="更换其他截图"
+                            >
+                              <span>更换</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleClearUpload}
+                                className="p-1 rounded-lg bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-400 hover:text-rose-600 shadow-2xs transition-colors cursor-pointer"
+                                title="移除图片"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="text-xs font-black text-slate-700">
-                            点击或拖拽上传全屏/图鉴大截图
-                          </p>
-                          <p className="text-[11px] text-slate-400">
-                            支持 PNG/JPG · 也可直接在当前页面 Ctrl+V 粘贴
-                          </p>
+
+                        {/* Image Viewport */}
+                        <div
+                            onClick={() => setShowOriginalImageLightbox(true)}
+                            className="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden bg-white border border-[#E6EEF8] flex items-center justify-center cursor-zoom-in group/img shadow-inner"
+                        >
+                          <img
+                              src={previewUrl}
+                              alt="游戏画面截图预览"
+                              className="w-full h-full object-contain p-1 transition-transform duration-200 group-hover/img:scale-[1.02]"
+                          />
+
+                          {/* Hover Overlay Hint */}
+                          <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-2xs opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/85 text-white text-xs font-black flex items-center gap-1.5 shadow-lg border border-white/20">
+                              <Maximize2 className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                              点击查看超高清大图
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 px-1 flex items-center justify-between text-[11px] text-slate-400">
+                          <span>💡 提示：点击图片可随时放大全屏比对</span>
+                          <span>支持粘贴 Ctrl+V 覆盖</span>
                         </div>
                       </div>
-                  )}
 
-                  {previewUrl && (
-                      <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleClearUpload();
-                          }}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
-                          title="移除图片"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                  )}
-                </div>
+                      {/* Right: Control Station with Well-Proportioned Start Button */}
+                      <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border-2 border-[#E6EEF8] p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                        <div>
+                          <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+                            <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                              <Sparkle className="w-3.5 h-3.5 text-[#2B78C4]" />
+                              识别参数与控制
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/50 text-[10px] font-black">
+                              画面已就绪
+                            </span>
+                          </div>
 
-                {/* Start Scan Button & Clear Action */}
-                <div className="md:col-span-4 flex flex-col gap-2 justify-center">
-                  <button
-                      id="start-batch-scan-btn"
-                      disabled={!previewUrl || isScanning}
-                      onClick={handleStartBatchScan}
-                      className="w-full py-3.5 px-4 roco-btn-primary flex items-center justify-center gap-2 text-sm font-black shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-h-[50px]"
-                  >
-                    {isScanning ? (
-                        <>
-                          <RefreshCw className="w-5 h-5 animate-spin" />
-                          <span>正在全景分割识别中...</span>
-                        </>
-                    ) : (
-                        <>
-                          <Sparkles className="w-5 h-5 text-[#FEE061]" />
-                          <span>开始智能批量识别</span>
-                        </>
-                    )}
-                  </button>
+                          <div className="mt-3 space-y-2.5">
+                            <div className="p-2.5 rounded-xl bg-[#F8FBFE] border border-[#E6EEF8] text-xs">
+                              <div className="flex items-center justify-between text-slate-600 mb-1">
+                                <span className="font-bold">识别目标地图:</span>
+                                <span className="font-black text-[#1E5B99]">{targetMap.num}、{targetMap.name.replace('记忆中的', '')}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-slate-600">
+                                <span className="font-bold">检测过滤阈值:</span>
+                                <span className="font-mono font-black text-[#2B78C4]">{threshold}</span>
+                              </div>
+                            </div>
 
-                  {/* Clear Button under scan */}
-                  {(previewUrl || hasResults) && (
-                      <button
-                          type="button"
-                          onClick={handleClearUpload}
-                          className="w-full py-1.5 px-3 rounded-xl border border-slate-200 hover:border-rose-300 bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-                          title="清空当前选择的截图与所有识别结果"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                        <span>清空截图与识别列表</span>
-                      </button>
-                  )}
-                </div>
+                            <div className="text-[11px] text-slate-500 leading-relaxed bg-[#FFFDF5] border border-[#FEE061]/50 rounded-xl p-2.5">
+                              ✨ 识别完成后，系统将自动定位精灵候选并标出未遇状态，您可以勾选需要点亮的精灵。
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Start Button: Well-proportioned, bold, attractive */}
+                        <div className="mt-4 pt-3 border-t border-[#F1F5F9] space-y-2">
+                          <button
+                              id="start-batch-scan-btn"
+                              disabled={!previewUrl || isScanning}
+                              onClick={handleStartBatchScan}
+                              className="w-full py-3.5 px-5 roco-btn-primary flex items-center justify-center gap-2 text-sm font-black shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed rounded-xl cursor-pointer transition-all active:scale-[0.98]"
+                          >
+                            {isScanning ? (
+                                <>
+                                  <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                                  <span>正在智能批量分割识别中...</span>
+                                </>
+                            ) : (
+                                <>
+                                  <Sparkles className="w-4 h-4 text-[#FEE061]" />
+                                  <span>开始智能批量识别</span>
+                                </>
+                            )}
+                          </button>
+
+                          <button
+                              type="button"
+                              onClick={handleClearUpload}
+                              className="w-full py-1.5 px-3 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3 text-rose-400" />
+                            <span>放弃当前截图</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                )}
               </div>
 
               {/* Error Message */}
@@ -727,195 +829,107 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
               )}
             </div>
 
-            {/* Original Image Comparison Collapsible Panel - Compact & Sticky at -top-5 */}
-            {previewUrl && (
-                <div className="sticky -top-5 z-30 border-2 border-[#BCD7F2] rounded-2xl overflow-hidden bg-white/98 backdrop-blur-md shadow-md">
+            {/* High-Resolution Lightbox Modal for Uploaded Screenshot */}
+            {showOriginalImageLightbox && previewUrl && (
+                <div
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => setShowOriginalImageLightbox(false)}
+                >
                   <div
-                      onClick={() => setIsImageSectionExpanded(!isImageSectionExpanded)}
-                      className="px-3.5 py-2 bg-[#F5F9FF]/95 border-b border-[#E6EEF8] flex items-center justify-between cursor-pointer hover:bg-[#EBF4FE] transition-colors"
+                      className="relative max-w-[94vw] max-h-[92vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-3 sm:p-4 flex flex-col"
+                      onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <img
-                          src={previewUrl}
-                          alt="缩略图"
-                          className="w-7 h-7 rounded-lg object-contain bg-white border border-slate-200 p-0.5 shrink-0"
-                      />
-                      <div className="flex items-center gap-1.5 truncate">
-                    <span className="text-xs font-black text-slate-800">
-                      原始截图快捷对照
-                    </span>
-                        <span className="text-[10px] text-slate-400 hidden sm:inline">
-                      (悬浮置顶对照)
-                    </span>
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="px-2 py-0.5 rounded-md bg-[#7ABCF4] text-white text-xs font-black">
+                          高清全景原图
+                        </span>
+                        <span className="text-xs font-bold text-slate-700 truncate">
+                          {selectedFile ? selectedFile.name : '游戏画面截图'}
+                        </span>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
                       <button
                           type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowOriginalImageLightbox(true);
-                          }}
-                          className="px-2 py-0.5 rounded-lg bg-white hover:bg-[#EBF4FE] border border-[#BCD7F2] text-[11px] font-black text-[#2B78C4] flex items-center gap-1 shadow-2xs cursor-pointer"
+                          onClick={() => setShowOriginalImageLightbox(false)}
+                          className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-black transition-colors cursor-pointer"
+                          title="关闭 (Esc)"
                       >
-                        <ZoomIn className="w-3 h-3" />
-                        <span>大图比对</span>
+                        <X className="w-5 h-5" />
                       </button>
+                    </div>
 
-                      <div className="flex items-center gap-1 text-xs text-[#2B78C4] font-bold">
-                        <span className="text-[11px]">{isImageSectionExpanded ? '收起' : '展开'}</span>
-                        {isImageSectionExpanded ? (
-                            <ChevronUp className="w-3.5 h-3.5" />
-                        ) : (
-                            <ChevronDown className="w-3.5 h-3.5" />
-                        )}
-                      </div>
+                    <div className="flex-1 overflow-auto flex items-center justify-center max-h-[82vh] rounded-2xl bg-slate-950/5 p-2">
+                      <img
+                          src={previewUrl}
+                          alt="高清原图"
+                          className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-md"
+                      />
                     </div>
                   </div>
-
-                  {isImageSectionExpanded && (
-                      <div className="p-2.5 flex items-center justify-center bg-slate-900/5">
-                        <div
-                            onClick={() => setShowOriginalImageLightbox(true)}
-                            className="relative max-h-36 max-w-full rounded-xl overflow-hidden cursor-zoom-in border border-slate-200 group bg-white"
-                        >
-                          <img
-                              src={previewUrl}
-                              alt="原始截图"
-                              className="max-h-36 object-contain"
-                          />
-                          <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/25 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-900/80 text-white text-[11px] font-black flex items-center gap-1 backdrop-blur-xs shadow-md">
-                        <ZoomIn className="w-3 h-3 text-[#7ABCF4]" />
-                        点击查看高清原图
-                      </span>
-                          </div>
-                        </div>
-                      </div>
-                  )}
                 </div>
             )}
 
             {/* Step 2: Review & Correction Workbench */}
             {reviewItems.length > 0 && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  {/* Stats Summary & Quick Selection Controls */}
-                  <div className="p-4 bg-[#FEF9E6] rounded-2xl border-2 border-[#FEE061] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 flex-wrap text-xs">
-                      <span className="font-black text-[#854D0E]">识别汇总:</span>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-white text-slate-800 font-black border border-[#E5C43B]">
-                    总检测: {totalDetected} 只
-                  </span>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-[#E1F7DB] text-[#2D6613] font-black border border-[#95D151] flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    未遇新精灵: {unencounteredNewCount} 只
-                  </span>
-                      {alreadyEncounteredCount > 0 && (
-                          <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-600 font-black border border-slate-300 flex items-center gap-1">
-                      <Check className="w-3 h-3 text-[#2D6613]" />
-                      此前已在图鉴: {alreadyEncounteredCount} 只
-                    </span>
-                      )}
-                      {unmatchedCount > 0 && (
-                          <span className="px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-800 font-black border border-rose-300">
-                      未匹配: {unmatchedCount} 只
-                    </span>
-                      )}
-                      <span className="px-2.5 py-0.5 rounded-lg bg-[#7ABCF4] text-white font-black">
-                    已勾选准备遇见: {checkedCount} 只
-                  </span>
-                    </div>
-
-                    {/* Batch toggles */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <button
-                          onClick={handleSelectOnlyUnencountered}
-                          className="px-2.5 py-1 rounded-lg bg-[#E1F7DB] hover:bg-[#D3F3CA] border border-[#95D151] text-[11px] font-black text-[#2D6613] flex items-center gap-1 shadow-2xs cursor-pointer"
-                          title="仅勾选之前未遇见的全新精灵，避免重复遇见"
-                      >
-                        <Sparkle className="w-3.5 h-3.5 text-[#2D6613]" />
-                        选【未遇见】
-                      </button>
-                      <button
-                          onClick={() => handleSelectAll(true)}
-                          className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 border border-[#D5E2F0] text-[11px] font-black text-slate-700 flex items-center gap-1 cursor-pointer"
-                      >
-                        <CheckSquare className="w-3.5 h-3.5 text-[#95D151]" />
-                        全选
-                      </button>
-                      <button
-                          onClick={() => handleSelectAll(false)}
-                          className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 border border-[#D5E2F0] text-[11px] font-black text-slate-700 flex items-center gap-1 cursor-pointer"
-                      >
-                        <Square className="w-3.5 h-3.5 text-slate-400" />
-                        全不选
-                      </button>
+                <div ref={reviewSectionRef} className="space-y-4 animate-in fade-in duration-300 scroll-mt-6">
+                  {/* Integrated Control & Filter Strip (Tabs + Search Bar + Batch Actions) */}
+                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/90 p-2 sm:p-2.5 rounded-2xl border border-slate-200 shadow-xs">
+                    {/* 1. Left: Filter Tabs */}
+                    <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200 overflow-x-auto shrink-0 custom-scrollbar shadow-2xs">
                       <button
                           type="button"
-                          disabled={checkedCount === 0}
-                          onClick={handleConfirmBatchEncounter}
-                          className="px-3 py-1 rounded-lg roco-btn-success text-[11px] font-black flex items-center gap-1 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                          title="确认遇见勾选的精灵"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>确认遇见{checkedCount > 0 ? ` (${checkedCount})` : ''}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Filter Tabs & Search */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="flex items-center gap-1.5 p-1 bg-[#F5F9FF] rounded-xl border border-[#E2E8F0] w-full sm:w-auto flex-wrap">
-                      <button
                           onClick={() => setFilterTab('all')}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
                               filterTab === 'all'
-                                  ? 'bg-white text-[#2B78C4] shadow-xs'
-                                  : 'text-slate-500 hover:text-slate-800'
+                                  ? 'bg-[#2B78C4] text-white shadow-xs'
+                                  : 'text-slate-600 hover:text-slate-900'
                           }`}
                       >
                         全部 ({reviewItems.length})
                       </button>
                       <button
+                          type="button"
                           onClick={() => setFilterTab('unencountered')}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all flex items-center gap-1 cursor-pointer ${
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1 whitespace-nowrap cursor-pointer ${
                               filterTab === 'unencountered'
                                   ? 'bg-[#95D151] text-white shadow-xs'
-                                  : 'text-[#2D6613] hover:text-slate-800'
+                                  : 'text-[#2D6613] hover:text-slate-900'
                           }`}
                       >
                         <span>✨ 未遇见 ({unencounteredNewCount})</span>
                       </button>
                       {alreadyEncounteredCount > 0 && (
                           <button
+                              type="button"
                               onClick={() => setFilterTab('alreadyEncountered')}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all flex items-center gap-1 cursor-pointer ${
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1 whitespace-nowrap cursor-pointer ${
                                   filterTab === 'alreadyEncountered'
                                       ? 'bg-slate-600 text-white shadow-xs'
-                                      : 'text-slate-500 hover:text-slate-800'
+                                      : 'text-slate-600 hover:text-slate-900'
                               }`}
                           >
                             <span>已在图鉴 ({alreadyEncounteredCount})</span>
                           </button>
                       )}
                       <button
+                          type="button"
                           onClick={() => setFilterTab('checked')}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
                               filterTab === 'checked'
                                   ? 'bg-[#7ABCF4] text-white shadow-xs'
-                                  : 'text-slate-500 hover:text-slate-800'
+                                  : 'text-slate-600 hover:text-slate-900'
                           }`}
                       >
                         已勾选 ({checkedCount})
                       </button>
                       {unmatchedCount > 0 && (
                           <button
+                              type="button"
                               onClick={() => setFilterTab('unmatched')}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                              className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
                                   filterTab === 'unmatched'
                                       ? 'bg-rose-500 text-white shadow-xs'
-                                      : 'text-rose-600 hover:text-rose-800'
+                                      : 'text-rose-600 hover:text-rose-900'
                               }`}
                           >
                             未匹配 ({unmatchedCount})
@@ -923,15 +937,64 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                       )}
                     </div>
 
-                    <div className="relative w-full sm:w-64">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    {/* 2. Middle: Large Search Input */}
+                    <div className="relative flex-1 min-w-[200px]">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                           type="text"
                           value={searchFilter}
                           onChange={(e) => setSearchFilter(e.target.value)}
-                          placeholder="按精灵名、图鉴id筛选..."
-                          className="w-full pl-8 pr-3 py-1 text-xs bg-[#F5F9FF] border border-[#E2E8F0] rounded-xl outline-hidden focus:border-[#7ABCF4] focus:bg-white text-slate-800 font-medium"
+                          placeholder="搜索精灵名称、编号..."
+                          className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl outline-hidden focus:border-[#2B78C4] focus:ring-2 focus:ring-[#2B78C4]/15 text-slate-800 font-medium transition-all shadow-2xs"
                       />
+                      {searchFilter && (
+                          <button
+                              type="button"
+                              onClick={() => setSearchFilter('')}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-lg text-xs font-bold cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                      )}
+                    </div>
+
+                    {/* 3. Right: Quick Selection & Confirm Encounter Actions */}
+                    <div className="flex items-center gap-1.5 flex-wrap shrink-0 justify-end">
+                      <button
+                          type="button"
+                          onClick={handleSelectOnlyUnencountered}
+                          className="px-3 py-1.5 rounded-xl bg-[#E1F7DB] hover:bg-[#D3F3CA] border border-[#95D151] text-xs font-black text-[#2D6613] flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                          title="仅勾选之前未遇见的全新精灵，避免重复遇见"
+                      >
+                        <Sparkle className="w-3.5 h-3.5 text-[#2D6613]" />
+                        <span>选【未遇见】</span>
+                      </button>
+                      <button
+                          type="button"
+                          onClick={() => handleSelectAll(true)}
+                          className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-black text-slate-700 flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
+                      >
+                        <CheckSquare className="w-3.5 h-3.5 text-[#95D151]" />
+                        <span>全选</span>
+                      </button>
+                      <button
+                          type="button"
+                          onClick={() => handleSelectAll(false)}
+                          className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-black text-slate-700 flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
+                      >
+                        <Square className="w-3.5 h-3.5 text-slate-400" />
+                        <span>全不选</span>
+                      </button>
+                      <button
+                          type="button"
+                          disabled={checkedCount === 0}
+                          onClick={handleConfirmBatchEncounter}
+                          className="px-4 py-1.5 rounded-xl roco-btn-success text-xs font-black flex items-center gap-1.5 shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-[0.98]"
+                          title="确认遇见勾选的精灵"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>确认遇见{checkedCount > 0 ? ` (${checkedCount})` : ''}</span>
+                      </button>
                     </div>
                   </div>
 
@@ -1081,7 +1144,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                     <span className="text-[9px] text-slate-400 font-normal">点击直接切换</span>
                                   </div>
 
-                                  <div className="space-y-1 max-h-40 overflow-y-auto pr-0.5 custom-scrollbar">
+                                  <div className="space-y-1 max-h-64 overflow-y-auto pr-0.5 custom-scrollbar">
                                     {item.candidates.map((cand, candIdx) => {
                                       const candPetName = cand.matchedPet?.name || cand.filename;
                                       const isSelectedCand = isMatched && (

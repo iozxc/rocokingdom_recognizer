@@ -507,9 +507,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
             <div className="p-3 bg-[#F5F9FF] rounded-2xl border border-[#D5E2F0] text-[11px] text-slate-600 space-y-1.5">
               <div className="flex items-center gap-1.5 font-black text-[#2B78C4]">
                 <Info className="w-3.5 h-3.5 text-[#7ABCF4]" />
-                <span>使用小技巧</span>
+                <span>使用小提示</span>
               </div>
               <ul className="space-y-1 text-slate-500 pl-1 list-disc list-inside">
+                <li><strong className="text-amber-700">首次启动/初次识别可能较慢</strong>（需加载模型与特征库），后续识别会极速响应</li>
                 <li>截图后无需保存，直接在页面按 <strong className="text-slate-700">Ctrl+V</strong> 即可粘贴</li>
                 <li>识别返回前 <strong className="text-slate-700">{topK} 个可能候选</strong>，点击右侧卡片可随时切换</li>
                 <li>如需一键录入多只精灵，可点击上方 <strong className="text-slate-700">【整页截图批量识别】</strong></li>
@@ -570,6 +571,9 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                       <p className="text-sm font-black text-slate-700">正在智能分析精灵特征...</p>
                       <p className="text-xs text-slate-400 mt-1">
                         正在比对【{currentMap.name}】并计算前 {topK} 个高置信度候选
+                      </p>
+                      <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200/70 px-3 py-1 rounded-full mt-3 font-medium">
+                        提示：首次启动或第一次识别可能较慢，加载完成后后续识别将秒级响应
                       </p>
                     </div>
                 ) : activeCandidate ? (

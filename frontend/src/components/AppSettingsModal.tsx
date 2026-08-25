@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, ChevronLeft, Volume2, VolumeX, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, RotateCcw, Camera, Image as ImageIcon, Settings2 } from 'lucide-react';
+import { X, ChevronLeft, Volume2, VolumeX, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, Camera, Image as ImageIcon, Settings2, ShieldCheck } from 'lucide-react';
 import { EffectLevel, FloatingButtonsMode, CaptureMode } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
-import { fireEncounterConfetti, fireUnencounterEffect } from '../services/effect';
+import { useUpdateStore } from '../services/useUpdateStore';
 import { SyncPopType } from './SyncPopNotification';
 
 interface AppSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onTestEffect: (level: EffectLevel, type?: SyncPopType) => void;
+  onTestEffect?: (level: EffectLevel, type?: SyncPopType) => void;
   onOpenDataBackup?: () => void;
   onOpenDataUpdate?: () => void;
 }
@@ -17,10 +17,10 @@ interface AppSettingsModalProps {
 export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                                                                     isOpen,
                                                                     onClose,
-                                                                    onTestEffect,
                                                                     onOpenDataBackup,
                                                                     onOpenDataUpdate,
                                                                   }) => {
+  const updateState = useUpdateStore();
   const [effectLevel, setEffectLevel] = useState<EffectLevel>(() => {
     return storage.getSetting<EffectLevel>('effectLevel', 0);
   });
@@ -101,21 +101,10 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  const triggerEffectPreview = (level: EffectLevel, type: SyncPopType = 'encounter') => {
-    if (type === 'encounter') {
-      sound.playEncounter();
-      fireEncounterConfetti(level);
-    } else {
-      sound.playToggleOff();
-      fireUnencounterEffect(level);
-    }
-    onTestEffect(level, type);
-  };
-
   const handleSelectEffect = (level: EffectLevel) => {
+    sound.playClick();
     setEffectLevel(level);
     storage.setSetting('effectLevel', level);
-    triggerEffectPreview(level, 'encounter');
   };
 
 
@@ -284,6 +273,16 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                           : '始终下载完整安装包，覆盖旧版本所有文件'}
                     </div>
                   </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-slate-800">当前版本</div>
+                      <div className="text-[10px] text-slate-400">本地已安装的助手版本号</div>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80">
+                      v{updateState.updateData?.current_version || '1.0.0'}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-5">
@@ -310,8 +309,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
             {/* 主菜单 */}
             <div className={`col-start-1 row-start-1 p-5 space-y-5 text-xs text-slate-600 transition-transform duration-300 ease-out ${view === 'main' ? 'translate-x-0' : '-translate-x-full'}`}>
+
             {/* Section 1: 视觉与特效 */}
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider text-[11px]">
                   <Sparkles className="w-3.5 h-3.5 text-sky-500" />
@@ -370,54 +370,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   丰富
                 </button>
               </div>
-
-              {/* In-Dialog Live Preview & Explanation Box (iOS Clean Style) */}
-              <div
-                  className={`rounded-xl border p-3 flex flex-col gap-2.5 transition-colors ${
-                      effectLevel === 0
-                          ? 'border-slate-200/80 bg-slate-50/50'
-                          : effectLevel === 3
-                              ? 'border-purple-200/60 bg-purple-50/20'
-                              : effectLevel === 2
-                                  ? 'border-sky-200/60 bg-sky-50/20'
-                                  : 'border-slate-200 bg-slate-50/60'
-                  }`}
-              >
-                <div className="flex flex-col">
-                <span className="text-[11px] font-medium text-slate-700">
-                  {effectLevel === 0 && '已停用粒子动效，仅保留顶部轻量状态胶囊（默认）'}
-                  {effectLevel === 1 && '轻微微粒微漾，简约低调'}
-                  {effectLevel === 2 && '双侧对称纸花与微粒消散，适度动效反馈'}
-                  {effectLevel === 3 && '多层次纸花绽放与微粒消散，完整动效反馈'}
-                </span>
-                  <span className="text-[10px] text-slate-400 mt-0.5">
-                  未遇见 → 遇见：彩屑轻扬 · 遇见 → 未遇见：静谧微粒消散
-                </span>
-                </div>
-
-                <div className="flex items-center gap-2 pt-1 border-t border-slate-200/40">
-                  <button
-                      type="button"
-                      id="test-encounter-effect-btn"
-                      onClick={() => triggerEffectPreview(effectLevel, 'encounter')}
-                      className="flex-1 py-1.5 px-2 bg-white hover:bg-emerald-50 active:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <Sparkles className="w-3 h-3 text-emerald-600" />
-                    <span>测试遇见动效</span>
-                  </button>
-
-                  <button
-                      type="button"
-                      id="test-unencounter-effect-btn"
-                      onClick={() => triggerEffectPreview(effectLevel, 'unencounter')}
-                      className="flex-1 py-1.5 px-2 bg-white hover:bg-slate-100 active:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <RotateCcw className="w-3 h-3 text-slate-500" />
-                    <span>测试未遇见动效</span>
-                  </button>
-                </div>
-              </div>
-
             </div>
 
             {/* Section 2: 界面布局 */}
@@ -509,7 +461,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </div>
             </div>
 
-            {/* Section 4: 声音 */}
+            {/* Section 3: 声音 */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
@@ -537,7 +489,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </button>
             </div>
 
-            {/* Section 5: 数据与同步 */}
+            {/* Section 4: 数据与同步 */}
             {onOpenDataBackup && (
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -566,35 +518,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 </div>
             )}
 
-            {/* 图鉴数据更新 */}
-            {onOpenDataUpdate && (
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
-                      <ArrowUpCircle className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-slate-800">图鉴数据更新</div>
-                      <div className="text-[10px] text-slate-400">检测并下载最新图鉴数据库与地图数据</div>
-                    </div>
-                  </div>
-                  <button
-                      type="button"
-                      id="open-data-update-btn"
-                      onClick={() => {
-                        sound.playClick();
-                        onClose();
-                        onOpenDataUpdate();
-                      }}
-                      className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
-                  >
-                    <span>更新</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-            )}
-
-            {/* Section 6: 识别截图示例 */}
+            {/* Section 5: 识别截图示例 */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
@@ -622,6 +546,34 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 />
               </button>
             </div>
+
+            {/* Section 6: 图鉴数据更新 */}
+            {onOpenDataUpdate && (
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                      <ArrowUpCircle className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-slate-800">图鉴数据更新</div>
+                      <div className="text-[10px] text-slate-400">检测并下载最新图鉴数据库与地图数据</div>
+                    </div>
+                  </div>
+                  <button
+                      type="button"
+                      id="open-data-update-btn"
+                      onClick={() => {
+                        sound.playClick();
+                        onClose();
+                        onOpenDataUpdate();
+                      }}
+                      className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+                  >
+                    <span>更新</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+            )}
 
             {/* Section 7: 系统设置入口（二级设置，点进去是独立子页） */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
@@ -655,7 +607,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   <ArrowUpCircle className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-800">更新设置</div>
+                  <div className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                    <span>更新设置</span>
+                    <span className="text-[10px] text-slate-400 font-mono font-normal">
+                      (当前 v{updateState.updateData?.current_version || '1.0.0'})
+                    </span>
+                  </div>
                   <div className="text-[10px] text-slate-400">启动自检、提示红点与更新方式</div>
                 </div>
               </div>
@@ -671,6 +628,19 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 <span>设置</span>
                 <ArrowRight className="w-3 h-3" />
               </button>
+            </div>
+
+            {/* 免责声明 / 开发者说明 */}
+            <div className="pt-3 border-t border-slate-100">
+              <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/60 text-[11px] text-slate-500 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-slate-700">
+                  <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+                  <span>免责与开发者声明</span>
+                </div>
+                <p className="leading-relaxed text-slate-500 text-[10px]">
+                  本工具为<strong>个人玩家独立开发</strong>的辅助工具，<strong>纯属个人爱好与学习交流，绝无任何商业盈利行为</strong>。应用内所有游戏相关素材、版权及名称归腾讯公司《洛克王国》所有。
+                </p>
+              </div>
             </div>
             </div>
           </div>

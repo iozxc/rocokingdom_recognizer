@@ -8,7 +8,7 @@ from core.logger import logger
 
 # 主窗口的默认配置尺寸；低分辨率屏幕下会自动降级为全屏
 _MAIN_WINDOW_WIDTH = 1500
-_MAIN_WINDOW_HEIGHT = 1000
+_MAIN_WINDOW_HEIGHT = 1080
 _MAIN_WINDOW_MIN_WIDTH = 1430
 _MAIN_WINDOW_MIN_HEIGHT = 700
 

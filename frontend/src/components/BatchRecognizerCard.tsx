@@ -20,6 +20,9 @@ import {
   Sparkle,
   Info,
   X,
+  Eye,
+  Maximize2,
+  Image as ImageIcon,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -63,6 +66,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [scanError, setScanError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
+  // Lightbox modal for original image high-res preview
+  const [showOriginalImageLightbox, setShowOriginalImageLightbox] = useState<boolean>(false);
+
   // Review items state
   const [reviewItems, setReviewItems] = useState<BatchInitReviewItem[]>([]);
   const [totalDetected, setTotalDetected] = useState<number>(0);
@@ -77,6 +83,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [pickerSearch, setPickerSearch] = useState<string>('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
 
   // Sync when currentMap changes from outside
   useEffect(() => {
@@ -131,6 +138,19 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         })
     );
   }, [selectedMapNum]);
+
+  // Keyboard Escape listener for Lightbox
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowOriginalImageLightbox(false);
+      }
+    };
+    if (showOriginalImageLightbox) {
+      window.addEventListener('keydown', onKey);
+    }
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showOriginalImageLightbox]);
 
   // Clipboard paste listener
   useEffect(() => {
@@ -307,6 +327,16 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
       setReviewItems(processed);
       sound.playClick();
+
+      // Smoothly scroll down just past the upload/scan box to clearly reveal the control strip and pet cards
+      setTimeout(() => {
+        if (reviewSectionRef.current) {
+          const rect = reviewSectionRef.current.getBoundingClientRect();
+          // Leave comfortable 75px headroom so the entire control toolbar is fully visible
+          const targetY = window.pageYOffset + rect.top - 75;
+          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+        }
+      }, 120);
     } catch (err: unknown) {
       const error = err as Error;
       setScanError(error.message || '批量识别请求失败，请检查网络或后端接口');
@@ -468,7 +498,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   };
 
   return (
-      <div className="bg-white roco-card p-5 sm:p-6 mb-5">
+      <div className="bg-white roco-card p-5 sm:p-6 mb-5 shadow-xs">
         {/* Header & Help Button */}
         <div className="flex items-center justify-between gap-3 pb-4 border-b-2 border-[#F1F5F9] flex-wrap">
           <div className="flex items-center gap-2.5">
@@ -481,9 +511,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   游戏画面识别
                 </h3>
                 <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2] font-black flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-[#2B78C4]" />
-                自选未遇精灵
-              </span>
+                  <Sparkles className="w-3 h-3 text-[#2B78C4]" />
+                  自选未遇精灵
+                </span>
               </div>
               <p className="text-xs text-slate-500">
                 上传含精灵图标或名字的画面，AI 识别预测并提供候选，您可以从中挑选未遇见的精灵点亮图鉴
@@ -526,8 +556,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         </div>
 
         {/* Target Map Selector & Threshold Bar */}
-        <div className="mt-4 p-4 bg-[#F5F9FF] rounded-2xl border-2 border-[#E6EEF8]">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div className="mt-4 p-4 sm:p-5 bg-[#F5F9FF] rounded-2xl border-2 border-[#E6EEF8]">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pb-3.5 border-b border-[#E2EAF4]">
             {/* Target Map Selector */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-black text-slate-700 whitespace-nowrap">目标地图:</span>
@@ -553,8 +583,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                     >
                       <span>{map.num}、{map.name.replace('记忆中的', '')}</span>
                       <span className={`text-[10px] font-mono ${isSelected ? 'text-white/90' : 'text-slate-400'}`}>
-                    ({encCount}/{totalPets})
-                  </span>
+                        ({encCount}/{totalPets})
+                      </span>
                     </button>
                 );
               })}
@@ -577,100 +607,213 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
             </div>
           </div>
 
-          {/* Upload Dropzone & Trigger */}
-          <div className="mt-3.5 grid grid-cols-1 md:grid-cols-12 gap-3.5">
-            <div
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`md:col-span-8 border-3 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all flex items-center justify-between min-h-[105px] relative ${
-                    isDragOver
-                        ? 'border-[#95D151] bg-[#F4FDF0] scale-[1.01]'
-                        : previewUrl
-                            ? 'border-[#7ABCF4] bg-white'
-                            : 'border-[#BCD7F2] bg-white hover:bg-[#EBF4FE] hover:border-[#7ABCF4]'
-                }`}
-            >
-              <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/png,image/jpeg,image/jpg"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleFileSelect(e.target.files[0]);
-                    }
-                  }}
-              />
+          {/* Upload Dropzone & Balanced Control Panel */}
+          <div className="mt-4">
+            <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/png,image/jpeg,image/jpg"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleFileSelect(e.target.files[0]);
+                  }
+                }}
+            />
 
-              {previewUrl ? (
-                  <div className="flex items-center gap-4 text-left w-full pr-10">
-                    <img
-                        src={previewUrl}
-                        alt="预览图片"
-                        className="w-16 h-16 rounded-xl object-contain bg-[#F5F9FF] border border-[#E6EEF8] p-1 shadow-inner shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-black text-slate-800 truncate">
-                        {selectedFile ? selectedFile.name : '已选择样本截图'}
-                      </p>
-                      <p className="text-[11px] text-[#7ABCF4] font-bold mt-0.5">
-                        点击更换图片 · 也可直接 Ctrl+V 粘贴截图
-                      </p>
-                    </div>
-                  </div>
-              ) : (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#F5F9FF] text-[#7ABCF4] flex items-center justify-center border border-[#E6EEF8]">
-                      <UploadCloud className="w-5 h-5" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-xs font-black text-slate-700">
-                        点击或拖拽上传游戏画面截图（含精灵图标或名字）
-                      </p>
-                      <p className="text-[11px] text-slate-400">
-                        支持 PNG / JPG · 支持截图后直接 Ctrl+V 快速粘贴
-                      </p>
-                    </div>
-                  </div>
-              )}
-
-              {previewUrl && (
-                  <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClearUpload();
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
-                      title="移除图片"
+            {/* If NO preview image is selected */}
+            {!previewUrl ? (
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+                  <div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`md:col-span-8 border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col sm:flex-row items-center justify-center gap-4 min-h-[140px] bg-white ${
+                          isDragOver
+                              ? 'border-[#95D151] bg-[#F4FDF0] scale-[1.01]'
+                              : 'border-[#BCD7F2] hover:bg-[#EBF4FE] hover:border-[#7ABCF4]'
+                      }`}
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-              )}
-            </div>
+                    <div className="w-12 h-12 rounded-2xl bg-[#EBF4FE] text-[#2B78C4] flex items-center justify-center border border-[#BCD7F2] shrink-0 shadow-2xs">
+                      <UploadCloud className="w-6 h-6" />
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <p className="text-sm font-black text-slate-800">
+                        点击或拖拽上传游戏画面截图
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        支持 PNG / JPG · 支持截图后直接 <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded-md font-mono text-[10px] text-slate-700">Ctrl + V</kbd> 快捷粘贴
+                      </p>
+                      <p className="text-[11px] text-[#7ABCF4] font-bold mt-1">
+                        截取包含精灵图标/名称的界面，AI 自动分割多精灵并预测候选
+                      </p>
+                    </div>
+                  </div>
 
-            <div className="md:col-span-4 flex flex-col gap-2 justify-center">
-              <button
-                  id="batch-card-scan-btn"
-                  disabled={!previewUrl || isScanning}
-                  onClick={handleStartBatchScan}
-                  className="w-full py-3 px-4 roco-btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm font-black shadow-md disabled:opacity-40 disabled:cursor-not-allowed min-h-[48px] cursor-pointer"
-              >
-                {isScanning ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>正在智能批量分割识别中...</span>
-                    </>
-                ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 text-[#FEE061]" />
+                  <div className="md:col-span-4 bg-white/70 border border-[#E2E8F0] rounded-2xl p-4 flex flex-col justify-between items-center text-center">
+                    <div className="w-full flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
+                      <span className="font-bold">识别准备状态</span>
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black">
+                        待上传画面
+                      </span>
+                    </div>
+
+                    <div className="py-2 text-xs text-slate-400">
+                      上传游戏画面后即可开启智能批量识别
+                    </div>
+
+                    <button
+                        id="batch-card-scan-btn"
+                        disabled={true}
+                        className="w-full py-3 px-4 roco-btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm font-black shadow-xs opacity-40 cursor-not-allowed rounded-xl"
+                    >
+                      <Sparkles className="w-4 h-4 text-white/70" />
                       <span>开始批量识别</span>
-                    </>
-                )}
-              </button>
-            </div>
+                    </button>
+                  </div>
+                </div>
+            ) : (
+                /* When Image is Selected: Large High-Clarity Viewport + Compact Control Station */
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                  {/* Left: High-Clarity Image Viewport (Supports Click-to-Zoom / Full Preview) */}
+                  <div className="lg:col-span-7 xl:col-span-8 bg-slate-900/5 rounded-2xl border-2 border-[#BCD7F2] p-2.5 flex flex-col justify-between relative group overflow-hidden bg-[#FBFDFF]">
+                    {/* Viewport Action Badges */}
+                    <div className="flex items-center justify-between gap-2 mb-2 px-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="px-2 py-0.5 rounded-md bg-[#7ABCF4] text-white text-[10px] font-black flex items-center gap-1 shrink-0">
+                          <ImageIcon className="w-3 h-3" />
+                          画面截图
+                        </span>
+                        <span className="text-xs font-black text-slate-700 truncate" title={selectedFile ? selectedFile.name : '已选择样本截图'}>
+                          {selectedFile ? selectedFile.name : '已选择画面样本'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setShowOriginalImageLightbox(true)}
+                            className="px-2 py-1 rounded-lg bg-white hover:bg-[#EBF4FE] border border-[#BCD7F2] text-[#1E5B99] text-[11px] font-black flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                            title="点击查看超高清原图"
+                        >
+                          <ZoomIn className="w-3.5 h-3.5 text-[#2B78C4]" />
+                          <span>放大原图</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-2 py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                            title="更换其他截图"
+                        >
+                          <span>更换</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleClearUpload}
+                            className="p-1 rounded-lg bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-400 hover:text-rose-600 shadow-2xs transition-colors cursor-pointer"
+                            title="移除图片"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Image Viewport: Height increased, object-contain, hover to zoom hint */}
+                    <div
+                        onClick={() => setShowOriginalImageLightbox(true)}
+                        className="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden bg-white border border-[#E6EEF8] flex items-center justify-center cursor-zoom-in group/img shadow-inner"
+                    >
+                      <img
+                          src={previewUrl}
+                          alt="游戏画面截图预览"
+                          className="w-full h-full object-contain p-1 transition-transform duration-200 group-hover/img:scale-[1.02]"
+                      />
+
+                      {/* Hover Overlay Hint */}
+                      <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-2xs opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/85 text-white text-xs font-black flex items-center gap-1.5 shadow-lg border border-white/20">
+                          <Maximize2 className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                          点击查看超高清大图
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 px-1 flex items-center justify-between text-[11px] text-slate-400">
+                      <span>💡 提示：点击图片可随时放大全屏比对</span>
+                      <span>支持粘贴 Ctrl+V 覆盖</span>
+                    </div>
+                  </div>
+
+                  {/* Right: Control Station with Well-Proportioned Start Button */}
+                  <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border-2 border-[#E6EEF8] p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                    <div>
+                      <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+                        <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                          <Sparkle className="w-3.5 h-3.5 text-[#2B78C4]" />
+                          识别参数与控制
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/50 text-[10px] font-black">
+                          画面已就绪
+                        </span>
+                      </div>
+
+                      <div className="mt-3 space-y-2.5">
+                        <div className="p-2.5 rounded-xl bg-[#F8FBFE] border border-[#E6EEF8] text-xs">
+                          <div className="flex items-center justify-between text-slate-600 mb-1">
+                            <span className="font-bold">识别目标地图:</span>
+                            <span className="font-black text-[#1E5B99]">{targetMap.num}、{targetMap.name.replace('记忆中的', '')}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span className="font-bold">检测过滤阈值:</span>
+                            <span className="font-mono font-black text-[#2B78C4]">{threshold}</span>
+                          </div>
+                        </div>
+
+                        <div className="text-[11px] text-slate-500 leading-relaxed bg-[#FFFDF5] border border-[#FEE061]/50 rounded-xl p-2.5 space-y-1">
+                          <div>✨ 识别完成后，系统将自动定位精灵候选并标出未遇状态，您可以勾选需要点亮的精灵。</div>
+                          <div className="text-[10px] text-amber-700 font-medium pt-1 border-t border-amber-200/50">
+                            💡 提示：首次识别时加载特征库可能较慢，请耐心等待片刻，后续识别将显著提速。
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Start Button: Well-proportioned, bold, attractive */}
+                    <div className="mt-4 pt-3 border-t border-[#F1F5F9] space-y-2">
+                      <button
+                          id="batch-card-scan-btn"
+                          disabled={!previewUrl || isScanning}
+                          onClick={handleStartBatchScan}
+                          className="w-full py-3.5 px-5 roco-btn-primary flex items-center justify-center gap-2 text-sm font-black shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed rounded-xl cursor-pointer transition-all active:scale-[0.98]"
+                      >
+                        {isScanning ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                              <span>正在智能批量分割识别中...</span>
+                            </>
+                        ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 text-[#FEE061]" />
+                              <span>开始批量识别</span>
+                            </>
+                        )}
+                      </button>
+
+                      <button
+                          type="button"
+                          onClick={handleClearUpload}
+                          className="w-full py-1.5 px-3 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3 text-rose-400" />
+                        <span>放弃当前截图</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+            )}
           </div>
 
           {scanError && (
@@ -681,93 +824,58 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           )}
         </div>
 
+        {/* High-Resolution Lightbox Modal for Uploaded Screenshot */}
+        {showOriginalImageLightbox && previewUrl && (
+            <div
+                className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
+                onClick={() => setShowOriginalImageLightbox(false)}
+            >
+              <div
+                  className="relative max-w-[94vw] max-h-[92vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-3 sm:p-4 flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="px-2 py-0.5 rounded-md bg-[#7ABCF4] text-white text-xs font-black">
+                      高清全景原图
+                    </span>
+                    <span className="text-xs font-bold text-slate-700 truncate">
+                      {selectedFile ? selectedFile.name : '游戏画面截图'}
+                    </span>
+                  </div>
+                  <button
+                      type="button"
+                      onClick={() => setShowOriginalImageLightbox(false)}
+                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-black transition-colors cursor-pointer"
+                      title="关闭 (Esc)"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-auto flex items-center justify-center max-h-[82vh] rounded-2xl bg-slate-950/5 p-2">
+                  <img
+                      src={previewUrl}
+                      alt="高清原图"
+                      className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-md"
+                  />
+                </div>
+              </div>
+            </div>
+        )}
+
         {/* Review Workbench (Filtered, Actions & STRICTLY 3 COLUMNS) */}
         {reviewItems.length > 0 && (
-            <div className="mt-5 space-y-4 animate-in fade-in duration-300">
-              {/* Summary Strip & User Guidance */}
-              <div className="p-3.5 bg-[#FEF9E6] rounded-2xl border-2 border-[#FEE061] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 flex-wrap text-xs">
-                  <span className="font-black text-[#854D0E]">识别汇总:</span>
-                  <span className="px-2.5 py-0.5 rounded-lg bg-white text-slate-800 font-black border border-[#E5C43B]">
-                检测总数: {totalDetected} 只
-              </span>
-                  <span className="px-2.5 py-0.5 rounded-lg bg-[#E1F7DB] text-[#2D6613] font-black border border-[#95D151] flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                未遇新精灵: {unencounteredNewCount} 只
-              </span>
-                  {alreadyEncounteredCount > 0 && (
-                      <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-600 font-black border border-slate-300 flex items-center gap-1">
-                  <Check className="w-3 h-3 text-[#2D6613]" />
-                  已在图鉴: {alreadyEncounteredCount} 只
-                </span>
-                  )}
-                  {unmatchedCount > 0 && (
-                      <span className="px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-800 font-black border border-rose-300">
-                  未匹配: {unmatchedCount} 只
-                </span>
-                  )}
-                  <span className="px-2.5 py-0.5 rounded-lg bg-[#7ABCF4] text-white font-black">
-                已勾选准备遇见: {checkedCount} 只
-              </span>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                      type="button"
-                      onClick={handleSelectOnlyUnencountered}
-                      className="px-2.5 py-1 rounded-lg bg-[#E1F7DB] hover:bg-[#D3F3CA] border border-[#95D151] text-[11px] font-black text-[#2D6613] flex items-center gap-1 cursor-pointer"
-                      title="一键仅勾选未遇见的精灵"
-                  >
-                    <Sparkle className="w-3 h-3" />
-                    选【未遇见】
-                  </button>
-                  <button
-                      type="button"
-                      onClick={() => handleSelectAll(true)}
-                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 border border-[#D5E2F0] text-[11px] font-black text-slate-700 flex items-center gap-1 cursor-pointer"
-                  >
-                    <CheckSquare className="w-3 h-3 text-[#95D151]" />
-                    全选
-                  </button>
-                  <button
-                      type="button"
-                      onClick={() => handleSelectAll(false)}
-                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 border border-[#D5E2F0] text-[11px] font-black text-slate-700 flex items-center gap-1 cursor-pointer"
-                  >
-                    <Square className="w-3 h-3 text-slate-400" />
-                    全不选
-                  </button>
-                  <button
-                      type="button"
-                      disabled={checkedCount === 0}
-                      onClick={handleConfirmBatchEncounter}
-                      className="px-3 py-1 rounded-lg roco-btn-success text-[11px] font-black flex items-center gap-1 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                      title="确认遇见已勾选的精灵"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>确认遇见{checkedCount > 0 ? ` (${checkedCount})` : ''}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Prompt banner for choosing pets */}
-              <div className="px-4 py-2 bg-[#F5F9FF] border border-[#BCD7F2] rounded-xl flex items-center justify-between text-xs text-[#2B78C4] font-medium">
-            <span className="flex items-center gap-1.5 font-bold">
-              💡 提示：默认未勾选。点击下方任意精灵卡片空白处或候选即可选中，从中挑选您需要遇见的精灵！
-            </span>
-                <span className="text-[11px] text-slate-400 hidden sm:inline">
-              (点击卡片空白处可切换勾选)
-            </span>
-              </div>
-
-              {/* Filter tabs & search */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-1.5 p-1 bg-[#F5F9FF] rounded-xl border border-[#E2E8F0] w-full sm:w-auto flex-wrap">
+            <div ref={reviewSectionRef} className="mt-5 space-y-4 animate-in fade-in duration-300 scroll-mt-20">
+              {/* Integrated Control & Filter Strip (Tabs + Search Bar + Batch Actions) */}
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/90 p-2 sm:p-2.5 rounded-2xl border border-slate-200 shadow-xs">
+                {/* 1. Left: Filter Tabs */}
+                <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200 overflow-x-auto shrink-0 custom-scrollbar shadow-2xs">
                   <button
                       type="button"
                       onClick={() => setFilterTab('all')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                          filterTab === 'all' ? 'bg-white text-[#2B78C4] shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
+                          filterTab === 'all' ? 'bg-[#2B78C4] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                       }`}
                   >
                     全部 ({reviewItems.length})
@@ -775,8 +883,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   <button
                       type="button"
                       onClick={() => setFilterTab('unencountered')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                          filterTab === 'unencountered' ? 'bg-[#95D151] text-white shadow-xs' : 'text-[#2D6613] hover:text-slate-800'
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
+                          filterTab === 'unencountered' ? 'bg-[#95D151] text-white shadow-xs' : 'text-[#2D6613] hover:text-slate-900'
                       }`}
                   >
                     ✨ 未遇见 ({unencounteredNewCount})
@@ -785,8 +893,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       <button
                           type="button"
                           onClick={() => setFilterTab('alreadyEncountered')}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                              filterTab === 'alreadyEncountered' ? 'bg-slate-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
+                              filterTab === 'alreadyEncountered' ? 'bg-slate-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                           }`}
                       >
                         已在图鉴 ({alreadyEncounteredCount})
@@ -795,8 +903,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   <button
                       type="button"
                       onClick={() => setFilterTab('checked')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                          filterTab === 'checked' ? 'bg-[#7ABCF4] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
+                          filterTab === 'checked' ? 'bg-[#7ABCF4] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                       }`}
                   >
                     已勾选 ({checkedCount})
@@ -805,8 +913,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       <button
                           type="button"
                           onClick={() => setFilterTab('unmatched')}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                              filterTab === 'unmatched' ? 'bg-rose-500 text-white shadow-xs' : 'text-rose-600 hover:text-rose-800'
+                          className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
+                              filterTab === 'unmatched' ? 'bg-rose-500 text-white shadow-xs' : 'text-rose-600 hover:text-rose-900'
                           }`}
                       >
                         未匹配 ({unmatchedCount})
@@ -814,15 +922,64 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   )}
                 </div>
 
-                <div className="relative w-full sm:w-64">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                {/* 2. Middle: Large Search Input */}
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                       type="text"
                       value={searchFilter}
                       onChange={(e) => setSearchFilter(e.target.value)}
-                          placeholder="按精灵名、图鉴id筛选..."
-                      className="w-full pl-8 pr-3 py-1 text-xs bg-[#F5F9FF] border border-[#E2E8F0] rounded-xl outline-hidden focus:border-[#7ABCF4] focus:bg-white text-slate-800 font-medium"
+                      placeholder="搜索精灵名称、编号..."
+                      className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl outline-hidden focus:border-[#2B78C4] focus:ring-2 focus:ring-[#2B78C4]/15 text-slate-800 font-medium transition-all shadow-2xs"
                   />
+                  {searchFilter && (
+                      <button
+                          type="button"
+                          onClick={() => setSearchFilter('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-lg text-xs font-bold cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                  )}
+                </div>
+
+                {/* 3. Right: Quick Selection & Confirm Encounter Actions */}
+                <div className="flex items-center gap-1.5 flex-wrap shrink-0 justify-end">
+                  <button
+                      type="button"
+                      onClick={handleSelectOnlyUnencountered}
+                      className="px-3 py-1.5 rounded-xl bg-[#E1F7DB] hover:bg-[#D3F3CA] border border-[#95D151] text-xs font-black text-[#2D6613] flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
+                      title="一键仅勾选未遇见的精灵"
+                  >
+                    <Sparkle className="w-3.5 h-3.5 text-[#2D6613]" />
+                    <span>选【未遇见】</span>
+                  </button>
+                  <button
+                      type="button"
+                      onClick={() => handleSelectAll(true)}
+                      className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-black text-slate-700 flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
+                  >
+                    <CheckSquare className="w-3.5 h-3.5 text-[#95D151]" />
+                    <span>全选</span>
+                  </button>
+                  <button
+                      type="button"
+                      onClick={() => handleSelectAll(false)}
+                      className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-black text-slate-700 flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
+                  >
+                    <Square className="w-3.5 h-3.5 text-slate-400" />
+                    <span>全不选</span>
+                  </button>
+                  <button
+                      type="button"
+                      disabled={checkedCount === 0}
+                      onClick={handleConfirmBatchEncounter}
+                      className="px-4 py-1.5 rounded-xl roco-btn-success text-xs font-black flex items-center gap-1.5 shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-[0.98]"
+                      title="确认遇见已勾选的精灵"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>确认遇见{checkedCount > 0 ? ` (${checkedCount})` : ''}</span>
+                  </button>
                 </div>
               </div>
 
@@ -890,30 +1047,30 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                             )}
                           </div>
 
-                          {/* Main Selected Pet Display (Centered clean layout matching BatchInitModal) */}
+                          {/* Main Selected Pet Display */}
                           <div className="flex flex-col items-center text-center my-1">
                             <div className="relative w-16 h-16 rounded-xl bg-white p-1 border border-[#E6EEF8] shadow-inner flex items-center justify-center">
-                                  {isMatched && item.matchedPet ? (
-                                      <img
-                                          src={item.view_url || item.matchedPet.url}
+                              {isMatched && item.matchedPet ? (
+                                  <img
+                                      src={item.view_url || item.matchedPet.url}
                                       alt={displayName}
                                       className="w-full h-full object-contain"
                                       onError={(e) => {
                                         if (item.matchedPet?.url) {
                                           (e.target as HTMLImageElement).src = item.matchedPet.url;
                                         }
-                                          }}
-                                      />
-                                  ) : (
-                                      <HelpCircle className="w-8 h-8 text-rose-300" />
-                                  )}
-                                  {item.matchedPet?.id != null && (
-                                      <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
-                                        #{item.matchedPet.id}
-                                      </span>
-                                  )}
+                                      }}
+                                  />
+                              ) : (
+                                  <HelpCircle className="w-8 h-8 text-rose-300" />
+                              )}
+                              {item.matchedPet?.id != null && (
+                                  <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                    #{item.matchedPet.id}
+                                  </span>
+                              )}
 
-                                  {item.isChecked && isMatched && (
+                              {item.isChecked && isMatched && (
                                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white">
                                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                                   </div>
@@ -980,7 +1137,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                   <span className="text-[9px] text-slate-400 font-normal">点击直接切换</span>
                                 </div>
 
-                                <div className="space-y-1 max-h-40 overflow-y-auto pr-0.5 custom-scrollbar">
+                                <div className="space-y-1 max-h-64 overflow-y-auto pr-0.5 custom-scrollbar">
                                   {item.candidates.map((cand, candIdx) => {
                                     const candPetName = cand.matchedPet?.name || cand.filename;
                                     const isSelectedCand = isMatched && (
@@ -1034,6 +1191,11 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                                   src={cand.view_url || cand.matchedPet?.url}
                                                   alt={candDisplayName}
                                                   className="w-full h-full object-contain"
+                                                  onError={(e) => {
+                                                    if (cand.matchedPet?.url) {
+                                                      (e.target as HTMLImageElement).src = cand.matchedPet.url;
+                                                    }
+                                                  }}
                                               />
                                             </div>
 
@@ -1071,11 +1233,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           )}
                         </div>
 
-                        {/* Bottom Action: Manual Correction */}
-                        <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                          <span className="text-[9px] text-slate-400 font-medium">
-                            {item.isChecked ? '✅ 已勾选' : '⚪ 点击勾选'}
-                          </span>
+                        {/* Manual Selection Trigger */}
+                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-end">
                           <button
                               type="button"
                               onClick={(e) => {
@@ -1084,61 +1243,15 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                 setEditingItemIndex(item.index);
                                 setPickerSearch('');
                               }}
-                              className="text-[10px] font-black text-[#2B78C4] hover:text-[#1D5E9E] hover:underline flex items-center gap-1 cursor-pointer"
+                              className="text-[10px] font-black text-[#2B78C4] hover:text-[#1E5B99] hover:underline flex items-center gap-1 cursor-pointer"
                           >
                             <Edit3 className="w-3 h-3" />
-                            <span>人工修正</span>
+                            <span>人工挑选修正</span>
                           </button>
                         </div>
                       </div>
                   );
                 })}
-              </div>
-
-              {/* Confirm Batch Encounter Button & Quick Selection Actions */}
-              <div className="mt-5 pt-4 border-t-2 border-[#E6EEF8] flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-xs text-slate-500 font-bold">
-                  已选中 <strong className="text-[#2D6613] text-sm font-mono">{checkedCount}</strong> 只精灵准备点亮图鉴
-                </p>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                      type="button"
-                      onClick={handleSelectOnlyUnencountered}
-                      className="px-3 py-2 rounded-xl bg-[#E1F7DB] hover:bg-[#D3F3CA] border border-[#95D151] text-xs font-black text-[#2D6613] flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                      title="一键仅勾选未遇见的精灵"
-                  >
-                    <Sparkle className="w-3.5 h-3.5 text-[#2D6613]" />
-                    <span>选【未遇见】</span>
-                  </button>
-                  <button
-                      type="button"
-                      onClick={() => handleSelectAll(true)}
-                      className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-[#D5E2F0] text-xs font-black text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                  >
-                    <CheckSquare className="w-3.5 h-3.5 text-[#95D151]" />
-                    <span>全选</span>
-                  </button>
-                  <button
-                      type="button"
-                      onClick={() => handleSelectAll(false)}
-                      className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-[#D5E2F0] text-xs font-black text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                  >
-                    <Square className="w-3.5 h-3.5 text-slate-400" />
-                    <span>全不选</span>
-                  </button>
-
-                  <button
-                      type="button"
-                      id="confirm-batch-card-btn"
-                      disabled={checkedCount === 0}
-                      onClick={handleConfirmBatchEncounter}
-                      className="py-2.5 px-5 roco-btn-success text-sm font-black flex items-center gap-2 shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>{checkedCount > 0 ? `确认遇见勾选的精灵 (${checkedCount} 只)` : '请勾选要遇见的精灵'}</span>
-                  </button>
-                </div>
               </div>
             </div>
         )}
@@ -1146,109 +1259,52 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         {/* Help Modal */}
         {showHelpModal && (
             <div
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/65 backdrop-blur-xs"
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
                 onClick={() => setShowHelpModal(false)}
             >
               <div
-                  className="relative w-full max-w-lg bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-6 space-y-4"
+                  className="relative w-full max-w-lg bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-6 flex flex-col space-y-4"
                   onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between pb-3 border-b-2 border-[#E6EEF8]">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-[#EBF4FE] text-[#2B78C4] flex items-center justify-center">
-                      <HelpCircle className="w-5 h-5" />
-                    </div>
-                    <h3 className="text-base font-black text-slate-800">游戏画面识别 · 使用帮助与技巧</h3>
+                    <HelpCircle className="w-6 h-6 text-[#2B78C4]" />
+                    <h3 className="text-lg font-black text-slate-800">游戏画面识别使用指南</h3>
                   </div>
                   <button
                       onClick={() => setShowHelpModal(false)}
-                      className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center"
+                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="space-y-3 text-xs text-slate-600 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
-                  {/* 推荐用图与截图示范 */}
-                  <div className="p-3.5 bg-gradient-to-br from-[#F5F9FF] to-[#EBF4FE] rounded-2xl border-2 border-[#BCD7F2] space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <p className="font-black text-[#2B78C4] flex items-center gap-1.5 text-xs">
-                        <span>🎯 推荐截图示范（含精灵图标或名字）</span>
-                      </p>
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#2B78C4] text-white">
-                    最佳识别效果
-                  </span>
-                    </div>
-
-                    <p className="text-[11px] text-slate-600">
-                      截取游戏界面上方出现的精灵横条（包含<strong>圆框头像与精灵名称</strong>），如下方图示：
-                    </p>
-
-                    {/* 模拟用户提供的推荐截图示意 */}
-                    <div className="relative rounded-xl overflow-hidden border-2 border-dashed border-[#2B78C4] bg-gradient-to-b from-[#8CB663]/40 via-[#A8D379]/20 to-[#EBF4FE] p-2.5 shadow-inner">
-                      <div className="absolute top-1 right-2 text-[9px] font-black text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-200 shadow-2xs">
-                        ✂️ 推荐截取此区域
-                      </div>
-
-                      <div className="flex items-center justify-around gap-2 pt-2 pb-1">
-                        {/* 精灵 1: 画精灵 */}
-                        <div className="flex flex-col items-center bg-white/90 rounded-xl px-2.5 py-1.5 shadow-xs border border-white">
-                          <div className="w-10 h-10 rounded-full bg-[#8B5A2B] text-white flex items-center justify-center font-black text-base shadow-xs">
-                            🖼️
-                          </div>
-                          <span className="text-[10px] font-black text-slate-800 mt-1">画精灵</span>
-                        </div>
-
-                        {/* 精灵 2: 犀角鸟 (带掉落碎片) */}
-                        <div className="flex flex-col items-center bg-[#F97316]/15 rounded-xl px-3 py-1.5 shadow-xs border-2 border-[#F97316]/40 relative">
-                          <div className="absolute -top-2 -right-2 bg-amber-400 text-amber-950 text-[9px] font-black px-1.5 py-0.2 rounded-md shadow-2xs border border-amber-500">
-                            碎片
-                          </div>
-                          <div className="w-10 h-10 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-black text-base shadow-xs">
-                            🦅
-                          </div>
-                          <span className="text-[10px] font-black text-[#C2410C] mt-1">犀角鸟</span>
-                        </div>
-
-                        {/* 精灵 3: 香草甜甜 */}
-                        <div className="flex flex-col items-center bg-white/90 rounded-xl px-2.5 py-1.5 shadow-xs border border-white">
-                          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center font-black text-base shadow-xs">
-                            🍨
-                          </div>
-                          <span className="text-[10px] font-black text-slate-800 mt-1">香草甜甜</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <p className="text-[10px] text-[#2B78C4] font-medium leading-normal">
-                      💡 提示：上传包含精灵图标或名字的画面截图，系统会自动识别并分割各精灵。
+                <div className="space-y-3 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+                  <div className="p-3 bg-[#F5F9FF] border border-[#BCD7F2] rounded-xl">
+                    <h4 className="font-black text-[#2B78C4] mb-1">1. 如何获取最佳识别效果？</h4>
+                    <p>
+                      截取洛克王国游戏内<strong>清晰的地图全景或含有精灵名称、头像的画面</strong>。支持 PNG 和 JPG 格式。
                     </p>
                   </div>
 
-                  <div className="p-3 bg-[#F5F9FF] rounded-2xl border border-[#D5E2F0] space-y-1.5">
-                    <p className="font-black text-[#2B78C4] flex items-center gap-1">
-                      <span>📸 1. 快捷截图与粘贴</span>
-                    </p>
+                  <div className="p-3 bg-[#F5F9FF] border border-[#BCD7F2] rounded-xl">
+                    <h4 className="font-black text-[#2B78C4] mb-1">2. 快捷粘贴截图</h4>
                     <p>
-                      在游戏内按截图键（或 Win+Shift+S / 微信/QQ截图）截取，截完后<strong>无需保存文件</strong>，直接在网页任意位置按 <strong className="text-slate-800 font-mono">Ctrl + V</strong> 即可秒速上传！
+                      使用截图工具（如微信截图、QQ截图或 Win+Shift+S）完成截屏后，直接在页面上按下 <strong>Ctrl + V</strong> 即可快速加载图片。
                     </p>
                   </div>
 
-                  <div className="p-3 bg-[#F4FDF0] rounded-2xl border border-[#95D151]/40 space-y-1.5">
-                    <p className="font-black text-[#2D6613] flex items-center gap-1">
-                      <span>✨ 2. 自选未遇见精灵（默认不勾选）</span>
-                    </p>
+                  <div className="p-3 bg-[#F5F9FF] border border-[#BCD7F2] rounded-xl">
+                    <h4 className="font-black text-[#2B78C4] mb-1">3. 勾选与挑选未遇精灵</h4>
                     <p>
-                      识别完成后，系统<strong>默认不勾选</strong>任何精灵。您可以点击卡片任意空白处或候选按钮，从中挑选 1 只您希望点亮的未遇见精灵。
+                      识别完成后，系统会自动区分<strong>【未遇新宠】</strong>与<strong>【已在图鉴中】</strong>的精灵，您可以直接勾选或使用一键<strong>【选未遇见】</strong>批量点亮。
                     </p>
                   </div>
 
-                  <div className="p-3 bg-[#FEF9E6] rounded-2xl border border-[#FEE061] space-y-1.5">
-                    <p className="font-black text-[#854D0E] flex items-center gap-1">
-                      <span>🔍 3. 竖向候选与置信度切换</span>
-                    </p>
+                  <div className="p-3 bg-[#F5F9FF] border border-[#BCD7F2] rounded-xl">
+                    <h4 className="font-black text-[#2B78C4] mb-1">4. 候选切换与手工挑选</h4>
                     <p>
-                      每张卡片下方均提供竖向候选列表与精确置信度百分比，点击即可快速切换指定精灵；也可以点击<strong>【人工挑选修正】</strong>从全图精灵库中精准搜索替换。
+                      每张卡片下方均提供候选列表与置信度，点击即可快速切换；若识别有偏差，点击<strong>【人工挑选修正】</strong>即可精准搜索替换。
                     </p>
                   </div>
                 </div>
