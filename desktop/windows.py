@@ -107,7 +107,7 @@ class WindowManager:
                 self.scanner_window = webview.create_window(
                     title='精灵识别跟随',
                     url=f'{self.base_url}/?view=scanner',
-                    width=420,
+                    width=500,
                     height=546,
                     frameless=True,
                     transparent=False,

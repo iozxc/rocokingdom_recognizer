@@ -29,6 +29,7 @@ import { storage } from './services/storage';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
 import { EffectLevel } from './types';
 import { ScannerMapGalleryModal } from './components/ScannerMapGalleryModal';
+import { ImageZoom } from './components/ImageZoom';
 import {
   formatPetName,
   isSamePetName,
@@ -125,6 +126,8 @@ const CandidateCarousel: React.FC<{
             const isSelected = cIdx === selectedCandidateIndex;
             const candName = formatPetName(cand.filename);
             const candPercent = (cand.score * 100).toFixed(1);
+            // 候选图：后端返回的 filename 直接拼 /icons 路径
+            const candViewUrl = `${api.getApiBase()}/icons/${cand.filename}`;
 
             return (
                 <button
@@ -137,27 +140,44 @@ const CandidateCarousel: React.FC<{
                             : 'bg-[#F8FBFE] border-[#E2E8F0] text-slate-600 hover:border-[#BCD7F2] hover:bg-[#E9F2FA]'
                     }`}
                 >
-                  <div className="flex items-center justify-between text-[9px] font-mono">
-                <span className="text-slate-400 font-bold">
-                  {checkEncountered(candName, sourceMapNum) ? (
-                      <span className="text-[9px] font-bold text-[#2D6613] bg-[#E1F7DB] px-1.5 py-0.2 rounded-full border border-[#95D151]/40 flex items-center gap-0.5">
-                      <Check className="w-2 h-2 text-emerald-600 stroke-[3]" />
-                      #{cIdx + 1}
-                    </span>
-                  ) : (
-                      <span className="text-[9px] font-black text-amber-800 bg-[#FEF9E6] px-1.5 py-0.2 rounded-full border border-[#E5C43B]/60 flex items-center gap-0.5">
-                      <Sparkle className="w-2 h-2 text-amber-600" />
-                      #{cIdx + 1}
-                    </span>
-                  )}
-                </span>
-                    <span className={isSelected ? 'text-[#1E5B99] font-black' : 'text-slate-500'}>
-                  {candPercent}%
-                </span>
-                  </div>
-
-                  <div className="text-[11px] font-bold truncate mt-1" title={candName}>
-                    {candName}
+                  {/* 一行布局：左图 + 右文本（紧凑，避免撑成两行） */}
+                  <div className="flex items-center gap-1.5">
+                    {/* 候选精灵预览图（悬停/点击放大） */}
+                    <div className="w-9 h-9 shrink-0 rounded-lg bg-white border border-[#E2E8F0] p-0.5 flex items-center justify-center overflow-hidden">
+                      <ImageZoom
+                          src={candViewUrl}
+                          alt={candName}
+                          className="w-full h-full"
+                          imgClassName="w-full h-full object-contain"
+                          zoomWidth={280}
+                          zoomHeight={280}
+                          maxWidth={60}
+                          maxHeight={60}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1 text-[9px] font-mono">
+                        <span className="text-slate-400 font-bold">
+                          {checkEncountered(candName, sourceMapNum) ? (
+                              <span className="inline-flex items-center gap-0.5 text-[#2D6613] bg-[#E1F7DB] px-1 py-0.2 rounded-full border border-[#95D151]/40">
+                                <Check className="w-2 h-2 text-emerald-600 stroke-[3]" />
+                                #{cIdx + 1}
+                              </span>
+                          ) : (
+                              <span className="inline-flex items-center gap-0.5 text-amber-800 bg-[#FEF9E6] px-1 py-0.2 rounded-full border border-[#E5C43B]/60">
+                                <Sparkle className="w-2 h-2 text-amber-600" />
+                                #{cIdx + 1}
+                              </span>
+                          )}
+                        </span>
+                        <span className={isSelected ? 'text-[#1E5B99] font-black' : 'text-slate-500'}>
+                          {candPercent}%
+                        </span>
+                      </div>
+                      <div className="text-[10px] font-bold truncate" title={candName}>
+                        {candName}
+                      </div>
+                    </div>
                   </div>
                 </button>
             );
@@ -999,19 +1019,17 @@ export const ScannerApp: React.FC = () => {
                             {/* Header: Avatar, Name, Status, Action */}
                             <div className="flex items-center justify-between gap-2.5 mb-2.5">
                               <div className="flex items-center gap-2.5 min-w-0">
-                                {/* Pet Image */}
-                                <div className="relative w-12 h-12 rounded-2xl bg-white border-2 border-[#D5E3F0] p-1 flex items-center justify-center shrink-0 overflow-hidden">
-                                  <img
-                                      src={slot.matchedPet?.url || `${api.getApiBase()}/icons/${displayName}.png`}
-                                      alt={displayName}
-                                      className="w-full h-full object-contain"
-                                      onError={(e) => {
-                                        if (slot.matchedPet?.url) {
-                                          (e.target as HTMLImageElement).src = slot.matchedPet.url;
-                                        }
-                                      }}
-                                  />
-                                </div>
+                                {/* Pet Image（悬停/点击放大预览） */}
+                                <ImageZoom
+                                    src={slot.matchedPet?.url || `${api.getApiBase()}/icons/${displayName}.png`}
+                                    alt={displayName}
+                                    className="w-12 h-12 rounded-2xl bg-white border-2 border-[#D5E3F0] p-1 flex items-center justify-center shrink-0 overflow-hidden"
+                                    imgClassName="w-full h-full object-contain"
+                                    zoomWidth={360}
+                                    zoomHeight={360}
+                                    maxWidth={80}
+                                    maxHeight={80}
+                                />
 
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5">
