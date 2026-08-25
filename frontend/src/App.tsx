@@ -21,7 +21,7 @@ import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
 import { resolveTrialMaps } from './data/trials';
 import { api } from './services/api';
 import { storage } from './services/storage';
-import { getFireTrialPetsCached } from './services/fireTrialData';
+import { getFireTrialPetsCached, invalidateFireTrialData } from './services/fireTrialData';
 import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
@@ -596,7 +596,12 @@ export default function App() {
         <DataUpdateModal
             isOpen={isDataUpdateOpen}
             onClose={() => setIsDataUpdateOpen(false)}
-            onUpdated={() => setDataUpdateAvailable(false)}
+            onUpdated={() => {
+              setDataUpdateAvailable(false);
+              // 重新拉取图鉴数据，让新下载的数据立即生效
+              fetchIconsData();
+              invalidateFireTrialData();
+            }}
         />
       </div>
   );

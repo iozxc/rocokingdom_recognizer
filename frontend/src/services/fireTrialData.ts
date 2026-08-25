@@ -30,3 +30,7 @@ export function getFireTrialPetsCached(): Promise<FirePokedexEntry[]> {
   return pendingPromise;
 }
 
+export function invalidateFireTrialData(): void {
+  cachedFirePets = null;
+  pendingPromise = null;
+}

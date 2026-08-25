@@ -42,7 +42,7 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
     const result = await api.checkDataUpdates();
     setCheckResult(result);
     setChecking(false);
-  }, []);
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -73,13 +73,23 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
     }, 800);
   };
 
-  const hasUpdate = !!checkResult?.has_update;
+  const updateCount = checkResult?.updates?.length || 0;
+  const totalSize = (checkResult?.updates || []).reduce((sum, file) => sum + (file.size || 0), 0);
+  const overallProgress = (() => {
+    if (!status?.files?.length) return 0;
+    const sum = status.files.reduce((acc, file) => {
+      return acc + (file.status === 'done' ? 100 : file.progress || 0);
+    }, 0);
+    return Math.round(sum / status.files.length);
+  })();
   const finished = !downloading && status && (status.state === 'done' || status.state === 'error');
+
+  if (!isOpen) return null;
 
   return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
         <div
-            className="relative w-full max-w-md bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            className="relative w-full max-w-md bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -90,7 +100,7 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
               </div>
               <div>
                 <h3 className="text-base font-black tracking-tight">图鉴数据更新</h3>
-                <p className="text-[11px] text-white/80 font-medium">检测并下载最新图鉴数据库与地图数据</p>
+                <p className="text-[11px] text-white/80 font-medium">下载最新图鉴数据库与地图数据</p>
               </div>
             </div>
             <button
@@ -112,95 +122,69 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
                   <RefreshCw className="w-8 h-8 animate-spin text-[#2B78C4]" />
                   <p className="text-xs font-black">正在检测图鉴数据...</p>
                 </div>
-            ) : !hasUpdate ? (
-                <div className="py-10 flex flex-col items-center justify-center text-center gap-2">
-                  <div className="w-12 h-12 rounded-2xl bg-[#E1F7DB] text-[#2D6613] flex items-center justify-center border-2 border-[#95D151]">
-                    <CheckCircle2 className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-sm font-black text-slate-800">数据已是最新</h4>
-                  <p className="text-xs text-slate-500">{checkResult?.message || '无需更新图鉴数据'}</p>
-                </div>
             ) : (
-                <>
-                  {/* 待更新文件列表 */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-black text-slate-700">
-                      发现 {checkResult?.updates.length || 0} 个文件需要更新
+                checkResult && !checkResult.has_update ? (
+                    <div className="py-10 flex flex-col items-center justify-center text-center gap-2">
+                      <div className="w-12 h-12 rounded-2xl bg-[#E1F7DB] text-[#2D6613] flex items-center justify-center border-2 border-[#95D151]">
+                        <CheckCircle2 className="w-6 h-6" />
+                      </div>
+                      <h4 className="text-sm font-black text-slate-800">图鉴已是最新</h4>
+                      <p className="text-xs text-slate-500">无需更新图鉴数据</p>
                     </div>
-                    {checkResult?.updates.map((file) => (
-                        <div
-                            key={file.name}
-                            className="flex items-center justify-between gap-2 rounded-xl bg-[#F5F9FF] border border-[#E6EEF8] px-3 py-2"
-                        >
-                          <span className="text-xs font-bold text-slate-700 truncate" title={file.name}>
-                            {file.name}
-                          </span>
-                          <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                            {formatSize(file.size)}
-                          </span>
+                ) : (
+                    <>
+                      {/* 更新摘要：只展示数量与总大小 */}
+                      <div className="rounded-xl bg-[#F5F9FF] border border-[#E6EEF8] p-4 text-center">
+                        <div className="text-sm font-black text-slate-800">
+                          发现 {updateCount} 个文件需要更新
                         </div>
-                    ))}
-                  </div>
-
-                  {/* 下载进度 */}
-                  {downloading && status && (
-                      <div className="space-y-2">
-                        {status.files.map((file, index) => {
-                          const fileState = file.status || 'pending';
-                          const percent = file.progress ?? 0;
-                          return (
-                              <div key={`${file.name}-${index}`} className="space-y-1">
-                                <div className="flex items-center justify-between text-[11px]">
-                                  <span className="font-bold text-slate-700 truncate">{file.name}</span>
-                                  <span className="font-mono text-slate-500 shrink-0 ml-2">
-                                    {fileState === 'done' ? '完成' : fileState === 'error' ? '失败' : `${percent}%`}
-                                  </span>
-                                </div>
-                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                  <div
-                                      className={`h-full rounded-full transition-all duration-300 ${
-                                          fileState === 'error'
-                                              ? 'bg-rose-500'
-                                              : fileState === 'done'
-                                                  ? 'bg-[#34C759]'
-                                                  : 'bg-gradient-to-r from-[#7ABCF4] to-[#2B78C4]'
-                                      }`}
-                                      style={{ width: `${fileState === 'done' ? 100 : percent}%` }}
-                                  />
-                                </div>
-                                {file.error && (
-                                    <p className="text-[10px] text-rose-500 font-bold">{file.error}</p>
-                                )}
-                              </div>
-                          );
-                        })}
+                        <div className="text-xs text-slate-500 mt-1">
+                          下载大小约 {formatSize(totalSize)}
+                        </div>
                       </div>
-                  )}
 
-                  {/* 完成/错误提示 */}
-                  {finished && status && (
-                      <div
-                          className={`rounded-xl px-3 py-2.5 text-xs font-black flex items-center gap-2 ${
-                              status.state === 'done'
-                                  ? 'bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]'
-                                  : 'bg-rose-50 text-rose-700 border border-rose-200'
-                          }`}
-                      >
-                        {status.state === 'done' ? (
-                            <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        ) : (
-                            <AlertCircle className="w-4 h-4 shrink-0" />
-                        )}
-                        {status.message || (status.state === 'done' ? '更新完成' : '更新失败')}
-                      </div>
-                  )}
-                </>
+                      {/* 下载整体进度 */}
+                      {downloading && status && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-black text-slate-700">下载进度</span>
+                              <span className="font-mono text-slate-500">{overallProgress}%</span>
+                            </div>
+                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                              <div
+                                  className="h-full rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#2B78C4] transition-all duration-300"
+                                  style={{ width: `${overallProgress}%` }}
+                              />
+                            </div>
+                            <p className="text-[11px] text-slate-400">{status.message || '正在下载...'}</p>
+                          </div>
+                      )}
+
+                      {/* 完成/错误提示 */}
+                      {finished && status && (
+                          <div
+                              className={`rounded-xl px-3 py-2.5 text-xs font-black flex items-center gap-2 ${
+                                  status.state === 'done'
+                                      ? 'bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]'
+                                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                              }`}
+                          >
+                            {status.state === 'done' ? (
+                                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                            ) : (
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                            )}
+                            {status.message || (status.state === 'done' ? '更新完成' : '更新失败')}
+                          </div>
+                      )}
+                    </>
+                )
             )}
           </div>
 
           {/* Footer */}
           <div className="px-5 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2">
-            {!hasUpdate || checking ? (
+            {checking || (checkResult && !checkResult.has_update) ? (
                 <button
                     type="button"
                     onClick={() => {
@@ -260,4 +244,3 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
       </div>
   );
 };
-

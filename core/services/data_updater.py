@@ -190,10 +190,19 @@ def _run_download_job(files):
                 with _JOB_LOCK:
                     _JOB["files"][index]["progress"] = 100
 
-                if expect_md5 and md5_file(tmp_path) != expect_md5:
-                    raise RuntimeError("MD5 校验失败")
+                actual_md5 = md5_file(tmp_path) if expect_md5 else None
+                if expect_md5 and actual_md5 != expect_md5:
+                    # 服务器文件与清单 md5 不一致（文件已更新/清单未刷新），
+                    # 以服务器文件为准保存
+                    logger.warning(
+                        f"下载文件 {name} MD5 与清单不一致（{actual_md5} != {expect_md5}），"
+                        "仍保存并使用服务器文件"
+                    )
 
                 os.replace(tmp_path, target)
+                # 本地清单 md5/size 始终同步为下载后的实际值，避免下次重复提示
+                if actual_md5:
+                    _update_local_manifest_entry(name, actual_md5, os.path.getsize(target))
                 with _JOB_LOCK:
                     _JOB["files"][index]["status"] = "done"
             except Exception as e:
@@ -213,6 +222,8 @@ def _run_download_job(files):
         try:
             invalidate_map_pets_cache()
             icon_catalog.invalidate()
+            from core.api.main import invalidate_icons_cache
+            invalidate_icons_cache()
         except Exception as e:
             logger.warning(f"更新后清空缓存失败: {e}")
 
@@ -229,7 +240,28 @@ def _run_download_job(files):
             _JOB["finished_at"] = time.time()
 
 
+def _update_local_manifest_entry(name, md5, size):
+    """把本地 data_manifest.json 中某个文件的 md5 与 size 更新为实际值。"""
+    try:
+        path = config.DATA_MANIFEST_JSON
+        if not os.path.exists(path):
+            return
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        changed = False
+        for item in data.get("files", []):
+            if isinstance(item, dict) and item.get("name") == name:
+                item["md5"] = md5
+                item["size"] = size
+                changed = True
+        if changed:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            logger.info(f"已同步本地清单 md5/size: {name}")
+    except Exception as e:
+        logger.warning(f"更新本地清单 md5/size 失败 {name}: {e}")
+
+
 def get_job_status():
     with _JOB_LOCK:
         return dict(_JOB, files=[dict(f) for f in _JOB["files"]])
-

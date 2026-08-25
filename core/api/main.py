@@ -14,6 +14,12 @@ ICONS = {}
 ICON_FILE_CACHE = {}
 
 
+def invalidate_icons_cache():
+    """清空 /icons 列表缓存（图鉴数据更新后调用）。"""
+    global ICONS
+    ICONS.clear()
+
+
 @bp.route('/')
 def index():
     return send_from_directory(current_app.static_folder, 'index.html')
