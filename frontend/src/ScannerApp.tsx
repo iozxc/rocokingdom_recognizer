@@ -360,16 +360,6 @@ export const ScannerApp: React.FC = () => {
     };
   }, [activeMapNum]);
 
-  // Clean filename to standard pet name
-  const formatPetName = (rawName: string): string => {
-    if (!rawName) return '未知精灵';
-    let clean = rawName.trim();
-    if (clean.includes('.')) {
-      clean = clean.split('.')[0];
-    }
-    return clean;
-  };
-
   // Get readable map name
   const getMapDisplayName = (mapNum: number | null | undefined): string => {
     if (mapNum === null || mapNum === undefined) return '全图总览';
@@ -973,7 +963,7 @@ export const ScannerApp: React.FC = () => {
                                 {/* Pet Image */}
                                 <div className="relative w-12 h-12 rounded-2xl bg-white border-2 border-[#D5E3F0] p-1 flex items-center justify-center shrink-0 overflow-hidden">
                                   <img
-                                      src={`${api.getApiBase()}/icons/${displayName}.png`}
+                                      src={slot.matchedPet?.url || `${api.getApiBase()}/icons/${displayName}.png`}
                                       alt={displayName}
                                       className="w-full h-full object-contain"
                                       onError={(e) => {

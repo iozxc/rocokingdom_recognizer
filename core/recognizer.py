@@ -141,11 +141,15 @@ class ImageRecognizer:
             score = float(similarities[idx])
             if score < threshold:
                 continue
-            match_path = strip_id_prefix(db["paths"][idx])
+            # db["paths"] 是数据集完整文件名（如 004_02_叶冕魔力猫.png），
+            # 保留 id 与形态序号，供 /icons/<filename> 直接查库；显示名由前端用
+            # matchedPet.name（后端 /icons 已剥离 id/序号）或 formatPetName 处理。
+            match_path = db["paths"][idx]
             results.append({
                 "match_path": match_path,
                 "filename": os.path.basename(match_path),
-                "name": os.path.basename(match_path).split(".")[0],
+                # 展示名：去掉 id 前缀与形态序号，得到纯名字（含形态后缀）
+                "name": strip_id_prefix(os.path.basename(match_path)).split(".")[0],
                 "score": round(score, 4)
             })
 

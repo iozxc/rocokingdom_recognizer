@@ -7,7 +7,18 @@ import { EncounterRecord, PetItem } from '../types';
  */
 export function formatPetName(name?: string | null): string {
   if (!name) return '';
-  return name.replace(/\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i, '').trim();
+  let cleaned = name.replace(/\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i, '').trim();
+  // 兼容新命名 <id>_<seq>_<名字>.png：去掉数字 id 前缀与形态序号，只保留展示名。
+  // 例：'001_01_迪莫.png' -> '迪莫'；'004_02_叶冕魔力猫.png' -> '叶冕魔力猫'。
+  const m = cleaned.match(/^(\d{1,4})_(\d{1,3})_(.+)$/);
+  if (m) {
+    return m[3];
+  }
+  const m2 = cleaned.match(/^(\d{1,4})_(.+)$/);
+  if (m2) {
+    return m2[2];
+  }
+  return cleaned;
 }
 
 /**
