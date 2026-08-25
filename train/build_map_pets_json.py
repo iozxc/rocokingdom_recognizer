@@ -2,7 +2,8 @@
 """Build a single JSON that maps each map sprite to its dataset image file.
 
 The image database is train/dataset/image, where filenames are
-    {id}_{pet_name}[_{form}].png      e.g. 258_乌达_极夜.png
+    {id}_{pet_name}[_{form}].png            例：258_乌达_极夜.png
+或（多形态） {id}_{seq}_{pet_name}[_{form}].png  例：001_01_迪莫.png
 
 For every PNG in the three source maps
     train/features/assets/pic/icons_only/map1|map2|map3
@@ -15,11 +16,11 @@ the corresponding dataset filename is chosen as the JSON key:
        the closest image of the same pet, picked by perceptual hash,
        and reported on stdout for review.
 
-Output:
+Output (JSON key 使用新命名，与 datasets.db 的 icons.path 完全一致):
     {
       "map1": {
-        "008_水蓝蓝.png":   {"id": 8,   "name": "水蓝蓝"},
-        "258_乌达_极夜.png": {"id": 258, "name": "乌达"}
+        "008_水蓝蓝.png":   {"id": 8,   "seq": null,  "name": "水蓝蓝"},
+        "001_01_迪莫.png": {"id": 1,   "seq": 1,     "name": "迪莫"}
       },
       "map2": { ... },
       "map3": { ... }
@@ -32,8 +33,15 @@ import re
 import sys
 from collections import defaultdict
 from hashlib import md5
+from pathlib import Path
 
 from PIL import Image
+
+# 保证能 import 到 core.pet_path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+from core.pet_path import split_pet_filename  # noqa: E402
 
 
 ROOT = os.path.dirname(__file__)
@@ -69,23 +77,30 @@ def hamming(a, b):
 
 def load_pet_names():
     pets_path = os.path.join(os.path.dirname(ROOT), "resource", "roco_all_pets.json")
-    with open(pets_path,
-              encoding="utf-8") as f:
+    if not os.path.exists(pets_path):
+        # 兼容路径：项目根/资源
+        pets_path = os.path.join(PROJECT_ROOT, "resource", "roco_all_pets.json")
+    with open(pets_path, encoding="utf-8") as f:
         pets = json.load(f)["pets"]
     return {p["id"]: p["name"] for p in pets}
 
 
 def build_dataset_index():
-    """Dataset filename -> (id, rest, md5, dhash)."""
-    pat = re.compile(r"^(\d+)_(.+)\.png$")
+    """Dataset filename -> (id, rest, md5, dhash, seq)。
+
+    用 core.pet_path 解析新命名 <id>_<seq>_<name>.png，rest 为去掉 id 与序号后的
+    展示名（含形态后缀），确保 by_rest 匹配一致。
+    """
     files = {}
     for fname in sorted(os.listdir(DATASET_DIR)):
-        m = pat.match(fname)
-        if not m:
+        if not fname.lower().endswith(".png"):
             continue
-        pid, rest = int(m.group(1)), m.group(2)
+        info = split_pet_filename(fname)
+        if not info or info.get("id") is None:
+            continue
+        rest = info["name"]
         path = os.path.join(DATASET_DIR, fname)
-        files[fname] = (pid, rest, file_md5(path), dhash(path))
+        files[fname] = (info["id"], rest, file_md5(path), dhash(path), info.get("seq"))
     return files
 
 
@@ -108,7 +123,8 @@ def resolve_pet(rest, pet_names):
 def pick_by_name(rest, candidates):
     """Prefer exact sprite name, then the '_本来' base form, else first."""
     for fname in candidates:
-        if fname.split("_", 1)[1][:-4] == rest:
+        info = split_pet_filename(fname)
+        if info and info["name"] == rest:
             return fname
     for fname in candidates:
         if "_本来" in fname:
@@ -123,7 +139,7 @@ def main():
     by_hash = defaultdict(list)
     by_rest = defaultdict(list)
     by_pid = defaultdict(list)
-    for fname, (pid, rest, h, _) in ds.items():
+    for fname, (pid, rest, h, _d, seq) in ds.items():
         by_hash[h].append(fname)
         by_rest[rest].append(fname)
         by_pid[pid].append(fname)
@@ -151,24 +167,22 @@ def main():
                 key = by_rest[rest][0]
                 method = "name"
             elif pid is not None and by_pid.get(pid):
-                # Base form missing from the database: pick the perceptually
-                # closest image of the same pet.
                 target = dhash(path)
-                best = min(by_pid[pid],
-                           key=lambda f: hamming(target, ds[f][3]))
+                best = min(by_pid[pid], key=lambda f: hamming(target, ds[f][3]))
                 key = best
                 method = "perceptual"
 
             if key is None:
-                entries[rest + ".png"] = {"id": None, "name": None}
+                entries[rest + ".png"] = {"id": None, "seq": None, "name": None}
                 nulls.append((mp, fname))
                 continue
 
             kid = ds[key][0]
+            kseq = ds[key][4]
             if pid is not None and kid != pid:
                 print(f"WARNING: {mp}/{fname} -> {key} (id {kid}), "
                       f"expected id {pid} ({pname})")
-            entries[key] = {"id": kid, "name": name_by_id.get(kid)}
+            entries[key] = {"id": kid, "seq": kseq, "name": name_by_id.get(kid)}
             if method == "perceptual":
                 guessed.append((mp, fname, key))
         result[mp] = entries
