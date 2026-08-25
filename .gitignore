@@ -56,3 +56,4 @@ keys/
 /train/dataset/
 /train/assets/
 /train/onnx/
+/build.bat
