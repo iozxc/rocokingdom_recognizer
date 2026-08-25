@@ -399,6 +399,13 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
     if (editingItemIndex === null) return;
     sound.playClick();
 
+    // 人工修正回流：把「识别到的名字 -> 用户修正后的正确名」上报到 OCR 纠错表，
+    // 后续同类 OCR 误识会被自动纠正。
+    const originalItem = reviewItems.find((x) => x.index === editingItemIndex);
+    if (originalItem?.filename) {
+      api.submitOcrCorrection(originalItem.filename, pet.name);
+    }
+
     const already = checkAlreadyEncountered(targetMap.id, pet.name);
 
     setReviewItems((prev) =>
