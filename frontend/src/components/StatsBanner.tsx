@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Sparkles, Filter, RotateCcw, MapPin, CheckCircle2, X } from 'lucide-react';
+import { Search, Sparkles, Filter, RotateCcw, MapPin, CheckCircle2, X, ArrowUpCircle } from 'lucide-react';
 import { MapConfig } from '../types';
 import { sound } from '../services/sound';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -14,6 +14,8 @@ interface StatsBannerProps {
     searchQuery: string;
     onSearchChange: (query: string) => void;
     onResetEncounters: () => void;
+    onOpenDataUpdate?: () => void;
+    dataUpdateAvailable?: boolean;
 }
 
 export const StatsBanner: React.FC<StatsBannerProps> = ({
@@ -26,6 +28,8 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                                             searchQuery,
                                                             onSearchChange,
                                                             onResetEncounters,
+                                                            onOpenDataUpdate,
+                                                            dataUpdateAvailable,
                                                         }) => {
     const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
     const unencounteredCount = Math.max(0, totalMapPets - encounteredCount);
@@ -83,6 +87,28 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             />
                         </div>
                     </div>
+
+                    {/* 更新图鉴数据按钮 */}
+                    {onOpenDataUpdate && (
+                        <button
+                            id="data-update-btn"
+                            onClick={() => {
+                              sound.playClick();
+                              onOpenDataUpdate();
+                            }}
+                            title="检测并下载最新图鉴数据库与地图数据"
+                            className="relative px-3 py-2 rounded-2xl border-2 border-slate-200 hover:border-[#7ABCF4] bg-white hover:bg-[#F5F9FF] text-[#1E5B99] hover:text-[#2B78C4] text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer self-stretch sm:self-auto"
+                        >
+                            <ArrowUpCircle className="w-4 h-4 text-[#7ABCF4]" />
+                            <span>更新图鉴</span>
+                            {dataUpdateAvailable && (
+                                <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-white" />
+                                </span>
+                            )}
+                        </button>
+                    )}
 
                     {/* Reset Map Encounters Button - Relocated to Header Top Right */}
                     {encounteredCount > 0 && (

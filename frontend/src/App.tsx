@@ -12,6 +12,7 @@ import { GlobalFloatingSearch } from './components/GlobalFloatingSearch';
 import { FloatingFilterSwitch } from './components/FloatingFilterSwitch';
 import { FeedbackContactModal } from './components/FeedbackContactModal';
 import { UpdateModal } from './components/UpdateModal';
+import { DataUpdateModal } from './components/DataUpdateModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
@@ -40,6 +41,8 @@ export default function App() {
   const [detailPet, setDetailPet] = useState<PetItem | null>(null);
   const [feedbackInitialType, setFeedbackInitialType] = useState<string>('');
   const [isUpdateOpen, setIsUpdateOpen] = useState<boolean>(false);
+  const [isDataUpdateOpen, setIsDataUpdateOpen] = useState<boolean>(false);
+  const [dataUpdateAvailable, setDataUpdateAvailable] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [view, setView] = useState<'assistant' | 'hub'>('assistant');
   const [trials, setTrials] = useState<Trial[]>([
@@ -140,6 +143,10 @@ export default function App() {
     });
     // 预热火系全图鉴，进入火系试炼时不闪加载页
     getFireTrialPetsCached().catch(() => {});
+    // 启动时异步检测图鉴数据是否需要更新（不阻塞界面）
+    api.checkDataUpdates()
+        .then((res) => setDataUpdateAvailable(res.has_update))
+        .catch(() => {});
 
     // 订阅 storage 变更（当从 Flask 后端加载完成时自动更新 UI）
     const unsubscribeRecords = storage.subscribe((newRecords) => {
@@ -448,6 +455,8 @@ export default function App() {
                     searchQuery={searchQuery}
                     onSearchChange={(q) => setSearchQuery(q)}
                     onResetEncounters={handleResetCurrentMap}
+                    onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
+                    dataUpdateAvailable={dataUpdateAvailable}
                 />
 
                 {/* Pet Image Recognition Module (BatchRecognizerCard: 3 columns layout + ? help button) */}
@@ -526,6 +535,7 @@ export default function App() {
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
             onTestEffect={(level, type) => triggerScanSyncEffect(type, level)}
+            onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
         />
 
 
@@ -580,6 +590,13 @@ export default function App() {
         <UpdateModal
             isOpen={isUpdateOpen}
             onClose={() => setIsUpdateOpen(false)}
+        />
+
+        {/* 图鉴数据更新弹窗 */}
+        <DataUpdateModal
+            isOpen={isDataUpdateOpen}
+            onClose={() => setIsDataUpdateOpen(false)}
+            onUpdated={() => setDataUpdateAvailable(false)}
         />
       </div>
   );

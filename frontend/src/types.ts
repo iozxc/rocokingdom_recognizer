@@ -253,6 +253,28 @@ export interface CheckUpdateResponse {
   }>;
 }
 
+export interface DataUpdateFileInfo {
+  name: string;
+  md5?: string;
+  url?: string;
+  size?: number;
+  status?: 'missing' | 'changed' | 'pending' | 'downloading' | 'done' | 'error';
+  progress?: number;
+  error?: string | null;
+}
+
+export interface DataUpdateCheckData {
+  has_update: boolean;
+  updates: DataUpdateFileInfo[];
+  message?: string;
+}
+
+export interface DataUpdateStatusData {
+  state: 'idle' | 'running' | 'done' | 'error';
+  files: DataUpdateFileInfo[];
+  message?: string;
+}
+
 export type DownloadStatus =
     | 'idle'
     | 'downloading'

@@ -22,6 +22,8 @@ import {
   FirePokedexApiResponse,
   FirePokedexEntry,
   Trial,
+  DataUpdateCheckData,
+  DataUpdateStatusData,
 } from '../types';
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
 
@@ -121,6 +123,49 @@ export class ApiService {
       console.warn('API getFireTrialPets failed:', error.message);
       return { pets: [], isOfflineMock: true };
     }
+  }
+
+  /**
+   * 检测图鉴数据是否需要更新（md5 对比）。
+   */
+  public async checkDataUpdates(): Promise<DataUpdateCheckData> {
+    try {
+      const response = await axios.get<{ data?: DataUpdateCheckData }>(
+          `${this.apiBase}/api/data_updates/check`,
+          { timeout: 15000 }
+      );
+      if (response.data?.data) {
+        return response.data.data;
+      }
+      throw new Error('数据更新检查接口返回格式异常');
+    } catch (err: unknown) {
+      const error = err as AxiosError;
+      console.warn('API checkDataUpdates failed:', error.message);
+      return { has_update: false, updates: [], message: '检查失败' };
+    }
+  }
+
+  /**
+   * 开始异步下载图鉴数据更新。
+   */
+  public async startDataUpdate(): Promise<DataUpdateStatusData> {
+    const response = await axios.post<{ data?: DataUpdateStatusData }>(
+        `${this.apiBase}/api/data_updates/download`,
+        {},
+        { timeout: 5000 }
+    );
+    return response.data?.data || { state: 'idle', files: [] };
+  }
+
+  /**
+   * 查询图鉴数据下载进度。
+   */
+  public async getDataUpdateStatus(): Promise<DataUpdateStatusData> {
+    const response = await axios.get<{ data?: DataUpdateStatusData }>(
+        `${this.apiBase}/api/data_updates/status`,
+        { timeout: 5000 }
+    );
+    return response.data?.data || { state: 'idle', files: [] };
   }
 
   // Fetch all icons for map1, map2, map3

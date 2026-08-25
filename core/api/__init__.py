@@ -1,5 +1,6 @@
 from core.api.feedback import bp as feedback_bp
 from core.api.follow import bp as follow_bp
+from core.api.data_updater import bp as data_updater_bp
 from core.api.main import bp as main_bp
 from core.api.predict import bp as predict_bp
 from core.api.storage import bp as storage_bp
@@ -15,4 +16,5 @@ def register_blueprints(app):
     app.register_blueprint(trials_bp)
     app.register_blueprint(follow_bp)
     app.register_blueprint(feedback_bp)
+    app.register_blueprint(data_updater_bp)
     app.register_blueprint(updater_bp)

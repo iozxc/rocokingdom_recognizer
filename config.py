@@ -52,6 +52,10 @@ FEISHU_WEBHOOK_URL = _env(
     "ROCO_FEISHU_WEBHOOK_URL",
     "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab",
 )
+# 图鉴/关键数据更新清单：远程地址为空表示不启用；
+# 本地清单（datasets/data_manifest.json）由 tools/pack_update.py 生成，用于 md5 对比
+DATA_MANIFEST_URL = _env("ROCO_DATA_MANIFEST_URL",
+                         "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/data_manifest.json")
 
 # 徽章试炼定义：草系为正式内容，火系为开发环境专属。
 # collection_key 对应 roco_user_data.json 中独立的“已遇见精灵”集合。
@@ -163,6 +167,7 @@ DATASETS_PETS = get_resource_path(os.path.join('datasets', 'datasets.db'))
 DATA_JSON = get_external_path('roco_user_data.json')
 MANIFEST_JSON = get_resource_path('file_manifest.json')
 RENAMES_JSON = get_resource_path('pet_renames.json')
+DATA_MANIFEST_JSON = get_resource_path(os.path.join("datasets", "data_manifest.json"))
 
 # 全局模型
 RESNET50 = get_resource_path(os.path.join('onnx', 'resnet50.onnx'))
