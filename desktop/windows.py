@@ -112,7 +112,7 @@ class WindowManager:
                     frameless=True,
                     transparent=False,
                     on_top=True,
-                    resizable=True,
+                    resizable=False,
                     # 只允许标题栏（前端 pywebview-drag-region）拖动窗口
                     easy_drag=False,
                     background_color='#F0F6FC',
