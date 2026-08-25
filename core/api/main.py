@@ -6,7 +6,7 @@ from core.db import get_db
 from core.icon_names import load_map_pets, sprite_to_file, sprite_to_file_any
 from core.logger import logger
 from core.pet_path import sort_key
-from core.services.trials import get_trial_or_default
+from core.services.trials import get_trial_or_default, load_pet_elements
 from core.utils import strip_id_prefix
 
 bp = Blueprint("main", __name__)
@@ -46,17 +46,23 @@ def list_icons():
         trial = get_trial_or_default(trial_key)
         icons_structure = {}
         map_pets = load_map_pets(trial_key)
+        elements_map = load_pet_elements()
         for map_name in trial.get("map_list", []):
             entries = map_pets.get(map_name, {})
             items = []
             for filename, meta in sorted(
                     entries.items(),
                     key=lambda kv: sort_key(kv[0])):
+                pet_id = meta.get("id")
+                seq_val = meta.get("seq")
+                seq_val = int(seq_val) if seq_val is not None else None
+                pet_id = int(pet_id) if pet_id is not None else None
                 items.append({
                     # 对外/用户数据不保留 id 前缀；URL 仍指向真实数据集文件
                     "name": strip_id_prefix(filename),
-                    "id": meta.get("id"),
-                    "seq": meta.get("seq"),
+                    "id": pet_id,
+                    "seq": seq_val,
+                    "elements": elements_map.get((pet_id, seq_val), []),
                     "url": url_for('main.get_icon_file', filename=filename, _external=True)
                 })
             icons_structure[map_name] = {"count": len(items), "items": items}

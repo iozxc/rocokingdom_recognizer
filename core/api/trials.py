@@ -2,7 +2,7 @@
 from flask import Blueprint, url_for
 
 from core.api.response import error, success
-from core.services.trials import available_trials, load_pokedex, get_trial
+from core.services.trials import available_trials, load_pet_elements, load_pokedex, get_trial
 from core.db import get_db
 from core.logger import logger
 
@@ -19,6 +19,7 @@ def _list_fire_pets(trial_key="fire"):
     """
     trial = get_trial(trial_key) or get_trial("fire") or {}
     db = get_db()
+    elements_map = load_pet_elements()
     rows = db.execute(
         "SELECT path, id, seq, name FROM icons"
     ).fetchall()
@@ -32,10 +33,12 @@ def _list_fire_pets(trial_key="fire"):
         pet_id = int(pet_id)
         seen_ids.add(pet_id)
         display_name = name if name else str(path)
+        seq_val = int(seq) if seq is not None else None
         items.append({
             "id": pet_id,
-            "seq": int(seq) if seq is not None else None,
+            "seq": seq_val,
             "name": display_name,
+            "elements": elements_map.get((pet_id, seq_val), []),
             "url": url_for(
                 "main.get_icon_file",
                 filename=f"{path}.png",
@@ -47,7 +50,13 @@ def _list_fire_pets(trial_key="fire"):
     # 库里完全没有图的精灵（如 id 440-442）补一条占位条目，前端用生成头像兜底
     for pet in load_pokedex():
         if pet["id"] not in seen_ids:
-            items.append({"id": pet["id"], "name": pet["name"]})
+            pid = pet["id"]
+            items.append({
+                "id": pid,
+                "seq": None,
+                "name": pet["name"],
+                "elements": elements_map.get((pid, None), []),
+            })
 
     items.sort(key=lambda x: (x["id"], x.get("seq") or 0, x.get("name") or ""))
     return items

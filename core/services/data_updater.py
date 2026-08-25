@@ -222,6 +222,8 @@ def _run_download_job(files):
         try:
             invalidate_map_pets_cache()
             icon_catalog.invalidate()
+            from core.services.trials import invalidate_pokedex_info_cache
+            invalidate_pokedex_info_cache()
             from core.api.main import invalidate_icons_cache
             invalidate_icons_cache()
         except Exception as e:

@@ -81,3 +81,51 @@ def load_pokedex():
             pet_id = 0
         result.append({"id": pet_id, "name": name})
     return result
+
+
+_PET_ELEMENTS_CACHE: dict | None = None
+
+
+def load_pet_elements():
+    """读取全图鉴信息 roco_all_pets_info.json，返回 {(id, seq): [元素]}。
+
+    键用 (id, seq) 对齐数据集：单形态 seq 为 None，多形态为形态序号。
+    返回的 elements 列表第一个为主属性（如 ["光"]、["光","草"]）。
+    进程内缓存，调用 invalidate_pokedex_info_cache() 可清空。
+    """
+    global _PET_ELEMENTS_CACHE
+    if _PET_ELEMENTS_CACHE is not None:
+        return _PET_ELEMENTS_CACHE
+
+    result = {}
+    try:
+        with open(config.POKEDEX_INFO_JSON, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        pets = data.get("pets", []) if isinstance(data, dict) else data
+        if isinstance(pets, list):
+            for pet in pets:
+                if not isinstance(pet, dict):
+                    continue
+                try:
+                    pid = int(pet.get("id", 0))
+                except (TypeError, ValueError):
+                    continue
+                raw_seq = pet.get("seq")
+                seq = int(raw_seq) if raw_seq is not None else None
+                elements = list(pet.get("elements") or [])
+                result[(pid, seq)] = elements
+    except FileNotFoundError:
+        logger.warning(f"全图鉴信息文件不存在: {config.POKEDEX_INFO_JSON}")
+        result = {}
+    except Exception as e:
+        logger.error(f"读取全图鉴信息失败: {e}", exc_info=True)
+        result = {}
+
+    _PET_ELEMENTS_CACHE = result
+    return result
+
+
+def invalidate_pokedex_info_cache():
+    """清空全图鉴信息缓存（roco_all_pets_info.json 更新后调用）。"""
+    global _PET_ELEMENTS_CACHE
+    _PET_ELEMENTS_CACHE = None

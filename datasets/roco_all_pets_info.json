@@ -1,0 +1,5404 @@
+{
+  "source": "wiki.biligame.com/rocom (Category:精灵)",
+  "generated": "2026-08-26 06:58:21",
+  "count": 568,
+  "pets": [
+    {
+      "id": 1,
+      "seq": 1,
+      "name": "迪莫",
+      "form_name": "迪莫",
+      "elements": [
+        "光"
+      ]
+    },
+    {
+      "id": 1,
+      "seq": 2,
+      "name": "迪莫",
+      "form_name": "圣草迪莫",
+      "elements": [
+        "光",
+        "草"
+      ]
+    },
+    {
+      "id": 1,
+      "seq": 3,
+      "name": "迪莫",
+      "form_name": "圣光迪莫",
+      "elements": [
+        "光"
+      ]
+    },
+    {
+      "id": 1,
+      "seq": 4,
+      "name": "迪莫",
+      "form_name": "圣火迪莫",
+      "elements": [
+        "光",
+        "火"
+      ]
+    },
+    {
+      "id": 1,
+      "seq": 5,
+      "name": "迪莫",
+      "form_name": "圣水迪莫",
+      "elements": [
+        "光",
+        "水"
+      ]
+    },
+    {
+      "id": 2,
+      "seq": null,
+      "name": "喵喵",
+      "form_name": "喵喵",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 3,
+      "seq": null,
+      "name": "喵呜",
+      "form_name": "喵呜",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 4,
+      "seq": 1,
+      "name": "魔力猫",
+      "form_name": "魔力猫",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 4,
+      "seq": 2,
+      "name": "魔力猫",
+      "form_name": "叶冕魔力猫",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 4,
+      "seq": 3,
+      "name": "魔力猫",
+      "form_name": "武斗酷猫",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 5,
+      "seq": null,
+      "name": "火花",
+      "form_name": "火花",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 6,
+      "seq": null,
+      "name": "焰火",
+      "form_name": "焰火",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 7,
+      "seq": 1,
+      "name": "火神",
+      "form_name": "火神",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 7,
+      "seq": 2,
+      "name": "火神",
+      "form_name": "烈火战神",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 8,
+      "seq": null,
+      "name": "水蓝蓝",
+      "form_name": "水蓝蓝",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 9,
+      "seq": null,
+      "name": "波波拉",
+      "form_name": "波波拉",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 10,
+      "seq": 1,
+      "name": "水灵",
+      "form_name": "水灵",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 10,
+      "seq": 2,
+      "name": "水灵",
+      "form_name": "圣水守护",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 11,
+      "seq": 1,
+      "name": "鸭吉吉",
+      "form_name": "鸭吉吉_蓬松",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 11,
+      "seq": 2,
+      "name": "鸭吉吉",
+      "form_name": "鸭吉吉_紧实",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 11,
+      "seq": 3,
+      "name": "鸭吉吉",
+      "form_name": "鸭吉吉_急急急",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 11,
+      "seq": 4,
+      "name": "鸭吉吉",
+      "form_name": "鸭吉吉_等一等",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 11,
+      "seq": 5,
+      "name": "鸭吉吉",
+      "form_name": "鸭吉吉_燃了鸭",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 11,
+      "seq": 6,
+      "name": "鸭吉吉",
+      "form_name": "鸭吉吉_起来鸭",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 11,
+      "seq": 7,
+      "name": "鸭吉吉",
+      "form_name": "鸭吉吉国王",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 12,
+      "seq": 1,
+      "name": "板板壳",
+      "form_name": "板板壳_本来",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 12,
+      "seq": 2,
+      "name": "板板壳",
+      "form_name": "板板壳_蜕皮",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 13,
+      "seq": 1,
+      "name": "咔咔壳",
+      "form_name": "咔咔壳_本来",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 13,
+      "seq": 2,
+      "name": "咔咔壳",
+      "form_name": "咔咔壳_蜕皮",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 14,
+      "seq": 1,
+      "name": "水泡壳",
+      "form_name": "水泡壳_本来",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 14,
+      "seq": 2,
+      "name": "水泡壳",
+      "form_name": "水泡壳_蜕皮",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 15,
+      "seq": null,
+      "name": "锥尾羊",
+      "form_name": "锥尾羊",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 16,
+      "seq": null,
+      "name": "铃兰羊",
+      "form_name": "铃兰羊",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 17,
+      "seq": null,
+      "name": "花影羚羊",
+      "form_name": "花影羚羊",
+      "elements": [
+        "幽",
+        "恶"
+      ]
+    },
+    {
+      "id": 18,
+      "seq": 1,
+      "name": "雪绒鸟",
+      "form_name": "雪绒鸟_冬天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 18,
+      "seq": 2,
+      "name": "雪绒鸟",
+      "form_name": "雪绒鸟_春天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 18,
+      "seq": 3,
+      "name": "雪绒鸟",
+      "form_name": "雪绒鸟_夏天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 18,
+      "seq": 4,
+      "name": "雪绒鸟",
+      "form_name": "雪绒鸟_秋天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 19,
+      "seq": 1,
+      "name": "冬羽雀",
+      "form_name": "冬羽雀_冬天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 19,
+      "seq": 2,
+      "name": "冬羽雀",
+      "form_name": "冬羽雀_春天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 19,
+      "seq": 3,
+      "name": "冬羽雀",
+      "form_name": "冬羽雀_夏天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 19,
+      "seq": 4,
+      "name": "冬羽雀",
+      "form_name": "冬羽雀_秋天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 20,
+      "seq": 1,
+      "name": "岚鸟",
+      "form_name": "岚鸟_冬天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 20,
+      "seq": 2,
+      "name": "岚鸟",
+      "form_name": "岚鸟_春天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 20,
+      "seq": 3,
+      "name": "岚鸟",
+      "form_name": "岚鸟_夏天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 20,
+      "seq": 4,
+      "name": "岚鸟",
+      "form_name": "岚鸟_秋天",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 20,
+      "seq": 5,
+      "name": "岚鸟",
+      "form_name": "霜翼领主",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 21,
+      "seq": null,
+      "name": "小灵菇",
+      "form_name": "小灵菇",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 22,
+      "seq": null,
+      "name": "幻灵菇",
+      "form_name": "幻灵菇",
+      "elements": [
+        "幽",
+        "草"
+      ]
+    },
+    {
+      "id": 23,
+      "seq": null,
+      "name": "幻影灵菇",
+      "form_name": "幻影灵菇",
+      "elements": [
+        "幽",
+        "草"
+      ]
+    },
+    {
+      "id": 24,
+      "seq": 1,
+      "name": "石肤蜥",
+      "form_name": "石肤蜥_本来",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 24,
+      "seq": 2,
+      "name": "石肤蜥",
+      "form_name": "石肤蜥_球球",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 25,
+      "seq": 1,
+      "name": "石刺蜥",
+      "form_name": "石刺蜥_本来",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 25,
+      "seq": 2,
+      "name": "石刺蜥",
+      "form_name": "石刺蜥_球球",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 26,
+      "seq": 1,
+      "name": "石冠王蜥",
+      "form_name": "石冠王蜥_本来",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 26,
+      "seq": 2,
+      "name": "石冠王蜥",
+      "form_name": "石冠王蜥_球球",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 27,
+      "seq": null,
+      "name": "布是石",
+      "form_name": "布是石",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 28,
+      "seq": null,
+      "name": "布是岩",
+      "form_name": "布是岩",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 29,
+      "seq": 1,
+      "name": "布克棱岩",
+      "form_name": "布克棱岩",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 29,
+      "seq": 2,
+      "name": "布克棱岩",
+      "form_name": "迷嶂布莱克",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 30,
+      "seq": null,
+      "name": "恶魔叮",
+      "form_name": "恶魔叮",
+      "elements": [
+        "恶",
+        "翼"
+      ]
+    },
+    {
+      "id": 31,
+      "seq": 1,
+      "name": "叮叮恶魔",
+      "form_name": "叮叮恶魔",
+      "elements": [
+        "恶",
+        "翼"
+      ]
+    },
+    {
+      "id": 31,
+      "seq": 2,
+      "name": "叮叮恶魔",
+      "form_name": "暗影恶魔",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 32,
+      "seq": null,
+      "name": "毛毛",
+      "form_name": "毛毛",
+      "elements": [
+        "虫",
+        "萌"
+      ]
+    },
+    {
+      "id": 33,
+      "seq": null,
+      "name": "爬爬",
+      "form_name": "爬爬",
+      "elements": [
+        "虫",
+        "萌"
+      ]
+    },
+    {
+      "id": 34,
+      "seq": 1,
+      "name": "化蝶",
+      "form_name": "化蝶_本来",
+      "elements": [
+        "虫",
+        "萌"
+      ]
+    },
+    {
+      "id": 34,
+      "seq": 2,
+      "name": "化蝶",
+      "form_name": "化蝶_奇丽花",
+      "elements": [
+        "虫",
+        "萌"
+      ]
+    },
+    {
+      "id": 34,
+      "seq": 3,
+      "name": "化蝶",
+      "form_name": "化蝶_幽冥眼",
+      "elements": [
+        "虫",
+        "萌"
+      ]
+    },
+    {
+      "id": 34,
+      "seq": 4,
+      "name": "化蝶",
+      "form_name": "化蝶_喵喵",
+      "elements": [
+        "虫",
+        "萌"
+      ]
+    },
+    {
+      "id": 35,
+      "seq": 1,
+      "name": "幽影树",
+      "form_name": "幽影树",
+      "elements": [
+        "幽",
+        "草"
+      ]
+    },
+    {
+      "id": 35,
+      "seq": 2,
+      "name": "幽影树",
+      "form_name": "幻影荆棘",
+      "elements": [
+        "幽",
+        "草"
+      ]
+    },
+    {
+      "id": 36,
+      "seq": null,
+      "name": "小鼠獭",
+      "form_name": "小鼠獭",
+      "elements": [
+        "普通",
+        "水"
+      ]
+    },
+    {
+      "id": 37,
+      "seq": null,
+      "name": "燕尾獭",
+      "form_name": "燕尾獭",
+      "elements": [
+        "普通",
+        "水"
+      ]
+    },
+    {
+      "id": 38,
+      "seq": null,
+      "name": "卷胡巨獭",
+      "form_name": "卷胡巨獭",
+      "elements": [
+        "普通",
+        "水"
+      ]
+    },
+    {
+      "id": 39,
+      "seq": null,
+      "name": "矿晶虫",
+      "form_name": "矿晶虫",
+      "elements": [
+        "光",
+        "地"
+      ]
+    },
+    {
+      "id": 40,
+      "seq": 1,
+      "name": "晶石蜗",
+      "form_name": "晶石蜗_西瓜碧玺",
+      "elements": [
+        "光",
+        "地"
+      ]
+    },
+    {
+      "id": 40,
+      "seq": 2,
+      "name": "晶石蜗",
+      "form_name": "晶石蜗_莲花刚玉",
+      "elements": [
+        "光",
+        "地"
+      ]
+    },
+    {
+      "id": 40,
+      "seq": 3,
+      "name": "晶石蜗",
+      "form_name": "晶石蜗_星彩榴石",
+      "elements": [
+        "光",
+        "地"
+      ]
+    },
+    {
+      "id": 40,
+      "seq": 4,
+      "name": "晶石蜗",
+      "form_name": "晶石蜗_火山琉璃",
+      "elements": [
+        "光",
+        "地"
+      ]
+    },
+    {
+      "id": 40,
+      "seq": 5,
+      "name": "晶石蜗",
+      "form_name": "晶石蜗_蓝锥矿",
+      "elements": [
+        "光",
+        "地"
+      ]
+    },
+    {
+      "id": 40,
+      "seq": 6,
+      "name": "晶石蜗",
+      "form_name": "晶石蜗_烧蓝黄金",
+      "elements": [
+        "光",
+        "地"
+      ]
+    },
+    {
+      "id": 40,
+      "seq": 7,
+      "name": "晶石蜗",
+      "form_name": "钻石蜗",
+      "elements": [
+        "光",
+        "地"
+      ]
+    },
+    {
+      "id": 41,
+      "seq": null,
+      "name": "奇丽草",
+      "form_name": "奇丽草",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 42,
+      "seq": null,
+      "name": "奇丽叶",
+      "form_name": "奇丽叶",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 43,
+      "seq": 1,
+      "name": "奇丽花",
+      "form_name": "奇丽花",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 43,
+      "seq": 2,
+      "name": "奇丽花",
+      "form_name": "奇丽果",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 44,
+      "seq": 1,
+      "name": "丢丢",
+      "form_name": "丢丢_草地",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 44,
+      "seq": 2,
+      "name": "丢丢",
+      "form_name": "丢丢_沙地",
+      "elements": [
+        "草",
+        "地"
+      ]
+    },
+    {
+      "id": 44,
+      "seq": 3,
+      "name": "丢丢",
+      "form_name": "丢丢_雪山",
+      "elements": [
+        "草",
+        "冰"
+      ]
+    },
+    {
+      "id": 44,
+      "seq": 4,
+      "name": "丢丢",
+      "form_name": "丢丢_火山",
+      "elements": [
+        "草",
+        "火"
+      ]
+    },
+    {
+      "id": 45,
+      "seq": 1,
+      "name": "卡卡虫",
+      "form_name": "卡卡虫_草地",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 45,
+      "seq": 2,
+      "name": "卡卡虫",
+      "form_name": "卡卡虫_沙地",
+      "elements": [
+        "草",
+        "地"
+      ]
+    },
+    {
+      "id": 45,
+      "seq": 3,
+      "name": "卡卡虫",
+      "form_name": "卡卡虫_雪山",
+      "elements": [
+        "草",
+        "冰"
+      ]
+    },
+    {
+      "id": 45,
+      "seq": 4,
+      "name": "卡卡虫",
+      "form_name": "卡卡虫_火山",
+      "elements": [
+        "草",
+        "火"
+      ]
+    },
+    {
+      "id": 46,
+      "seq": 1,
+      "name": "卡瓦重",
+      "form_name": "卡瓦重_草地",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 46,
+      "seq": 2,
+      "name": "卡瓦重",
+      "form_name": "卡瓦重_沙地",
+      "elements": [
+        "草",
+        "地"
+      ]
+    },
+    {
+      "id": 46,
+      "seq": 3,
+      "name": "卡瓦重",
+      "form_name": "卡瓦重_雪山",
+      "elements": [
+        "草",
+        "冰"
+      ]
+    },
+    {
+      "id": 46,
+      "seq": 4,
+      "name": "卡瓦重",
+      "form_name": "卡瓦重_火山",
+      "elements": [
+        "草",
+        "火"
+      ]
+    },
+    {
+      "id": 47,
+      "seq": null,
+      "name": "护主犬",
+      "form_name": "护主犬",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 48,
+      "seq": 1,
+      "name": "音速犬",
+      "form_name": "音速犬",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 48,
+      "seq": 2,
+      "name": "音速犬",
+      "form_name": "风暴战犬",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 49,
+      "seq": null,
+      "name": "绿耳松鼠",
+      "form_name": "绿耳松鼠",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 50,
+      "seq": null,
+      "name": "抱枕松鼠",
+      "form_name": "抱枕松鼠",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 51,
+      "seq": null,
+      "name": "蹦床松鼠",
+      "form_name": "蹦床松鼠",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 52,
+      "seq": null,
+      "name": "嘟嘟煲",
+      "form_name": "嘟嘟煲",
+      "elements": [
+        "毒"
+      ]
+    },
+    {
+      "id": 53,
+      "seq": null,
+      "name": "嘟嘟锅",
+      "form_name": "嘟嘟锅",
+      "elements": [
+        "毒"
+      ]
+    },
+    {
+      "id": 54,
+      "seq": null,
+      "name": "小灵面",
+      "form_name": "小灵面",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 55,
+      "seq": 1,
+      "name": "暗影灵面",
+      "form_name": "暗影灵面_睁眼",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 55,
+      "seq": 2,
+      "name": "暗影灵面",
+      "form_name": "暗影灵面_闭眼",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 56,
+      "seq": 1,
+      "name": "幽冥眼",
+      "form_name": "幽冥眼_睁眼",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 56,
+      "seq": 2,
+      "name": "幽冥眼",
+      "form_name": "幽冥眼_闭眼",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 57,
+      "seq": 1,
+      "name": "梦游",
+      "form_name": "梦游_旧睡衣",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 57,
+      "seq": 2,
+      "name": "梦游",
+      "form_name": "梦游_星星睡衣",
+      "elements": [
+        "幽",
+        "光"
+      ]
+    },
+    {
+      "id": 58,
+      "seq": 1,
+      "name": "梦悠悠",
+      "form_name": "梦悠悠_旧睡衣",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 58,
+      "seq": 2,
+      "name": "梦悠悠",
+      "form_name": "梦悠悠_星星睡衣",
+      "elements": [
+        "幽",
+        "光"
+      ]
+    },
+    {
+      "id": 59,
+      "seq": null,
+      "name": "兽花蕾",
+      "form_name": "兽花蕾",
+      "elements": [
+        "光",
+        "草"
+      ]
+    },
+    {
+      "id": 60,
+      "seq": null,
+      "name": "伏地兽",
+      "form_name": "伏地兽",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 61,
+      "seq": null,
+      "name": "贪食鼹",
+      "form_name": "贪食鼹",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 62,
+      "seq": null,
+      "name": "巨噬针鼹",
+      "form_name": "巨噬针鼹",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 63,
+      "seq": 1,
+      "name": "蹦蹦种子",
+      "form_name": "蹦蹦种子_海神球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 63,
+      "seq": 2,
+      "name": "蹦蹦种子",
+      "form_name": "蹦蹦种子_彩玉球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 63,
+      "seq": 3,
+      "name": "蹦蹦种子",
+      "form_name": "蹦蹦种子_短毛球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 63,
+      "seq": 4,
+      "name": "蹦蹦种子",
+      "form_name": "蹦蹦种子_象牙球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 64,
+      "seq": 1,
+      "name": "蹦蹦草",
+      "form_name": "蹦蹦草_海神球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 64,
+      "seq": 2,
+      "name": "蹦蹦草",
+      "form_name": "蹦蹦草_彩玉球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 64,
+      "seq": 3,
+      "name": "蹦蹦草",
+      "form_name": "蹦蹦草_短毛球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 64,
+      "seq": 4,
+      "name": "蹦蹦草",
+      "form_name": "蹦蹦草_象牙球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 65,
+      "seq": 1,
+      "name": "蹦蹦花",
+      "form_name": "蹦蹦花_海神球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 65,
+      "seq": 2,
+      "name": "蹦蹦花",
+      "form_name": "蹦蹦花_彩玉球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 65,
+      "seq": 3,
+      "name": "蹦蹦花",
+      "form_name": "蹦蹦花_短毛球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 65,
+      "seq": 4,
+      "name": "蹦蹦花",
+      "form_name": "蹦蹦花_象牙球",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 65,
+      "seq": 5,
+      "name": "蹦蹦花",
+      "form_name": "蹦蹦果",
+      "elements": [
+        "草",
+        "毒"
+      ]
+    },
+    {
+      "id": 66,
+      "seq": null,
+      "name": "电咩咩",
+      "form_name": "电咩咩",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 67,
+      "seq": null,
+      "name": "粉咩咩",
+      "form_name": "粉咩咩",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 68,
+      "seq": null,
+      "name": "电球咩咩",
+      "form_name": "电球咩咩",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 69,
+      "seq": null,
+      "name": "蒲公英",
+      "form_name": "蒲公英",
+      "elements": [
+        "草",
+        "萌"
+      ]
+    },
+    {
+      "id": 70,
+      "seq": null,
+      "name": "蒲公英娃娃",
+      "form_name": "蒲公英娃娃",
+      "elements": [
+        "草",
+        "萌"
+      ]
+    },
+    {
+      "id": 71,
+      "seq": null,
+      "name": "伊贝儿",
+      "form_name": "伊贝儿",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 72,
+      "seq": null,
+      "name": "伊贝粉粉",
+      "form_name": "伊贝粉粉",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 73,
+      "seq": null,
+      "name": "白发懒人",
+      "form_name": "白发懒人",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 74,
+      "seq": null,
+      "name": "动力猿",
+      "form_name": "动力猿",
+      "elements": [
+        "普通",
+        "武"
+      ]
+    },
+    {
+      "id": 75,
+      "seq": null,
+      "name": "瞌睡王",
+      "form_name": "瞌睡王",
+      "elements": [
+        "普通",
+        "武"
+      ]
+    },
+    {
+      "id": 76,
+      "seq": 1,
+      "name": "海盔虫",
+      "form_name": "海盔虫_本来",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 76,
+      "seq": 2,
+      "name": "海盔虫",
+      "form_name": "海盔虫_磨损",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 77,
+      "seq": 1,
+      "name": "刺盔虫",
+      "form_name": "刺盔虫_本来",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 77,
+      "seq": 2,
+      "name": "刺盔虫",
+      "form_name": "刺盔虫_磨损",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 78,
+      "seq": 1,
+      "name": "千棘盔",
+      "form_name": "千棘盔_本来",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 78,
+      "seq": 2,
+      "name": "千棘盔",
+      "form_name": "千棘盔_磨损",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 78,
+      "seq": 3,
+      "name": "千棘盔",
+      "form_name": "千棘海针",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 79,
+      "seq": null,
+      "name": "菊花梨",
+      "form_name": "菊花梨",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 80,
+      "seq": 1,
+      "name": "小星光",
+      "form_name": "小星光_星光",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 80,
+      "seq": 2,
+      "name": "小星光",
+      "form_name": "小星光_月光",
+      "elements": [
+        "电",
+        "光"
+      ]
+    },
+    {
+      "id": 81,
+      "seq": 1,
+      "name": "星光狮",
+      "form_name": "星光狮_星光",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 81,
+      "seq": 2,
+      "name": "星光狮",
+      "form_name": "星光狮_月光",
+      "elements": [
+        "电",
+        "光"
+      ]
+    },
+    {
+      "id": 82,
+      "seq": null,
+      "name": "一窝蜂",
+      "form_name": "一窝蜂",
+      "elements": [
+        "虫",
+        "翼"
+      ]
+    },
+    {
+      "id": 83,
+      "seq": null,
+      "name": "黄蜂后",
+      "form_name": "黄蜂后",
+      "elements": [
+        "虫",
+        "翼"
+      ]
+    },
+    {
+      "id": 84,
+      "seq": 1,
+      "name": "花魁蜂后",
+      "form_name": "花魁蜂后",
+      "elements": [
+        "虫",
+        "翼"
+      ]
+    },
+    {
+      "id": 84,
+      "seq": 2,
+      "name": "花魁蜂后",
+      "form_name": "女王蜂",
+      "elements": [
+        "虫",
+        "翼"
+      ]
+    },
+    {
+      "id": 85,
+      "seq": null,
+      "name": "小夜",
+      "form_name": "小夜",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 86,
+      "seq": null,
+      "name": "紫夜",
+      "form_name": "紫夜",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 87,
+      "seq": null,
+      "name": "朔夜伊芙",
+      "form_name": "朔夜伊芙",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 88,
+      "seq": null,
+      "name": "乖乖鹄",
+      "form_name": "乖乖鹄",
+      "elements": [
+        "翼",
+        "水"
+      ]
+    },
+    {
+      "id": 89,
+      "seq": null,
+      "name": "蓝珠天鹅",
+      "form_name": "蓝珠天鹅",
+      "elements": [
+        "翼",
+        "水"
+      ]
+    },
+    {
+      "id": 90,
+      "seq": null,
+      "name": "翠顶夫人",
+      "form_name": "翠顶夫人",
+      "elements": [
+        "翼",
+        "水"
+      ]
+    },
+    {
+      "id": 91,
+      "seq": null,
+      "name": "黑羽夫人",
+      "form_name": "黑羽夫人",
+      "elements": [
+        "翼",
+        "恶"
+      ]
+    },
+    {
+      "id": 92,
+      "seq": null,
+      "name": "锤头鹳",
+      "form_name": "锤头鹳",
+      "elements": [
+        "翼",
+        "水"
+      ]
+    },
+    {
+      "id": 93,
+      "seq": null,
+      "name": "绿草精灵",
+      "form_name": "绿草精灵",
+      "elements": [
+        "草",
+        "幻"
+      ]
+    },
+    {
+      "id": 94,
+      "seq": null,
+      "name": "魔草巫灵",
+      "form_name": "魔草巫灵",
+      "elements": [
+        "草",
+        "幻"
+      ]
+    },
+    {
+      "id": 95,
+      "seq": null,
+      "name": "记忆石",
+      "form_name": "记忆石",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 96,
+      "seq": null,
+      "name": "咔咔羽毛",
+      "form_name": "咔咔羽毛",
+      "elements": [
+        "翼",
+        "普通"
+      ]
+    },
+    {
+      "id": 97,
+      "seq": null,
+      "name": "咔咔雀",
+      "form_name": "咔咔雀",
+      "elements": [
+        "翼",
+        "普通"
+      ]
+    },
+    {
+      "id": 98,
+      "seq": null,
+      "name": "咔咔鸟",
+      "form_name": "咔咔鸟",
+      "elements": [
+        "翼",
+        "普通"
+      ]
+    },
+    {
+      "id": 99,
+      "seq": null,
+      "name": "小草虫",
+      "form_name": "小草虫",
+      "elements": [
+        "虫",
+        "草"
+      ]
+    },
+    {
+      "id": 100,
+      "seq": null,
+      "name": "草衣虫",
+      "form_name": "草衣虫",
+      "elements": [
+        "虫",
+        "草"
+      ]
+    },
+    {
+      "id": 101,
+      "seq": null,
+      "name": "花衣蝶",
+      "form_name": "花衣蝶",
+      "elements": [
+        "虫",
+        "草"
+      ]
+    },
+    {
+      "id": 102,
+      "seq": null,
+      "name": "绿翼鸟",
+      "form_name": "绿翼鸟",
+      "elements": [
+        "萌",
+        "翼"
+      ]
+    },
+    {
+      "id": 103,
+      "seq": null,
+      "name": "魔翼鸟",
+      "form_name": "魔翼鸟",
+      "elements": [
+        "萌",
+        "翼"
+      ]
+    },
+    {
+      "id": 104,
+      "seq": null,
+      "name": "魔眷鸟",
+      "form_name": "魔眷鸟",
+      "elements": [
+        "萌",
+        "翼"
+      ]
+    },
+    {
+      "id": 105,
+      "seq": null,
+      "name": "阿米亚特",
+      "form_name": "阿米亚特",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 106,
+      "seq": null,
+      "name": "阿米樱",
+      "form_name": "阿米樱",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 107,
+      "seq": 1,
+      "name": "罗隐",
+      "form_name": "罗隐",
+      "elements": [
+        "地",
+        "恶"
+      ]
+    },
+    {
+      "id": 107,
+      "seq": 2,
+      "name": "罗隐",
+      "form_name": "深渊罗隐",
+      "elements": [
+        "地",
+        "恶"
+      ]
+    },
+    {
+      "id": 108,
+      "seq": null,
+      "name": "风铃鲨",
+      "form_name": "风铃鲨",
+      "elements": [
+        "水",
+        "翼"
+      ]
+    },
+    {
+      "id": 109,
+      "seq": null,
+      "name": "蓝蝶鲨",
+      "form_name": "蓝蝶鲨",
+      "elements": [
+        "水",
+        "翼"
+      ]
+    },
+    {
+      "id": 110,
+      "seq": null,
+      "name": "彩蝶鲨",
+      "form_name": "彩蝶鲨",
+      "elements": [
+        "水",
+        "翼"
+      ]
+    },
+    {
+      "id": 111,
+      "seq": null,
+      "name": "石石",
+      "form_name": "石石",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 112,
+      "seq": null,
+      "name": "巨灵石",
+      "form_name": "巨灵石",
+      "elements": [
+        "地",
+        "幽"
+      ]
+    },
+    {
+      "id": 113,
+      "seq": null,
+      "name": "仪使者",
+      "form_name": "仪使者",
+      "elements": [
+        "地",
+        "幻"
+      ]
+    },
+    {
+      "id": 114,
+      "seq": null,
+      "name": "仪式之星",
+      "form_name": "仪式之星",
+      "elements": [
+        "地",
+        "幻"
+      ]
+    },
+    {
+      "id": 115,
+      "seq": 1,
+      "name": "仪式巨像",
+      "form_name": "仪式巨像",
+      "elements": [
+        "地",
+        "幻"
+      ]
+    },
+    {
+      "id": 115,
+      "seq": 2,
+      "name": "仪式巨像",
+      "form_name": "祭礼巨像",
+      "elements": [
+        "地",
+        "幻"
+      ]
+    },
+    {
+      "id": 116,
+      "seq": null,
+      "name": "小独角兽",
+      "form_name": "小独角兽",
+      "elements": [
+        "光"
+      ]
+    },
+    {
+      "id": 117,
+      "seq": 1,
+      "name": "白金独角兽",
+      "form_name": "白金独角兽",
+      "elements": [
+        "光"
+      ]
+    },
+    {
+      "id": 117,
+      "seq": 2,
+      "name": "白金独角兽",
+      "form_name": "彩虹独角兽",
+      "elements": [
+        "光"
+      ]
+    },
+    {
+      "id": 118,
+      "seq": 1,
+      "name": "旋叶虫",
+      "form_name": "旋叶虫_金黄",
+      "elements": [
+        "普通",
+        "虫"
+      ]
+    },
+    {
+      "id": 118,
+      "seq": 2,
+      "name": "旋叶虫",
+      "form_name": "旋叶虫_枯叶",
+      "elements": [
+        "普通",
+        "虫"
+      ]
+    },
+    {
+      "id": 119,
+      "seq": 1,
+      "name": "蓬叶虫",
+      "form_name": "蓬叶虫_金黄",
+      "elements": [
+        "普通",
+        "虫"
+      ]
+    },
+    {
+      "id": 119,
+      "seq": 2,
+      "name": "蓬叶虫",
+      "form_name": "蓬叶虫_枯叶",
+      "elements": [
+        "普通",
+        "虫"
+      ]
+    },
+    {
+      "id": 120,
+      "seq": 1,
+      "name": "风滚暮虫",
+      "form_name": "风滚暮虫_金黄",
+      "elements": [
+        "普通",
+        "虫"
+      ]
+    },
+    {
+      "id": 120,
+      "seq": 2,
+      "name": "风滚暮虫",
+      "form_name": "风滚暮虫_枯叶",
+      "elements": [
+        "普通",
+        "虫"
+      ]
+    },
+    {
+      "id": 120,
+      "seq": 3,
+      "name": "风滚暮虫",
+      "form_name": "暮风隐者",
+      "elements": [
+        "普通",
+        "虫"
+      ]
+    },
+    {
+      "id": 121,
+      "seq": null,
+      "name": "小黑猫",
+      "form_name": "小黑猫",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 122,
+      "seq": 1,
+      "name": "黑猫巫师",
+      "form_name": "黑猫巫师",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 122,
+      "seq": 2,
+      "name": "黑猫巫师",
+      "form_name": "黑猫密探",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 123,
+      "seq": null,
+      "name": "忽幽狸",
+      "form_name": "忽幽狸",
+      "elements": [
+        "幽",
+        "毒"
+      ]
+    },
+    {
+      "id": 124,
+      "seq": null,
+      "name": "影狸",
+      "form_name": "影狸",
+      "elements": [
+        "幽",
+        "毒"
+      ]
+    },
+    {
+      "id": 125,
+      "seq": null,
+      "name": "多多",
+      "form_name": "多多",
+      "elements": [
+        "毒",
+        "地"
+      ]
+    },
+    {
+      "id": 126,
+      "seq": null,
+      "name": "多啦多",
+      "form_name": "多啦多",
+      "elements": [
+        "毒",
+        "地"
+      ]
+    },
+    {
+      "id": 127,
+      "seq": null,
+      "name": "古啦多",
+      "form_name": "古啦多",
+      "elements": [
+        "毒",
+        "地"
+      ]
+    },
+    {
+      "id": 128,
+      "seq": null,
+      "name": "哭哭菇",
+      "form_name": "哭哭菇",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 129,
+      "seq": null,
+      "name": "怖须菇",
+      "form_name": "怖须菇",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 130,
+      "seq": null,
+      "name": "怖哭菇",
+      "form_name": "怖哭菇",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 131,
+      "seq": 1,
+      "name": "恶魔狼",
+      "form_name": "恶魔狼",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 131,
+      "seq": 2,
+      "name": "恶魔狼",
+      "form_name": "恶魔狼王",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 132,
+      "seq": null,
+      "name": "小电企鹅",
+      "form_name": "小电企鹅",
+      "elements": [
+        "冰",
+        "电"
+      ]
+    },
+    {
+      "id": 133,
+      "seq": null,
+      "name": "电企鹅",
+      "form_name": "电企鹅",
+      "elements": [
+        "冰",
+        "电"
+      ]
+    },
+    {
+      "id": 134,
+      "seq": null,
+      "name": "雪豆丁",
+      "form_name": "雪豆丁",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 135,
+      "seq": null,
+      "name": "雪蛮人",
+      "form_name": "雪蛮人",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 136,
+      "seq": null,
+      "name": "雪巨人",
+      "form_name": "雪巨人",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 137,
+      "seq": null,
+      "name": "呼呼猪",
+      "form_name": "呼呼猪",
+      "elements": [
+        "冰",
+        "地"
+      ]
+    },
+    {
+      "id": 138,
+      "seq": null,
+      "name": "獠牙猪",
+      "form_name": "獠牙猪",
+      "elements": [
+        "冰",
+        "地"
+      ]
+    },
+    {
+      "id": 139,
+      "seq": null,
+      "name": "雪娃娃",
+      "form_name": "雪娃娃",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 140,
+      "seq": null,
+      "name": "冰封怨灵",
+      "form_name": "冰封怨灵",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 141,
+      "seq": null,
+      "name": "雪灵",
+      "form_name": "雪灵",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 142,
+      "seq": null,
+      "name": "大耳帽兜",
+      "form_name": "大耳帽兜",
+      "elements": [
+        "冰",
+        "萌"
+      ]
+    },
+    {
+      "id": 143,
+      "seq": null,
+      "name": "帽兜娃娃",
+      "form_name": "帽兜娃娃",
+      "elements": [
+        "冰",
+        "萌"
+      ]
+    },
+    {
+      "id": 144,
+      "seq": 1,
+      "name": "雪影娃娃",
+      "form_name": "雪影娃娃",
+      "elements": [
+        "冰",
+        "萌"
+      ]
+    },
+    {
+      "id": 144,
+      "seq": 2,
+      "name": "雪影娃娃",
+      "form_name": "雪影冰灵",
+      "elements": [
+        "冰",
+        "萌"
+      ]
+    },
+    {
+      "id": 145,
+      "seq": null,
+      "name": "权杖-Ⅱ",
+      "form_name": "权杖-Ⅱ",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 146,
+      "seq": null,
+      "name": "权杖-V",
+      "form_name": "权杖-V",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 147,
+      "seq": null,
+      "name": "灵狐",
+      "form_name": "灵狐",
+      "elements": [
+        "火",
+        "冰"
+      ]
+    },
+    {
+      "id": 148,
+      "seq": null,
+      "name": "九尾狐",
+      "form_name": "九尾狐",
+      "elements": [
+        "火",
+        "冰"
+      ]
+    },
+    {
+      "id": 149,
+      "seq": null,
+      "name": "尖嘴狐仙",
+      "form_name": "尖嘴狐仙",
+      "elements": [
+        "火",
+        "冰"
+      ]
+    },
+    {
+      "id": 150,
+      "seq": null,
+      "name": "里奥",
+      "form_name": "里奥",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 151,
+      "seq": null,
+      "name": "灵羽勇士",
+      "form_name": "灵羽勇士",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 152,
+      "seq": null,
+      "name": "圣羽翼王",
+      "form_name": "圣羽翼王",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 153,
+      "seq": null,
+      "name": "松仔",
+      "form_name": "松仔",
+      "elements": [
+        "草",
+        "武"
+      ]
+    },
+    {
+      "id": 154,
+      "seq": null,
+      "name": "松叶羊",
+      "form_name": "松叶羊",
+      "elements": [
+        "草",
+        "武"
+      ]
+    },
+    {
+      "id": 155,
+      "seq": null,
+      "name": "针叶巡林",
+      "form_name": "针叶巡林",
+      "elements": [
+        "草",
+        "武"
+      ]
+    },
+    {
+      "id": 156,
+      "seq": null,
+      "name": "小勇狮",
+      "form_name": "小勇狮",
+      "elements": [
+        "火",
+        "武"
+      ]
+    },
+    {
+      "id": 157,
+      "seq": null,
+      "name": "炽焰狮",
+      "form_name": "炽焰狮",
+      "elements": [
+        "火",
+        "武"
+      ]
+    },
+    {
+      "id": 158,
+      "seq": null,
+      "name": "炽心勇狮",
+      "form_name": "炽心勇狮",
+      "elements": [
+        "火",
+        "武"
+      ]
+    },
+    {
+      "id": 159,
+      "seq": null,
+      "name": "水滴蛇",
+      "form_name": "水滴蛇",
+      "elements": [
+        "水",
+        "武"
+      ]
+    },
+    {
+      "id": 160,
+      "seq": null,
+      "name": "水蛇锁",
+      "form_name": "水蛇锁",
+      "elements": [
+        "水",
+        "武"
+      ]
+    },
+    {
+      "id": 161,
+      "seq": null,
+      "name": "游蛇魔使",
+      "form_name": "游蛇魔使",
+      "elements": [
+        "水",
+        "武"
+      ]
+    },
+    {
+      "id": 162,
+      "seq": null,
+      "name": "公平鸽",
+      "form_name": "公平鸽",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 163,
+      "seq": null,
+      "name": "小怂猫",
+      "form_name": "小怂猫",
+      "elements": [
+        "武"
+      ]
+    },
+    {
+      "id": 164,
+      "seq": null,
+      "name": "怒目怂猫",
+      "form_name": "怒目怂猫",
+      "elements": [
+        "武"
+      ]
+    },
+    {
+      "id": 165,
+      "seq": 1,
+      "name": "小狮鹫",
+      "form_name": "小狮鹫_崖间地",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 165,
+      "seq": 2,
+      "name": "小狮鹫",
+      "form_name": "小狮鹫_高山",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 166,
+      "seq": 1,
+      "name": "神圣狮鹫",
+      "form_name": "神圣狮鹫_崖间地",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 166,
+      "seq": 2,
+      "name": "神圣狮鹫",
+      "form_name": "神圣狮鹫_高山",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 167,
+      "seq": 1,
+      "name": "皇家狮鹫",
+      "form_name": "皇家狮鹫_崖间地",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 167,
+      "seq": 2,
+      "name": "皇家狮鹫",
+      "form_name": "皇家狮鹫_高山",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 168,
+      "seq": null,
+      "name": "圆眼蜘蛛",
+      "form_name": "圆眼蜘蛛",
+      "elements": [
+        "虫"
+      ]
+    },
+    {
+      "id": 169,
+      "seq": null,
+      "name": "尖角蜘蛛",
+      "form_name": "尖角蜘蛛",
+      "elements": [
+        "虫",
+        "毒"
+      ]
+    },
+    {
+      "id": 170,
+      "seq": null,
+      "name": "芋香巨角蛛",
+      "form_name": "芋香巨角蛛",
+      "elements": [
+        "虫",
+        "毒"
+      ]
+    },
+    {
+      "id": 171,
+      "seq": 1,
+      "name": "波波螺",
+      "form_name": "波波螺_本来",
+      "elements": [
+        "地",
+        "水"
+      ]
+    },
+    {
+      "id": 171,
+      "seq": 2,
+      "name": "波波螺",
+      "form_name": "波波螺_污染",
+      "elements": [
+        "地",
+        "水"
+      ]
+    },
+    {
+      "id": 172,
+      "seq": 1,
+      "name": "消波螺",
+      "form_name": "消波螺_本来",
+      "elements": [
+        "地",
+        "水"
+      ]
+    },
+    {
+      "id": 172,
+      "seq": 2,
+      "name": "消波螺",
+      "form_name": "消波螺_污染",
+      "elements": [
+        "地",
+        "水"
+      ]
+    },
+    {
+      "id": 173,
+      "seq": 1,
+      "name": "嗜波螺",
+      "form_name": "嗜波螺_本来",
+      "elements": [
+        "地",
+        "水"
+      ]
+    },
+    {
+      "id": 173,
+      "seq": 2,
+      "name": "嗜波螺",
+      "form_name": "嗜波螺_污染",
+      "elements": [
+        "地",
+        "水"
+      ]
+    },
+    {
+      "id": 174,
+      "seq": null,
+      "name": "菇菇丁",
+      "form_name": "菇菇丁",
+      "elements": [
+        "地",
+        "草"
+      ]
+    },
+    {
+      "id": 175,
+      "seq": null,
+      "name": "多菇丁",
+      "form_name": "多菇丁",
+      "elements": [
+        "地",
+        "草"
+      ]
+    },
+    {
+      "id": 176,
+      "seq": null,
+      "name": "九幽菇",
+      "form_name": "九幽菇",
+      "elements": [
+        "地",
+        "草"
+      ]
+    },
+    {
+      "id": 177,
+      "seq": null,
+      "name": "斑斑",
+      "form_name": "斑斑",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 178,
+      "seq": null,
+      "name": "斑枭",
+      "form_name": "斑枭",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 179,
+      "seq": null,
+      "name": "草头鸭",
+      "form_name": "草头鸭",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 180,
+      "seq": null,
+      "name": "卷毛鸭",
+      "form_name": "卷毛鸭",
+      "elements": [
+        "草",
+        "武"
+      ]
+    },
+    {
+      "id": 181,
+      "seq": null,
+      "name": "海豹战士",
+      "form_name": "海豹战士",
+      "elements": [
+        "武",
+        "水"
+      ]
+    },
+    {
+      "id": 182,
+      "seq": null,
+      "name": "海豹船长",
+      "form_name": "海豹船长",
+      "elements": [
+        "武",
+        "水"
+      ]
+    },
+    {
+      "id": 183,
+      "seq": null,
+      "name": "号儿鱼",
+      "form_name": "号儿鱼",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 184,
+      "seq": null,
+      "name": "圆号鱼",
+      "form_name": "圆号鱼",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 185,
+      "seq": null,
+      "name": "甜田螺",
+      "form_name": "甜田螺",
+      "elements": [
+        "水",
+        "萌"
+      ]
+    },
+    {
+      "id": 186,
+      "seq": null,
+      "name": "壳乙螺",
+      "form_name": "壳乙螺",
+      "elements": [
+        "水",
+        "萌"
+      ]
+    },
+    {
+      "id": 187,
+      "seq": null,
+      "name": "卡洛儿",
+      "form_name": "卡洛儿",
+      "elements": [
+        "水",
+        "萌"
+      ]
+    },
+    {
+      "id": 188,
+      "seq": 1,
+      "name": "棋棋",
+      "form_name": "棋棋_白子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 188,
+      "seq": 2,
+      "name": "棋棋",
+      "form_name": "棋棋_黑子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 189,
+      "seq": 1,
+      "name": "棋骑士",
+      "form_name": "棋骑士_白子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 189,
+      "seq": 2,
+      "name": "棋骑士",
+      "form_name": "棋骑士_黑子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 190,
+      "seq": 1,
+      "name": "棋齐垒",
+      "form_name": "棋齐垒_白子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 190,
+      "seq": 2,
+      "name": "棋齐垒",
+      "form_name": "棋齐垒_黑子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 191,
+      "seq": 1,
+      "name": "棋祈督",
+      "form_name": "棋祈督_白子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 191,
+      "seq": 2,
+      "name": "棋祈督",
+      "form_name": "棋祈督_黑子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 192,
+      "seq": 1,
+      "name": "棋绮后",
+      "form_name": "棋绮后_白子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 192,
+      "seq": 2,
+      "name": "棋绮后",
+      "form_name": "棋绮后_黑子",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 192,
+      "seq": 3,
+      "name": "棋绮后",
+      "form_name": "棋契陛下",
+      "elements": [
+        "武",
+        "地"
+      ]
+    },
+    {
+      "id": 193,
+      "seq": null,
+      "name": "奔波鼠",
+      "form_name": "奔波鼠",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 194,
+      "seq": null,
+      "name": "流浪鼠",
+      "form_name": "流浪鼠",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 195,
+      "seq": null,
+      "name": "呆小路",
+      "form_name": "呆小路",
+      "elements": [
+        "草",
+        "萌"
+      ]
+    },
+    {
+      "id": 196,
+      "seq": null,
+      "name": "舞动路路",
+      "form_name": "舞动路路",
+      "elements": [
+        "草",
+        "萌"
+      ]
+    },
+    {
+      "id": 197,
+      "seq": null,
+      "name": "白发路路",
+      "form_name": "白发路路",
+      "elements": [
+        "草",
+        "萌"
+      ]
+    },
+    {
+      "id": 198,
+      "seq": null,
+      "name": "逗逗",
+      "form_name": "逗逗",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 199,
+      "seq": null,
+      "name": "气球猫",
+      "form_name": "气球猫",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 200,
+      "seq": 1,
+      "name": "梦想三三",
+      "form_name": "梦想三三",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 200,
+      "seq": 2,
+      "name": "梦想三三",
+      "form_name": "奇梦咪",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 201,
+      "seq": null,
+      "name": "花怨鳗",
+      "form_name": "花怨鳗",
+      "elements": [
+        "地",
+        "草"
+      ]
+    },
+    {
+      "id": 202,
+      "seq": null,
+      "name": "鳗尾兽",
+      "form_name": "鳗尾兽",
+      "elements": [
+        "地",
+        "草"
+      ]
+    },
+    {
+      "id": 203,
+      "seq": null,
+      "name": "伊雷龙",
+      "form_name": "伊雷龙",
+      "elements": [
+        "龙"
+      ]
+    },
+    {
+      "id": 204,
+      "seq": 1,
+      "name": "伊兰亚龙",
+      "form_name": "伊兰亚龙",
+      "elements": [
+        "龙"
+      ]
+    },
+    {
+      "id": 204,
+      "seq": 2,
+      "name": "伊兰亚龙",
+      "form_name": "伊兰龙",
+      "elements": [
+        "龙"
+      ]
+    },
+    {
+      "id": 205,
+      "seq": null,
+      "name": "拉特",
+      "form_name": "拉特",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 206,
+      "seq": 1,
+      "name": "酷拉",
+      "form_name": "酷拉",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 206,
+      "seq": 2,
+      "name": "酷拉",
+      "form_name": "风暴酷拉",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 207,
+      "seq": null,
+      "name": "闪电环",
+      "form_name": "闪电环",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 208,
+      "seq": null,
+      "name": "刺电环",
+      "form_name": "刺电环",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 209,
+      "seq": null,
+      "name": "荆棘电环",
+      "form_name": "荆棘电环",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 210,
+      "seq": null,
+      "name": "小箱怪",
+      "form_name": "小箱怪",
+      "elements": [
+        "机械",
+        "幻"
+      ]
+    },
+    {
+      "id": 211,
+      "seq": null,
+      "name": "迷迷箱怪",
+      "form_name": "迷迷箱怪",
+      "elements": [
+        "机械",
+        "幻"
+      ]
+    },
+    {
+      "id": 212,
+      "seq": null,
+      "name": "古钟蛇",
+      "form_name": "古钟蛇",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 213,
+      "seq": null,
+      "name": "寒音蛇",
+      "form_name": "寒音蛇",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 214,
+      "seq": null,
+      "name": "矮脚爬爬",
+      "form_name": "矮脚爬爬",
+      "elements": [
+        "虫"
+      ]
+    },
+    {
+      "id": 215,
+      "seq": null,
+      "name": "恶魔红钻",
+      "form_name": "恶魔红钻",
+      "elements": [
+        "虫",
+        "恶"
+      ]
+    },
+    {
+      "id": 216,
+      "seq": null,
+      "name": "火尾瓦特",
+      "form_name": "火尾瓦特",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 217,
+      "seq": null,
+      "name": "火尾战士",
+      "form_name": "火尾战士",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 218,
+      "seq": null,
+      "name": "烈火守护",
+      "form_name": "烈火守护",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 219,
+      "seq": null,
+      "name": "里拉鳐",
+      "form_name": "里拉鳐",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 220,
+      "seq": 1,
+      "name": "海枝枝",
+      "form_name": "海枝枝_碧蓝珊瑚",
+      "elements": [
+        "水",
+        "幽"
+      ]
+    },
+    {
+      "id": 220,
+      "seq": 2,
+      "name": "海枝枝",
+      "form_name": "海枝枝_杏黄百合",
+      "elements": [
+        "水",
+        "幽"
+      ]
+    },
+    {
+      "id": 220,
+      "seq": 3,
+      "name": "海枝枝",
+      "form_name": "海枝枝_洋红沙丁",
+      "elements": [
+        "水",
+        "幽"
+      ]
+    },
+    {
+      "id": 220,
+      "seq": 4,
+      "name": "海枝枝",
+      "form_name": "海枝枝_翠绿昆布",
+      "elements": [
+        "水",
+        "幽"
+      ]
+    },
+    {
+      "id": 221,
+      "seq": null,
+      "name": "多西",
+      "form_name": "多西",
+      "elements": [
+        "机械",
+        "地"
+      ]
+    },
+    {
+      "id": 222,
+      "seq": null,
+      "name": "库多西",
+      "form_name": "库多西",
+      "elements": [
+        "机械",
+        "地"
+      ]
+    },
+    {
+      "id": 223,
+      "seq": null,
+      "name": "波多西",
+      "form_name": "波多西",
+      "elements": [
+        "机械",
+        "地"
+      ]
+    },
+    {
+      "id": 224,
+      "seq": null,
+      "name": "小翼龙",
+      "form_name": "小翼龙",
+      "elements": [
+        "龙",
+        "翼"
+      ]
+    },
+    {
+      "id": 225,
+      "seq": null,
+      "name": "翼龙",
+      "form_name": "翼龙",
+      "elements": [
+        "龙",
+        "翼"
+      ]
+    },
+    {
+      "id": 226,
+      "seq": null,
+      "name": "电动长颈鹿",
+      "form_name": "电动长颈鹿",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 227,
+      "seq": null,
+      "name": "奔乐鹿",
+      "form_name": "奔乐鹿",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 228,
+      "seq": 1,
+      "name": "爵士鹿",
+      "form_name": "爵士鹿",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 228,
+      "seq": 2,
+      "name": "爵士鹿",
+      "form_name": "波普鹿",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 229,
+      "seq": null,
+      "name": "缇塔",
+      "form_name": "缇塔",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 230,
+      "seq": null,
+      "name": "声波缇塔",
+      "form_name": "声波缇塔",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 231,
+      "seq": null,
+      "name": "小鹬",
+      "form_name": "小鹬",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 232,
+      "seq": null,
+      "name": "鄙目鹬",
+      "form_name": "鄙目鹬",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 233,
+      "seq": 1,
+      "name": "高脚鹬",
+      "form_name": "高脚鹬",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 233,
+      "seq": 2,
+      "name": "高脚鹬",
+      "form_name": "高帽鹬者",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 234,
+      "seq": null,
+      "name": "脆筒甜甜",
+      "form_name": "脆筒甜甜",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 235,
+      "seq": 1,
+      "name": "香草甜甜",
+      "form_name": "香草甜甜_樱桃",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 235,
+      "seq": 2,
+      "name": "香草甜甜",
+      "form_name": "香草甜甜_蓝莓",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 235,
+      "seq": 3,
+      "name": "香草甜甜",
+      "form_name": "香草甜甜_杨桃",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 1,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_樱桃巧克力",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 2,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_樱桃草莓",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 3,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_樱桃抹茶",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 4,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_蓝莓巧克力",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 5,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_蓝莓草莓",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 6,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_蓝莓抹茶",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 7,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_杨桃巧克力",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 8,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_杨桃草莓",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 236,
+      "seq": 9,
+      "name": "圣代甜甜",
+      "form_name": "圣代甜甜_杨桃抹茶",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 237,
+      "seq": 1,
+      "name": "刺轮砣",
+      "form_name": "刺轮砣_下弦",
+      "elements": [
+        "毒",
+        "萌"
+      ]
+    },
+    {
+      "id": 237,
+      "seq": 2,
+      "name": "刺轮砣",
+      "form_name": "刺轮砣_上弦",
+      "elements": [
+        "毒",
+        "萌"
+      ]
+    },
+    {
+      "id": 238,
+      "seq": 1,
+      "name": "月亮砣",
+      "form_name": "月亮砣_下弦",
+      "elements": [
+        "毒",
+        "萌"
+      ]
+    },
+    {
+      "id": 238,
+      "seq": 2,
+      "name": "月亮砣",
+      "form_name": "月亮砣_上弦",
+      "elements": [
+        "毒",
+        "萌"
+      ]
+    },
+    {
+      "id": 239,
+      "seq": null,
+      "name": "豆丁鱼",
+      "form_name": "豆丁鱼",
+      "elements": [
+        "水",
+        "龙"
+      ]
+    },
+    {
+      "id": 240,
+      "seq": null,
+      "name": "快鳍鱼",
+      "form_name": "快鳍鱼",
+      "elements": [
+        "水",
+        "龙"
+      ]
+    },
+    {
+      "id": 241,
+      "seq": null,
+      "name": "龙鱼",
+      "form_name": "龙鱼",
+      "elements": [
+        "水",
+        "龙"
+      ]
+    },
+    {
+      "id": 242,
+      "seq": null,
+      "name": "胆小鳗鱼",
+      "form_name": "胆小鳗鱼",
+      "elements": [
+        "电",
+        "水"
+      ]
+    },
+    {
+      "id": 243,
+      "seq": null,
+      "name": "闪电鳗鱼",
+      "form_name": "闪电鳗鱼",
+      "elements": [
+        "电",
+        "水"
+      ]
+    },
+    {
+      "id": 244,
+      "seq": null,
+      "name": "翡翠水母",
+      "form_name": "翡翠水母",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 245,
+      "seq": null,
+      "name": "琉璃水母",
+      "form_name": "琉璃水母",
+      "elements": [
+        "水",
+        "毒"
+      ]
+    },
+    {
+      "id": 246,
+      "seq": null,
+      "name": "裘洛",
+      "form_name": "裘洛",
+      "elements": [
+        "毒"
+      ]
+    },
+    {
+      "id": 247,
+      "seq": null,
+      "name": "裘力",
+      "form_name": "裘力",
+      "elements": [
+        "毒"
+      ]
+    },
+    {
+      "id": 248,
+      "seq": null,
+      "name": "裘卡",
+      "form_name": "裘卡",
+      "elements": [
+        "毒"
+      ]
+    },
+    {
+      "id": 249,
+      "seq": null,
+      "name": "可爱猿",
+      "form_name": "可爱猿",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 250,
+      "seq": null,
+      "name": "炽热猿",
+      "form_name": "炽热猿",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 251,
+      "seq": null,
+      "name": "火焰猿",
+      "form_name": "火焰猿",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 252,
+      "seq": null,
+      "name": "布鲁斯",
+      "form_name": "布鲁斯",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 253,
+      "seq": null,
+      "name": "雪顶布鲁斯",
+      "form_name": "雪顶布鲁斯",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 254,
+      "seq": null,
+      "name": "冰钻布鲁斯",
+      "form_name": "冰钻布鲁斯",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 255,
+      "seq": null,
+      "name": "治愈兔",
+      "form_name": "治愈兔",
+      "elements": [
+        "火",
+        "萌"
+      ]
+    },
+    {
+      "id": 256,
+      "seq": null,
+      "name": "红丝绒",
+      "form_name": "红丝绒",
+      "elements": [
+        "火",
+        "萌"
+      ]
+    },
+    {
+      "id": 257,
+      "seq": null,
+      "name": "红绒十字",
+      "form_name": "红绒十字",
+      "elements": [
+        "火",
+        "萌"
+      ]
+    },
+    {
+      "id": 258,
+      "seq": 1,
+      "name": "乌达",
+      "form_name": "乌达_极昼",
+      "elements": [
+        "恶",
+        "火"
+      ]
+    },
+    {
+      "id": 258,
+      "seq": 2,
+      "name": "乌达",
+      "form_name": "乌达_极夜",
+      "elements": [
+        "恶",
+        "冰"
+      ]
+    },
+    {
+      "id": 259,
+      "seq": 1,
+      "name": "迷你乌",
+      "form_name": "迷你乌_极昼",
+      "elements": [
+        "恶",
+        "火"
+      ]
+    },
+    {
+      "id": 259,
+      "seq": 2,
+      "name": "迷你乌",
+      "form_name": "迷你乌_极夜",
+      "elements": [
+        "恶",
+        "冰"
+      ]
+    },
+    {
+      "id": 260,
+      "seq": 1,
+      "name": "乌拉塔",
+      "form_name": "乌拉塔_极昼",
+      "elements": [
+        "恶",
+        "火"
+      ]
+    },
+    {
+      "id": 260,
+      "seq": 2,
+      "name": "乌拉塔",
+      "form_name": "乌拉塔_极夜",
+      "elements": [
+        "恶",
+        "冰"
+      ]
+    },
+    {
+      "id": 261,
+      "seq": null,
+      "name": "螺旋帕帕",
+      "form_name": "螺旋帕帕",
+      "elements": [
+        "机械",
+        "翼"
+      ]
+    },
+    {
+      "id": 262,
+      "seq": null,
+      "name": "帕帕斯卡",
+      "form_name": "帕帕斯卡",
+      "elements": [
+        "机械",
+        "翼"
+      ]
+    },
+    {
+      "id": 263,
+      "seq": null,
+      "name": "机械方方",
+      "form_name": "机械方方",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 264,
+      "seq": null,
+      "name": "多彩方方",
+      "form_name": "多彩方方",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 265,
+      "seq": null,
+      "name": "立方人",
+      "form_name": "立方人",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 266,
+      "seq": null,
+      "name": "可立鸡",
+      "form_name": "可立鸡",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 267,
+      "seq": null,
+      "name": "晕晕鸡",
+      "form_name": "晕晕鸡",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 268,
+      "seq": null,
+      "name": "绅士鸡",
+      "form_name": "绅士鸡",
+      "elements": [
+        "火",
+        "武"
+      ]
+    },
+    {
+      "id": 269,
+      "seq": null,
+      "name": "武者鸡",
+      "form_name": "武者鸡",
+      "elements": [
+        "火",
+        "武"
+      ]
+    },
+    {
+      "id": 270,
+      "seq": null,
+      "name": "优优",
+      "form_name": "优优",
+      "elements": [
+        "地",
+        "光"
+      ]
+    },
+    {
+      "id": 271,
+      "seq": null,
+      "name": "绒光优优",
+      "form_name": "绒光优优",
+      "elements": [
+        "地",
+        "光"
+      ]
+    },
+    {
+      "id": 272,
+      "seq": null,
+      "name": "噼啪鸟",
+      "form_name": "噼啪鸟",
+      "elements": [
+        "电",
+        "翼"
+      ]
+    },
+    {
+      "id": 273,
+      "seq": null,
+      "name": "深蓝鲸",
+      "form_name": "深蓝鲸",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 274,
+      "seq": null,
+      "name": "格兰种子",
+      "form_name": "格兰种子",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 275,
+      "seq": null,
+      "name": "格兰花",
+      "form_name": "格兰花",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 276,
+      "seq": null,
+      "name": "格兰球",
+      "form_name": "格兰球",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 277,
+      "seq": 1,
+      "name": "地鼠",
+      "form_name": "地鼠_枯水期",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 277,
+      "seq": 2,
+      "name": "地鼠",
+      "form_name": "地鼠_储水期",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 278,
+      "seq": 1,
+      "name": "遁鼠",
+      "form_name": "遁鼠_枯水期",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 278,
+      "seq": 2,
+      "name": "遁鼠",
+      "form_name": "遁鼠_储水期",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 279,
+      "seq": 1,
+      "name": "遁地鼠",
+      "form_name": "遁地鼠_枯水期",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 279,
+      "seq": 2,
+      "name": "遁地鼠",
+      "form_name": "遁地鼠_储水期",
+      "elements": [
+        "地"
+      ]
+    },
+    {
+      "id": 280,
+      "seq": null,
+      "name": "墨鱿士",
+      "form_name": "墨鱿士",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 281,
+      "seq": null,
+      "name": "混乱鱿彩",
+      "form_name": "混乱鱿彩",
+      "elements": [
+        "幽",
+        "恶"
+      ]
+    },
+    {
+      "id": 282,
+      "seq": null,
+      "name": "秩序鱿墨",
+      "form_name": "秩序鱿墨",
+      "elements": [
+        "幽",
+        "萌"
+      ]
+    },
+    {
+      "id": 283,
+      "seq": null,
+      "name": "小甲虫",
+      "form_name": "小甲虫",
+      "elements": [
+        "虫"
+      ]
+    },
+    {
+      "id": 284,
+      "seq": null,
+      "name": "铠甲虫",
+      "form_name": "铠甲虫",
+      "elements": [
+        "虫"
+      ]
+    },
+    {
+      "id": 285,
+      "seq": null,
+      "name": "圣剑侍从",
+      "form_name": "圣剑侍从",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 286,
+      "seq": 1,
+      "name": "圣剑-X",
+      "form_name": "圣剑-X",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 286,
+      "seq": 2,
+      "name": "圣剑-X",
+      "form_name": "圣剑骑士",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 287,
+      "seq": null,
+      "name": "吸泥鸥",
+      "form_name": "吸泥鸥",
+      "elements": [
+        "地",
+        "翼"
+      ]
+    },
+    {
+      "id": 288,
+      "seq": 1,
+      "name": "泥吼牙",
+      "form_name": "泥吼牙",
+      "elements": [
+        "地",
+        "翼"
+      ]
+    },
+    {
+      "id": 288,
+      "seq": 2,
+      "name": "泥吼牙",
+      "form_name": "淤泥乌泽",
+      "elements": [
+        "地",
+        "翼"
+      ]
+    },
+    {
+      "id": 289,
+      "seq": null,
+      "name": "大头骨龙",
+      "form_name": "大头骨龙",
+      "elements": [
+        "龙",
+        "幽"
+      ]
+    },
+    {
+      "id": 290,
+      "seq": null,
+      "name": "寂灭骨龙",
+      "form_name": "寂灭骨龙",
+      "elements": [
+        "龙",
+        "幽"
+      ]
+    },
+    {
+      "id": 291,
+      "seq": null,
+      "name": "厉毒小萝",
+      "form_name": "厉毒小萝",
+      "elements": [
+        "毒",
+        "恶"
+      ]
+    },
+    {
+      "id": 292,
+      "seq": null,
+      "name": "厉毒修萝",
+      "form_name": "厉毒修萝",
+      "elements": [
+        "毒",
+        "恶"
+      ]
+    },
+    {
+      "id": 293,
+      "seq": null,
+      "name": "小帕尔",
+      "form_name": "小帕尔",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 294,
+      "seq": null,
+      "name": "帕尔萨斯",
+      "form_name": "帕尔萨斯",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 295,
+      "seq": null,
+      "name": "龙息帕尔",
+      "form_name": "龙息帕尔",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 296,
+      "seq": null,
+      "name": "毛头小蛛",
+      "form_name": "毛头小蛛",
+      "elements": [
+        "虫",
+        "地"
+      ]
+    },
+    {
+      "id": 297,
+      "seq": null,
+      "name": "捕尘长绒",
+      "form_name": "捕尘长绒",
+      "elements": [
+        "虫",
+        "地"
+      ]
+    },
+    {
+      "id": 298,
+      "seq": null,
+      "name": "食尘短绒",
+      "form_name": "食尘短绒",
+      "elements": [
+        "虫",
+        "地"
+      ]
+    },
+    {
+      "id": 299,
+      "seq": null,
+      "name": "画精灵",
+      "form_name": "画精灵",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 300,
+      "seq": null,
+      "name": "画像守护",
+      "form_name": "画像守护",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 301,
+      "seq": null,
+      "name": "画间法师手",
+      "form_name": "画间法师手",
+      "elements": [
+        "普通",
+        "幻"
+      ]
+    },
+    {
+      "id": 302,
+      "seq": null,
+      "name": "画间沉铁兽",
+      "form_name": "画间沉铁兽",
+      "elements": [
+        "普通",
+        "武"
+      ]
+    },
+    {
+      "id": 303,
+      "seq": null,
+      "name": "书魔虫",
+      "form_name": "书魔虫",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 304,
+      "seq": null,
+      "name": "书卷守护",
+      "form_name": "书卷守护",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 305,
+      "seq": null,
+      "name": "古卷执政官",
+      "form_name": "古卷执政官",
+      "elements": [
+        "普通",
+        "幻"
+      ]
+    },
+    {
+      "id": 306,
+      "seq": null,
+      "name": "古卷匣魔像",
+      "form_name": "古卷匣魔像",
+      "elements": [
+        "普通",
+        "武"
+      ]
+    },
+    {
+      "id": 307,
+      "seq": null,
+      "name": "绒绒",
+      "form_name": "绒绒",
+      "elements": [
+        "光",
+        "虫"
+      ]
+    },
+    {
+      "id": 308,
+      "seq": null,
+      "name": "小绒茧",
+      "form_name": "小绒茧",
+      "elements": [
+        "光",
+        "虫"
+      ]
+    },
+    {
+      "id": 309,
+      "seq": null,
+      "name": "绒仙子",
+      "form_name": "绒仙子",
+      "elements": [
+        "光",
+        "虫"
+      ]
+    },
+    {
+      "id": 310,
+      "seq": null,
+      "name": "犀角鸟",
+      "form_name": "犀角鸟",
+      "elements": [
+        "光"
+      ]
+    },
+    {
+      "id": 311,
+      "seq": null,
+      "name": "光纤兽",
+      "form_name": "光纤兽",
+      "elements": [
+        "光"
+      ]
+    },
+    {
+      "id": 312,
+      "seq": null,
+      "name": "疾光干兽",
+      "form_name": "疾光干兽",
+      "elements": [
+        "光"
+      ]
+    },
+    {
+      "id": 313,
+      "seq": null,
+      "name": "果冻",
+      "form_name": "果冻",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 314,
+      "seq": null,
+      "name": "抹茶布丁",
+      "form_name": "抹茶布丁",
+      "elements": [
+        "水",
+        "草"
+      ]
+    },
+    {
+      "id": 315,
+      "seq": null,
+      "name": "椰浆布丁",
+      "form_name": "椰浆布丁",
+      "elements": [
+        "水",
+        "冰"
+      ]
+    },
+    {
+      "id": 316,
+      "seq": null,
+      "name": "熔岩布丁",
+      "form_name": "熔岩布丁",
+      "elements": [
+        "水",
+        "火"
+      ]
+    },
+    {
+      "id": 317,
+      "seq": null,
+      "name": "星尘虫",
+      "form_name": "星尘虫",
+      "elements": [
+        "虫"
+      ]
+    },
+    {
+      "id": 318,
+      "seq": null,
+      "name": "落星虫",
+      "form_name": "落星虫",
+      "elements": [
+        "虫"
+      ]
+    },
+    {
+      "id": 319,
+      "seq": null,
+      "name": "陨星虫",
+      "form_name": "陨星虫",
+      "elements": [
+        "虫"
+      ]
+    },
+    {
+      "id": 320,
+      "seq": null,
+      "name": "双灯鱼",
+      "form_name": "双灯鱼",
+      "elements": [
+        "水",
+        "电"
+      ]
+    },
+    {
+      "id": 321,
+      "seq": null,
+      "name": "利灯鱼",
+      "form_name": "利灯鱼",
+      "elements": [
+        "水",
+        "电"
+      ]
+    },
+    {
+      "id": 322,
+      "seq": null,
+      "name": "月牙雪熊",
+      "form_name": "月牙雪熊",
+      "elements": [
+        "冰",
+        "幻"
+      ]
+    },
+    {
+      "id": 323,
+      "seq": null,
+      "name": "嗜光嗡嗡",
+      "form_name": "嗜光嗡嗡",
+      "elements": [
+        "恶",
+        "光"
+      ]
+    },
+    {
+      "id": 324,
+      "seq": null,
+      "name": "窃光蚊",
+      "form_name": "窃光蚊",
+      "elements": [
+        "恶",
+        "光"
+      ]
+    },
+    {
+      "id": 325,
+      "seq": null,
+      "name": "柴渣虫",
+      "form_name": "柴渣虫",
+      "elements": [
+        "火",
+        "草"
+      ]
+    },
+    {
+      "id": 326,
+      "seq": null,
+      "name": "燃薪虫",
+      "form_name": "燃薪虫",
+      "elements": [
+        "火",
+        "草"
+      ]
+    },
+    {
+      "id": 327,
+      "seq": null,
+      "name": "空空颅",
+      "form_name": "空空颅",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 328,
+      "seq": null,
+      "name": "夜宿颅",
+      "form_name": "夜宿颅",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 329,
+      "seq": 1,
+      "name": "夜枭",
+      "form_name": "夜枭",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 329,
+      "seq": 2,
+      "name": "夜枭",
+      "form_name": "暗夜颅主",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 330,
+      "seq": null,
+      "name": "粉粉星",
+      "form_name": "粉粉星",
+      "elements": [
+        "电",
+        "幻"
+      ]
+    },
+    {
+      "id": 331,
+      "seq": null,
+      "name": "小皮球",
+      "form_name": "小皮球",
+      "elements": [
+        "电",
+        "幻"
+      ]
+    },
+    {
+      "id": 332,
+      "seq": null,
+      "name": "贝瑟",
+      "form_name": "贝瑟",
+      "elements": [
+        "机械",
+        "火"
+      ]
+    },
+    {
+      "id": 333,
+      "seq": null,
+      "name": "贝加尔",
+      "form_name": "贝加尔",
+      "elements": [
+        "机械",
+        "火"
+      ]
+    },
+    {
+      "id": 334,
+      "seq": null,
+      "name": "贝古斯",
+      "form_name": "贝古斯",
+      "elements": [
+        "机械",
+        "火"
+      ]
+    },
+    {
+      "id": 335,
+      "seq": null,
+      "name": "粉星仔",
+      "form_name": "粉星仔",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 336,
+      "seq": null,
+      "name": "粉耳星兔",
+      "form_name": "粉耳星兔",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 337,
+      "seq": null,
+      "name": "落陨星兔",
+      "form_name": "落陨星兔",
+      "elements": [
+        "幻",
+        "幽"
+      ]
+    },
+    {
+      "id": 338,
+      "seq": null,
+      "name": "布瓜蝌",
+      "form_name": "布瓜蝌",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 339,
+      "seq": null,
+      "name": "上岸蛙",
+      "form_name": "上岸蛙",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 340,
+      "seq": null,
+      "name": "火红尾",
+      "form_name": "火红尾",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 341,
+      "seq": null,
+      "name": "雅丹鬃",
+      "form_name": "雅丹鬃",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 342,
+      "seq": null,
+      "name": "春团",
+      "form_name": "春团",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 343,
+      "seq": null,
+      "name": "春兔",
+      "form_name": "春兔",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 344,
+      "seq": null,
+      "name": "春花兔",
+      "form_name": "春花兔",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 345,
+      "seq": null,
+      "name": "幽星光",
+      "form_name": "幽星光",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 346,
+      "seq": null,
+      "name": "曜星光",
+      "form_name": "曜星光",
+      "elements": [
+        "幻",
+        "翼"
+      ]
+    },
+    {
+      "id": 347,
+      "seq": null,
+      "name": "暮星辰",
+      "form_name": "暮星辰",
+      "elements": [
+        "幻",
+        "翼"
+      ]
+    },
+    {
+      "id": 348,
+      "seq": null,
+      "name": "钨丝贝贝",
+      "form_name": "钨丝贝贝",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 349,
+      "seq": null,
+      "name": "辉光幕机",
+      "form_name": "辉光幕机",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 350,
+      "seq": null,
+      "name": "机幕方舟",
+      "form_name": "机幕方舟",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 351,
+      "seq": null,
+      "name": "凡雀",
+      "form_name": "凡雀",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 352,
+      "seq": null,
+      "name": "紫翎鹰",
+      "form_name": "紫翎鹰",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 353,
+      "seq": null,
+      "name": "凡鹰",
+      "form_name": "凡鹰",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 354,
+      "seq": null,
+      "name": "小雪人",
+      "form_name": "小雪人",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 355,
+      "seq": null,
+      "name": "雪怪",
+      "form_name": "雪怪",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 356,
+      "seq": null,
+      "name": "爆焰仔",
+      "form_name": "爆焰仔",
+      "elements": [
+        "火",
+        "龙"
+      ]
+    },
+    {
+      "id": 357,
+      "seq": null,
+      "name": "爆焰喷喷",
+      "form_name": "爆焰喷喷",
+      "elements": [
+        "火",
+        "龙"
+      ]
+    },
+    {
+      "id": 358,
+      "seq": null,
+      "name": "猴麦仔",
+      "form_name": "猴麦仔",
+      "elements": [
+        "普通",
+        "机械"
+      ]
+    },
+    {
+      "id": 359,
+      "seq": null,
+      "name": "音碟吼",
+      "form_name": "音碟吼",
+      "elements": [
+        "普通",
+        "机械"
+      ]
+    },
+    {
+      "id": 360,
+      "seq": null,
+      "name": "加油海葵",
+      "form_name": "加油海葵",
+      "elements": [
+        "水",
+        "萌"
+      ]
+    },
+    {
+      "id": 361,
+      "seq": 1,
+      "name": "加油蟹",
+      "form_name": "加油蟹_两只海葵",
+      "elements": [
+        "水",
+        "萌"
+      ]
+    },
+    {
+      "id": 361,
+      "seq": 2,
+      "name": "加油蟹",
+      "form_name": "加油蟹_单只海葵",
+      "elements": [
+        "水",
+        "萌"
+      ]
+    },
+    {
+      "id": 362,
+      "seq": null,
+      "name": "小丑豆豆",
+      "form_name": "小丑豆豆",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 363,
+      "seq": null,
+      "name": "小丑兔",
+      "form_name": "小丑兔",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 364,
+      "seq": null,
+      "name": "小丑公爵",
+      "form_name": "小丑公爵",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 365,
+      "seq": null,
+      "name": "烟花团",
+      "form_name": "烟花团",
+      "elements": [
+        "火",
+        "毒"
+      ]
+    },
+    {
+      "id": 366,
+      "seq": null,
+      "name": "烟花伯爵",
+      "form_name": "烟花伯爵",
+      "elements": [
+        "火",
+        "毒"
+      ]
+    },
+    {
+      "id": 367,
+      "seq": null,
+      "name": "咕咕帽",
+      "form_name": "咕咕帽",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 368,
+      "seq": null,
+      "name": "咕德帽帽",
+      "form_name": "咕德帽帽",
+      "elements": [
+        "幽"
+      ]
+    },
+    {
+      "id": 369,
+      "seq": null,
+      "name": "炫光迪迪",
+      "form_name": "炫光迪迪",
+      "elements": [
+        "电",
+        "光"
+      ]
+    },
+    {
+      "id": 370,
+      "seq": null,
+      "name": "霹雳迪迪",
+      "form_name": "霹雳迪迪",
+      "elements": [
+        "电",
+        "光"
+      ]
+    },
+    {
+      "id": 371,
+      "seq": null,
+      "name": "小鼓象",
+      "form_name": "小鼓象",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 372,
+      "seq": null,
+      "name": "巨鼓象",
+      "form_name": "巨鼓象",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 373,
+      "seq": null,
+      "name": "牵线木偶",
+      "form_name": "牵线木偶",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 374,
+      "seq": null,
+      "name": "帅帅魔偶",
+      "form_name": "帅帅魔偶",
+      "elements": [
+        "幻"
+      ]
+    },
+    {
+      "id": 375,
+      "seq": null,
+      "name": "学院呱呱",
+      "form_name": "学院呱呱",
+      "elements": [
+        "武"
+      ]
+    },
+    {
+      "id": 376,
+      "seq": null,
+      "name": "烈钻鸟",
+      "form_name": "烈钻鸟",
+      "elements": [
+        "火",
+        "翼"
+      ]
+    },
+    {
+      "id": 377,
+      "seq": null,
+      "name": "长尾火鸟",
+      "form_name": "长尾火鸟",
+      "elements": [
+        "火",
+        "翼"
+      ]
+    },
+    {
+      "id": 378,
+      "seq": null,
+      "name": "火羽",
+      "form_name": "火羽",
+      "elements": [
+        "火",
+        "翼"
+      ]
+    },
+    {
+      "id": 379,
+      "seq": null,
+      "name": "叮叮卯",
+      "form_name": "叮叮卯",
+      "elements": [
+        "机械",
+        "虫"
+      ]
+    },
+    {
+      "id": 380,
+      "seq": null,
+      "name": "飞飞钥",
+      "form_name": "飞飞钥",
+      "elements": [
+        "机械",
+        "虫"
+      ]
+    },
+    {
+      "id": 381,
+      "seq": null,
+      "name": "碎晶蝎",
+      "form_name": "碎晶蝎",
+      "elements": [
+        "恶",
+        "地"
+      ]
+    },
+    {
+      "id": 382,
+      "seq": null,
+      "name": "晶尾蝎",
+      "form_name": "晶尾蝎",
+      "elements": [
+        "恶",
+        "地"
+      ]
+    },
+    {
+      "id": 383,
+      "seq": null,
+      "name": "蝎子王",
+      "form_name": "蝎子王",
+      "elements": [
+        "恶",
+        "地"
+      ]
+    },
+    {
+      "id": 384,
+      "seq": null,
+      "name": "森豆丁",
+      "form_name": "森豆丁",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 385,
+      "seq": null,
+      "name": "森蛮人",
+      "form_name": "森蛮人",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 386,
+      "seq": null,
+      "name": "森巨人",
+      "form_name": "森巨人",
+      "elements": [
+        "草"
+      ]
+    },
+    {
+      "id": 387,
+      "seq": null,
+      "name": "霹雳宝宝",
+      "form_name": "霹雳宝宝",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 388,
+      "seq": null,
+      "name": "雷鸣小子",
+      "form_name": "雷鸣小子",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 389,
+      "seq": null,
+      "name": "雷神之子",
+      "form_name": "雷神之子",
+      "elements": [
+        "电"
+      ]
+    },
+    {
+      "id": 390,
+      "seq": null,
+      "name": "雪灵兽",
+      "form_name": "雪灵兽",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 391,
+      "seq": null,
+      "name": "幻雪兽",
+      "form_name": "幻雪兽",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 392,
+      "seq": null,
+      "name": "饮雪狂兽",
+      "form_name": "饮雪狂兽",
+      "elements": [
+        "冰"
+      ]
+    },
+    {
+      "id": 393,
+      "seq": null,
+      "name": "火豆丁",
+      "form_name": "火豆丁",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 394,
+      "seq": null,
+      "name": "火蛮人",
+      "form_name": "火蛮人",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 395,
+      "seq": null,
+      "name": "火巨人",
+      "form_name": "火巨人",
+      "elements": [
+        "火"
+      ]
+    },
+    {
+      "id": 396,
+      "seq": null,
+      "name": "友爱天天",
+      "form_name": "友爱天天",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 397,
+      "seq": null,
+      "name": "友爱星飞",
+      "form_name": "友爱星飞",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 398,
+      "seq": null,
+      "name": "莫比乌乌",
+      "form_name": "莫比乌乌",
+      "elements": [
+        "龙",
+        "萌"
+      ]
+    },
+    {
+      "id": 399,
+      "seq": null,
+      "name": "克莱因龙",
+      "form_name": "克莱因龙",
+      "elements": [
+        "龙",
+        "萌"
+      ]
+    },
+    {
+      "id": 400,
+      "seq": null,
+      "name": "瑰眼仔",
+      "form_name": "瑰眼仔",
+      "elements": [
+        "恶",
+        "虫"
+      ]
+    },
+    {
+      "id": 401,
+      "seq": null,
+      "name": "耳翎瑰魅",
+      "form_name": "耳翎瑰魅",
+      "elements": [
+        "恶",
+        "虫"
+      ]
+    },
+    {
+      "id": 402,
+      "seq": null,
+      "name": "邪眼巨魔",
+      "form_name": "邪眼巨魔",
+      "elements": [
+        "恶",
+        "虫"
+      ]
+    },
+    {
+      "id": 403,
+      "seq": null,
+      "name": "觅觅蝠",
+      "form_name": "觅觅蝠",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 404,
+      "seq": null,
+      "name": "翻翻蝠",
+      "form_name": "翻翻蝠",
+      "elements": [
+        "翼"
+      ]
+    },
+    {
+      "id": 405,
+      "seq": null,
+      "name": "夜游魔",
+      "form_name": "夜游魔",
+      "elements": [
+        "翼",
+        "恶"
+      ]
+    },
+    {
+      "id": 406,
+      "seq": null,
+      "name": "芽眼魔",
+      "form_name": "芽眼魔",
+      "elements": [
+        "恶",
+        "水"
+      ]
+    },
+    {
+      "id": 407,
+      "seq": null,
+      "name": "叶眼魔",
+      "form_name": "叶眼魔",
+      "elements": [
+        "恶",
+        "水"
+      ]
+    },
+    {
+      "id": 408,
+      "seq": null,
+      "name": "障眼魔",
+      "form_name": "障眼魔",
+      "elements": [
+        "恶",
+        "水"
+      ]
+    },
+    {
+      "id": 409,
+      "seq": null,
+      "name": "星云旅者",
+      "form_name": "星云旅者",
+      "elements": [
+        "翼",
+        "幻"
+      ]
+    },
+    {
+      "id": 410,
+      "seq": null,
+      "name": "点点",
+      "form_name": "点点",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 411,
+      "seq": null,
+      "name": "珀尔鼬",
+      "form_name": "珀尔鼬",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 412,
+      "seq": null,
+      "name": "不咕钟",
+      "form_name": "不咕钟",
+      "elements": [
+        "机械",
+        "幻"
+      ]
+    },
+    {
+      "id": 413,
+      "seq": null,
+      "name": "溯源钟",
+      "form_name": "溯源钟",
+      "elements": [
+        "机械",
+        "幻"
+      ]
+    },
+    {
+      "id": 414,
+      "seq": null,
+      "name": "加灵",
+      "form_name": "加灵",
+      "elements": [
+        "普通",
+        "萌"
+      ]
+    },
+    {
+      "id": 415,
+      "seq": null,
+      "name": "加益",
+      "form_name": "加益",
+      "elements": [
+        "普通",
+        "萌"
+      ]
+    },
+    {
+      "id": 416,
+      "seq": null,
+      "name": "加尔",
+      "form_name": "加尔",
+      "elements": [
+        "普通",
+        "萌"
+      ]
+    },
+    {
+      "id": 417,
+      "seq": null,
+      "name": "黑化加尔",
+      "form_name": "黑化加尔",
+      "elements": [
+        "普通",
+        "幽"
+      ]
+    },
+    {
+      "id": 418,
+      "seq": null,
+      "name": "咬咬小子",
+      "form_name": "咬咬小子",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 419,
+      "seq": null,
+      "name": "胡桃王子",
+      "form_name": "胡桃王子",
+      "elements": [
+        "机械"
+      ]
+    },
+    {
+      "id": 420,
+      "seq": null,
+      "name": "足尖元件",
+      "form_name": "足尖元件",
+      "elements": [
+        "幻",
+        "机械"
+      ]
+    },
+    {
+      "id": 421,
+      "seq": null,
+      "name": "离心舞者",
+      "form_name": "离心舞者",
+      "elements": [
+        "幻",
+        "机械"
+      ]
+    },
+    {
+      "id": 422,
+      "seq": null,
+      "name": "蝴蝶陶陶",
+      "form_name": "蝴蝶陶陶",
+      "elements": [
+        "萌"
+      ]
+    },
+    {
+      "id": 423,
+      "seq": null,
+      "name": "铆钉毛毛",
+      "form_name": "铆钉毛毛",
+      "elements": [
+        "萌",
+        "毒"
+      ]
+    },
+    {
+      "id": 424,
+      "seq": null,
+      "name": "徘徊爪爪",
+      "form_name": "徘徊爪爪",
+      "elements": [
+        "萌",
+        "毒"
+      ]
+    },
+    {
+      "id": 425,
+      "seq": null,
+      "name": "苞米仔",
+      "form_name": "苞米仔",
+      "elements": [
+        "草",
+        "火"
+      ]
+    },
+    {
+      "id": 426,
+      "seq": null,
+      "name": "炮米花",
+      "form_name": "炮米花",
+      "elements": [
+        "草",
+        "火"
+      ]
+    },
+    {
+      "id": 427,
+      "seq": null,
+      "name": "十字蝌蚪",
+      "form_name": "十字蝌蚪",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 428,
+      "seq": null,
+      "name": "十字蛙",
+      "form_name": "十字蛙",
+      "elements": [
+        "水"
+      ]
+    },
+    {
+      "id": 429,
+      "seq": null,
+      "name": "深渊蛙",
+      "form_name": "深渊蛙",
+      "elements": [
+        "水",
+        "武"
+      ]
+    },
+    {
+      "id": 430,
+      "seq": null,
+      "name": "卡波",
+      "form_name": "卡波",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 431,
+      "seq": null,
+      "name": "卡拉波斯",
+      "form_name": "卡拉波斯",
+      "elements": [
+        "恶"
+      ]
+    },
+    {
+      "id": 432,
+      "seq": null,
+      "name": "守夜烛",
+      "form_name": "守夜烛",
+      "elements": [
+        "火",
+        "光"
+      ]
+    },
+    {
+      "id": 433,
+      "seq": null,
+      "name": "流明坎德拉",
+      "form_name": "流明坎德拉",
+      "elements": [
+        "火",
+        "光"
+      ]
+    },
+    {
+      "id": 434,
+      "seq": null,
+      "name": "蜜果骸",
+      "form_name": "蜜果骸",
+      "elements": [
+        "幽",
+        "草"
+      ]
+    },
+    {
+      "id": 435,
+      "seq": null,
+      "name": "半朽蜜果灵",
+      "form_name": "半朽蜜果灵",
+      "elements": [
+        "幽",
+        "草"
+      ]
+    },
+    {
+      "id": 436,
+      "seq": null,
+      "name": "稻草人",
+      "form_name": "稻草人",
+      "elements": [
+        "萌",
+        "武"
+      ]
+    },
+    {
+      "id": 437,
+      "seq": null,
+      "name": "稻草守护者",
+      "form_name": "稻草守护者",
+      "elements": [
+        "萌",
+        "武"
+      ]
+    },
+    {
+      "id": 438,
+      "seq": null,
+      "name": "栗鼠",
+      "form_name": "栗鼠",
+      "elements": [
+        "毒"
+      ]
+    },
+    {
+      "id": 439,
+      "seq": null,
+      "name": "壳栗丝鼠",
+      "form_name": "壳栗丝鼠",
+      "elements": [
+        "毒"
+      ]
+    },
+    {
+      "id": 440,
+      "seq": null,
+      "name": "睡铃雪影娃娃",
+      "form_name": "睡铃雪影娃娃",
+      "elements": [
+        "冰",
+        "草"
+      ]
+    },
+    {
+      "id": 441,
+      "seq": null,
+      "name": "宝藏小狐",
+      "form_name": "宝藏小狐",
+      "elements": [
+        "普通"
+      ]
+    },
+    {
+      "id": 442,
+      "seq": null,
+      "name": "宝藏沙狐",
+      "form_name": "宝藏沙狐",
+      "elements": [
+        "普通"
+      ]
+    }
+  ]
+}
