@@ -638,7 +638,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   <span>免责与开发者声明</span>
                 </div>
                 <p className="leading-relaxed text-slate-500 text-[10px]">
-                  本工具为<strong>个人玩家独立开发</strong>的辅助工具，<strong>纯属个人爱好与学习交流，绝无任何商业盈利行为</strong>。应用内所有游戏相关素材、版权及名称归腾讯公司《洛克王国》所有。
+                  本工具为<strong>个人玩家独立开发</strong>的辅助工具，<strong>纯属个人爱好与学习交流，绝无任何商业盈利行为</strong>。应用内所有游戏相关素材、版权及名称归腾讯公司《洛克王国：世界》所有。
                 </p>
               </div>
             </div>
