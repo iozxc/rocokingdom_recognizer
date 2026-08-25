@@ -9,7 +9,7 @@ from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
 from core.services.trials import get_trial
 from core.services.trial_filter import filter_candidates_by_trial
-from core.utils import get_top_k_matches, get_icon_file_name, strip_id_prefix
+from core.utils import get_top_k_matches, get_icon_file_name
 from core.logger import logger
 
 bp = Blueprint("predict", __name__)
@@ -38,7 +38,9 @@ def ocr_top_k_match(image, map_num, top_k=6, trial_key="grass"):
 
     final_ocr_results = []
     for item in raw_result_list:
-        file_name = strip_id_prefix(get_icon_file_name(map_key, item['name'], trial_key))
+        # 保留完整数据集文件名（含 id 与形态序号），供 /icons/<filename> 直接查库；
+        # 展示名由前端用 matchedPet.name（/icons 已剥离）或 formatPetName 处理。
+        file_name = get_icon_file_name(map_key, item['name'], trial_key)
 
         if file_name:
             final_ocr_results.append({
@@ -207,8 +209,10 @@ def predict_batch():
                 else:
                     # 全图鉴匹配时多取候选，白名单过滤后仍能凑够 topk
                     match_pool_k = max(top_k * 4, 24)
-                    feat_results, err = recognizer.match(icon_img, threshold, top_k=match_pool_k)
-                if feat_results is None: feat_results = []
+                    raw_feat, err = recognizer.match(icon_img, threshold, top_k=match_pool_k)
+                    feat_results = filter_candidates_by_trial(
+                        raw_feat, trial_key, map_name=map_name
+                    )
 
             # B. 获取 OCR 文字进行模糊匹配
             ocr_match_results = []
@@ -219,13 +223,18 @@ def predict_batch():
                 for m in matches:
                     # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
                     # 或者当没有图像块可用时，也接受这个结果
-                    file_name = strip_id_prefix(get_icon_file_name(map_name, m['name'], trial_key))
+                    file_name = get_icon_file_name(map_name, m['name'], trial_key)
                     if file_name:
                         ocr_match_results.append({
                             "match_path": file_name,
                             "filename": os.path.basename(file_name),
                             "score": m['score']
                         })
+
+            # B'  OCR 结果也按当前 map 白名单过滤
+            ocr_match_results = filter_candidates_by_trial(
+                ocr_match_results, trial_key, map_name=map_name
+            )
 
             # C. 合并与去重 (按文件名去重，保留最高分)
             unique_results = {}
@@ -236,9 +245,6 @@ def predict_batch():
 
             # 排序并截断
             final_candidates = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)
-            final_candidates = filter_candidates_by_trial(
-                final_candidates, trial_key, map_name=map_name
-            )
             final_candidates = final_candidates[:top_k]
 
             # 剔除逻辑：多于1个结果时剔除最低分
