@@ -10,19 +10,31 @@ from PIL import Image
 
 from core.icon_names import sprite_to_file
 from core.logger import logger
+from core.pet_path import format_display_name, split_pet_filename
 
 
 _ID_PREFIX_RE = re.compile(r"^\d+_(.*)$")
 
 
 def strip_id_prefix(name):
-    """去掉数据集文件名/精灵名开头的数字 id 前缀。
+    """去掉数据集文件名/精灵名开头的数字 id 前缀与形态序号，保留展示名。
 
-    '013_咔咔壳_蜕皮.png' -> '咔咔壳_蜕皮.png'；
-    '咔咔壳_蜕皮.png' 或 '咔咔壳_蜕皮' 等无数字前缀的名字原样返回。
+    '001_01_迪莫.png'   -> '迪莫.png'
+    '001_02_圣草迪莫.png' -> '圣草迪莫.png'
+    '013_咔咔壳_蜕皮.png'  -> '咔咔壳_蜕皮.png'
+    '咔咔壳_蜕皮.png'（无数字前缀）原样返回。
+
+    兼容多形态序号：新命名 <id>_<序号>_<名字> 会把 id 和序号一并去掉。
     """
     if not name:
         return name
+    # 解析出 (id, seq, name, ext)，去掉 id 与形态序号，保留原扩展名。
+    info = split_pet_filename(name)
+    if info is not None and info.get("id") is not None:
+        display = info["name"] or ""
+        ext = "." + info["ext"] if info.get("ext") else ""
+        return display + ext
+    # 退化：若走不通（如带 .png 但解析异常），用旧逻辑去掉 id 前缀。
     m = _ID_PREFIX_RE.match(name)
     return m.group(1) if m else name
 
