@@ -163,11 +163,12 @@ TRIALS = [
 # 全图鉴唯一数据源（含 id/seq/name/form_name/elements）
 POKEDEX_JSON = get_resource_path(os.path.join('datasets', 'roco_all_pets_info.json'))
 DATASETS_PETS = get_resource_path(os.path.join('datasets', 'datasets.db'))
-DATA_JSON = get_external_path('roco_user_data.json')
-MANIFEST_JSON = get_resource_path('file_manifest.json')
-RENAMES_JSON = get_resource_path('pet_renames.json')
+RENAMES_JSON = get_resource_path(os.path.join('datasets', 'pet_renames.json'))
 OCR_CORRECTIONS_JSON = get_resource_path(os.path.join('datasets', 'ocr_corrections.json'))
 DATA_MANIFEST_JSON = get_resource_path(os.path.join("datasets", "data_manifest.json"))
+DATA_JSON = get_external_path('roco_user_data.json')
+MANIFEST_JSON = get_resource_path('file_manifest.json')
+
 
 # 全局模型
 # 全图鉴图标特征库：识别统一用它，具体试炼的 topk 过滤由服务端按白名单完成
