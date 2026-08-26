@@ -1,38 +1,46 @@
 {
-  "version": "1.3.3",
+  "version": "1.4.0",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
   "update_log": "全图鉴精灵识别：统一识别全图鉴精灵，自动过滤不在图鉴内的精灵\n支持按图鉴编号搜索，首页、全域搜索、批量识别等所有搜索入口均可直接输入 id\n精灵卡片新增编号角标与右键菜单（精灵详情 / 反馈错误），详情页展示遇见时间与置信度。启动提速：识别模型改为按需加载，首次打开明显更快",
   "auto_update": {
-    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.3/",
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.0/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "14a26709ff13aaa7da09e82a327eb34d",
+        "md5": "4c1ee918c72a087d24ab676263028ce9",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "8a56672c5a6c31eb11cb27de753d431f",
+        "md5": "c10aa90b2809556a354d25e381f0cc10",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "1b497eaaf50524aa23d9a634cd0dea83",
-        "size": 31074869
+        "md5": "85c54000c44de23c9563d0ea694217c1",
+        "size": 29860784
       }
     ]
   },
   "deltas": [
     {
+      "base_version": "1.3.3",
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.0/RocoKingdomRecognizer_delta_1.3.3.7z",
+      "md5": "4023b507aaa9ed2c085171063610bf7e",
+      "size": 117029300,
+      "changed": 32,
+      "removed": 5
+    },
+    {
       "base_version": "1.3.2",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.3.3/RocoKingdomRecognizer_delta_1.3.2.7z",
-      "md5": "54a8820d84a9332d54b0d872f0c9d092",
-      "size": 48283999,
-      "changed": 943,
-      "removed": 10
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.0/RocoKingdomRecognizer_delta_1.3.2.7z",
+      "md5": "9d0194f28750f408a574861bb7647aff",
+      "size": 133567378,
+      "changed": 965,
+      "removed": 13
     }
   ]
 }
