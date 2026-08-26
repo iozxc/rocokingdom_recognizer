@@ -36,4 +36,24 @@ if (existsSync(srcElements)) {
   }
 }
 
-console.log('[copy-to-static] 已同步: static/index.html + static/assets/* + static/elements/*');
+// 同步地图切片目录（frontend/public/map -> dist/map -> static/map）
+function copyFolderRecursive(src, dst) {
+  if (!existsSync(src)) return;
+  mkdirSync(dst, { recursive: true });
+  for (const item of readdirSync(src, { withFileTypes: true })) {
+    const srcPath = join(src, item.name);
+    const dstPath = join(dst, item.name);
+    if (item.isDirectory()) {
+      copyFolderRecursive(srcPath, dstPath);
+    } else {
+      copyFileSync(srcPath, dstPath);
+    }
+  }
+}
+const srcMap = join(distDir, 'map');
+const dstMap = join(staticDir, 'map');
+if (existsSync(srcMap)) {
+  copyFolderRecursive(srcMap, dstMap);
+}
+
+console.log('[copy-to-static] 已同步: static/index.html + static/assets/* + static/elements/* + static/map/*');

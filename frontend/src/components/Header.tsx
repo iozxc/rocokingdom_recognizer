@@ -28,6 +28,8 @@ interface HeaderProps {
     showMapNav?: boolean;
     mapsConfig?: MapConfig[];
     devBadge?: boolean;
+    rightStatus?: React.ReactNode;
+    centerStatus?: React.ReactNode;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -45,6 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
                                                   showMapNav = true,
                                                   mapsConfig,
                                                   devBadge,
+                                                  rightStatus,
+                                                  centerStatus,
                                               }) => {
     const updateState = useUpdateStore();
     const isBusyDownloading =
@@ -62,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
     return (
         <header className="bg-[#7ABCF4] border-b-4 border-[#5DA8E8] sticky top-0 z-30 shadow-md text-white">
             <div className="mx-auto px-8 sm:px-16 py-2.5">
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
+                <div className="relative flex flex-col lg:flex-row items-center justify-between gap-3">
                     {/* Logo & Kingdom Branding */}
                     <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
                         <div
@@ -121,6 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                         {/* Mobile Actions: Feedback, Update, Sound & Settings */}
                         <div className="lg:hidden flex items-center gap-1.5">
+                            {rightStatus}
                             {onOpenFeedback && (
                                 <button
                                     id="feedback-toggle-btn-mobile"
@@ -189,8 +194,14 @@ export const Header: React.FC<HeaderProps> = ({
                         </div>
                     </div>
 
+                    {centerStatus && (
+                        <div className="lg:absolute lg:left-1/2 lg:-translate-x-1/2 z-10">
+                            {centerStatus}
+                        </div>
+                    )}
+
                     {/* Map Nav Buttons with Individual Counts */}
-                    <div className={`flex items-center gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full ${showMapNav ? '' : 'invisible'}`}>
+                    {showMapNav && <div className="flex items-center gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full">
                         {(mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS).map((map) => {
                             const isActive = activeMapNum === map.num;
                             const mapStat = mapsStats.find((s) => s.num === map.num);
@@ -235,10 +246,11 @@ export const Header: React.FC<HeaderProps> = ({
                                 </button>
                             );
                         })}
-                    </div>
+                    </div>}
 
                     {/* Right Action: Feedback, Check Update, Sound Toggle & Settings */}
                     <div className="hidden lg:flex items-center gap-2">
+                        {rightStatus}
                         {onOpenFeedback && (
                             <button
                                 id="feedback-toggle-btn"

@@ -16,7 +16,8 @@ import { DataUpdateModal } from './components/DataUpdateModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
-import { FireBadgeTrial } from './components/FireBadgeTrial';
+import { FireBadgeTrial } from './components/Trial/FireBadgeTrial';
+import { MapAwareness } from './components/Tool/MapAwareness';
 import { MAP_CONFIGS } from './data/mockPets';
 import { resolveTrialMaps } from './data/trials';
 import { api } from './services/api';
@@ -48,7 +49,7 @@ export default function App() {
   const [trials, setTrials] = useState<Trial[]>([
     { key: 'grass', title: '草系徽章试炼', element: 'grass', collection_key: 'encounteredPets', dev_only: false },
   ]);
-  const [activeTrialKey, setActiveTrialKey] = useState<'grass' | 'fire'>('grass');
+  const [activeTrialKey, setActiveTrialKey] = useState<'grass' | 'fire' | 'map'>('grass');
   const activeTrialMaps = useMemo(() => resolveTrialMaps(trials, activeTrialKey), [trials, activeTrialKey]);
 
   const [effectLevel, setEffectLevel] = useState<EffectLevel>(() => {
@@ -370,6 +371,7 @@ export default function App() {
   };
 
   const fireTrialAvailable = trials.some((t) => t.key === 'fire');
+  const mapTrialAvailable = trials.some((t) => t.key === 'map');
 
   if (view === 'assistant' && activeTrialKey === 'fire' && fireTrialAvailable) {
     return (
@@ -380,6 +382,52 @@ export default function App() {
               setView('hub');
             }}
         />
+    );
+  }
+
+  if (view === 'assistant' && activeTrialKey === 'map' && mapTrialAvailable) {
+    return (
+        <>
+          <MapAwareness
+              maps={activeTrialMaps}
+              isSoundMuted={isSoundMuted}
+              onToggleSound={handleToggleSound}
+              onOpenFeedback={() => setIsFeedbackOpen(true)}
+              onOpenUpdate={() => {
+                updateStore.clearDot();
+                setIsUpdateOpen(true);
+              }}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onBack={() => {
+                setActiveTrialKey('grass');
+                setView('hub');
+              }}
+          />
+          <AppSettingsModal
+              isOpen={isSettingsOpen}
+              onClose={() => setIsSettingsOpen(false)}
+              onTestEffect={(level, type) => triggerScanSyncEffect(type, level)}
+              onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
+          />
+          <FeedbackContactModal
+              isOpen={isFeedbackOpen}
+              onClose={() => setIsFeedbackOpen(false)}
+              initialType={feedbackInitialType}
+          />
+          <UpdateModal
+              isOpen={isUpdateOpen}
+              onClose={() => setIsUpdateOpen(false)}
+          />
+          <DataUpdateModal
+              isOpen={isDataUpdateOpen}
+              onClose={() => setIsDataUpdateOpen(false)}
+              onUpdated={() => {
+                setDataUpdateAvailable(false);
+                fetchIconsData();
+                invalidateFireTrialData();
+              }}
+          />
+        </>
     );
   }
 
@@ -438,7 +486,7 @@ export default function App() {
                   trials={trials}
                   onSelectAssistant={(trialKey) => {
                     window.scrollTo(0, 0);
-                    setActiveTrialKey(trialKey === 'fire' ? 'fire' : 'grass');
+                    setActiveTrialKey(trialKey === 'fire' || trialKey === 'map' ? trialKey : 'grass');
                     setView('assistant');
                   }}
               />

@@ -113,7 +113,7 @@ export interface EncounterRecord {
 }
 
 export interface Trial {
-  key: string; // 'grass' | 'fire'
+  key: string; // 'grass' | 'fire' | 'map'
   title: string;
   element: string;
   collection_key: string;
@@ -227,6 +227,23 @@ export interface AppSettings {
   hideUpdateDot?: boolean; // 是否隐藏更新提示红点（默认不隐藏）
   showHints?: boolean; // 启动/退出提示窗口是否显示（默认显示）
   [key: string]: unknown;
+}
+
+export interface MapObservation {
+  source: 'window-image' | string;
+  window_found: boolean;
+  window_title: string;
+  map_name: string | null;
+  map_num: number | null;
+  ocr_text: string;
+  confidence: string | null;
+  screenshot: { width: number; height: number; bbox?: Record<string, number> } | null;
+  position: { x: number; y: number; z?: number; captured_at?: number } | null;
+  heading: number | null;
+  wild_pets: unknown[];
+  reason: string;
+  elapsed_ms?: number;
+  timestamp?: number;
 }
 
 export interface CheckUpdateResponse {

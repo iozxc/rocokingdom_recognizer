@@ -1,5 +1,5 @@
 import pygetwindow as gw
-from flask import Blueprint
+from flask import Blueprint, request
 
 import config
 from core.api.response import error, success
@@ -45,3 +45,18 @@ def check_game_status():
             "height": win.height,
         },
     )
+
+
+@bp.route('/map_observation', methods=['GET'])
+def map_observation():
+    """返回一次真实窗口截图观测；不返回模拟坐标。"""
+    trial_key = request.args.get("trial", "grass")
+    title = request.args.get("title", config.GAME_WINDOW_TITLE)
+    try:
+        # 延迟加载图像模型，避免普通状态检查触发 ONNX/YOLO 初始化。
+        from core.map_observer import observe_map
+        result = observe_map(title=title, trial_key=trial_key)
+        return success(data=result)
+    except Exception as exc:
+        logger.error("[GET /map_observation] 异常: %s", exc, exc_info=True)
+        return error(str(exc), http_status=200, data={"reason": "observer-error"})

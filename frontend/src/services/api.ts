@@ -24,6 +24,7 @@ import {
   Trial,
   DataUpdateCheckData,
   DataUpdateStatusData,
+  MapObservation,
 } from '../types';
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { formatPetName } from '../utils/petHelper';
@@ -76,6 +77,18 @@ export class ApiService {
     }
   }
 
+  /** 单次真实窗口截图观测；未知位置/朝向保持 null。 */
+  public async observeMap(trial = 'grass'): Promise<MapObservation> {
+    const response = await axios.get<{ status: string; data?: MapObservation }>(
+      `${this.apiBase}/map_observation`, { params: { trial }, timeout: 15000 },
+    );
+    return response.data?.data || ({
+      source: 'window-image', window_found: false, window_title: '', map_name: null,
+      map_num: null, ocr_text: '', confidence: null, screenshot: null,
+      position: null, heading: null, wild_pets: [], reason: 'empty-response',
+    } as MapObservation);
+  }
+
   /**
    * 获取当前环境可见的徽章试炼列表（打包环境不返回火系试炼）。
    */
@@ -90,7 +103,7 @@ export class ApiService {
       throw new Error('试炼列表接口返回数据格式不符合规范');
     } catch (err: unknown) {
       const error = err as AxiosError;
-      console.warn('API getTrials failed, falling back to grass-only trial:', error.message);
+      console.warn('API getTrials failed, falling back to local trial list:', error.message);
       return {
         trials: [
           {
@@ -99,6 +112,13 @@ export class ApiService {
             element: 'grass',
             collection_key: 'encounteredPets',
             dev_only: false,
+          },
+          {
+            key: 'map',
+            title: '地图感知',
+            element: 'map',
+            collection_key: 'mapEncountered',
+            dev_only: true,
           },
         ],
         isOfflineMock: true,
@@ -1089,6 +1109,56 @@ export class ApiService {
       return { success: true };
     } catch (err: unknown) {
       console.warn('API submitOcrCorrection failed:', (err as AxiosError).message);
+      return { success: false };
+    }
+  }
+
+  /** 获取远程存储数据 (roco_user_data.json) */
+  public async getStorageRemote(): Promise<Record<string, any> | null> {
+    try {
+      const res = await axios.get<Record<string, any>>(`${this.apiBase}/api/storage/0`, {
+        timeout: 4000,
+      });
+      return res.data;
+    } catch {
+      return null;
+    }
+  }
+
+  /** 保存数据到远程存储 (roco_user_data.json) */
+  public async saveStorageRemote(payload: Record<string, any>): Promise<{ success: boolean; version?: number }> {
+    try {
+      const res = await axios.post<{ version?: number }>(`${this.apiBase}/api/storage`, payload, {
+        timeout: 5000,
+      });
+      return { success: true, version: res.data?.version };
+    } catch (err: unknown) {
+      console.warn('API saveStorageRemote failed:', (err as AxiosError).message);
+      return { success: false };
+    }
+  }
+
+  /** 获取地图专用存储数据 (roco_user_mapdata.json) */
+  public async getMapStorageRemote(): Promise<Record<string, any> | null> {
+    try {
+      const res = await axios.get<Record<string, any>>(`${this.apiBase}/api/map_storage/0`, {
+        timeout: 4000,
+      });
+      return res.data;
+    } catch {
+      return null;
+    }
+  }
+
+  /** 保存地图专用存储数据到远程 (roco_user_mapdata.json) */
+  public async saveMapStorageRemote(payload: Record<string, any>): Promise<{ success: boolean; version?: number }> {
+    try {
+      const res = await axios.post<{ version?: number }>(`${this.apiBase}/api/map_storage`, payload, {
+        timeout: 5000,
+      });
+      return { success: true, version: res.data?.version };
+    } catch (err: unknown) {
+      console.warn('API saveMapStorageRemote failed:', (err as AxiosError).message);
       return { success: false };
     }
   }

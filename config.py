@@ -158,6 +158,31 @@ TRIALS = [
         ],
         "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets2.json")),
         "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_2.pkl"))
+    },
+    {
+        "key": "map",
+        "title": "地图感知",
+        "element": "map",
+        "collection_key": "mapEncountered",
+        "dev_only": True,
+        "map_list": ['map1'],
+        "scene_features": [],
+        "supports_recognition": False,
+        "pets_source": "pokedex",
+        "maps": [
+            {
+                "id": "map1",
+                "num": 1,
+                "name": "世界实时地图",
+                "description": "实时感知你在洛克王国世界中的位置、朝向与周围刷新的精灵。",
+                "themeColor": "#7ABCF4",
+                "bgGradient": "from-sky-500/20 via-blue-400/10 to-cyan-500/20",
+                "badgeBg": "bg-sky-500/15 text-sky-700 border-sky-400",
+                "iconName": "Map",
+            },
+        ],
+        "map_pets_json_list": get_resource_path(os.path.join("datasets", "map_pets1.json")),
+        "title_feature_path": get_resource_path(os.path.join("onnx", "features_title_db_1.pkl"))
     }
 ]
 
@@ -169,6 +194,7 @@ RENAMES_JSON = get_resource_path(os.path.join('datasets', 'pet_renames.json'))
 OCR_CORRECTIONS_JSON = get_resource_path(os.path.join('datasets', 'ocr_corrections.json'))
 DATA_MANIFEST_JSON = get_resource_path(os.path.join("datasets", "data_manifest.json"))
 DATA_JSON = get_external_path('roco_user_data.json')
+MAP_DATA_JSON = get_external_path('roco_user_mapdata.json')
 MANIFEST_JSON = get_resource_path('file_manifest.json')
 
 
