@@ -229,7 +229,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
         const res = await fetch(previewUrl);
         fileToSend = await res.blob();
       } else {
-        throw new Error('请先上传或选择图片');
+        throw new Error('请先导入或选择图片');
       }
 
       const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, 5);
@@ -532,11 +532,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg sm:text-xl font-black">图鉴智能批量初始化</h3>
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/20 text-white font-black border border-white/30">
-                  全景智能分割
+                  全景智能分割 · AI本地运算
                 </span>
                 </div>
                 <p className="text-xs text-white/80">
-                  上传游戏全景截图，智能检测识别精灵并标注图鉴已有状态，防止重复遇见
+                  导入游戏全景截图，本地 AI 模型智能分割识别并标注图鉴已有状态
                 </p>
               </div>
             </div>
@@ -675,11 +675,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                           <div className="flex items-center justify-between pb-2.5 border-b border-[#F1F5F9]">
                             <span className="text-xs font-black text-slate-700">识别状态</span>
                             <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black">
-                              等待上传
+                              等待导入截图
                             </span>
                           </div>
                           <p className="text-xs text-slate-500 mt-3 leading-relaxed">
-                            请先上传或粘贴游戏全景截图，系统将自动分割识别图中的所有精灵。
+                            请先选择或粘贴游戏全景截图，本地视觉模型将自动分割识别图中的所有精灵（纯本地离线运算）。
                           </p>
                         </div>
 
@@ -689,7 +689,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                               className="w-full py-3 px-4 rounded-xl bg-slate-100 text-slate-400 font-black text-xs sm:text-sm cursor-not-allowed flex items-center justify-center gap-1.5"
                           >
                             <Sparkles className="w-4 h-4 text-slate-300" />
-                            <span>请先上传游戏截图</span>
+                            <span>请先导入游戏截图</span>
                           </button>
                         </div>
                       </div>
@@ -1565,7 +1565,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                         <span>📸 1. 快捷截图与秒速粘贴</span>
                       </p>
                       <p>
-                        在游戏图鉴界面按快捷键截取整页网格后，<strong>无需保存文件</strong>，直接在此弹窗按 <strong className="text-slate-800 font-mono">Ctrl + V</strong> (或 Cmd+V) 即可秒速上传并触发全景识别！
+                        在游戏图鉴界面按快捷键截取整页网格后，<strong>无需保存文件</strong>，直接在此弹窗按 <strong className="text-slate-800 font-mono">Ctrl + V</strong> (或 Cmd+V) 即可秒速载入并触发本地全景识别！
                       </p>
                     </div>
 

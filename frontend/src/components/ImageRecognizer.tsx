@@ -234,11 +234,11 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                   精灵图鉴智能识别
                 </h3>
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2] font-black">
-                Top-{topK} 候选分析 (最多6个)
+                本地 AI 离线推理 (Top-{topK})
               </span>
               </div>
               <p className="text-xs text-slate-500">
-                上传游戏截图或精灵截取图像，智能匹配【{currentMap.name}】中的对应精灵
+                载入游戏截图或截取图像，本地视觉模型离线匹配【{currentMap.name}】对应精灵
               </p>
             </div>
           </div>
@@ -445,7 +445,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                           {selectedFile ? selectedFile.name : '已载入精灵图片'}
                         </p>
                         <p className="text-[11px] text-[#7ABCF4] font-bold hover:underline mt-0.5">
-                          点击重新上传或更换图片
+                          点击重新导入或更换图片
                         </p>
                       </div>
                     </div>
@@ -456,10 +456,10 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                       </div>
                       <div>
                         <p className="text-xs sm:text-sm font-black text-slate-700">
-                          点击或拖拽上传精灵截图
+                          点击或拖拽载入精灵截图
                         </p>
                         <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                          PNG / JPG · 支持截图后 Ctrl+V 直接粘贴
+                          PNG / JPG · 本地推理 · 支持 Ctrl+V 粘贴
                         </p>
                       </div>
                     </div>
@@ -827,9 +827,9 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                       <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#E6EEF8] flex items-center justify-center text-slate-300 mb-2 shadow-2xs">
                         <Sparkles className="w-6 h-6 text-[#7ABCF4]" />
                       </div>
-                      <p className="text-xs font-black text-slate-600">等待上传并识别精灵截图</p>
+                      <p className="text-xs font-black text-slate-600">等待载入并识别精灵截图</p>
                       <p className="text-[11px] text-slate-400 mt-0.5 max-w-sm">
-                        支持自选 Top-K 候选（最多6个），识别后可直接点选候选或切换【遇见】录入
+                        本地 AI 离线快速推理 · 支持自选 Top-K 候选（最多6个），识别后可直接点选候选或切换【遇见】录入
                       </p>
                     </div>
                 )}

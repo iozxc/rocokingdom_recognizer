@@ -239,7 +239,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         const res = await fetch(previewUrl);
         fileToSend = await res.blob();
       } else {
-        throw new Error('请先上传或选择图片');
+        throw new Error('请先导入或选择图片');
       }
 
       const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, 5);
@@ -524,11 +524,11 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 </h3>
                 <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2] font-black flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-[#2B78C4]" />
-                  自选未遇精灵
+                  本地 AI 离线推理
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                上传含精灵图标或名字的画面，AI 识别预测并提供候选，您可以从中挑选未遇见的精灵点亮图鉴
+                导入含精灵图标或名字的截图，本地视觉模型离线计算并提供候选（数据仅在本地运算不上传）
               </p>
             </div>
           </div>
@@ -652,13 +652,13 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                     </div>
                     <div className="text-center sm:text-left">
                       <p className="text-sm font-black text-slate-800">
-                        点击或拖拽上传游戏画面截图
+                        点击或拖拽选择游戏画面截图
                       </p>
                       <p className="text-xs text-slate-500 mt-1">
                         支持 PNG / JPG · 支持截图后直接 <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded-md font-mono text-[10px] text-slate-700">Ctrl + V</kbd> 快捷粘贴
                       </p>
                       <p className="text-[11px] text-[#7ABCF4] font-bold mt-1">
-                        截取包含精灵图标/名称的界面，AI 自动分割多精灵并预测候选
+                        截取包含精灵图标/名称的界面，本地 AI 自动分割多精灵并预测候选
                       </p>
                     </div>
                   </div>
@@ -667,12 +667,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                     <div className="w-full flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
                       <span className="font-bold">识别准备状态</span>
                       <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black">
-                        待上传画面
+                        待导入画面
                       </span>
                     </div>
 
                     <div className="py-2 text-xs text-slate-400">
-                      上传游戏画面后即可开启智能批量识别
+                      导入游戏画面后即可开启本地智能批量识别
                     </div>
 
                     <button
@@ -681,7 +681,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         className="w-full py-3 px-4 roco-btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm font-black shadow-xs opacity-40 cursor-not-allowed rounded-xl"
                     >
                       <Sparkles className="w-4 h-4 text-white/70" />
-                      <span>开始批量识别</span>
+                      <span>请先导入画面</span>
                     </button>
                   </div>
                 </div>

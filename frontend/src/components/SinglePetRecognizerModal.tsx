@@ -243,11 +243,11 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg sm:text-xl font-black">单个精灵图鉴智能识别</h3>
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/20 text-white font-black border border-white/30">
-                  Top-{topK} 候选分析
+                  本地 AI 离线推理 (Top-{topK})
                 </span>
                 </div>
                 <p className="text-xs text-white/90">
-                  上传精灵截图或直接粘贴，高精度智能匹配对应精灵并快速点亮图鉴
+                  载入精灵截图或直接粘贴，本地模型离线匹配对应精灵
                 </p>
               </div>
             </div>
@@ -416,7 +416,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                               {selectedFile ? selectedFile.name : '已载入精灵图片'}
                             </p>
                             <p className="text-[11px] text-[#2D6613] font-bold hover:underline mt-0.5">
-                              点击重新上传或更换图片
+                              点击重新导入或更换图片
                             </p>
                           </div>
                         </div>
@@ -427,10 +427,10 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                           </div>
                           <div>
                             <p className="text-xs sm:text-sm font-black text-slate-700">
-                              点击或拖拽上传精灵截图
+                              点击或拖拽载入精灵截图
                             </p>
                             <p className="text-[11px] text-slate-400 mt-0.5">
-                              支持截图后在窗口内按 Ctrl+V 快速粘贴
+                              本地 AI 离线推理 · 支持截图后 Ctrl+V 快速粘贴
                             </p>
                           </div>
                         </div>
@@ -662,9 +662,9 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                           <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#E6EEF8] flex items-center justify-center text-slate-300 mb-2 shadow-2xs">
                             <Sparkles className="w-6 h-6 text-[#95D151]" />
                           </div>
-                          <p className="text-xs font-black text-slate-600">等待上传精灵截图</p>
+                          <p className="text-xs font-black text-slate-600">等待载入精灵截图</p>
                           <p className="text-[11px] text-slate-400 mt-0.5">
-                            支持截图后在任意位置 Ctrl+V 直接粘贴识别
+                            本地 AI 离线推理 · 支持截图后在任意位置 Ctrl+V 直接粘贴识别
                           </p>
                         </div>
                     )}
