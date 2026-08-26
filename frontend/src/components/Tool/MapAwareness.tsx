@@ -128,6 +128,7 @@ const MAP_FOG_STYLE_KEY = 'roco_map_fog_style_v1';
 const MAP_PATH_STYLE_KEY = 'roco_map_path_style_v1';
 const OVERLAY_URL = './map/over.png';
 const CLEAR_RADIUS = 360; // 玩家周围解锁蒙版的半径 (世界坐标系)
+const MAX_TELEPORT_DISTANCE = 600; // 传送/大跨度位移判定阈值（单位像素，超过则断开连线不绘制直线）
 
 const DEFAULT_FOG_STYLE: FogStyle = {
   color: '#334155',
@@ -827,7 +828,13 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         if (i === 0) {
           ctx.moveTo(sx, sy);
         } else {
-          ctx.lineTo(sx, sy);
+          const prevPt = history[i - 1];
+          // 如果两点间世界坐标跨度超过传送阈值，说明是传送/切图，断开连线重新 moveTo
+          if (distance(prevPt, pt) > MAX_TELEPORT_DISTANCE) {
+            ctx.moveTo(sx, sy);
+          } else {
+            ctx.lineTo(sx, sy);
+          }
         }
       }
       ctx.stroke();
