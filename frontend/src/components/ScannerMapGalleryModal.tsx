@@ -12,6 +12,7 @@ import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
+import { ElementBadges } from './ElementBadges';
 
 interface ScannerMapGalleryModalProps {
     isOpen: boolean;
@@ -315,6 +316,11 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                               #{pet.id}
                                             </span>
                                         )}
+                                        <ElementBadges
+                                            elements={pet.elements}
+                                            className="absolute top-0.5 left-0.5 z-10"
+                                            size="md"
+                                        />
                                     </div>
 
                                     {/* Pet Name */}
