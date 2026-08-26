@@ -92,11 +92,13 @@ def build_download_plan():
 
     match = None
     if not updater.force_full:
+        max_delta = config.MAX_DELTA_UPDATE_SIZE
         for d in deltas:
             if (
                 d.get("base_version") == config.APP_VERSION
                 and d.get("url")
                 and d.get("md5")
+                and (max_delta <= 0 or int(d.get("size") or 0) <= max_delta)
             ):
                 match = d
                 break
