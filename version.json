@@ -26,21 +26,5 @@
     ]
   },
   "deltas": [
-    {
-      "base_version": "1.3.3",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.0/RocoKingdomRecognizer_delta_1.3.3.7z",
-      "md5": "4023b507aaa9ed2c085171063610bf7e",
-      "size": 117029300,
-      "changed": 32,
-      "removed": 5
-    },
-    {
-      "base_version": "1.3.2",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.0/RocoKingdomRecognizer_delta_1.3.2.7z",
-      "md5": "9d0194f28750f408a574861bb7647aff",
-      "size": 133567378,
-      "changed": 965,
-      "removed": 13
-    }
   ]
 }
