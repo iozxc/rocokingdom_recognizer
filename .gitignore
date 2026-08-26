@@ -58,3 +58,4 @@ keys/
 /train/onnx/
 /build.bat
 /train/onnx_dino/
+/frontend/public/map/
