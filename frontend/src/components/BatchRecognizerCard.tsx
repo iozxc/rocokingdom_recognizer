@@ -85,6 +85,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reviewSectionRef = useRef<HTMLDivElement>(null);
+  const gameViewRef = useRef<HTMLDivElement>(null);
 
   // Sync when currentMap changes from outside
   useEffect(() => {
@@ -329,7 +330,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
       setReviewItems(processed);
       sound.playClick();
 
-      // Smoothly scroll down just past the upload/scan box to clearly reveal the control strip and pet cards
+      // 识别完成后平滑往下滚到候选/结果区，方便直接核对候选
       setTimeout(() => {
         if (reviewSectionRef.current) {
           const rect = reviewSectionRef.current.getBoundingClientRect();
@@ -460,6 +461,13 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
     onBatchEncounterSuccess(payload);
     handleClearUpload();
+
+    // 确认后回到「游戏画面识别」区，让它显示在最上面
+    requestAnimationFrame(() => {
+      if (gameViewRef.current) {
+        gameViewRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
   };
 
   const filteredItems = reviewItems.filter((item) => {
@@ -501,7 +509,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   return (
       <div className="bg-white roco-card p-5 sm:p-6 mb-5 shadow-xs">
         {/* Header & Help Button */}
-        <div className="flex items-center justify-between gap-3 pb-4 border-b-2 border-[#F1F5F9] flex-wrap">
+        <div
+            ref={gameViewRef}
+            className="flex items-center justify-between gap-3 pb-4 border-b-2 border-[#F1F5F9] flex-wrap"
+        >
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-[#7ABCF4] text-white flex items-center justify-center shadow-xs">
               <Layers className="w-5 h-5" />

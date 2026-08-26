@@ -83,6 +83,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reviewSectionRef = useRef<HTMLDivElement>(null);
+  const scrollBodyRef = useRef<HTMLDivElement>(null);
 
   // Reset or initialize on open
   useEffect(() => {
@@ -323,7 +324,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
       setReviewItems(processed);
       sound.playClick();
 
-      // Smoothly scroll down just past the upload/scan box to clearly reveal the control strip and pet cards
+      // 识别完成后滚到候选/结果区，方便直接核对候选
       setTimeout(() => {
         if (reviewSectionRef.current) {
           reviewSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -473,6 +474,13 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
     // 点击批量遇见之后清空所有上传框
     handleClearUpload();
+
+    // 确认后回到弹窗内容最上方（游戏画面/初始区）
+    requestAnimationFrame(() => {
+      if (scrollBodyRef.current) {
+        scrollBodyRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   };
 
   // Filtered review items
@@ -561,7 +569,10 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
           </div>
 
           {/* Scrollable Body */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
+          <div
+              ref={scrollBodyRef}
+              className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5"
+          >
             {/* Step 1: Upload & Map Selection Toolbar */}
             <div className="p-4 sm:p-5 bg-[#F5F9FF] rounded-2xl border-2 border-[#E6EEF8]">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
