@@ -235,11 +235,15 @@ export class ApiService {
       throw new Error('API 返回数据格式不符合规范');
     } catch (err: unknown) {
       const error = err as AxiosError;
-      console.warn('API getIcons failed, falling back to built-in Roco pet dex:', error.message);
+      // 生产环境离线返回空图鉴（首页为空白），开发环境保留内置图鉴兜底
+      const isProd = import.meta.env.PROD;
+      console.warn('API getIcons failed:', error.message);
       return {
-        data: FALLBACK_MAPS_DATA,
-        isOfflineMock: true,
-        errorMsg: `无法连接 ${this.apiBase}/icons (${error.code || error.message})，已切换至内置图鉴`,
+        data: isProd ? {} : FALLBACK_MAPS_DATA,
+        isOfflineMock: !isProd,
+        errorMsg: isProd
+            ? `无法连接 ${this.apiBase}/icons (${error.code || error.message})，图鉴暂为空`
+            : `无法连接 ${this.apiBase}/icons (${error.code || error.message})，已切换至内置图鉴`,
       };
     }
   }

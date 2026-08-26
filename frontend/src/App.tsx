@@ -17,7 +17,7 @@ import { AppSettingsModal } from './components/AppSettingsModal';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
 import { FireBadgeTrial } from './components/FireBadgeTrial';
-import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
+import { MAP_CONFIGS } from './data/mockPets';
 import { resolveTrialMaps } from './data/trials';
 import { api } from './services/api';
 import { storage } from './services/storage';
@@ -30,7 +30,7 @@ import { isPetEncounteredInRecords } from './utils/petHelper';
 
 export default function App() {
   const [activeMapNum, setActiveMapNum] = useState<number>(1);
-  const [mapsData, setMapsData] = useState<Record<string, { count: number; items: PetItem[] }>>(FALLBACK_MAPS_DATA);
+  const [mapsData, setMapsData] = useState<Record<string, { count: number; items: PetItem[] }>>({});
   const [records, setRecords] = useState<Record<string, EncounterRecord>>({});
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -234,7 +234,7 @@ export default function App() {
   // Current Map pets
   const currentMapPets: PetItem[] = useMemo(() => {
     const mapKey = `map${activeMapNum}`;
-    return mapsData[mapKey]?.items || FALLBACK_MAPS_DATA[mapKey]?.items || [];
+    return mapsData[mapKey]?.items || [];
   }, [activeMapNum, mapsData]);
 
   // Total count of pets across all 3 maps
@@ -242,10 +242,10 @@ export default function App() {
     let total = 0;
     activeTrialMaps.forEach((m) => {
       const k = m.id;
-      const items = mapsData[k]?.items || FALLBACK_MAPS_DATA[k]?.items || [];
+      const items = mapsData[k]?.items || [];
       total += items.length;
     });
-    return total || 24;
+    return total;
   }, [mapsData, activeTrialMaps]);
 
   // Total encountered pets count across all maps
@@ -253,7 +253,7 @@ export default function App() {
     let total = 0;
     activeTrialMaps.forEach((m) => {
       const k = m.id;
-      const items = mapsData[k]?.items || FALLBACK_MAPS_DATA[k]?.items || [];
+      const items = mapsData[k]?.items || [];
       total += items.filter((p) => isPetEncounteredInRecords(records, k, p.name)).length;
     });
     return total;
@@ -262,7 +262,7 @@ export default function App() {
   // Per-map stats for 3 maps
   const allMapsStats = useMemo(() => {
     return MAP_CONFIGS.map((map) => {
-      const list = mapsData[map.id]?.items || FALLBACK_MAPS_DATA[map.id]?.items || [];
+      const list = mapsData[map.id]?.items || [];
       const stats = storage.getMapStats(map.id, list.length, list);
       return {
         num: map.num,
