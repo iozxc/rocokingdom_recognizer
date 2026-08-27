@@ -61,3 +61,6 @@ keys/
 /frontend/public/map/
 /docs/
 /roco_user_mapdata.json
+/train/yolo_minimap/
+/frontend/public/mapdata_real/
+/train/phash/

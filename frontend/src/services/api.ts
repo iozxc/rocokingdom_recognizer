@@ -80,12 +80,11 @@ export class ApiService {
   /** 单次真实窗口截图观测；未知位置/朝向保持 null。 */
   public async observeMap(trial = 'grass'): Promise<MapObservation> {
     const response = await axios.get<{ status: string; data?: MapObservation }>(
-      `${this.apiBase}/map_observation`, { params: { trial }, timeout: 15000 },
+      `${this.apiBase}/map_observation`, { timeout: 15000 },
     );
     return response.data?.data || ({
-      source: 'window-image', window_found: false, window_title: '', map_name: null,
-      map_num: null, ocr_text: '', confidence: null, screenshot: null,
-      position: null, heading: null, wild_pets: [], reason: 'empty-response',
+      source: 'window-image', window_found: false, window_title: '', confidence: null,
+      screenshot: null, position: null, heading: null, map_found: false, reason: 'empty-response',
     } as MapObservation);
   }
 

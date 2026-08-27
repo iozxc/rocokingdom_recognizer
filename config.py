@@ -45,6 +45,29 @@ MAX_DELTA_UPDATE_SIZE = int(_env("ROCO_MAX_DELTA_UPDATE_SIZE", str(90 * 1024 * 1
 # 默认内存截图（hwnd）；失败时由 tools.capture_window 自动降级为屏幕抓取（grab）
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "hwnd")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
+# 实时地图玩家定位(零训练视觉方案)：是否启用、参考底图、开关阈值
+MAP_LOCALIZE_ENABLED = _env("ROCO_MAP_LOCALIZE_ENABLED", "1") == "1"
+MAP_LOCALIZE_REFERENCE = _env(
+    "ROCO_MAP_LOCALIZE_REFERENCE",
+    get_resource_path(os.path.join("static", "map", "level_13_4064_4095_4064_4095.png")),
+)
+MAP_LOCALIZE_MIN_SCORE = float(_env("ROCO_MAP_LOCALIZE_MIN_SCORE", "0.34"))
+MAP_LOCALIZE_DEBUG = _env("ROCO_MAP_LOCALIZE_DEBUG", "0") == "1"
+# 首次确认(init/无先验锚点)的更高置信度门槛：得分须达到 INIT_MIN 才转入待确认，
+# 避免用“首帧碰巧低分/两处金色区接近”的歧义位置做首次锚定。
+MAP_LOCALIZE_INIT_MIN = float(_env("ROCO_MAP_LOCALIZE_INIT_MIN", "0.6"))
+# 小地图定位：初始化/场景切换的多帧确认与候选短名单参数
+MAP_LOCALIZE_MAX_JUMP = float(_env("ROCO_MAP_LOCALIZE_MAX_JUMP", "180"))
+MAP_LOCALIZE_TRACK_CONF_MIN = float(_env("ROCO_MAP_LOCALIZE_TRACK_CONF_MIN", "0.52"))
+MAP_LOCALIZE_SIM_CHANGE = float(_env("ROCO_MAP_LOCALIZE_SIM_CHANGE", "0.62"))
+MAP_LOCALIZE_INIT_CONFIRM_FRAMES = int(_env("ROCO_MAP_LOCALIZE_INIT_CONFIRM_FRAMES", "2"))
+MAP_LOCALIZE_PENDING_LIMIT = int(_env("ROCO_MAP_LOCALIZE_PENDING_LIMIT", "3"))
+MAP_LOCALIZE_CANDIDATE_KEEP = int(_env("ROCO_MAP_LOCALIZE_CANDIDATE_KEEP", "4"))
+MAP_MONITOR_INTERVAL = float(_env("ROCO_MAP_MONITOR_INTERVAL", "1.5"))
+MAP_SAVE_CAPTURE = _env("ROCO_MAP_SAVE_CAPTURE", "1") == "1"
+MAP_CAPTURE_DIR = _env("ROCO_MAP_CAPTURE_DIR",
+                       get_resource_path(os.path.join("debug", "map_capture")))
+MAP_CAPTURE_MAX = int(_env("ROCO_MAP_CAPTURE_MAX", "300"))  # 最多保留最近 N 张
 APP_EXE_NAME = _env("ROCO_APP_EXE_NAME", "RocoKingdomRecognizer.exe")
 UPDATE_CHECK_URL = _env(
     "ROCO_UPDATE_CHECK_URL",
@@ -213,4 +236,4 @@ REC_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_rec_infer.
 DEFAULT_THRESHOLD = 0.9
 DEFAULT_TOPK = 6
 
-LOG_LEVEL = getattr(logging, _env("ROCO_LOG_LEVEL", "DEBUG").upper(), logging.DEBUG)
+LOG_LEVEL = getattr(logging, _env("ROCO_LOG_LEVEL", "INFO").upper(), logging.INFO)

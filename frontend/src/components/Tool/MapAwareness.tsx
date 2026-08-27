@@ -140,8 +140,8 @@ const DEFAULT_FOG_STYLE: FogStyle = {
 
 const DEFAULT_PATH_STYLE: PathStyle = {
   color: '#38BDF8',
-  lineStyle: 'dashed',
-  lineWidth: 3,
+  lineStyle: 'solid',
+  lineWidth: 4,
   glow: true,
 };
 
@@ -273,6 +273,10 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
   });
   const playerRef = useRef(player);
   playerRef.current = player;
+
+  // 后端实时定位状态提示消息
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [statusMsgDismissed, setStatusMsgDismissed] = useState(false);
 
   // 移动轨迹历史（路径图）
   const [pathHistory, setPathHistory] = useState<PathNode[]>(() => {
@@ -633,6 +637,10 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
       try {
         const obs = await api.observeMap('map');
         if (active && obs) {
+          if (obs.status_message) {
+            setStatusMsg(obs.status_message);
+            setStatusMsgDismissed(false);
+          }
           if (obs.position) {
             // 优先使用后端观测时刻的真实捕获时间戳（避免网络传输和前端渲染延迟影响历史时序）
             const captureTime = obs.position.captured_at || obs.timestamp || Date.now();
@@ -864,24 +872,23 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
       }
     }
 
-    // 5. 绘制历史移动路径线
+    // 5. 绘制历史移动路径线（双层高对比度高亮描边 + 荧光霓虹发光）
     if (currentLayers.showPath && pathHistoryRef.current.length > 1) {
       const history = pathHistoryRef.current;
       const currentPathStyle = pathStyleRef.current;
+      const baseWidth = Math.max(currentPathStyle.lineWidth, (currentPathStyle.lineWidth + 2) * zoom);
+
       ctx.save();
-      ctx.strokeStyle = currentPathStyle.color;
-      ctx.lineWidth = Math.max(currentPathStyle.lineWidth, (currentPathStyle.lineWidth + 1) * zoom);
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      if (currentPathStyle.glow) {
-        ctx.shadowColor = hexToRgba(currentPathStyle.color, 0.7);
-        ctx.shadowBlur = 8;
-      }
 
+      // 1) 先绘制深色/半透明高对比度底层外描边（确保在任何地貌上都极度清晰显眼）
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.45)';
+      ctx.lineWidth = baseWidth + 3.5;
       if (currentPathStyle.lineStyle === 'dashed') {
-        ctx.setLineDash([8, 6]);
+        ctx.setLineDash([10, 7]);
       } else if (currentPathStyle.lineStyle === 'dotted') {
-        ctx.setLineDash([3, 5]);
+        ctx.setLineDash([4, 6]);
       } else {
         ctx.setLineDash([]);
       }
@@ -895,7 +902,34 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
           ctx.moveTo(sx, sy);
         } else {
           const prevPt = history[i - 1];
-          // 如果两点间世界坐标跨度超过传送阈值，说明是传送/切图，断开连线重新 moveTo
+          if (distance(prevPt, pt) > MAX_TELEPORT_DISTANCE) {
+            ctx.moveTo(sx, sy);
+          } else {
+            ctx.lineTo(sx, sy);
+          }
+        }
+      }
+      ctx.stroke();
+
+      // 2) 绘制上层高亮本体色彩 + 发光霓虹光晕
+      ctx.strokeStyle = currentPathStyle.color;
+      ctx.lineWidth = baseWidth;
+      if (currentPathStyle.glow) {
+        ctx.shadowColor = hexToRgba(currentPathStyle.color, 0.9);
+        ctx.shadowBlur = 12;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.beginPath();
+      for (let i = 0; i < history.length; i++) {
+        const pt = history[i];
+        const sx = screenOffsetX + pt.x * zoom;
+        const sy = screenOffsetY + pt.y * zoom;
+        if (i === 0) {
+          ctx.moveTo(sx, sy);
+        } else {
+          const prevPt = history[i - 1];
           if (distance(prevPt, pt) > MAX_TELEPORT_DISTANCE) {
             ctx.moveTo(sx, sy);
           } else {
@@ -1130,34 +1164,6 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
     requestRender();
   };
 
-  // 模拟移动（便于无游戏运行时的 Dev 阶段直观测试迷雾探索和路径）
-  const simulateStep = () => {
-    for (let attempts = 0; attempts < 12; attempts++) {
-      const angle = (player.heading + (Math.random() * 80 - 40) + attempts * 30) % 360;
-      const rad = (angle * Math.PI) / 180;
-      const speed = 160;
-      const nextX = clamp(player.pos.x + Math.sin(rad) * speed, 100, WORLD_W - 100);
-      const nextY = clamp(player.pos.y - Math.cos(rad) * speed, 100, WORLD_H - 100);
-      if (isPointInPolygon({ x: nextX, y: nextY })) {
-        updatePlayerPosition({ x: nextX, y: nextY }, angle);
-        sound.playClick();
-        return;
-      }
-    }
-  };
-
-  const visiblePets = useMemo(() => {
-    if (!layers.wild) return [];
-    return layers.collect ? pets.filter((p) => !p.collected) : pets;
-  }, [layers.wild, layers.collect, pets]);
-
-  const nearbyPets = useMemo(() => {
-    return [...visiblePets]
-      .map((pet) => ({ pet, dist: distance(player.pos, pet) }))
-      .sort((a, b) => a.dist - b.dist)
-      .slice(0, 6);
-  }, [visiblePets, player.pos]);
-
   const activeLod = getLodForZoom(view.zoom);
 
   return (
@@ -1177,37 +1183,25 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         mapsConfig={maps}
         showMapNav={false}
         centerStatus={(
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setIsMonitoring((previous) => !previous);
-                sound.playClick();
-              }}
-              className={`mx-auto inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-black shadow-2xs transition-all active:scale-[0.98] ${
-                isMonitoring
-                  ? 'border-emerald-200 bg-emerald-500 text-white hover:bg-emerald-600'
-                  : 'border-[#A9D6FA] bg-[#5DA8E8] text-white hover:bg-[#6CB5EF]'
-              }`}
-              title={isMonitoring ? '停止游戏画面位置监听' : '开始监听游戏画面并实时定位'}
-              aria-pressed={isMonitoring}
-            >
-              <Radio className="h-4 w-4" />
-              <span>实时定位</span>
-              <span className="text-xs font-bold opacity-80">{isMonitoring ? '监测中' : '点击开启'}</span>
-            </button>
-
-            {/* Dev 模拟步进按键 */}
-            <button
-              type="button"
-              onClick={simulateStep}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-2xl border border-amber-200 bg-amber-500 px-3 py-2 text-xs font-black text-white hover:bg-amber-600 shadow-2xs active:scale-95 transition-all"
-              title="模拟前进一段距离，测试迷雾解锁与路径绘制"
-            >
-              <Wand2 className="w-3.5 h-3.5" />
-              <span>测试步进</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setIsMonitoring((previous) => !previous);
+              setStatusMsgDismissed(false);
+              sound.playClick();
+            }}
+            className={`mx-auto inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-black shadow-2xs transition-all active:scale-[0.98] ${
+              isMonitoring
+                ? 'border-emerald-200 bg-emerald-500 text-white hover:bg-emerald-600'
+                : 'border-[#A9D6FA] bg-[#5DA8E8] text-white hover:bg-[#6CB5EF]'
+            }`}
+            title={isMonitoring ? '停止游戏画面位置监听' : '开始监听游戏画面并实时定位'}
+            aria-pressed={isMonitoring}
+          >
+            <Radio className="h-4 w-4" />
+            <span>实时定位</span>
+            <span className="text-xs font-bold opacity-80">{isMonitoring ? '监测中' : '点击开启'}</span>
+          </button>
         )}
         devBadge
       />
@@ -1241,6 +1235,23 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                     {hoveredPet.pollution ? '污染 ' : ''}
                     {hoveredPet.sound ? '声音异常' : ''}
                   </span>
+                </div>
+              )}
+
+              {/* 实时定位状态提示（顶部） */}
+              {isMonitoring && statusMsg && !statusMsgDismissed && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xl pointer-events-auto select-none border border-white/10 flex items-center gap-2 max-w-[90%]"
+                     onPointerDown={(e) => e.stopPropagation()}>
+                  <Radio className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                  <span className="truncate">{statusMsg}</span>
+                  <button
+                    type="button"
+                    onClick={() => setStatusMsgDismissed(true)}
+                    className="ml-1 shrink-0 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    aria-label="关闭提示"
+                  >
+                    <span className="text-xs font-black">✕</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -1705,117 +1716,6 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* 图层控制 */}
-              <div className="w-[300px] roco-card shadow-2xl p-4 backdrop-blur-md">
-                <div className="flex items-center gap-2 text-sm font-black text-slate-700 mb-3">
-                  <Layers className="w-4 h-4 text-[#7ABCF4]" />
-                  图层标记
-                </div>
-                <div className="flex flex-col gap-2">
-                  <LayerToggle
-                    label="POI 图钉"
-                    icon={<MapPin className="w-4 h-4" />}
-                    on={layers.poi}
-                    onToggle={() => toggleLayer('poi')}
-                  />
-                  <LayerToggle
-                    label="稀有 POI (守护/眠枭)"
-                    icon={<Shield className="w-4 h-4" />}
-                    on={layers.rarePoi}
-                    onToggle={() => toggleLayer('rarePoi')}
-                  />
-                  <LayerToggle
-                    label="野生宠物"
-                    icon={<Bird className="w-4 h-4" />}
-                    on={layers.wild}
-                    onToggle={() => toggleLayer('wild')}
-                  />
-                  <LayerToggle
-                    label="稀兽花种"
-                    icon={<Flower2 className="w-4 h-4" />}
-                    on={layers.seeds}
-                    onToggle={() => toggleLayer('seeds')}
-                  />
-                  <LayerToggle
-                    label="眠枭之星收集模式"
-                    icon={<Star className="w-4 h-4" />}
-                    on={layers.collect}
-                    onToggle={() => toggleLayer('collect')}
-                  />
-                </div>
-              </div>
-
-              {/* 附近野生宠 */}
-              <div className="w-[300px] roco-card shadow-2xl p-4 flex-1 overflow-y-auto backdrop-blur-md flex flex-col min-h-0">
-                <div className="flex items-center gap-2 text-sm font-black text-slate-700 mb-3 shrink-0">
-                  <Crosshair className="w-4 h-4 text-[#7ABCF4]" />
-                  周边野生宠物
-                  <span className="ml-auto text-[10px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded-md">
-                    距离排序
-                  </span>
-                </div>
-                <div className="flex flex-col gap-2 overflow-y-auto flex-1 pr-1 scrollbar-none">
-                  {nearbyPets.length === 0 && (
-                    <div className="text-center text-xs text-slate-300 py-8 font-medium">
-                      附近暂未发现野生宠物
-                    </div>
-                  )}
-                  {nearbyPets.map(({ pet, dist }) => {
-                    const elColor = getElementColor(pet.element);
-                    return (
-                      <div
-                        key={pet.id}
-                        className="flex items-center gap-2.5 rounded-xl border-2 border-[#E6EEF8] bg-slate-50/50 p-2 hover:border-[#7ABCF4] transition-all"
-                      >
-                        <div
-                          className="flex items-center justify-center w-8 h-8 rounded-lg border-2 bg-white"
-                          style={{ borderColor: pet.shiny ? '#FACC15' : elColor.bg }}
-                        >
-                          <span className="text-sm">{PET_EMOJI[pet.name] || '🐾'}</span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 text-xs font-black text-slate-700 truncate">
-                            {pet.name}
-                            <span
-                              className="inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[9px] font-black text-white"
-                              style={{ backgroundColor: elColor.bg }}
-                            >
-                              {pet.element}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            {pet.shiny && (
-                              <Tag
-                                color="text-yellow-600 bg-yellow-50 px-1 rounded-sm border border-yellow-200"
-                                icon={<Star className="w-2.5 h-2.5 fill-yellow-500 text-yellow-500" />}
-                                label="炫彩"
-                              />
-                            )}
-                            {pet.pollution && (
-                              <Tag
-                                color="text-purple-600 bg-purple-50 px-1 rounded-sm border border-purple-200"
-                                icon={<span className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
-                                label="污染"
-                              />
-                            )}
-                            {pet.sound && (
-                              <Tag
-                                color="text-slate-600 bg-slate-100 px-1 rounded-sm border border-slate-200"
-                                icon={<Volume2 className="w-2.5 h-2.5" />}
-                                label="声音"
-                              />
-                            )}
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-black text-slate-400">
-                          {(dist / 10).toFixed(1)}m
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
             </div>
             <button

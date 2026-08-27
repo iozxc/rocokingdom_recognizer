@@ -233,17 +233,21 @@ export interface MapObservation {
   source: 'window-image' | string;
   window_found: boolean;
   window_title: string;
-  map_name: string | null;
-  map_num: number | null;
-  ocr_text: string;
-  confidence: string | null;
+  confidence: number | null;
   screenshot: { width: number; height: number; bbox?: Record<string, number> } | null;
   position: { x: number; y: number; z?: number; captured_at?: number } | null;
   heading: number | null;
-  wild_pets: unknown[];
+  map_found: boolean;
   reason: string;
+  status_message?: string;
   elapsed_ms?: number;
   timestamp?: number;
+  localize?: {
+    confidence?: number | null;
+    source?: string;
+    status?: string;
+    timings_ms?: Record<string, number>;
+  };
 }
 
 export interface CheckUpdateResponse {
