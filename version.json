@@ -4,7 +4,7 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.4.1 更新公告】\n首页、跟随识别的图鉴里增加了筛选功能：\n现在可以筛选首领精灵、多形态精灵、以及18种属性",
+  "update_log": "【v1.4.1 更新公告】\n首页、跟随识别的图鉴里增加了筛选功能：\n现在可以筛选【首领】精灵、【多形态】精灵、【属性】",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.1/",
     "files": [
