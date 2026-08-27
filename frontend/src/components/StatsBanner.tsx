@@ -35,35 +35,35 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
     const unencounteredCount = Math.max(0, totalMapPets - encounteredCount);
 
     return (
-        <div className="bg-white roco-card p-4 sm:p-5 relative overflow-hidden mb-5 space-y-3.5 shadow-xs border border-slate-100">
+        <div className="bg-white roco-card p-3 sm:p-5 relative overflow-hidden mb-4 sm:mb-5 space-y-3 sm:space-y-3.5 shadow-xs border border-slate-100">
             {/* Decorative gradient aura */}
             <div
                 className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${currentMap.bgGradient} rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none opacity-40`}
             />
 
             {/* Top Row: Map Header Info + Progress Tracker */}
-            <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
                 {/* Left: Map Information & Level Badge */}
-                <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+                <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 flex-1 min-w-0">
                     <div
-                        className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center text-2xl border-2 shrink-0 bg-[#F5F9FF] shadow-xs"
+                        className="w-10 h-10 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center text-xl sm:text-2xl border-2 shrink-0 bg-[#F5F9FF] shadow-xs"
                         style={{ borderColor: currentMap.themeColor }}
                     >
                         {currentMap.num === 1 ? '🌿' : currentMap.num === 2 ? '🗿' : currentMap.num === 3 ? '🌱' : '🔥'}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-[11px] font-black px-2 py-0.5 rounded-lg border ${currentMap.badgeBg}`}>
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <span className={`text-[10px] sm:text-[11px] font-black px-1.5 sm:px-2 py-0.5 rounded-lg border ${currentMap.badgeBg}`}>
                                 地图 #{currentMap.num}
                             </span>
-                            <h2 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight flex items-center gap-1.5 truncate">
-                                <MapPin className="w-4 h-4 text-[#7ABCF4] shrink-0" />
+                            <h2 className="text-base sm:text-lg lg:text-xl font-black text-slate-800 tracking-tight flex items-center gap-1.5 truncate">
+                                <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7ABCF4] shrink-0" />
                                 <span>{currentMap.name}</span>
                             </h2>
                         </div>
 
                         {/* Description */}
-                        <p className="text-xs text-slate-500 mt-1 max-w-xl line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 max-w-xl line-clamp-2 leading-relaxed">
                             {currentMap.description}
                         </p>
                     </div>
@@ -71,7 +71,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
 
                 {/* Right: Map Dex Completion Progress Card */}
                 <div className="shrink-0 w-full sm:w-72 md:w-80">
-                    <div className="p-3 bg-gradient-to-b from-[#F5F9FF] to-[#EFF6FF] rounded-2xl border border-[#D5E2F0] shadow-xs space-y-1.5">
+                    <div className="p-2.5 sm:p-3 bg-gradient-to-b from-[#F5F9FF] to-[#EFF6FF] rounded-2xl border border-[#D5E2F0] shadow-xs space-y-1.5">
                         <div className="flex items-center justify-between text-xs font-black text-slate-700">
                             <span className="flex items-center gap-1.5 text-[#2B78C4]">
                                 <Sparkles className="w-3.5 h-3.5 text-[#FEE061]" />
@@ -156,9 +156,9 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
             <div className="border-t border-[#E6EEF8] relative z-10" />
 
             {/* Bottom Row: Filter Tabs & Search Controls */}
-            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3 pt-0.5">
+            <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 pt-0.5">
                 {/* Filter Mode Buttons */}
-                <div className="flex items-center gap-1.5 p-1 bg-[#F5F9FF] rounded-xl border border-[#E2E8F0] w-full sm:w-auto">
+                <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#F5F9FF] rounded-xl border border-[#E2E8F0] w-full sm:w-auto overflow-x-auto">
                     <button
                         type="button"
                         id="filter-all-btn"
@@ -166,7 +166,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('all');
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1 cursor-pointer ${
+                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap ${
                             filterMode === 'all'
                                 ? 'bg-white text-[#2B78C4] border border-[#7ABCF4] shadow-2xs'
                                 : 'text-slate-500 hover:text-slate-800'
@@ -181,14 +181,14 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('encountered');
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap ${
                             filterMode === 'encountered'
                                 ? 'bg-[#95D151] text-white shadow-2xs'
                                 : 'text-[#2D6613] hover:text-slate-800'
                         }`}
                     >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        已遇见 ({encounteredCount})
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        已遇 ({encounteredCount})
                     </button>
                     <button
                         type="button"
@@ -197,20 +197,20 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('unencountered');
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap ${
                             filterMode === 'unencountered'
                                 ? 'bg-[#FEE061] text-[#854D0E] shadow-2xs'
                                 : 'text-slate-500 hover:text-slate-800'
                         }`}
                     >
-                        <X className="w-3.5 h-3.5" />
-                        未遇见 ({unencounteredCount})
+                        <X className="w-3.5 h-3.5 shrink-0" />
+                        未遇 ({unencounteredCount})
                     </button>
                 </div>
 
                 {/* Search Input with Clear (X) button */}
-                <div className="flex items-center gap-2 w-full lg:w-auto">
-                    <div className="relative w-full sm:w-80">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative w-full sm:w-72 md:w-80">
                         <Search className="w-4 h-4 text-[#7ABCF4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                             type="text"

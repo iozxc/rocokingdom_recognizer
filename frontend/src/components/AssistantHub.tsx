@@ -57,18 +57,18 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
   const toolAssistants = assistants.filter((a) => a.category === 'tool');
 
   return (
-    <main className="flex-1 w-full max-w-4xl mx-auto px-6 sm:px-12 pt-8 pb-12 flex flex-col gap-10">
+    <div className="flex-1 w-full max-w-4xl mx-auto px-1 sm:px-6 lg:px-12 pt-2 sm:pt-6 pb-12 flex flex-col gap-6 sm:gap-10">
       {/* 试炼助手 分类 */}
       {trialAssistants.length > 0 && (
         <section>
-          <div className="flex items-center gap-2 mb-4 px-1">
+          <div className="flex items-center gap-2 mb-3 px-1">
             <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-sky-100 text-sky-600">
               <Sparkles className="w-3.5 h-3.5" />
             </div>
             <h2 className="text-base font-black text-slate-700 tracking-wide">试炼助手</h2>
             <span className="text-xs font-bold text-slate-400">({trialAssistants.length})</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-5">
             {trialAssistants.map((a) => {
               const Icon = a.Icon;
               return (
@@ -97,7 +97,7 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                       </span>
                     )}
                   </div>
-                  <div className="p-3.5">
+                  <div className="p-3 sm:p-3.5">
                     <div className="text-sm font-black text-slate-800">{a.title}</div>
                     <div className="text-[11px] text-slate-400 mt-0.5">{a.subtitle}</div>
                   </div>
@@ -111,14 +111,14 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
       {/* 实用工具 分类 */}
       {toolAssistants.length > 0 && (
         <section>
-          <div className="flex items-center gap-2 mb-4 px-1">
+          <div className="flex items-center gap-2 mb-3 px-1">
             <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600">
               <Wrench className="w-3.5 h-3.5" />
             </div>
             <h2 className="text-base font-black text-slate-700 tracking-wide">实用工具</h2>
             <span className="text-xs font-bold text-slate-400">({toolAssistants.length})</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-5">
             {toolAssistants.map((a) => {
               const Icon = a.Icon;
               return (
@@ -147,7 +147,7 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                       </span>
                     )}
                   </div>
-                  <div className="p-3.5">
+                  <div className="p-3 sm:p-3.5">
                     <div className="text-sm font-black text-slate-800">{a.title}</div>
                     <div className="text-[11px] text-slate-400 mt-0.5">{a.subtitle}</div>
                   </div>
@@ -157,6 +157,6 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
           </div>
         </section>
       )}
-    </main>
+    </div>
   );
 };

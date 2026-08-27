@@ -480,7 +480,7 @@ export default function App() {
         )}
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full mx-auto px-8 sm:px-16 pt-6">
+        <main className="flex-1 w-full mx-auto px-3 sm:px-8 lg:px-16 pt-4 sm:pt-6">
           {view === 'hub' ? (
               <AssistantHub
                   trials={trials}

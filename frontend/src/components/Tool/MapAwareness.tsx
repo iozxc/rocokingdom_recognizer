@@ -105,11 +105,21 @@ interface LayerState {
 export interface FogStyle {
   color: string; // 迷雾颜色 HEX, e.g. '#334155'
   opacity: number; // 迷雾不透明度 0.1 ~ 0.95
+  clearRadius: number; // 自定义视野与去迷雾光圈半径 (180 ~ 800)
 }
 
 export type PathLineStyle = 'dashed' | 'solid' | 'dotted';
 
 export type MapTheme = 'classic' | 'real_hd';
+
+export type PlayerIconType =
+  | 'crystal_blue' // 洛克能量水晶 (蓝金)
+  | 'crystal_gold' // 曜日烈阳 (纯金)
+  | 'crystal_ruby' // 赤焰红宝石 (红白)
+  | 'crystal_emerald' // 翡翠精灵 (绿白)
+  | 'crystal_purple' // 暗夜紫曜 (紫白)
+  | 'target_ring' // 准星雷达环
+  | 'star_badge'; // 王国星辉徽章
 
 export interface PathStyle {
   color: string; // 路径颜色 HEX, e.g. '#38BDF8'
@@ -129,13 +139,15 @@ const MAP_PATH_KEY = 'roco_map_path_history_v1';
 const MAP_FOG_STYLE_KEY = 'roco_map_fog_style_v1';
 const MAP_PATH_STYLE_KEY = 'roco_map_path_style_v1';
 const MAP_THEME_KEY = 'roco_map_theme_v1';
+const MAP_PLAYER_ICON_KEY = 'roco_map_player_icon_v1';
 const OVERLAY_URL = './map/over.png';
-const CLEAR_RADIUS = 360; // 玩家周围解锁蒙版的半径 (世界坐标系)
+const DEFAULT_CLEAR_RADIUS = 360; // 默认解锁迷雾半径
 const MAX_TELEPORT_DISTANCE = 600; // 传送/大跨度位移判定阈值（单位像素，超过则断开连线不绘制直线）
 
 const DEFAULT_FOG_STYLE: FogStyle = {
   color: '#334155',
   opacity: 0.45,
+  clearRadius: DEFAULT_CLEAR_RADIUS,
 };
 
 const DEFAULT_PATH_STYLE: PathStyle = {
@@ -144,6 +156,16 @@ const DEFAULT_PATH_STYLE: PathStyle = {
   lineWidth: 4,
   glow: true,
 };
+
+const PLAYER_ICON_PRESETS: { id: PlayerIconType; label: string; color: string; desc: string }[] = [
+  { id: 'crystal_blue', label: '能量晶核', color: '#2563EB', desc: '洛克经典天蓝与金芒' },
+  { id: 'crystal_gold', label: '曜日烈阳', color: '#EAB308', desc: '耀眼纯金星曜辉光' },
+  { id: 'crystal_ruby', label: '赤炎红宝', color: '#EF4444', desc: '醒目烈焰绯红能量' },
+  { id: 'crystal_emerald', label: '翡翠灵风', color: '#10B981', desc: '清新荧绿自然光环' },
+  { id: 'crystal_purple', label: '暗夜紫曜', color: '#8B5CF6', desc: '神秘幻魅紫晶信标' },
+  { id: 'target_ring', label: '战术准星', color: '#06B6D4', desc: '科技感全景准星环' },
+  { id: 'star_badge', label: '王国星徽', color: '#F59E0B', desc: '洛克专属五星微标' },
+];
 
 const FOG_COLOR_PRESETS = [
   { label: '暗蓝灰', value: '#334155' },
@@ -345,7 +367,21 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
   const mapThemeRef = useRef(mapTheme);
   mapThemeRef.current = mapTheme;
 
-  const [styleMenuOpen, setStyleMenuOpen] = useState(false);
+  // 人物图标样式
+  const [playerIcon, setPlayerIcon] = useState<PlayerIconType>(() => {
+    try {
+      const raw = localStorage.getItem(MAP_PLAYER_ICON_KEY);
+      if (raw && PLAYER_ICON_PRESETS.some((p) => p.id === raw)) {
+        return raw as PlayerIconType;
+      }
+    } catch {}
+    return 'crystal_blue';
+  });
+  const playerIconRef = useRef(playerIcon);
+  playerIconRef.current = playerIcon;
+
+  // 样式功能面板（默认展开）
+  const [styleMenuOpen, setStyleMenuOpen] = useState(true);
 
   // ---- 历史回放控制器状态 ----
   const [playbackActive, setPlaybackActive] = useState(false);
@@ -464,9 +500,9 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
             }
           }
 
-          // 2. 同步样式配置（迷雾样式、路径样式、图层开关、底图主题）
+          // 2. 同步样式配置（迷雾样式、路径样式、图层开关、底图主题、人物信标）
           if (res.mapDesignStyles) {
-            const { fogStyle: remoteFog, pathStyle: remotePathStyle, layers: remoteLayers, mapTheme: remoteTheme } = res.mapDesignStyles;
+            const { fogStyle: remoteFog, pathStyle: remotePathStyle, layers: remoteLayers, mapTheme: remoteTheme, playerIcon: remotePlayerIcon } = res.mapDesignStyles;
             if (remoteFog && typeof remoteFog === 'object') {
               setFogStyle((prev) => ({ ...prev, ...remoteFog }));
             }
@@ -478,6 +514,9 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
             }
             if (remoteTheme === 'real_hd' || remoteTheme === 'classic') {
               setMapTheme(remoteTheme);
+            }
+            if (remotePlayerIcon && PLAYER_ICON_PRESETS.some((p) => p.id === remotePlayerIcon)) {
+              setPlayerIcon(remotePlayerIcon as PlayerIconType);
             }
           }
         }
@@ -506,12 +545,21 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
           pathStyle: pathStyleRef.current,
           layers: layersRef.current,
           mapTheme: mapThemeRef.current,
+          playerIcon: playerIconRef.current,
           updatedAt: Date.now(),
         },
       };
       api.saveMapStorageRemote(payload).catch(() => {});
     } catch {}
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MAP_PLAYER_ICON_KEY, playerIcon);
+    } catch {}
+    playerIconRef.current = playerIcon;
+    requestRender();
+  }, [playerIcon, requestRender]);
 
   useEffect(() => {
     // 每次足迹或样式更新后，防抖 10 秒合并写入一次后端磁盘，避免频繁 IO 卡顿
@@ -528,7 +576,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         clearTimeout(saveToBackendTimerRef.current);
       }
     };
-  }, [pathHistory, revealedCircles, fogStyle, pathStyle, layers, mapTheme, syncToRemoteDisk]);
+  }, [pathHistory, revealedCircles, fogStyle, pathStyle, layers, mapTheme, playerIcon, syncToRemoteDisk]);
 
   // 页面关闭 / 切换时利用 beforeunload / pagehide 立即落盘
   useEffect(() => {
@@ -545,6 +593,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
             pathStyle: pathStyleRef.current,
             layers: layersRef.current,
             mapTheme: mapThemeRef.current,
+            playerIcon: playerIconRef.current,
             updatedAt: Date.now(),
           },
         };
@@ -839,7 +888,8 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         fogCtx.globalCompositeOperation = 'destination-out';
 
         const reveals = revealedCirclesRef.current;
-        const sr = CLEAR_RADIUS * zoom;
+        const radiusVal = currentFogStyle.clearRadius || DEFAULT_CLEAR_RADIUS;
+        const sr = radiusVal * zoom;
 
         // 擦除所有已探索的点位圆
         fogCtx.beginPath();
@@ -859,7 +909,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         const curP = playerRef.current.pos;
         const curSx = screenOffsetX + curP.x * zoom;
         const curSy = screenOffsetY + curP.y * zoom;
-        const curSr = (CLEAR_RADIUS + 40) * zoom;
+        const curSr = (radiusVal + 40) * zoom;
         fogCtx.beginPath();
         fogCtx.arc(curSx, curSy, curSr, 0, Math.PI * 2);
         fogCtx.fill();
@@ -941,61 +991,186 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
       ctx.restore();
     }
 
-    // 6. 绘制高显眼度无方向人物信标光标（全景醒目雷达光环 + 洛克水晶能量球）
+    // 6. 绘制高显眼度无方向人物信标光标（根据用户自选图标样式绘制）
     const p = playerRef.current;
     const px = screenOffsetX + p.pos.x * zoom;
     const py = screenOffsetY + p.pos.y * zoom;
+    const currentIcon = playerIconRef.current || 'crystal_blue';
 
     ctx.save();
     ctx.translate(px, py);
 
-    // 1) 最外层大范围感知柔和光晕
-    ctx.beginPath();
-    ctx.arc(0, 0, 40, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
-    ctx.fill();
+    if (currentIcon === 'target_ring') {
+      // 战术准星雷达环
+      ctx.beginPath();
+      ctx.arc(0, 0, 36, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+      ctx.fill();
 
-    // 2) 脉冲扩散雷达外环
-    ctx.beginPath();
-    ctx.arc(0, 0, 24, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.shadowColor = 'rgba(56, 189, 248, 0.9)';
-    ctx.shadowBlur = 12;
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, 20, 0, Math.PI * 2);
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#06B6D4';
+      ctx.shadowColor = '#06B6D4';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
 
-    // 3) 高对比度白色实心衬底圈（确保在任何深浅地貌上都极度显眼）
-    ctx.beginPath();
-    ctx.arc(0, 0, 13, 0, Math.PI * 2);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-    ctx.shadowBlur = 8;
-    ctx.fill();
+      // 四向刻度十字线
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.moveTo(0, -26); ctx.lineTo(0, -12);
+      ctx.moveTo(0, 12);  ctx.lineTo(0, 26);
+      ctx.moveTo(-26, 0); ctx.lineTo(-12, 0);
+      ctx.moveTo(12, 0);  ctx.lineTo(26, 0);
+      ctx.stroke();
 
-    // 4) 洛克天蓝至宝蓝渐变晶核
-    ctx.beginPath();
-    ctx.arc(0, 0, 9.5, 0, Math.PI * 2);
-    const coreGrad = ctx.createRadialGradient(0, -2, 1, 0, 0, 9.5);
-    coreGrad.addColorStop(0, '#60A5FA');
-    coreGrad.addColorStop(0.6, '#2563EB');
-    coreGrad.addColorStop(1, '#1D4ED8');
-    ctx.fillStyle = coreGrad;
-    ctx.fill();
+      // 中心红心点
+      ctx.beginPath();
+      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#EF4444';
+      ctx.fill();
+    } else if (currentIcon === 'star_badge') {
+      // 王国星徽
+      ctx.beginPath();
+      ctx.arc(0, 0, 38, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.18)';
+      ctx.fill();
 
-    // 5) 核心金色定位星芒与高光点
-    ctx.beginPath();
-    ctx.arc(0, 0, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#FACC15';
-    ctx.shadowColor = '#FDE047';
-    ctx.shadowBlur = 6;
-    ctx.fill();
+      // 白色实心底盘
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      ctx.shadowBlur = 8;
+      ctx.fill();
 
-    ctx.beginPath();
-    ctx.arc(-2, -2, 1.8, 0, Math.PI * 2);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fill();
+      // 金色圆环
+      ctx.beginPath();
+      ctx.arc(0, 0, 13.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#F59E0B';
+      ctx.fill();
+
+      // 绘制五角星
+      ctx.save();
+      ctx.beginPath();
+      const spikes = 5;
+      const outerR = 9;
+      const innerR = 4.2;
+      let rot = (Math.PI / 2) * 3;
+      const step = Math.PI / spikes;
+      ctx.moveTo(0, -outerR);
+      for (let i = 0; i < spikes; i++) {
+        let sx = Math.cos(rot) * outerR;
+        let sy = Math.sin(rot) * outerR;
+        ctx.lineTo(sx, sy);
+        rot += step;
+        sx = Math.cos(rot) * innerR;
+        sy = Math.sin(rot) * innerR;
+        ctx.lineTo(sx, sy);
+        rot += step;
+      }
+      ctx.lineTo(0, -outerR);
+      ctx.closePath();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowColor = '#FEF08A';
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.restore();
+    } else {
+      // 各种色系的能量水晶球（crystal_blue, crystal_gold, crystal_ruby, crystal_emerald, crystal_purple）
+      const colorMap: Record<string, { aura: string; ring: string; coreStart: string; coreMid: string; coreEnd: string; dot: string }> = {
+        crystal_blue: {
+          aura: 'rgba(56, 189, 248, 0.18)',
+          ring: 'rgba(56, 189, 248, 0.9)',
+          coreStart: '#60A5FA',
+          coreMid: '#2563EB',
+          coreEnd: '#1D4ED8',
+          dot: '#FACC15',
+        },
+        crystal_gold: {
+          aura: 'rgba(250, 204, 21, 0.22)',
+          ring: 'rgba(234, 179, 8, 0.95)',
+          coreStart: '#FEF08A',
+          coreMid: '#EAB308',
+          coreEnd: '#CA8A04',
+          dot: '#FFFFFF',
+        },
+        crystal_ruby: {
+          aura: 'rgba(239, 68, 68, 0.2)',
+          ring: 'rgba(239, 68, 68, 0.9)',
+          coreStart: '#FCA5A5',
+          coreMid: '#EF4444',
+          coreEnd: '#B91C1C',
+          dot: '#FFFFFF',
+        },
+        crystal_emerald: {
+          aura: 'rgba(16, 185, 129, 0.2)',
+          ring: 'rgba(16, 185, 129, 0.9)',
+          coreStart: '#6EE7B7',
+          coreMid: '#10B981',
+          coreEnd: '#047857',
+          dot: '#FEF08A',
+        },
+        crystal_purple: {
+          aura: 'rgba(139, 92, 246, 0.2)',
+          ring: 'rgba(139, 92, 246, 0.9)',
+          coreStart: '#C4B5FD',
+          coreMid: '#8B5CF6',
+          coreEnd: '#6D28D9',
+          dot: '#FFFFFF',
+        },
+      };
+
+      const pal = colorMap[currentIcon] || colorMap.crystal_blue;
+
+      // 1) 最外层大范围感知柔和光晕
+      ctx.beginPath();
+      ctx.arc(0, 0, 40, 0, Math.PI * 2);
+      ctx.fillStyle = pal.aura;
+      ctx.fill();
+
+      // 2) 脉冲扩散雷达外环
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 2);
+      ctx.fillStyle = pal.aura;
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.shadowColor = pal.ring;
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+
+      // 3) 高对比度白色实心衬底圈
+      ctx.beginPath();
+      ctx.arc(0, 0, 13, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+      ctx.shadowBlur = 8;
+      ctx.fill();
+
+      // 4) 渐变晶核
+      ctx.beginPath();
+      ctx.arc(0, 0, 9.5, 0, Math.PI * 2);
+      const coreGrad = ctx.createRadialGradient(0, -2, 1, 0, 0, 9.5);
+      coreGrad.addColorStop(0, pal.coreStart);
+      coreGrad.addColorStop(0.6, pal.coreMid);
+      coreGrad.addColorStop(1, pal.coreEnd);
+      ctx.fillStyle = coreGrad;
+      ctx.fill();
+
+      // 5) 核心定位星芒与高光点
+      ctx.beginPath();
+      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fillStyle = pal.dot;
+      ctx.shadowColor = pal.dot;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(-2, -2, 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fill();
+    }
 
     ctx.restore();
 
@@ -1182,36 +1357,15 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         onOpenHub={onBack}
         mapsConfig={maps}
         showMapNav={false}
-        centerStatus={(
-          <button
-            type="button"
-            onClick={() => {
-              setIsMonitoring((previous) => !previous);
-              setStatusMsgDismissed(false);
-              sound.playClick();
-            }}
-            className={`mx-auto inline-flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-black shadow-2xs transition-all active:scale-[0.98] ${
-              isMonitoring
-                ? 'border-emerald-200 bg-emerald-500 text-white hover:bg-emerald-600'
-                : 'border-[#A9D6FA] bg-[#5DA8E8] text-white hover:bg-[#6CB5EF]'
-            }`}
-            title={isMonitoring ? '停止游戏画面位置监听' : '开始监听游戏画面并实时定位'}
-            aria-pressed={isMonitoring}
-          >
-            <Radio className="h-4 w-4" />
-            <span>实时定位</span>
-            <span className="text-xs font-bold opacity-80">{isMonitoring ? '监测中' : '点击开启'}</span>
-          </button>
-        )}
         devBadge
       />
 
-      <main className="relative flex-1 min-h-0 w-full bg-[#EAF4FB]">
+      <main className="relative flex-1 min-h-0 w-full bg-[#EAF4FB] overflow-hidden">
         <div className="relative w-full h-full">
           {/* ---- 地图画布区域 ---- */}
           <div
-            className={`absolute inset-y-0 right-0 bg-[#0a1d30] overflow-hidden flex flex-col transition-all ${
-              toolbarCollapsed ? 'left-0' : 'left-[324px]'
+            className={`absolute inset-y-0 right-0 bg-[#0a1d30] overflow-hidden flex flex-col transition-all duration-200 ${
+              toolbarCollapsed ? 'left-0' : 'left-0 min-[700px]:left-[324px]'
             }`}
           >
             <div
@@ -1259,7 +1413,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
             {/* 历史足迹回放浮动控制器（独立于可拖拽 Canvas 容器，防止事件冒泡拖动地图） */}
             {playbackActive && pathHistory.length > 0 && (
               <div
-                className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border-2 border-[#E6EEF8] px-4 py-2.5 flex items-center gap-3 min-w-[440px] max-w-[90vw] pointer-events-auto select-none"
+                className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border-2 border-[#E6EEF8] px-3 sm:px-4 py-2 sm:py-2.5 flex items-center gap-2 sm:gap-3 min-w-[320px] sm:min-w-[440px] max-w-[92vw] pointer-events-auto select-none"
                 onPointerDown={(e) => e.stopPropagation()}
                 onPointerMove={(e) => e.stopPropagation()}
                 onPointerUp={(e) => e.stopPropagation()}
@@ -1272,14 +1426,14 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                     setIsPlaying((v) => !v);
                     sound.playClick();
                   }}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all shadow-xs shrink-0 ${
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center cursor-pointer transition-all shadow-xs shrink-0 ${
                     isPlaying
                       ? 'bg-amber-500 text-white hover:bg-amber-600'
                       : 'bg-[#5DA8E8] text-white hover:bg-[#4A97D8]'
                   }`}
                   title={isPlaying ? '暂停回放' : '开始播放足迹历史'}
                 >
-                  {isPlaying ? <Pause className="w-4 h-4 fill-white" /> : <Play className="w-4 h-4 fill-white ml-0.5" />}
+                  {isPlaying ? <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white" /> : <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white ml-0.5" />}
                 </button>
 
                 <button
@@ -1290,7 +1444,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                     sound.playClick();
                     requestRender();
                   }}
-                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+                  className="p-1 sm:p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
                   title="跳至起点"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -1298,13 +1452,13 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
 
                 {/* 进度条 */}
                 <div className="flex-1 flex flex-col gap-1 min-w-0">
-                  <div className="flex items-center justify-between text-[10px] font-black text-slate-500">
-                    <span className="flex items-center gap-1 text-amber-600 font-bold">
-                      <Clock className="w-3 h-3" />
+                  <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-black text-slate-500">
+                    <span className="flex items-center gap-1 text-amber-600 font-bold truncate">
+                      <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
                       {new Date(pathHistory[playbackIndex]?.timestamp || Date.now()).toLocaleTimeString()}
                     </span>
-                    <span>
-                      第 <span className="text-amber-600 font-mono">{playbackIndex + 1}</span> / {pathHistory.length} 点
+                    <span className="shrink-0 ml-1">
+                      {playbackIndex + 1}/{pathHistory.length}
                     </span>
                   </div>
                   <input
@@ -1316,12 +1470,12 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                       setPlaybackIndex(parseInt(e.target.value, 10));
                       requestRender();
                     }}
-                    className="w-full accent-amber-500 h-2 bg-slate-200 rounded-lg cursor-pointer"
+                    className="w-full accent-amber-500 h-1.5 sm:h-2 bg-slate-200 rounded-lg cursor-pointer"
                   />
                 </div>
 
                 {/* 倍速切换 */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
+                <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 p-0.5 sm:p-1 rounded-xl shrink-0">
                   {[1, 2, 5, 10].map((spd) => (
                     <button
                       key={spd}
@@ -1330,7 +1484,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                         setPlaybackSpeed(spd);
                         sound.playClick();
                       }}
-                      className={`px-1.5 py-0.5 text-[10px] font-black rounded-lg transition-all cursor-pointer ${
+                      className={`px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-black rounded-lg transition-all cursor-pointer ${
                         playbackSpeed === spd
                           ? 'bg-amber-500 text-white shadow-2xs'
                           : 'text-slate-600 hover:text-slate-900'
@@ -1358,41 +1512,83 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
             )}
 
             {/* 右下角缩放等级与 DEV 调试浮标 */}
-            <div className="absolute bottom-6 right-6 z-40 flex flex-col items-end gap-2 pointer-events-auto">
+            <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex flex-col items-end gap-2 pointer-events-auto">
               <button
                 type="button"
                 onClick={centerOnPlayer}
-                className="roco-card px-3 py-2 text-xs font-black text-[#2B78C4] hover:border-[#7ABCF4] shadow-md flex items-center gap-1.5 bg-white/95 backdrop-blur-md cursor-pointer transition-all active:scale-95"
+                className="roco-card px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-black text-[#2B78C4] hover:border-[#7ABCF4] shadow-md flex items-center gap-1.5 bg-white/95 backdrop-blur-md cursor-pointer transition-all active:scale-95"
                 title="聚焦到当前玩家人物坐标"
               >
                 <Navigation className="w-3.5 h-3.5 text-[#7ABCF4]" />
                 <span>定位人物</span>
               </button>
 
-              <div className="roco-card px-3 py-1.5 text-center shadow-lg border-2 border-[#E6EEF8] bg-white/95 backdrop-blur-md">
-                <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-700">
-                  <ZoomIn className="w-3.5 h-3.5 text-[#7ABCF4]" />
+              <div className="roco-card px-2.5 sm:px-3 py-1 sm:py-1.5 text-center shadow-lg border-2 border-[#E6EEF8] bg-white/95 backdrop-blur-md">
+                <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black text-slate-700">
+                  <ZoomIn className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#7ABCF4]" />
                   <span>{(view.zoom * 100).toFixed(0)}%</span>
                 </div>
-                <div className="text-[9px] font-black text-sky-600 mt-0.5">
+                <div className="text-[8px] sm:text-[9px] font-black text-sky-600 mt-0.5">
                   LOD: L{activeLod.level} ({activeLod.count}×{activeLod.count})
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ---- 侧栏：图层控制 + 探索迷雾 + 附近野生宠 ---- */}
+          {/* ---- 侧栏：>=700px 侧边停靠，<700px 悬浮在地图上方 ---- */}
           <div className="absolute top-0 left-0 bottom-0 z-30 pointer-events-none">
             <div
-              className={`absolute top-0 left-0 bottom-0 w-[324px] p-4 flex flex-col gap-3 transition-transform duration-200 pointer-events-auto ${
+              className={`absolute top-0 left-0 bottom-0 w-[300px] sm:w-[324px] p-3 sm:p-4 flex flex-col gap-3 transition-transform duration-200 pointer-events-auto overflow-visible max-h-full ${
                 toolbarCollapsed ? '-translate-x-full' : 'translate-x-0'
               }`}
             >
               {/* 探索与迷雾控制面板 */}
-              <div className="w-[300px] roco-card shadow-2xl p-4 backdrop-blur-md">
-                <div className="flex items-center gap-2 text-sm font-black text-slate-700 mb-3">
-                  <Footprints className="w-4 h-4 text-[#7ABCF4]" />
-                  地图探索与路径
+              <div className="w-full roco-card shadow-2xl p-3.5 sm:p-4 backdrop-blur-md space-y-3 overflow-y-auto max-h-full scrollbar-none">
+                {/* 实时定位按钮（位于工具栏顶部） */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMonitoring((previous) => !previous);
+                    setStatusMsgDismissed(false);
+                    sound.playClick();
+                  }}
+                  className={`w-full inline-flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-xs font-black shadow-2xs transition-all active:scale-[0.98] ${
+                    isMonitoring
+                      ? 'border-emerald-300 bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-200'
+                      : 'border-[#A9D6FA] bg-[#5DA8E8] text-white hover:bg-[#4A97D8]'
+                  }`}
+                  title={isMonitoring ? '停止游戏画面位置监听' : '开始监听游戏画面并实时定位'}
+                  aria-pressed={isMonitoring}
+                >
+                  <div className="flex items-center gap-2">
+                    <Radio className="h-4 w-4" />
+                    <span>画面实时定位</span>
+                  </div>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
+                    isMonitoring ? 'bg-white text-emerald-600' : 'bg-white/20 text-white'
+                  }`}>
+                    {isMonitoring ? '监测中' : '点击开启'}
+                  </span>
+                </button>
+
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-2 text-sm font-black text-slate-700">
+                    <Footprints className="w-4 h-4 text-[#7ABCF4]" />
+                    地图探索与路径
+                  </div>
+                  {/* 收起工具栏按钮（保留经典 ‹ 风格） */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setToolbarCollapsed(true);
+                      sound.playClick();
+                    }}
+                    className="h-7 w-7 rounded-xl border border-[#E6EEF8] bg-white text-slate-600 shadow-2xs hover:border-[#7ABCF4] hover:text-[#2B78C4] transition-all cursor-pointer flex items-center justify-center font-bold text-sm"
+                    title="收起工具栏"
+                    aria-label="收起工具栏"
+                  >
+                    ‹
+                  </button>
                 </div>
                 <div className="flex flex-col gap-2">
                   <LayerToggle
@@ -1410,7 +1606,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
                   <span className="text-[10px] text-slate-400 font-bold">
-                    已记录 {pathHistory.length} 个路径点
+                    已记录 {pathHistory.length} 个点
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button
@@ -1555,6 +1751,29 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                         <span className="text-[9px] text-slate-400 font-bold">深</span>
                       </div>
 
+                      {/* 迷雾开路光圈半径自定义 */}
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                        <span className="text-[10px] font-bold text-slate-600">去迷雾光圈半径</span>
+                        <span className="text-[10px] font-mono font-bold text-sky-600">
+                          {fogStyle.clearRadius || DEFAULT_CLEAR_RADIUS}px
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] text-slate-400 font-bold">小</span>
+                        <input
+                          type="range"
+                          min="180"
+                          max="800"
+                          step="20"
+                          value={fogStyle.clearRadius || DEFAULT_CLEAR_RADIUS}
+                          onChange={(e) =>
+                            setFogStyle((prev) => ({ ...prev, clearRadius: parseInt(e.target.value, 10) }))
+                          }
+                          className="w-full accent-sky-500 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+                        />
+                        <span className="text-[9px] text-slate-400 font-bold">大</span>
+                      </div>
+
                       {/* 迷雾颜色预设 & 自定义取色 */}
                       <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                         {FOG_COLOR_PRESETS.map((preset) => (
@@ -1596,6 +1815,48 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                           />
                           自定义
                         </label>
+                      </div>
+                    </div>
+
+                    {/* 自选人物光标图标 */}
+                    <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/80 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-black text-slate-700 flex items-center gap-1">
+                          <Compass className="w-3 h-3 text-sky-500" />
+                          人物光标图标
+                        </span>
+                        <span className="text-[9px] font-bold text-sky-600">
+                          {PLAYER_ICON_PRESETS.find((p) => p.id === playerIcon)?.label || '能量晶核'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {PLAYER_ICON_PRESETS.map((preset) => (
+                          <button
+                            key={preset.id}
+                            type="button"
+                            onClick={() => {
+                              setPlayerIcon(preset.id);
+                              sound.playClick();
+                            }}
+                            className={`p-1.5 rounded-xl border text-left flex items-center gap-2 cursor-pointer transition-all ${
+                              playerIcon === preset.id
+                                ? 'bg-sky-500 text-white border-sky-600 shadow-2xs font-black'
+                                : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300'
+                            }`}
+                          >
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-white/60 shrink-0 shadow-2xs"
+                              style={{ backgroundColor: preset.color }}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[10px] font-black truncate">{preset.label}</div>
+                              <div className={`text-[8px] truncate ${playerIcon === preset.id ? 'text-white/80' : 'text-slate-400'}`}>
+                                {preset.desc}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
                       </div>
                     </div>
 
@@ -1718,17 +1979,23 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                 )}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setToolbarCollapsed((v) => !v)}
-              className={`pointer-events-auto absolute top-4 h-12 w-8 border-2 border-[#E6EEF8] bg-white text-slate-600 shadow-md hover:border-[#7ABCF4] transition-all duration-200 cursor-pointer flex items-center justify-center font-bold ${
-                toolbarCollapsed ? 'left-0 rounded-r-2xl' : 'left-[324px] rounded-r-2xl'
-              }`}
-              title={toolbarCollapsed ? '展开工具栏' : '收起工具栏'}
-              aria-label={toolbarCollapsed ? '展开工具栏' : '收起工具栏'}
-            >
-              {toolbarCollapsed ? '›' : '‹'}
-            </button>
+
+            {/* 收起状态下：左侧边缘优雅的悬浮拉出按键 */}
+            {toolbarCollapsed && (
+              <button
+                type="button"
+                onClick={() => {
+                  setToolbarCollapsed(false);
+                  sound.playClick();
+                }}
+                className="pointer-events-auto absolute top-4 left-3 sm:left-4 z-40 roco-card px-3 py-2 text-xs font-black text-[#2B78C4] hover:border-[#7ABCF4] shadow-lg flex items-center gap-1.5 bg-white/95 backdrop-blur-md cursor-pointer transition-all active:scale-95 animate-in fade-in zoom-in-95 duration-150"
+                title="展开地图探索与路径设置面板"
+                aria-label="展开工具栏"
+              >
+                <Sliders className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                <span>地图设置</span>
+              </button>
+            )}
           </div>
         </div>
       </main>
