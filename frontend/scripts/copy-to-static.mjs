@@ -26,34 +26,6 @@ for (const name of readdirSync(srcAssets)) {
   copyFileSync(join(srcAssets, name), join(dstAssets, name));
 }
 
-// 同步属性图标目录（frontend/public/elements -> dist/elements -> static/elements）
-const srcElements = join(distDir, 'elements');
-const dstElements = join(staticDir, 'elements');
-if (existsSync(srcElements)) {
-  mkdirSync(dstElements, { recursive: true });
-  for (const name of readdirSync(srcElements)) {
-    copyFileSync(join(srcElements, name), join(dstElements, name));
-  }
-}
+// 注意：elements、map 与 mapdata_real 等静态资源无需在 postbuild 阶段重复复制，改为按需手动维护。
 
-// 同步地图切片目录（frontend/public/map -> dist/map -> static/map）
-function copyFolderRecursive(src, dst) {
-  if (!existsSync(src)) return;
-  mkdirSync(dst, { recursive: true });
-  for (const item of readdirSync(src, { withFileTypes: true })) {
-    const srcPath = join(src, item.name);
-    const dstPath = join(dst, item.name);
-    if (item.isDirectory()) {
-      copyFolderRecursive(srcPath, dstPath);
-    } else {
-      copyFileSync(srcPath, dstPath);
-    }
-  }
-}
-const srcMap = join(distDir, 'map');
-const dstMap = join(staticDir, 'map');
-if (existsSync(srcMap)) {
-  copyFolderRecursive(srcMap, dstMap);
-}
-
-console.log('[copy-to-static] 已同步: static/index.html + static/assets/* + static/elements/* + static/map/*');
+console.log('[copy-to-static] 已同步: static/index.html + static/assets/*');
