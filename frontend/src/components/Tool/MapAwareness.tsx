@@ -109,6 +109,8 @@ export interface FogStyle {
 
 export type PathLineStyle = 'dashed' | 'solid' | 'dotted';
 
+export type MapTheme = 'classic' | 'real_hd';
+
 export interface PathStyle {
   color: string; // 路径颜色 HEX, e.g. '#38BDF8'
   lineStyle: PathLineStyle; // 虚线 / 实线 / 点线
@@ -126,6 +128,7 @@ const MAP_FOG_REVEALED_KEY = 'roco_map_revealed_v1';
 const MAP_PATH_KEY = 'roco_map_path_history_v1';
 const MAP_FOG_STYLE_KEY = 'roco_map_fog_style_v1';
 const MAP_PATH_STYLE_KEY = 'roco_map_path_style_v1';
+const MAP_THEME_KEY = 'roco_map_theme_v1';
 const OVERLAY_URL = './map/over.png';
 const CLEAR_RADIUS = 360; // 玩家周围解锁蒙版的半径 (世界坐标系)
 const MAX_TELEPORT_DISTANCE = 600; // 传送/大跨度位移判定阈值（单位像素，超过则断开连线不绘制直线）
@@ -327,6 +330,17 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
   const pathStyleRef = useRef(pathStyle);
   pathStyleRef.current = pathStyle;
 
+  // 地图底图风格主题：'classic'（经典多级LOD原画） | 'real_hd'（超清写实新地图 1024瓦片）
+  const [mapTheme, setMapTheme] = useState<MapTheme>(() => {
+    try {
+      const raw = localStorage.getItem(MAP_THEME_KEY);
+      if (raw === 'real_hd' || raw === 'classic') return raw;
+    } catch {}
+    return 'classic';
+  });
+  const mapThemeRef = useRef(mapTheme);
+  mapThemeRef.current = mapTheme;
+
   const [styleMenuOpen, setStyleMenuOpen] = useState(false);
 
   // ---- 历史回放控制器状态 ----
@@ -361,13 +375,25 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
     });
   }, []);
 
-  // 获取并缓存切片图片
-  const getTileImage = useCallback((level: number, row: number, col: number) => {
-    const tileKey = `${level}_${row}_${col}`;
+  // 获取并缓存切片图片（支持经典 LOD 与 超清写实新地图 1024 瓦片）
+  const getTileImage = useCallback((level: number, row: number, col: number, theme: MapTheme = mapThemeRef.current) => {
+    const tileKey = `${theme}_${level}_${row}_${col}`;
     let img = tileCacheRef.current.get(tileKey);
     if (!img) {
       img = new Image();
-      img.src = `./map/${level}/${row}_${col}.png`;
+      if (theme === 'real_hd') {
+        // 超清写实新地图：32x32 对应 row 4064..4095, col 4064..4095
+        img.src = `./mapdata_real/aligned_tiles_256/${row}_${col}.png`;
+        // 容错回退
+        img.onerror = () => {
+          if (img && !img.src.includes('/map/13/')) {
+            img.src = `./map/13/${row}_${col}.png`;
+          }
+        };
+      } else {
+        // 经典 LOD 瓦片
+        img.src = `./map/${level}/${row}_${col}.png`;
+      }
       tileCacheRef.current.set(tileKey, img);
       img.onload = () => {
         requestRender();
@@ -388,7 +414,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
     const baseLod = LOD_LEVELS[0];
     for (let r = 0; r < baseLod.count; r++) {
       for (let c = 0; c < baseLod.count; c++) {
-        getTileImage(baseLod.level, baseLod.minY + r, baseLod.minX + c);
+        getTileImage(baseLod.level, baseLod.minY + r, baseLod.minX + c, 'classic');
       }
     }
   }, [getTileImage, requestRender]);
@@ -434,9 +460,9 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
             }
           }
 
-          // 2. 同步样式配置（迷雾样式、路径样式、图层开关）
+          // 2. 同步样式配置（迷雾样式、路径样式、图层开关、底图主题）
           if (res.mapDesignStyles) {
-            const { fogStyle: remoteFog, pathStyle: remotePathStyle, layers: remoteLayers } = res.mapDesignStyles;
+            const { fogStyle: remoteFog, pathStyle: remotePathStyle, layers: remoteLayers, mapTheme: remoteTheme } = res.mapDesignStyles;
             if (remoteFog && typeof remoteFog === 'object') {
               setFogStyle((prev) => ({ ...prev, ...remoteFog }));
             }
@@ -445,6 +471,9 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
             }
             if (remoteLayers && typeof remoteLayers === 'object') {
               setLayers((prev) => ({ ...prev, ...remoteLayers }));
+            }
+            if (remoteTheme === 'real_hd' || remoteTheme === 'classic') {
+              setMapTheme(remoteTheme);
             }
           }
         }
@@ -472,6 +501,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
           fogStyle: fogStyleRef.current,
           pathStyle: pathStyleRef.current,
           layers: layersRef.current,
+          mapTheme: mapThemeRef.current,
           updatedAt: Date.now(),
         },
       };
@@ -494,7 +524,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         clearTimeout(saveToBackendTimerRef.current);
       }
     };
-  }, [pathHistory, revealedCircles, fogStyle, pathStyle, layers, syncToRemoteDisk]);
+  }, [pathHistory, revealedCircles, fogStyle, pathStyle, layers, mapTheme, syncToRemoteDisk]);
 
   // 页面关闭 / 切换时利用 beforeunload / pagehide 立即落盘
   useEffect(() => {
@@ -510,6 +540,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
             fogStyle: fogStyleRef.current,
             pathStyle: pathStyleRef.current,
             layers: layersRef.current,
+            mapTheme: mapThemeRef.current,
             updatedAt: Date.now(),
           },
         };
@@ -545,6 +576,14 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
     pathStyleRef.current = pathStyle;
     requestRender();
   }, [pathStyle, requestRender]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MAP_THEME_KEY, mapTheme);
+    } catch {}
+    mapThemeRef.current = mapTheme;
+    requestRender();
+  }, [mapTheme, requestRender]);
 
   // 容器大小测量
   useEffect(() => {
@@ -684,49 +723,76 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'medium';
 
-    // 2. 绘制基础底图（L11 恒定垫底）
-    const baseLod = LOD_LEVELS[0];
-    const minBaseCol = Math.max(0, Math.floor(minWorldX / baseLod.tileWorldSize));
-    const maxBaseCol = Math.min(baseLod.count - 1, Math.floor(maxWorldX / baseLod.tileWorldSize));
-    const minBaseRow = Math.max(0, Math.floor(minWorldY / baseLod.tileWorldSize));
-    const maxBaseRow = Math.min(baseLod.count - 1, Math.floor(maxWorldY / baseLod.tileWorldSize));
+    const currentTheme = mapThemeRef.current;
 
-    for (let r = minBaseRow; r <= maxBaseRow; r++) {
-      for (let c = minBaseCol; c <= maxBaseCol; c++) {
-        const worldX = c * baseLod.tileWorldSize;
-        const worldY = r * baseLod.tileWorldSize;
-        const dx = Math.floor(screenOffsetX + worldX * zoom);
-        const dy = Math.floor(screenOffsetY + worldY * zoom);
-        const dw = Math.ceil(screenOffsetX + (worldX + baseLod.tileWorldSize) * zoom) - dx;
-        const dh = Math.ceil(screenOffsetY + (worldY + baseLod.tileWorldSize) * zoom) - dy;
-
-        const img = getTileImage(baseLod.level, baseLod.minY + r, baseLod.minX + c);
-        if (img.complete && img.naturalWidth > 0) {
-          ctx.drawImage(img, dx, dy, dw, dh);
-        }
-      }
-    }
-
-    // 3. 当前 LOD 等级瓦片覆盖绘制（仅绘制一次，保证 60fps）
-    const currentLod = getLodForZoom(zoom);
-    if (currentLod.level !== baseLod.level) {
-      const minCol = Math.max(0, Math.floor(minWorldX / currentLod.tileWorldSize));
-      const maxCol = Math.min(currentLod.count - 1, Math.floor(maxWorldX / currentLod.tileWorldSize));
-      const minRow = Math.max(0, Math.floor(minWorldY / currentLod.tileWorldSize));
-      const maxRow = Math.min(currentLod.count - 1, Math.floor(maxWorldY / currentLod.tileWorldSize));
+    if (currentTheme === 'real_hd') {
+      // 2. 超清写实新地图渲染（32x32 共 1024 块 256px 瓦片，对应 L13 范围 4064..4095）
+      const realLod = LOD_LEVELS[2]; // level 13: count=32, tileWorldSize=256
+      const minCol = Math.max(0, Math.floor(minWorldX / realLod.tileWorldSize));
+      const maxCol = Math.min(realLod.count - 1, Math.floor(maxWorldX / realLod.tileWorldSize));
+      const minRow = Math.max(0, Math.floor(minWorldY / realLod.tileWorldSize));
+      const maxRow = Math.min(realLod.count - 1, Math.floor(maxWorldY / realLod.tileWorldSize));
 
       for (let r = minRow; r <= maxRow; r++) {
         for (let c = minCol; c <= maxCol; c++) {
-          const worldX = c * currentLod.tileWorldSize;
-          const worldY = r * currentLod.tileWorldSize;
+          const worldX = c * realLod.tileWorldSize;
+          const worldY = r * realLod.tileWorldSize;
           const dx = Math.floor(screenOffsetX + worldX * zoom);
           const dy = Math.floor(screenOffsetY + worldY * zoom);
-          const dw = Math.ceil(screenOffsetX + (worldX + currentLod.tileWorldSize) * zoom) - dx;
-          const dh = Math.ceil(screenOffsetY + (worldY + currentLod.tileWorldSize) * zoom) - dy;
+          const dw = Math.ceil(screenOffsetX + (worldX + realLod.tileWorldSize) * zoom) - dx;
+          const dh = Math.ceil(screenOffsetY + (worldY + realLod.tileWorldSize) * zoom) - dy;
 
-          const img = getTileImage(currentLod.level, currentLod.minY + r, currentLod.minX + c);
+          const img = getTileImage(realLod.level, realLod.minY + r, realLod.minX + c, 'real_hd');
           if (img.complete && img.naturalWidth > 0) {
             ctx.drawImage(img, dx, dy, dw, dh);
+          }
+        }
+      }
+    } else {
+      // 2. 经典 LOD 原画底图：先绘制 L11 恒定垫底
+      const baseLod = LOD_LEVELS[0];
+      const minBaseCol = Math.max(0, Math.floor(minWorldX / baseLod.tileWorldSize));
+      const maxBaseCol = Math.min(baseLod.count - 1, Math.floor(maxWorldX / baseLod.tileWorldSize));
+      const minBaseRow = Math.max(0, Math.floor(minWorldY / baseLod.tileWorldSize));
+      const maxBaseRow = Math.min(baseLod.count - 1, Math.floor(maxWorldY / baseLod.tileWorldSize));
+
+      for (let r = minBaseRow; r <= maxBaseRow; r++) {
+        for (let c = minBaseCol; c <= maxBaseCol; c++) {
+          const worldX = c * baseLod.tileWorldSize;
+          const worldY = r * baseLod.tileWorldSize;
+          const dx = Math.floor(screenOffsetX + worldX * zoom);
+          const dy = Math.floor(screenOffsetY + worldY * zoom);
+          const dw = Math.ceil(screenOffsetX + (worldX + baseLod.tileWorldSize) * zoom) - dx;
+          const dh = Math.ceil(screenOffsetY + (worldY + baseLod.tileWorldSize) * zoom) - dy;
+
+          const img = getTileImage(baseLod.level, baseLod.minY + r, baseLod.minX + c, 'classic');
+          if (img.complete && img.naturalWidth > 0) {
+            ctx.drawImage(img, dx, dy, dw, dh);
+          }
+        }
+      }
+
+      // 3. 当前 LOD 等级瓦片覆盖绘制（仅绘制一次，保证 60fps）
+      const currentLod = getLodForZoom(zoom);
+      if (currentLod.level !== baseLod.level) {
+        const minCol = Math.max(0, Math.floor(minWorldX / currentLod.tileWorldSize));
+        const maxCol = Math.min(currentLod.count - 1, Math.floor(maxWorldX / currentLod.tileWorldSize));
+        const minRow = Math.max(0, Math.floor(minWorldY / currentLod.tileWorldSize));
+        const maxRow = Math.min(currentLod.count - 1, Math.floor(maxWorldY / currentLod.tileWorldSize));
+
+        for (let r = minRow; r <= maxRow; r++) {
+          for (let c = minCol; c <= maxCol; c++) {
+            const worldX = c * currentLod.tileWorldSize;
+            const worldY = r * currentLod.tileWorldSize;
+            const dx = Math.floor(screenOffsetX + worldX * zoom);
+            const dy = Math.floor(screenOffsetY + worldY * zoom);
+            const dw = Math.ceil(screenOffsetX + (worldX + currentLod.tileWorldSize) * zoom) - dx;
+            const dh = Math.ceil(screenOffsetY + (worldY + currentLod.tileWorldSize) * zoom) - dy;
+
+            const img = getTileImage(currentLod.level, currentLod.minY + r, currentLod.minX + c, 'classic');
+            if (img.complete && img.naturalWidth > 0) {
+              ctx.drawImage(img, dx, dy, dw, dh);
+            }
           }
         }
       }
@@ -841,7 +907,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
       ctx.restore();
     }
 
-    // 6. 绘制洛克王国专属地图人物箭头光标
+    // 6. 绘制高显眼度无方向人物信标光标（全景醒目雷达光环 + 洛克水晶能量球）
     const p = playerRef.current;
     const px = screenOffsetX + p.pos.x * zoom;
     const py = screenOffsetY + p.pos.y * zoom;
@@ -849,56 +915,57 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
     ctx.save();
     ctx.translate(px, py);
 
-    // 绘制玩家视野感知光环
-    const pulseRadius = 36;
+    // 1) 最外层大范围感知柔和光晕
     ctx.beginPath();
-    ctx.arc(0, 0, pulseRadius, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(122, 188, 244, 0.15)';
+    ctx.arc(0, 0, 40, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
     ctx.fill();
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(122, 188, 244, 0.4)';
+
+    // 2) 脉冲扩散雷达外环
+    ctx.beginPath();
+    ctx.arc(0, 0, 24, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowColor = 'rgba(56, 189, 248, 0.9)';
+    ctx.shadowBlur = 12;
     ctx.stroke();
 
-    // 旋转朝向绘制洛克王国专属金色/天蓝立体箭头
-    ctx.rotate(((p.heading || 0) * Math.PI) / 180);
-
-    // 外层金色高光轮廓
-    ctx.shadowColor = 'rgba(250, 204, 21, 0.8)';
-    ctx.shadowBlur = 10;
-
-    // 箭头外框
+    // 3) 高对比度白色实心衬底圈（确保在任何深浅地貌上都极度显眼）
     ctx.beginPath();
-    ctx.moveTo(0, -22); // 箭头顶端
-    ctx.lineTo(15, 16); // 右翼
-    ctx.lineTo(0, 9);   // 内凹点
-    ctx.lineTo(-15, 16); // 左翼
-    ctx.closePath();
-    ctx.fillStyle = '#FACC15'; // 金色边框
+    ctx.arc(0, 0, 13, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+    ctx.shadowBlur = 8;
     ctx.fill();
 
-    // 箭头内部填充（洛克天蓝渐变）
+    // 4) 洛克天蓝至宝蓝渐变晶核
     ctx.beginPath();
-    ctx.moveTo(0, -18);
-    ctx.lineTo(11, 13);
-    ctx.lineTo(0, 7);
-    ctx.lineTo(-11, 13);
-    ctx.closePath();
-    const arrowGrad = ctx.createLinearGradient(0, -18, 0, 13);
-    arrowGrad.addColorStop(0, '#FFFFFF');
-    arrowGrad.addColorStop(0.3, '#7ABCF4');
-    arrowGrad.addColorStop(1, '#2563EB');
-    ctx.fillStyle = arrowGrad;
+    ctx.arc(0, 0, 9.5, 0, Math.PI * 2);
+    const coreGrad = ctx.createRadialGradient(0, -2, 1, 0, 0, 9.5);
+    coreGrad.addColorStop(0, '#60A5FA');
+    coreGrad.addColorStop(0.6, '#2563EB');
+    coreGrad.addColorStop(1, '#1D4ED8');
+    ctx.fillStyle = coreGrad;
     ctx.fill();
 
-    // 中心定位小晶核
+    // 5) 核心金色定位星芒与高光点
     ctx.beginPath();
-    ctx.arc(0, 3, 3, 0, Math.PI * 2);
+    ctx.arc(0, 0, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#FACC15';
+    ctx.shadowColor = '#FDE047';
+    ctx.shadowBlur = 6;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(-2, -2, 1.8, 0, Math.PI * 2);
     ctx.fillStyle = '#FFFFFF';
     ctx.fill();
 
     ctx.restore();
 
-    // 7. 绘制历史回放游标（橙红色发光回放小人）
+    // 7. 绘制历史回放游标（醒目橙金能量信标）
     if (playbackActiveRef.current && pathHistoryRef.current.length > 0) {
       const idx = Math.min(playbackIndexRef.current, pathHistoryRef.current.length - 1);
       const replayNode = pathHistoryRef.current[idx];
@@ -909,47 +976,41 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         ctx.save();
         ctx.translate(rx, ry);
 
-        // 回放光圈
+        // 回放外层虚线脉冲圈
         ctx.beginPath();
-        ctx.arc(0, 0, 42, 0, Math.PI * 2);
+        ctx.arc(0, 0, 36, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(249, 115, 22, 0.2)';
         ctx.fill();
         ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgba(249, 115, 22, 0.8)';
+        ctx.strokeStyle = 'rgba(249, 115, 22, 0.85)';
         ctx.setLineDash([4, 4]);
         ctx.stroke();
 
-        ctx.rotate(((replayNode.heading || 0) * Math.PI) / 180);
-
-        // 回放箭头外框
-        ctx.shadowColor = 'rgba(249, 115, 22, 0.9)';
-        ctx.shadowBlur = 12;
-
+        // 白色对比衬底
         ctx.beginPath();
-        ctx.moveTo(0, -24);
-        ctx.lineTo(16, 18);
-        ctx.lineTo(0, 10);
-        ctx.lineTo(-16, 18);
-        ctx.closePath();
-        ctx.fillStyle = '#EA580C';
+        ctx.arc(0, 0, 14, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = 'rgba(234, 88, 12, 0.9)';
+        ctx.shadowBlur = 10;
+        ctx.setLineDash([]);
         ctx.fill();
 
+        // 橙红渐变晶核
         ctx.beginPath();
-        ctx.moveTo(0, -20);
-        ctx.lineTo(12, 15);
-        ctx.lineTo(0, 8);
-        ctx.lineTo(-12, 15);
-        ctx.closePath();
-        const replayGrad = ctx.createLinearGradient(0, -20, 0, 15);
-        replayGrad.addColorStop(0, '#FFF7ED');
-        replayGrad.addColorStop(0.4, '#FB923C');
-        replayGrad.addColorStop(1, '#C2410C');
+        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        const replayGrad = ctx.createRadialGradient(0, -2, 1, 0, 0, 10);
+        replayGrad.addColorStop(0, '#FDBA74');
+        replayGrad.addColorStop(0.6, '#EA580C');
+        replayGrad.addColorStop(1, '#9A3412');
         ctx.fillStyle = replayGrad;
         ctx.fill();
 
+        // 核心白曜亮点
         ctx.beginPath();
-        ctx.arc(0, 3, 3.5, 0, Math.PI * 2);
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
         ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = '#FFFFFF';
+        ctx.shadowBlur = 6;
         ctx.fill();
 
         ctx.restore();
@@ -1397,6 +1458,63 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                 {/* 折叠的迷雾与路径视觉样式菜单 */}
                 {styleMenuOpen && (
                   <div className="mt-3 pt-3 border-t border-slate-100 flex flex-col gap-3">
+                    {/* 地图底图画风选择 */}
+                    <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/80 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-black text-slate-700 flex items-center gap-1">
+                          <Layers className="w-3 h-3 text-sky-500" />
+                          地图底图画风
+                        </span>
+                        <span className="text-[9px] font-black text-sky-600">
+                          {mapTheme === 'real_hd' ? 'UP实拍' : '经典原画'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMapTheme('classic');
+                            sound.playClick();
+                          }}
+                          className={`p-1.5 rounded-xl border text-left flex flex-col gap-0.5 cursor-pointer transition-all ${
+                            mapTheme === 'classic'
+                              ? 'bg-sky-500 text-white border-sky-600 shadow-2xs font-black'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-[10px] font-black">
+                            <span>经典原画地图</span>
+                            {mapTheme === 'classic' && <span className="text-[8px] bg-white text-sky-600 px-1 rounded">当前</span>}
+                          </div>
+                          <div className={`text-[8px] ${mapTheme === 'classic' ? 'text-white/80' : 'text-slate-400'}`}>
+                            分级 LOD · 原版地貌
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMapTheme('real_hd');
+                            sound.playClick();
+                          }}
+                          className={`p-1.5 rounded-xl border text-left flex flex-col gap-0.5 cursor-pointer transition-all ${
+                            mapTheme === 'real_hd'
+                              ? 'bg-sky-500 text-white border-sky-600 shadow-2xs font-black'
+                              : 'bg-white text-slate-700 border-slate-200 hover:border-sky-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-[10px] font-black">
+                            <span>UP实拍地图</span>
+                            {mapTheme === 'real_hd' && <span className="text-[8px] bg-white text-sky-600 px-1 rounded">当前</span>}
+                          </div>
+                          <div className={`text-[8px] ${mapTheme === 'real_hd' ? 'text-white/80' : 'text-slate-400'}`}>
+                            1024瓦片 · 实景拼接
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
                     {/* 迷雾样式设置 */}
                     <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-200/80 flex flex-col gap-2">
                       <div className="flex items-center justify-between">
