@@ -1,30 +1,38 @@
 {
-  "version": "1.4.0",
+  "version": "1.4.1",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.4.0 更新公告】\n【较大更新】此次更新包体较大无法增量更新\n\n界面较大改动：整体布局、交互与视觉全面调整\n数据库及精灵名字较大改动：部分精灵命名调整，图鉴信息同步更新\n识别模块更新：识别骨干从 ResNet50 升级为 DINOv2，识别更精准\n全图鉴高清图优化：精灵图片清晰度提升\n【功能新增】\n1、全图鉴属性（系别）展示：所有精灵补齐属性数据，首个为主属性\n属性图标改用官方图标风格，首页图鉴、跟随识别、全域搜索、批量/单个识别、精灵详情、跟随图鉴弹窗等位置全部展示，双属性显示两个\n2、批量识别交互优化：识别后自动定位候选区；确认遇见图鉴后自动回到顶部“游戏画面识别”区\n【优化】\n3、启动提速：首页数据未就绪时先显示空白，真实图鉴加载后再展示，不再闪现占位精灵\n4、图鉴数据精简：全图鉴属性信息合并为单一数据文件，加载与更新更轻量\n5、属性覆盖更全：覆盖 442 个图鉴编号、568 个形态，双属性按主属性在前排序\n6、界面细节优化：属性图标大小与布局适配，多端视觉统一\n【注意】\n更新前请先确认自己的图鉴个数。本次更新涉及精灵名字修改与部分删除，若更新后出现精灵对不上号的情况，通常是命名调整所致，请以最新图鉴为准。\n【更新方式】\n自动更新：启动旧版本后按提示点击“立即更新”即可。\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。",
+  "update_log": "【v1.4.1 更新公告】首页、跟随识别的图鉴里增加了筛选功能：\n现在可以筛选首领精灵、多形态精灵、以及18种属性",
   "auto_update": {
-    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.0/",
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.1/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "4c1ee918c72a087d24ab676263028ce9",
+        "md5": "9682a4e08df4141840e86801f78aae7f",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "c10aa90b2809556a354d25e381f0cc10",
+        "md5": "ef2a3dceb2a7121a6f2aa552c4afbbd8",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "85c54000c44de23c9563d0ea694217c1",
-        "size": 29860784
+        "md5": "7d45166fccc72cbe4acd5197f467dafb",
+        "size": 29905954
       }
     ]
   },
   "deltas": [
+    {
+      "base_version": "1.4.0",
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.1/RocoKingdomRecognizer_delta_1.4.0.7z",
+      "md5": "492e71602ae1bd39bbe715b946318157",
+      "size": 19788570,
+      "changed": 6,
+      "removed": 0
+    }
   ]
 }

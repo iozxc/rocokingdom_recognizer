@@ -26,7 +26,7 @@ import { getFireTrialPetsCached, invalidateFireTrialData } from './services/fire
 import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
-import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial } from './types';
+import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState } from './types';
 import { isPetEncounteredInRecords } from './utils/petHelper';
 
 export default function App() {
@@ -35,6 +35,10 @@ export default function App() {
   const [records, setRecords] = useState<Record<string, EncounterRecord>>({});
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({
+    elements: [],
+    specialTypes: [],
+  });
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
   });
@@ -505,6 +509,8 @@ export default function App() {
                     onResetEncounters={handleResetCurrentMap}
                     onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
                     dataUpdateAvailable={dataUpdateAvailable}
+                    advancedFilters={advancedFilters}
+                    onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
                 />
 
                 {/* Pet Image Recognition Module (BatchRecognizerCard: 3 columns layout + ? help button) */}
@@ -532,6 +538,7 @@ export default function App() {
                       setFeedbackInitialType(type);
                       setIsFeedbackOpen(true);
                     }}
+                    advancedFilters={advancedFilters}
                 />
               </>
           )}

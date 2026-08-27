@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sparkles, Check, Sparkle, Filter, Info, Bug } from 'lucide-react';
-import { MapConfig, PetItem, EncounterRecord } from '../types';
+import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState } from '../types';
 import { sound } from '../services/sound';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
@@ -15,6 +15,7 @@ interface PetGridProps {
   searchQuery: string;
   onOpenPetDetail?: (pet: PetItem) => void;
   onOpenFeedback?: (type: string, pet: PetItem) => void;
+  advancedFilters: AdvancedFilterState;
 }
 
 export const PetGrid: React.FC<PetGridProps> = ({
@@ -27,6 +28,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                                   searchQuery,
                                                   onOpenPetDetail,
                                                   onOpenFeedback,
+                                                  advancedFilters,
                                                 }) => {
   // Track keys of pets that were just toggled to encountered / unencountered
   const [animatingKeys, setAnimatingKeys] = useState<Record<string, boolean>>({});
@@ -84,24 +86,55 @@ export const PetGrid: React.FC<PetGridProps> = ({
   };
 
 
-  // Filter pets by mode and query
-  const filteredPets = pets.filter((pet) => {
-    const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);
+  // Filter pets by mode, query and advanced filters
+  const filteredPets = useMemo(() => {
+    return pets.filter((pet) => {
+      const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);
 
-    if (filterMode === 'encountered' && !isEnc) return false;
-    if (filterMode === 'unencountered' && isEnc) return false;
+      if (filterMode === 'encountered' && !isEnc) return false;
+      if (filterMode === 'unencountered' && isEnc) return false;
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const cleanName = formatPetName(pet.name).toLowerCase();
-      const baseName = getBasePetName(pet.name).toLowerCase();
-      const rawName = pet.name.toLowerCase();
-      const idMatch = String(pet.id ?? '').includes(q);
-      return cleanName.includes(q) || rawName.includes(q) || baseName.includes(q) || idMatch;
-    }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const cleanName = formatPetName(pet.name).toLowerCase();
+        const baseName = getBasePetName(pet.name).toLowerCase();
+        const rawName = pet.name.toLowerCase();
+        const idMatch = String(pet.id ?? '').includes(q);
+        const matchesSearch = cleanName.includes(q) || rawName.includes(q) || baseName.includes(q) || idMatch;
+        if (!matchesSearch) return false;
+      }
 
-    return true;
-  });
+      // Elements Filter
+      if (advancedFilters.elements.length > 0) {
+        if (!pet.elements || !pet.elements.some((el) => advancedFilters.elements.includes(el))) {
+          return false;
+        }
+      }
+
+      // Special Types Filter (Boss / Multi-form)
+      if (advancedFilters.specialTypes.length > 0) {
+        const isSeqGreater = pet.seq !== undefined && pet.seq > 1;
+        const cleanName = formatPetName(pet.name);
+        const hasUnderscore = cleanName.includes('_');
+
+        const isBoss = isSeqGreater && !hasUnderscore;
+        const isMultiForm = isSeqGreater && hasUnderscore;
+
+        let matchesSpecial = false;
+        if (advancedFilters.specialTypes.includes('boss') && isBoss) {
+          matchesSpecial = true;
+        }
+        if (advancedFilters.specialTypes.includes('multiform') && isMultiForm) {
+          matchesSpecial = true;
+        }
+
+        if (!matchesSpecial) return false;
+      }
+
+      return true;
+    });
+  }, [pets, records, currentMap.id, filterMode, searchQuery, advancedFilters]);
+
 
   return (
       <div className="bg-white roco-card p-5 sm:p-6">

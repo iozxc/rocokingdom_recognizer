@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Search, Sparkles, RotateCcw, MapPin, CheckCircle2, X, ArrowUpCircle } from 'lucide-react';
-import { MapConfig } from '../types';
+import { Search, Sparkles, RotateCcw, MapPin, CheckCircle2, X, ArrowUpCircle, Filter } from 'lucide-react';
+import { MapConfig, AdvancedFilterState } from '../types';
 import { sound } from '../services/sound';
 import { ConfirmDialog } from './ConfirmDialog';
+import { AdvancedFilterPopover } from './AdvancedFilterPopover';
 
 interface StatsBannerProps {
     currentMap: MapConfig;
@@ -16,6 +17,8 @@ interface StatsBannerProps {
     onResetEncounters: () => void;
     onOpenDataUpdate?: () => void;
     dataUpdateAvailable?: boolean;
+    advancedFilters: AdvancedFilterState;
+    onAdvancedFilterChange: (filters: AdvancedFilterState) => void;
 }
 
 export const StatsBanner: React.FC<StatsBannerProps> = ({
@@ -30,16 +33,24 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                                             onResetEncounters,
                                                             onOpenDataUpdate,
                                                             dataUpdateAvailable,
+                                                            advancedFilters,
+                                                            onAdvancedFilterChange,
                                                         }) => {
     const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
+    const [isAdvancedOpen, setIsAdvancedOpen] = useState<boolean>(false);
     const unencounteredCount = Math.max(0, totalMapPets - encounteredCount);
 
+    const activeAdvancedCount = advancedFilters.elements.length + advancedFilters.specialTypes.length;
+
+
     return (
-        <div className="bg-white roco-card p-3 sm:p-5 relative overflow-hidden mb-4 sm:mb-5 space-y-3 sm:space-y-3.5 shadow-xs border border-slate-100">
-            {/* Decorative gradient aura */}
-            <div
-                className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${currentMap.bgGradient} rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none opacity-40`}
-            />
+        <div className="bg-white roco-card p-3 sm:p-5 relative mb-4 sm:mb-5 space-y-3 sm:space-y-3.5 shadow-xs border border-slate-100">
+            {/* Decorative gradient aura container to handle overflow boundaries safely */}
+            <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
+                <div
+                    className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${currentMap.bgGradient} rounded-full blur-3xl -mr-20 -mt-20 opacity-40`}
+                />
+            </div>
 
             {/* Top Row: Map Header Info + Progress Tracker */}
             <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
@@ -208,8 +219,8 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                     </button>
                 </div>
 
-                {/* Search Input with Clear (X) button */}
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                {/* Search Input and Advanced Filter with Popover */}
+                <div className="flex items-center gap-2 w-full sm:w-auto relative">
                     <div className="relative w-full sm:w-72 md:w-80">
                         <Search className="w-4 h-4 text-[#7ABCF4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
@@ -234,6 +245,36 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                 <X className="w-3.5 h-3.5" />
                             </button>
                         )}
+                    </div>
+
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                sound.playClick();
+                                setIsAdvancedOpen(!isAdvancedOpen);
+                            }}
+                            className={`p-2 rounded-xl border-2 transition-all flex items-center justify-center gap-1 cursor-pointer hover:scale-105 active:scale-95 ${
+                                activeAdvancedCount > 0
+                                    ? 'bg-[#F0F7FF] border-[#7ABCF4] text-[#2B78C4]'
+                                    : 'bg-white border-slate-200 text-slate-600 hover:border-[#7ABCF4] hover:text-[#2B78C4]'
+                            }`}
+                            title="高级筛选"
+                        >
+                            <Filter className="w-4 h-4" />
+                            {activeAdvancedCount > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                                    {activeAdvancedCount}
+                                </span>
+                            )}
+                        </button>
+
+                        <AdvancedFilterPopover
+                            isOpen={isAdvancedOpen}
+                            onClose={() => setIsAdvancedOpen(false)}
+                            filters={advancedFilters}
+                            onChange={onAdvancedFilterChange}
+                        />
                     </div>
                 </div>
             </div>

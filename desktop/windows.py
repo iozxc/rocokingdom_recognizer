@@ -108,7 +108,7 @@ class WindowManager:
                     title='精灵识别跟随',
                     url=f'{self.base_url}/?view=scanner',
                     width=500,
-                    height=546,
+                    height=650,
                     frameless=True,
                     transparent=False,
                     on_top=True,
@@ -157,7 +157,7 @@ class WindowManager:
         try:
             # 钳位，防止内容测量异常把窗口撑爆或缩没
             width = max(360, min(int(width), 1920))
-            height = max(480, min(int(height), 1600))
+            height = max(600, min(int(height), 1600))
             win.resize(width, height)
             logger.debug(f"子窗口自适应: {width}x{height}")
             return {"status": "ok", "width": width, "height": height}

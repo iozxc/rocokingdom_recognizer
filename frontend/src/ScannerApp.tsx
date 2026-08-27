@@ -296,7 +296,7 @@ export const ScannerApp: React.FC = () => {
     contentH += (parseFloat(contentStyle.paddingTop) || 12) + (parseFloat(contentStyle.paddingBottom) || 12);
 
     // 前端最低高度：内容再少窗口也不低于这个值（与 create_window 默认高度保持一致）
-    const MIN_WINDOW_HEIGHT = 510;
+    const MIN_WINDOW_HEIGHT = 614;
     const targetHeight = Math.max(MIN_WINDOW_HEIGHT, Math.ceil(titlebarH + contentH + statusbarH));
     const prevHeight = lastWindowHeightRef.current;
     if (prevHeight !== null && Math.abs(prevHeight - targetHeight) <= 4) return;

@@ -6,13 +6,15 @@ import {
     Check,
     Search,
     BookOpen,
+    Filter,
 } from 'lucide-react';
-import { PetItem, EncounterRecord } from '../types';
+import { PetItem, EncounterRecord, AdvancedFilterState } from '../types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
+import { AdvancedFilterPopover } from './AdvancedFilterPopover';
 
 interface ScannerMapGalleryModalProps {
     isOpen: boolean;
@@ -35,6 +37,13 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     const [selectedTab, setSelectedTab] = useState<'all' | number>(initialMapNum);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMode, setFilterMode] = useState<'all' | 'unencountered' | 'encountered'>('all');
+    const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({
+        elements: [],
+        specialTypes: [],
+    });
+    const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
+    const activeAdvancedCount = advancedFilters.elements.length + advancedFilters.specialTypes.length;
 
     const isEncountered = (mapId: string, filename: string): boolean => {
         return isPetEncounteredInRecords(records, mapId, filename);
@@ -120,8 +129,37 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
             list = list.filter((item) => !isEncountered(item.mapId, item.pet.name));
         }
 
+        // Advanced filters
+        if (advancedFilters.elements.length > 0) {
+            list = list.filter(
+                (item) =>
+                    item.pet.elements &&
+                    item.pet.elements.some((el) => advancedFilters.elements.includes(el))
+            );
+        }
+
+        if (advancedFilters.specialTypes.length > 0) {
+            list = list.filter((item) => {
+                const isSeqGreater = item.pet.seq !== undefined && item.pet.seq > 1;
+                const cleanName = formatPetName(item.pet.name);
+                const hasUnderscore = cleanName.includes('_');
+
+                const isBoss = isSeqGreater && !hasUnderscore;
+                const isMultiForm = isSeqGreater && hasUnderscore;
+
+                let matchesSpecial = false;
+                if (advancedFilters.specialTypes.includes('boss') && isBoss) {
+                    matchesSpecial = true;
+                }
+                if (advancedFilters.specialTypes.includes('multiform') && isMultiForm) {
+                    matchesSpecial = true;
+                }
+                return matchesSpecial;
+            });
+        }
+
         return list;
-    }, [isOpen, selectedTab, searchQuery, filterMode, mapsPets, records]);
+    }, [isOpen, selectedTab, searchQuery, filterMode, mapsPets, records, advancedFilters]);
 
     if (!isOpen) return null;
 
@@ -228,6 +266,36 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                 <X className="w-3 h-3" />
                             </button>
                         )}
+                    </div>
+
+                    <div className="relative shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                sound.playClick();
+                                setIsAdvancedOpen(!isAdvancedOpen);
+                            }}
+                            className={`p-1 rounded-lg border-2 transition-all flex items-center justify-center cursor-pointer active:scale-95 hover:border-[#7ABCF4] ${
+                                activeAdvancedCount > 0
+                                    ? 'bg-[#F0F7FF] border-[#7ABCF4] text-[#2B78C4]'
+                                    : 'bg-white border-[#D5E3F0] text-slate-500 hover:text-[#2B78C4]'
+                            }`}
+                            title="高级筛选"
+                        >
+                            <Filter className="w-3.5 h-3.5" />
+                            {activeAdvancedCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">
+                                    {activeAdvancedCount}
+                                </span>
+                            )}
+                        </button>
+
+                        <AdvancedFilterPopover
+                            isOpen={isAdvancedOpen}
+                            onClose={() => setIsAdvancedOpen(false)}
+                            filters={advancedFilters}
+                            onChange={setAdvancedFilters}
+                        />
                     </div>
 
                     <div className="flex items-center gap-0.5 bg-[#F4F9FF] p-0.5 rounded-lg border border-[#DCE8F5] shrink-0">

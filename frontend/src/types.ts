@@ -350,3 +350,9 @@ export interface SubmitFeedbackResponse {
   message?: string;
   success?: boolean;
 }
+
+export interface AdvancedFilterState {
+  elements: string[]; // e.g. ['草', '水']
+  specialTypes: string[]; // e.g. ['boss', 'multiform']
+}
+
