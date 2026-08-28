@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {/* Map Nav Buttons with Individual Counts (Progressive abbreviation at 988px/1200px) */}
                     {showMapNav && (
-                        <div className="hidden min-[860px]:flex items-center gap-1 sm:gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full shrink-0">
+                        <div className="hidden min-[950px]:flex items-center gap-1 sm:gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full shrink-0">
                             {(mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS).map((map) => {
                                 const isActive = activeMapNum === map.num;
                                 const mapStat = mapsStats.find((s) => s.num === map.num);
@@ -149,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
                                             sound.playClick();
                                             onSelectMap(map.num);
                                         }}
-                                        className={`px-2 min-[988px]:px-2.5 min-[1200px]:px-3 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
+                                        className={`px-2 min-[1130px]:px-2.5 min-[1200px]:px-3 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
                                             isActive
                                                 ? 'bg-white text-[#2B78C4] shadow-sm scale-[1.02]'
                                                 : 'text-white/90 hover:text-white hover:bg-white/20'
@@ -169,11 +169,11 @@ export const Header: React.FC<HeaderProps> = ({
                                             {map.num}、{map.name.replace('记忆中的', '').replace('火系徽章试炼', '')}
                                         </span>
                                         {/* 988px ~ 1199px: 精炼简称 (如 1、草系) */}
-                                        <span className="hidden min-[988px]:inline min-[1200px]:hidden">
+                                        <span className="hidden min-[1130px]:inline min-[1200px]:hidden">
                                             {map.num}、{shortName}
                                         </span>
                                         {/* 860px ~ 987px: 极简纯序号 (如 地图1) */}
-                                        <span className="inline min-[988px]:hidden">
+                                        <span className="inline min-[1130px]:hidden">
                                             地图{map.num}
                                         </span>
 

@@ -140,7 +140,7 @@ const MAP_FOG_STYLE_KEY = 'roco_map_fog_style_v1';
 const MAP_PATH_STYLE_KEY = 'roco_map_path_style_v1';
 const MAP_THEME_KEY = 'roco_map_theme_v1';
 const MAP_PLAYER_ICON_KEY = 'roco_map_player_icon_v1';
-const OVERLAY_URL = './map/over.png';
+const OVERLAY_URL = './mapdata/over.png';
 const DEFAULT_CLEAR_RADIUS = 360; // 默认解锁迷雾半径
 const MAX_TELEPORT_DISTANCE = 600; // 传送/大跨度位移判定阈值（单位像素，超过则断开连线不绘制直线）
 
@@ -426,13 +426,13 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         img.src = `./mapdata_real/aligned_tiles_256/${row}_${col}.png`;
         // 容错回退
         img.onerror = () => {
-          if (img && !img.src.includes('/map/13/')) {
-            img.src = `./map/13/${row}_${col}.png`;
+          if (img && !img.src.includes('/mapdata/13/')) {
+            img.src = `./mapdata/13/${row}_${col}.png`;
           }
         };
       } else {
         // 经典 LOD 瓦片
-        img.src = `./map/${level}/${row}_${col}.png`;
+        img.src = `./mapdata/${level}/${row}_${col}.png`;
       }
       tileCacheRef.current.set(tileKey, img);
       img.onload = () => {
