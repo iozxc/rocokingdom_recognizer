@@ -5,6 +5,7 @@ from core.api.main import bp as main_bp
 from core.api.predict import bp as predict_bp
 from core.api.storage import bp as storage_bp
 from core.api.trials import bp as trials_bp
+from core.api.seek import bp as seek_bp
 from core.api.updater import bp as updater_bp
 
 

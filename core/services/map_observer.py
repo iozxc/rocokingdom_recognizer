@@ -266,7 +266,8 @@ class _MapMonitor:
                                 if os.path.isfile(f)), key=os.path.getmtime)
                 while len(files) > config.MAP_CAPTURE_MAX:
                     os.remove(files.pop(0))
-            except Exception:
+            except Exception as e:
+                logger.error(e)
                 pass
             return name
         except Exception as exc:  # noqa: BLE001
