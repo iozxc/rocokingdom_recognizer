@@ -58,7 +58,7 @@ keys/
 /train/onnx/
 /build.bat
 /train/onnx_dino/
-/frontend/public/map/
+/frontend/public/mapdata/
 /docs/
 /roco_user_mapdata.json
 /train/yolo_minimap/
