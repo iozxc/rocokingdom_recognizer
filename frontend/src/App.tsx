@@ -11,6 +11,7 @@ import { BatchInitModal } from './components/BatchInitModal';
 import { GlobalFloatingSearch } from './components/GlobalFloatingSearch';
 import { FloatingFilterSwitch } from './components/FloatingFilterSwitch';
 import { FeedbackContactModal } from './components/FeedbackContactModal';
+import { UserManualModal } from './components/UserManualModal';
 import { UpdateModal } from './components/UpdateModal';
 import { DataUpdateModal } from './components/DataUpdateModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
@@ -45,6 +46,7 @@ export default function App() {
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
   });
+  const [isManualOpen, setIsManualOpen] = useState<boolean>(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
   const [detailPet, setDetailPet] = useState<PetItem | null>(null);
   const [feedbackInitialType, setFeedbackInitialType] = useState<string>('');
@@ -468,6 +470,7 @@ export default function App() {
             totalPetsCount={totalAllPetsCount}
             isSoundMuted={isSoundMuted}
             onToggleSound={handleToggleSound}
+            onOpenManual={() => setIsManualOpen(true)}
             onOpenFeedback={() => setIsFeedbackOpen(true)}
             onOpenUpdate={() => {
               updateStore.clearDot();
@@ -644,6 +647,12 @@ export default function App() {
             onClose={() => setIsFeedbackOpen(false)}
             initialType={feedbackInitialType}
         />
+
+        {/* User Manual Modal */}
+        {/*<UserManualModal*/}
+        {/*    isOpen={isManualOpen}*/}
+        {/*    onClose={() => setIsManualOpen(false)}*/}
+        {/*/>*/}
 
         {/* 精灵详情弹窗（右键菜单进入） */}
         <PetDetailModal
