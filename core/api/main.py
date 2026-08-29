@@ -1,6 +1,7 @@
 import os
 from flask import Blueprint, Response, current_app, request, send_from_directory, url_for
 
+import config
 from core.api.response import error, success
 from core.db import get_db
 from core.icon_names import load_map_pets, sprite_to_file, sprite_to_file_any
@@ -84,6 +85,66 @@ def get_icon_file(filename):
 def get_icon_file_with_map(map_name, filename):
     """兼容旧地址 /icons/<map>/<filename>，行为与新地址一致。"""
     return _serve_icon(filename, map_name=map_name)
+
+
+@bp.route('/api/app/agreement_required', methods=['GET'])
+def api_app_agreement_required():
+    """是否仍需展示用户协议：以 roco_user_data.json 中 agreementAccepted 字段判断。
+
+    无论新旧用户，只要尚未同意过（字段缺失/为空）就返回 True；同意后会写入该字段。
+    """
+    try:
+        from core.services.user_storage import user_storage
+        data = user_storage.load()
+        return success(data={"required": not bool(data.get("agreementAccepted"))})
+    except Exception as e:
+        logger.error(f"[GET /api/app/agreement_required] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
+@bp.route('/api/app/agreement_accept', methods=['POST'])
+def api_app_agreement_accept():
+    """用户同意后写入 agreementAccepted 顶层字段。
+
+    两步：若 roco_user_data.json 已存在（老用户）则合并写入字段；
+    若不存在（新用户）则先创建文件再写入字段。
+    """
+    try:
+        from core.services.user_storage import user_storage
+        user_storage.save({"agreementAccepted": True})
+        return success(data={"ok": True})
+    except Exception as e:
+        logger.error(f"[POST /api/app/agreement_accept] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
+@bp.route('/api/resources/<path:filename>', methods=['GET'])
+def api_resources_file(filename):
+    """读取 resources 目录下的资源文件；本地未打包时从 Gitee raw 拉取。"""
+    try:
+        base = os.path.normpath(config.get_resource_path('resources'))
+        safe = os.path.normpath(os.path.join(base, filename))
+        if not safe.startswith(base):
+            return error('非法资源路径', 400)
+        if os.path.exists(safe) and os.path.isfile(safe):
+            return send_from_directory(base, filename)
+
+        # 本地未找到（未打包进 exe）：由后端从 Gitee raw 拉取，
+        # 避免前端跨域访问 Gitee 时遇到 302/CORS 问题。
+        import requests
+        url = f'https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/{filename}'
+        resp = requests.get(url, timeout=10)
+        if resp.status_code != 200:
+            url = f'https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/{filename}'
+            resp = requests.get(url, timeout=10)
+        if resp.status_code != 200:
+            logger.warning(f"资源 {filename} 本地与远程均不存在")
+            return error('资源不存在', 404)
+        mime = 'application/json; charset=utf-8' if filename.lower().endswith('.json') else 'image/png'
+        return Response(resp.content, mimetype=mime)
+    except Exception as e:
+        logger.error(f"[GET /api/resources/{filename}] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
 
 
 def _serve_icon(filename, map_name=None):
