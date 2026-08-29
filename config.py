@@ -42,8 +42,7 @@ def is_dev_environment() -> bool:
 APP_VERSION = _env("ROCO_APP_VERSION", "1.4.2")
 # 增量更新包体积上限（字节）：超过则客户端自动回退整包更新；0=不限
 MAX_DELTA_UPDATE_SIZE = int(_env("ROCO_MAX_DELTA_UPDATE_SIZE", str(90 * 1024 * 1024)))
-# 默认内存截图（hwnd）；失败时由 tools.capture_window 自动降级为屏幕抓取（grab）
-CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "hwnd")  # grab / hwnd
+CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
 # 实时地图玩家定位(零训练视觉方案)：是否启用、参考底图、开关阈值
 MAP_LOCALIZE_ENABLED = _env("ROCO_MAP_LOCALIZE_ENABLED", "1") == "1"
