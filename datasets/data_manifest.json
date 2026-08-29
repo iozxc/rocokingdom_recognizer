@@ -1,5 +1,5 @@
 {
-  "version": "1.4.1",
+  "version": "1.4.2",
   "files": [
     {
       "name": "datasets/datasets.db",
@@ -9,7 +9,7 @@
     },
     {
       "name": "datasets/map_pets1.json",
-      "md5": "524122c3ff289be9b1072d1ecb1d62a5",
+      "md5": "a2c4efa79601713dc15807f48ddfbcde",
       "size": 78136,
       "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/map_pets1.json"
     },
