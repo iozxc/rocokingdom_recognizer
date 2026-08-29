@@ -215,7 +215,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                             </span>
                         )}
                         <ElementBadges
-                            elements={pet.elements}
+                            elements={pet?.elements}
                             className="absolute top-1 left-1 z-10"
                         />
                         <img
