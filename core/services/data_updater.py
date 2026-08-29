@@ -1,11 +1,13 @@
-"""图鉴/关键数据更新服务：md5 对比 + 异步下载替换。
+"""图鉴/关键数据更新服务：清单 md5 对比 + 异步下载替换。
 
 数据清单（data_manifest.json）由 tools/pack_update.py 生成，
 结构: {"version": "1.3.3", "files": [{"name": "datasets/datasets.db",
 "md5": "...", "url": "...", "size": 123}]}
-运行时可从服务器拉取该清单，与本地文件 md5 对比后异步下载更新。
+
+运行时可从服务器拉取远程清单，与本地清单中声明的 md5 逐项对比：
+不一致的文件下载回来，并把本地清单同步为远程清单声明的 md5。
+这里不校验本地文件本身的 md5，从而避免换行符/编码差异导致永远提示更新。
 """
-import hashlib
 import json
 import os
 import shutil
@@ -14,6 +16,7 @@ import time
 
 import config
 from core.logger import logger
+from core.md5_utils import file_md5
 
 _PROJECT_ROOT = os.path.dirname(os.path.abspath(config.__file__))
 
@@ -25,17 +28,6 @@ _JOB = {
     "started_at": None,
     "finished_at": None,
 }
-
-
-def md5_file(path, chunk=1024 * 1024):
-    h = hashlib.md5()
-    with open(path, "rb") as f:
-        while True:
-            block = f.read(chunk)
-            if not block:
-                break
-            h.update(block)
-    return h.hexdigest()
 
 
 def _read_manifest(path):
@@ -79,31 +71,37 @@ def resolve_target_path(name):
 
 
 def check_data_updates():
-    """对比本地文件与数据清单，返回需要更新的文件列表。"""
-    manifest = fetch_remote_manifest()
-    if not manifest:
-        # 远程不可用时，用本地清单自检（仅提示本地缺失/损坏）
-        manifest = load_local_manifest()
-    if not manifest:
-        return {"has_update": False, "updates": [], "message": "未配置或未获取到数据清单"}
+    """对比远程清单与本地清单的文件 md5，返回需要更新的文件列表。
+
+    不再逐个计算本地文件 md5（避免换行符/编码差异导致永远对不上且重复提示）：
+    以远程清单声明为准，只要远程清单里某个文件的 md5 与本地清单不一致（或本地
+    清单缺少该文件），就判定需要下载更新；下载成功后把本地清单同步为新的 md5。
+    """
+    remote = fetch_remote_manifest()
+    if not remote:
+        return {"has_update": False, "updates": [], "message": "未获取到远程数据清单"}
+
+    local = load_local_manifest()
+    local_by_name = {}
+    for item in local:
+        if isinstance(item, dict) and item.get("name"):
+            local_by_name[item["name"]] = item
 
     updates = []
-    for item in manifest:
+    for item in remote:
         if not isinstance(item, dict):
             continue
         name = item.get("name")
-        expect_md5 = str(item.get("md5") or "").lower()
-        if not name or not expect_md5:
+        remote_md5 = str(item.get("md5") or "").lower()
+        url = item.get("url") or ""
+        if not name or not remote_md5:
             continue
-        target = resolve_target_path(name)
-        if not os.path.exists(target):
-            updates.append({**item, "status": "missing"})
+        # 没有下载地址就无法自动更新，跳过以免每次都提示更新、且下载阶段报错。
+        if not url:
             continue
-        try:
-            if md5_file(target) != expect_md5:
-                updates.append({**item, "status": "changed"})
-        except Exception as e:
-            logger.warning(f"计算 {target} md5 失败: {e}")
+        local_item = local_by_name.get(name) or {}
+        local_md5 = str(local_item.get("md5") or "").lower()
+        if local_md5 != remote_md5:
             updates.append({**item, "status": "changed"})
 
     return {
@@ -190,19 +188,20 @@ def _run_download_job(files):
                 with _JOB_LOCK:
                     _JOB["files"][index]["progress"] = 100
 
-                actual_md5 = md5_file(tmp_path) if expect_md5 else None
+                actual_md5 = file_md5(tmp_path) if expect_md5 else None
                 if expect_md5 and actual_md5 != expect_md5:
-                    # 服务器文件与清单 md5 不一致（文件已更新/清单未刷新），
-                    # 以服务器文件为准保存
+                    # 服务器文件与清单 md5 不一致（多为换行符/编码差异，或清单未刷新）。
+                    # 仍保存服务器返回的文件，但本地清单记录清单声明的 md5，避免下次重复提示。
                     logger.warning(
                         f"下载文件 {name} MD5 与清单不一致（{actual_md5} != {expect_md5}），"
-                        "仍保存并使用服务器文件"
+                        "仍保存服务器文件并以清单声明为准记录版本"
                     )
 
                 os.replace(tmp_path, target)
-                # 本地清单 md5/size 始终同步为下载后的实际值，避免下次重复提示
-                if actual_md5:
-                    _update_local_manifest_entry(name, actual_md5, os.path.getsize(target))
+                # 本地清单 md5 直接写远程清单声明的目标值，下次清单对比即一致，
+                # 避免下载后因本地文件与清单 md5 不一致而重复提示更新。
+                if expect_md5:
+                    _update_local_manifest_entry(name, expect_md5, os.path.getsize(target))
                 with _JOB_LOCK:
                     _JOB["files"][index]["status"] = "done"
             except Exception as e:

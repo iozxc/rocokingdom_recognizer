@@ -130,10 +130,10 @@ const AuthorizedInfoDialog: React.FC<AuthorizedInfoDialogProps> = ({ expireTime,
           <ShieldCheck className="w-12 h-12 mx-auto text-emerald-500" />
           <h2 className="mt-4 text-lg font-black text-slate-800">设备已授权</h2>
           <div className="mt-5 space-y-3 text-sm text-left">
-            <div className="flex justify-between gap-2 border-b border-slate-100 pb-2">
-              <span className="text-slate-400 shrink-0">授权到期</span>
-              <span className="font-mono text-slate-700">{expireTime || '长期有效'}</span>
-            </div>
+            {/*<div className="flex justify-between gap-2 border-b border-slate-100 pb-2">*/}
+            {/*  <span className="text-slate-400 shrink-0">授权到期</span>*/}
+            {/*  <span className="font-mono text-slate-700">{expireTime || '长期有效'}</span>*/}
+            {/*</div>*/}
             <div className="flex justify-between items-center gap-2">
               <span className="text-slate-400 shrink-0">机器码</span>
               <span className="inline-flex items-center gap-1.5 min-w-0">
@@ -205,6 +205,9 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ auth, onClose }) => {
 
           {auth.status === 'waiting' && (
               <div className="text-center">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-black mb-3">
+                  验证用户来源
+                </div>
                 <Loader2 className="w-10 h-10 mx-auto text-sky-500 animate-spin" />
                 <h2 className="mt-4 text-lg font-black text-slate-800">等待设备授权</h2>
                 <p className="mt-2 text-sm text-slate-500 leading-relaxed">
