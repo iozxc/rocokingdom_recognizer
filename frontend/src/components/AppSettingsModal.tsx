@@ -5,6 +5,7 @@ import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { useUpdateStore } from '../services/useUpdateStore';
 import { SyncPopType } from './SyncPopNotification';
+import { UserAgreementModal } from './UserAgreementModal';
 
 interface AppSettingsModalProps {
   isOpen: boolean;
@@ -31,7 +32,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     return storage.getSetting<boolean>('isSoundMuted', false);
   });
   const [captureMode, setCaptureMode] = useState<CaptureMode>(() => {
-    return storage.getSetting<CaptureMode>('captureMode', 'hwnd');
+    return storage.getSetting<CaptureMode>('captureMode', 'grab');
   });
   const [showSamples, setShowSamples] = useState<boolean>(() => {
     return storage.getSetting<boolean>('showRecognitionSamples', true);
@@ -47,8 +48,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     return storage.getSetting<boolean>('hideUpdateDot', false);
   });
   const [showHints, setShowHints] = useState<boolean>(() => {
-    return storage.getSetting<boolean>('showHints', true);
+    return storage.getSetting<boolean>('showHints', false);
   });
+  const [followTopMost, setFollowTopMost] = useState<boolean>(() => {
+    return storage.getSetting<boolean>('followTopMost', true);
+  });
+  const [isAgreementOpen, setIsAgreementOpen] = useState<boolean>(false);
 
   // Sync settings updates
   useEffect(() => {
@@ -62,6 +67,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (typeof settings.autoCheckUpdate === 'boolean') setAutoCheckUpdate(settings.autoCheckUpdate);
       if (typeof settings.hideUpdateDot === 'boolean') setHideUpdateDot(settings.hideUpdateDot);
       if (typeof settings.showHints === 'boolean') setShowHints(settings.showHints);
+      if (typeof settings.followTopMost === 'boolean') setFollowTopMost(settings.followTopMost);
     });
     return () => unsubscribe();
   }, []);
@@ -72,7 +78,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setEffectLevel(storage.getSetting<EffectLevel>('effectLevel', 0));
     setFloatingMode(storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal'));
     setIsSoundMuted(storage.getSetting<boolean>('isSoundMuted', false));
-    const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'hwnd');
+    const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'grab');
     if (savedCaptureMode === 'hwnd' || savedCaptureMode === 'grab') {
       setCaptureMode(savedCaptureMode);
     }
@@ -83,7 +89,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     }
     setAutoCheckUpdate(storage.getSetting<boolean>('autoCheckUpdate', true));
     setHideUpdateDot(storage.getSetting<boolean>('hideUpdateDot', false));
-    setShowHints(storage.getSetting<boolean>('showHints', true));
+    setShowHints(storage.getSetting<boolean>('showHints', false));
+    setFollowTopMost(storage.getSetting<boolean>('followTopMost', true));
     setView('main');
   }, [isOpen]);
 
@@ -163,7 +170,24 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     storage.setSetting('showHints', next);
   };
 
+  const handleToggleFollowTopMost = () => {
+    sound.playClick();
+    const next = !followTopMost;
+    setFollowTopMost(next);
+    storage.setSetting('followTopMost', next);
+    // 同步应用到当前已打开的跟随识别窗口（若未打开则忽略）
+    try {
+      const pyApi = (window as any).pywebview?.api;
+      if (pyApi?.set_scanner_topmost) {
+        pyApi.set_scanner_topmost(next).catch(() => {});
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
+      <>
       <div
           id="app-settings-modal-backdrop"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
@@ -303,6 +327,28 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                       />
                     </button>
                   </div>
+
+                  {/* 窗口设置 */}
+                  <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                    <div className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">窗口设置</div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-slate-800">跟随识别窗口置顶</div>
+                        <div className="text-[10px] text-slate-400">打开跟随识别时自动置顶到所有窗口前面</div>
+                      </div>
+                      <button
+                          type="button"
+                          id="settings-topmost-switch-btn"
+                          onClick={handleToggleFollowTopMost}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${followTopMost ? 'bg-[#95D151]' : 'bg-slate-200'}`}
+                          title={followTopMost ? '点击关闭自动置顶' : '点击开启自动置顶'}
+                      >
+                        <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${followTopMost ? 'translate-x-4' : 'translate-x-0'}`}
+                        />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -430,18 +476,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/60">
                 <button
                     type="button"
-                    id="capture-mode-hwnd-btn"
-                    onClick={() => handleSelectCaptureMode('hwnd')}
-                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
-                        captureMode === 'hwnd'
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                >
-                  内存提取
-                </button>
-                <button
-                    type="button"
                     id="capture-mode-grab-btn"
                     onClick={() => handleSelectCaptureMode('grab')}
                     className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
@@ -451,6 +485,18 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     }`}
                 >
                   屏幕截图
+                </button>
+                <button
+                    type="button"
+                    id="capture-mode-hwnd-btn"
+                    onClick={() => handleSelectCaptureMode('hwnd')}
+                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                        captureMode === 'hwnd'
+                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                            : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                >
+                  内存提取
                 </button>
               </div>
 
@@ -630,6 +676,31 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </button>
             </div>
 
+            {/* Section 9: 用户协议查看 */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800">用户协议</div>
+                  <div className="text-[10px] text-slate-400">查看本软件的使用条款与免责声明</div>
+                </div>
+              </div>
+              <button
+                  type="button"
+                  id="view-agreement-btn"
+                  onClick={() => {
+                    sound.playClick();
+                    setIsAgreementOpen(true);
+                  }}
+                  className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+              >
+                <span>查看</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
             {/* 免责声明 / 开发者说明 */}
             <div className="pt-3 border-t border-slate-100">
               <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/60 text-[11px] text-slate-500 space-y-1">
@@ -661,5 +732,10 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
           </div>
         </div>
       </div>
+      <UserAgreementModal
+          isOpen={isAgreementOpen}
+          onClose={() => setIsAgreementOpen(false)}
+      />
+      </>
   );
 };

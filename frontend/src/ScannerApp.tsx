@@ -20,6 +20,8 @@ import {
   Eye,
   ExternalLink,
   BookOpen,
+  Pin,
+  PinOff,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse } from './types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
@@ -226,6 +228,7 @@ export const ScannerApp: React.FC = () => {
 
   // Gallery Modal state (for browsing other maps and full gallery)
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
+  const [topmost, setTopmost] = useState<boolean>(true);
 
   // Active viewing map number (selectedMapNum takes precedence, otherwise detectedMapNum)
   const activeMapNum = selectedMapNum !== null ? selectedMapNum : detectedMapNum;
@@ -350,6 +353,35 @@ export const ScannerApp: React.FC = () => {
       lastResizeAtRef.current = 0;
     };
   }, [throttledResize]);
+
+  // 读取跟随识别窗口当前的置顶状态，并定时轮询，使右上角按钮与系统设置保持同步
+  useEffect(() => {
+    const syncTopmost = () => {
+      try {
+        const pyApi = (window as any).pywebview?.api;
+        if (pyApi?.get_scanner_topmost) {
+          pyApi.get_scanner_topmost().then((r: any) => {
+            if (r?.on_top !== undefined) setTopmost(!!r.on_top);
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+    const onReady = () => {
+      syncTopmost();
+    };
+    if ((window as any).pywebview?.api) {
+      onReady();
+    } else {
+      window.addEventListener('pywebviewready', onReady);
+    }
+    const timer = window.setInterval(syncTopmost, 1500);
+    return () => {
+      window.removeEventListener('pywebviewready', onReady);
+      window.clearInterval(timer);
+    };
+  }, []);
 
   // 内容变化（识别结果、收起/展开、地图切换、钉住等）后同步窗口高度
   useEffect(() => {
@@ -727,6 +759,21 @@ export const ScannerApp: React.FC = () => {
     }
   };
 
+  const handleToggleTopmost = async () => {
+    sound.playClick();
+    const next = !topmost;
+    setTopmost(next);
+    try {
+      const pyApi = (window as any).pywebview?.api;
+      if (pyApi?.set_scanner_topmost) {
+        const res = await pyApi.set_scanner_topmost(next);
+        if (res?.on_top !== undefined) setTopmost(!!res.on_top);
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
       <div className="w-screen h-screen bg-[#FDF9F3] text-slate-800 flex flex-col justify-between select-none overflow-hidden font-sans border-0 m-0 p-0 relative rounded-none">
         {/* Subtle Scan Shimmer Radar Effect */}
@@ -768,6 +815,19 @@ export const ScannerApp: React.FC = () => {
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>查图鉴</span>
+            </button>
+            <button
+                type="button"
+                id="scanner-topmost-btn"
+                onClick={handleToggleTopmost}
+                title={topmost ? '取消置顶' : '置顶到所有窗口前面'}
+                className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all cursor-pointer active:opacity-80 ${
+                    topmost
+                        ? 'bg-white text-[#2B78C4] border-white/80 shadow-xs'
+                        : 'bg-white/20 text-white border-white/40 hover:bg-white/30'
+                }`}
+            >
+              {topmost ? <Pin className="w-4 h-4" /> : <PinOff className="w-4 h-4" />}
             </button>
             <button
                 type="button"

@@ -7,6 +7,7 @@ import {
     Search,
     BookOpen,
     Filter,
+    ArrowRight,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, AdvancedFilterState } from '../types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
@@ -188,7 +189,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                     }}
                     title="返回识别主界面"
                 >
-                    <X className="w-4 h-4 stroke-[2.5]" />
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                 </button>
             </div>
 

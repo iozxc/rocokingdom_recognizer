@@ -2,6 +2,7 @@
 import ctypes
 import threading
 
+import pygetwindow as gw
 import webview
 
 from core.logger import logger
@@ -33,12 +34,55 @@ class WindowManager:
         self.js_api = js_api
         self.main_window = None
         self.scanner_window = None
+        self.scanner_topmost = True
         # 防止连点“跟随识别”并发创建多个子窗口导致卡死
         self._scanner_open_lock = threading.Lock()
 
     @property
     def base_url(self) -> str:
         return f"http://127.0.0.1:{self.server_port}"
+
+    def set_scanner_topmost_native(self, flag):
+        """用原生 SetWindowPos 设置跟随识别窗口是否置顶（线程安全，Win10/11 通用）。"""
+        try:
+            from ctypes import wintypes
+            windows = gw.getWindowsWithTitle('精灵识别跟随')
+            if not windows:
+                return False
+            hwnd = int(windows[0]._hWnd)
+            # SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+            swp_flags = 0x0001 | 0x0002 | 0x0010
+            result = ctypes.windll.user32.SetWindowPos(
+                wintypes.HWND(hwnd),
+                wintypes.HWND(-1) if flag else wintypes.HWND(-2),
+                0, 0, 0, 0,
+                swp_flags,
+            )
+            if not result:
+                return False
+            self.scanner_topmost = bool(flag)
+            return True
+        except Exception as e:
+            logger.error(f"设置跟随识别置顶失败: {e}", exc_info=True)
+            return False
+
+    def get_scanner_topmost(self):
+        """读取跟随识别窗口真实置顶状态（读 WS_EX_TOPMOST 样式）。"""
+        try:
+            from ctypes import wintypes
+            windows = gw.getWindowsWithTitle('精灵识别跟随')
+            if not windows:
+                return None
+            hwnd = int(windows[0]._hWnd)
+            user32 = ctypes.windll.user32
+            get_style = getattr(user32, 'GetWindowLongPtrW', None) or getattr(user32, 'GetWindowLongW', None)
+            ex_style = get_style(wintypes.HWND(hwnd), -20)
+            on_top = bool(ex_style & 0x00000008)
+            self.scanner_topmost = on_top
+            return on_top
+        except Exception as e:
+            logger.error(f"获取跟随识别置顶失败: {e}", exc_info=True)
+            return None
 
     def create_main_window(self):
         """创建主窗口。
@@ -94,16 +138,27 @@ class WindowManager:
 
         def _open():
             try:
+                # 读取“系统设置 -> 窗口设置”里的跟随识别置顶开关，创建/复用都要保持一致
+                try:
+                    from core.services.user_storage import user_storage
+                    topmost = bool(user_storage.get_app_settings().get("followTopMost", True))
+                except Exception as e:
+                    logger.warning(f"读取跟随识别置顶设置失败，使用默认置顶: {e}")
+                    topmost = True
+
                 if self.scanner_window is not None:
                     try:
                         self.scanner_window.show()
-                        logger.debug("子窗口已存在，执行show")
+                        # 复用窗口时也按最新设置重新置顶，避免与系统设置不一致
+                        self.set_scanner_topmost_native(topmost)
+                        logger.debug("子窗口已存在，执行show并同步置顶")
                         return
                     except Exception as e:
                         logger.warning(f"复用跟随识别窗口失败: {e}")
                         self.scanner_window = None
 
                 logger.info("正在创建跟随识别窗口...")
+                self.scanner_topmost = topmost
                 self.scanner_window = webview.create_window(
                     title='精灵识别跟随',
                     url=f'{self.base_url}/?view=scanner',
@@ -111,7 +166,7 @@ class WindowManager:
                     height=650,
                     frameless=True,
                     transparent=False,
-                    on_top=True,
+                    on_top=topmost,
                     resizable=False,
                     # 只允许标题栏（前端 pywebview-drag-region）拖动窗口
                     easy_drag=False,
