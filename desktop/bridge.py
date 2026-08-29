@@ -33,6 +33,52 @@ class AppApi:
     def close_current_window(self):
         return self._windows.close_scanner()
 
+    def quit_app(self):
+        """关闭主窗口并退出程序（开屏协议“退出程序”按钮）。"""
+        try:
+            win = self._windows.main_window
+            if win is not None:
+                win.destroy()
+                return {"status": "ok"}
+            logger.warning("退出程序失败：主窗口不存在")
+        except Exception as e:
+            logger.error(f"退出程序异常: {e}", exc_info=True)
+        return {"status": "error", "message": "退出失败"}
+
+    def set_scanner_topmost(self, flag=True):
+        """切换跟随识别窗口是否置顶（置顶到所有窗口前面），并同步到系统设置。"""
+        try:
+            if not self._windows.set_scanner_topmost_native(bool(flag)):
+                return {"status": "error", "message": "设置置顶失败或未找到跟随识别窗口"}
+            # 同步到“系统设置 -> 窗口设置”里的 followTopMost，保证两边联动
+            try:
+                from core.services.user_storage import user_storage
+                user_storage.update_app_settings({"followTopMost": bool(flag)})
+            except Exception as e:
+                logger.warning(f"保存跟随识别置顶设置失败: {e}")
+            # 同步 pywebview 内部缓存的 on_top，避免后续 DPI/句柄重建时被重新置顶
+            win = self._windows.scanner_window
+            if win is not None:
+                try:
+                    setattr(win, '_Window__on_top', bool(flag))
+                except Exception:
+                    pass
+            return {"status": "ok", "on_top": bool(flag)}
+        except Exception as e:
+            logger.error(f"设置跟随识别置顶异常: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+
+    def get_scanner_topmost(self):
+        """返回跟随识别窗口当前是否置顶（读取真实窗口样式）。"""
+        try:
+            on_top = self._windows.get_scanner_topmost()
+            if on_top is None:
+                return {"status": "error", "message": "未找到跟随识别窗口"}
+            return {"status": "ok", "on_top": bool(on_top)}
+        except Exception as e:
+            logger.error(f"获取跟随识别置顶异常: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+
     def move_scanner_window(self, dx, dy):
         self._windows.move_scanner(dx, dy)
 
