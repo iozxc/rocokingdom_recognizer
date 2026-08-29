@@ -1,6 +1,12 @@
 import React from 'react';
 
 export const PROJECT_URL = 'https://gitee.com/iozxc/rocokingdom_recognizer';
+export const GITHUB_URL = 'https://github.com/iozxc/rocokingdom_recognizer';
+
+const SOURCE_LINKS = [
+  { label: 'Gitee 仓库', url: PROJECT_URL },
+  { label: 'GitHub 仓库', url: GITHUB_URL },
+];
 
 
 /**
@@ -9,8 +15,7 @@ export const PROJECT_URL = 'https://gitee.com/iozxc/rocokingdom_recognizer';
 export const AgreementBody: React.FC = () => (
     <div className="space-y-4 text-[13px] leading-relaxed text-slate-600">
       <p className="text-slate-800 font-semibold">
-        本程序以源码可见（Source-Available）方式发布，开源且永久免费使用，禁止二次分发、
-        再分发及任何形式的商业使用。
+        本程序以源码可见（Source-Available）方式发布，开源、永久免费，禁止二次分发、再分发及任何形式的商业使用。
       </p>
 
       <div className="rounded-2xl bg-rose-50 border border-rose-200 p-3 text-rose-700">
@@ -19,18 +24,22 @@ export const AgreementBody: React.FC = () => (
           均属于非法传播或恶意牟利。
         </p>
         <p className="mt-2 text-rose-600/90">
-          如果你是通过付费获得本程序，请立即停止继续向对方付款，并尽快申请退款、投诉或维权。
-          你的权益已经受到侵害，出售者并不具备合法收费授权。请仅从官方项目地址获取最新版本，
-          避免下载被二次打包、植入风险代码或篡改内容的文件：
-          <a
-              href={PROJECT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-1 text-[#2B78C4] underline decoration-[#7ABCF4] underline-offset-2 hover:text-[#1c5fa8]"
-          >
-            {PROJECT_URL}
-          </a>
+          若你是通过付费获得本程序，请立即停止继续向对方付款，并尽快申请退款、投诉或维权——你的权益已受损，
+          出售者并不具备合法收费授权。请仅从以下官方地址获取最新版本，避免下载被二次打包、植入风险代码或被篡改的文件：
         </p>
+        <div className="mt-2 flex flex-col gap-1">
+          {SOURCE_LINKS.map((item) => (
+              <a
+                  key={item.url}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#2B78C4] underline decoration-[#7ABCF4] underline-offset-2 hover:text-[#1c5fa8] break-all"
+              >
+                {item.label}：{item.url}
+              </a>
+          ))}
+        </div>
       </div>
 
       <ol className="space-y-2.5 list-decimal pl-5 marker:text-[#7ABCF4]">
@@ -42,14 +51,14 @@ export const AgreementBody: React.FC = () => (
         </li>
         <li>
           <b className="text-slate-800">实现逻辑说明：</b>
-          本程序当前采用屏幕截图、模板识别等方式工作，用于对应精灵。程序设计目标是不直接访问游戏内存、
-          不注入 DLL、不加载驱动，也不修改游戏资源文件。
+          本程序当前采用屏幕截图、模板识别、OCR 等方式工作，用于识别精灵图标、名字、地图等信息。
+          程序设计目标是不直接访问游戏内存、不注入 DLL、不加载驱动，也不修改游戏资源文件。
         </li>
         <li>
           <b className="text-slate-800">风险提示：</b>
           即使本程序未主动访问游戏内存，也不能保证不会被游戏、平台或安全系统识别为异常自动化行为。
           使用本程序可能导致包括但不限于警告、限制、收益回收、临时封禁、永久封禁、账号异常、
-          设备环境标记等风险。该类风险始终由使用者自行判断并承担。
+          设备环境标记等风险，上述风险始终由使用者自行判断并承担。
         </li>
         <li>
           <b className="text-slate-800">法律与协议责任：</b>
