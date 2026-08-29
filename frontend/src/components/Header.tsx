@@ -1,5 +1,5 @@
 import React from 'react';
-import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings} from 'lucide-react';
+import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings, BookOpen} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { MapConfig } from '../types';
 import { sound } from '../services/sound';
@@ -21,6 +21,7 @@ interface HeaderProps {
     totalPetsCount: number;
     isSoundMuted: boolean;
     onToggleSound: () => void;
+    onOpenManual?: () => void;
     onOpenFeedback?: () => void;
     onOpenUpdate?: () => void;
     onOpenSettings?: () => void;
@@ -40,6 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                   totalPetsCount,
                                                   isSoundMuted,
                                                   onToggleSound,
+                                                  onOpenManual,
                                                   onOpenFeedback,
                                                   onOpenUpdate,
                                                   onOpenSettings,
@@ -112,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     )}
                                 </div>
                                 <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-white/80 font-medium whitespace-nowrap min-w-0">
-                                    <span>图鉴识别 · 实时定位 · 本地离线</span>
+                                    <span>图鉴识别 · 本地记录</span>
                                     <span className="text-[9px] font-mono text-white/40 tracking-wider">
                                         v{updateState.updateData?.current_version || '1.0.0'}
                                     </span>
@@ -121,16 +123,9 @@ export const Header: React.FC<HeaderProps> = ({
                         </div>
                     </div>
 
-                    {/* Center Status (e.g. 实时定位 switch in MapAwareness) */}
-                    {centerStatus && (
-                        <div className="flex items-center shrink-0 z-10">
-                            {centerStatus}
-                        </div>
-                    )}
-
-                    {/* Map Nav Buttons with Individual Counts (Progressive abbreviation at 988px/1200px) */}
+                    {/* Map Nav Buttons with Individual Counts (Progressive abbreviation at 1040px/1280px) */}
                     {showMapNav && (
-                        <div className="hidden min-[950px]:flex items-center gap-1 sm:gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full shrink-0">
+                        <div className="hidden min-[1040px]:flex items-center gap-1 sm:gap-1.5 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 overflow-x-auto max-w-full shrink-0">
                             {(mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS).map((map) => {
                                 const isActive = activeMapNum === map.num;
                                 const mapStat = mapsStats.find((s) => s.num === map.num);
@@ -149,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
                                             sound.playClick();
                                             onSelectMap(map.num);
                                         }}
-                                        className={`px-2 min-[1130px]:px-2.5 min-[1200px]:px-3 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
+                                        className={`px-2 min-[1200px]:px-2.5 min-[1320px]:px-3 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
                                             isActive
                                                 ? 'bg-white text-[#2B78C4] shadow-sm scale-[1.02]'
                                                 : 'text-white/90 hover:text-white hover:bg-white/20'
@@ -164,16 +159,16 @@ export const Header: React.FC<HeaderProps> = ({
                                                         : 'bg-[#60A5FA]'
                                             }`}
                                         />
-                                        {/* >= 1200px: 完整名称 */}
-                                        <span className="hidden min-[1200px]:inline">
+                                        {/* >= 1320px: 完整名称 */}
+                                        <span className="hidden min-[1320px]:inline">
                                             {map.num}、{map.name.replace('记忆中的', '').replace('火系徽章试炼', '')}
                                         </span>
-                                        {/* 988px ~ 1199px: 精炼简称 (如 1、草系) */}
-                                        <span className="hidden min-[1130px]:inline min-[1200px]:hidden">
+                                        {/* 1180px ~ 1319px: 精炼简称 (如 1、草系) */}
+                                        <span className="hidden min-[1180px]:inline min-[1320px]:hidden">
                                             {map.num}、{shortName}
                                         </span>
-                                        {/* 860px ~ 987px: 极简纯序号 (如 地图1) */}
-                                        <span className="inline min-[1130px]:hidden">
+                                        {/* 1040px ~ 1179px: 极简纯序号 (如 地图1) */}
+                                        <span className="inline min-[1180px]:hidden">
                                             地图{map.num}
                                         </span>
 
@@ -192,9 +187,27 @@ export const Header: React.FC<HeaderProps> = ({
                         </div>
                     )}
 
-                    {/* Right Action: Feedback, Check Update, Sound Toggle & Settings */}
+                    {/* Right Action: Manual, Feedback, Check Update, Sound Toggle & Settings */}
                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         {rightStatus}
+
+                        {/* User Manual Button placed to the left of Feedback */}
+                        {/*{onOpenManual && (*/}
+                        {/*    <button*/}
+                        {/*        id="user-manual-toggle-btn"*/}
+                        {/*        onClick={() => {*/}
+                        {/*            sound.playClick();*/}
+                        {/*            onOpenManual();*/}
+                        {/*        }}*/}
+                        {/*        title="查看使用手册 / 快捷说明与常见问题"*/}
+                        {/*        className="px-2.5 sm:px-3 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-colors shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1.5 text-xs font-black"*/}
+                        {/*    >*/}
+                        {/*        <BookOpen className="w-4 h-4 text-[#FEE061]" />*/}
+                        {/*        <span className="hidden min-[520px]:inline">使用手册</span>*/}
+                        {/*        <span className="inline min-[520px]:hidden">手册</span>*/}
+                        {/*    </button>*/}
+                        {/*)}*/}
+
                         {onOpenFeedback && (
                             <button
                                 id="feedback-toggle-btn"
@@ -206,7 +219,8 @@ export const Header: React.FC<HeaderProps> = ({
                                 className="px-2.5 sm:px-3 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-colors shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1.5 text-xs font-black"
                             >
                                 <MessageCircle className="w-4 h-4 text-[#FEE061]" />
-                                <span>群聊反馈</span>
+                                <span className="hidden min-[520px]:inline">群聊反馈</span>
+                                <span className="inline min-[520px]:hidden">反馈</span>
                             </button>
                         )}
 
@@ -229,7 +243,8 @@ export const Header: React.FC<HeaderProps> = ({
                                         />
                                     )}
                                     <ArrowUpCircle className="relative w-4 h-4 text-[#FEE061]" />
-                                    <span className="relative">检查更新</span>
+                                    <span className="relative hidden min-[600px]:inline">检查更新</span>
+                                    <span className="relative inline min-[600px]:hidden">更新</span>
                                 </button>
                                 {updateState.dotVisible && (
                                     <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
