@@ -39,6 +39,7 @@ import { sound } from '../../services/sound';
 import { api } from '../../services/api';
 import { Header } from '../Header';
 import { AuthBadge } from '../AuthBadge';
+import { UserManualModal } from '../UserManualModal';
 import { AIRWALL_POLYGON_L13, drawSmoothClosedPolygon, isPointInPolygon } from '../../data/mapAirwall';
 
 interface MapAwarenessProps {
@@ -300,6 +301,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
   // 后端实时定位状态提示消息
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [statusMsgDismissed, setStatusMsgDismissed] = useState(false);
+  const [isManualOpen, setIsManualOpen] = useState(false);
 
   // 移动轨迹历史（路径图）
   const [pathHistory, setPathHistory] = useState<PathNode[]>(() => {
@@ -1354,6 +1356,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         totalPetsCount={0}
         isSoundMuted={isSoundMuted}
         onToggleSound={onToggleSound || (() => undefined)}
+        onOpenManual={() => setIsManualOpen(true)}
         onOpenFeedback={onOpenFeedback}
         onOpenUpdate={onOpenUpdate}
         onOpenSettings={onOpenSettings}
@@ -1362,6 +1365,11 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         showMapNav={false}
         devBadge
         rightStatus={<AuthBadge />}
+      />
+
+      <UserManualModal
+        isOpen={isManualOpen}
+        onClose={() => setIsManualOpen(false)}
       />
 
       <main className="relative flex-1 min-h-0 w-full bg-[#EAF4FB] overflow-hidden">
