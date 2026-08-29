@@ -58,3 +58,27 @@ def map_observation():
     except Exception as exc:
         logger.error("[GET /map_observation] 异常: %s", exc, exc_info=True)
         return error(str(exc), http_status=200, data={"reason": "observer-error"})
+
+
+@bp.route('/map_monitor/start', methods=['GET'])
+def map_monitor_start():
+    """开始后台实时小地图监测(前台可自行调用)。"""
+    try:
+        from core.services.map_observer import observe_map
+        observe_map()
+        return success(monitoring=True)
+    except Exception as exc:
+        logger.error("[POST /map_monitor/start] 异常: %s", exc, exc_info=True)
+        return error(str(exc), http_status=200, data={"monitoring": False})
+
+
+@bp.route('/map_monitor/stop', methods=['GET'])
+def map_monitor_stop():
+    """停止后台实时小地图监测，不再抓图、不再影响游戏窗口。"""
+    try:
+        from core.services.map_observer import stop_map_monitor
+        stop_map_monitor()
+        return success(monitoring=False)
+    except Exception as exc:
+        logger.error("[POST /map_monitor/stop] 异常: %s", exc, exc_info=True)
+        return error(str(exc), http_status=200, data={"monitoring": True})

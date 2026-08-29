@@ -21,18 +21,22 @@ from core.tools import capture_window
 
 
 def _window(title: str):
+    """按标题找游戏窗口，仅返回句柄，绝不恢复/置前/改变其可见性。
+
+    之前这里对最小化窗口调用 win.restore()，会把被用户隐藏/最小化的游戏窗口
+    强行拉回前台，观感很突兀。截图用 PrintWindow 不需要窗口在前台，因此去掉 restore。
+    """
     windows = gw.getWindowsWithTitle(title)
     if not windows:
         return None
-    win = windows[0]
-    if getattr(win, "isMinimized", False):
-        win.restore()
-    return win
+    return windows[0]
 
 
 # 把定位器状态/原因翻译成给用户看的简短中文提示。
 # 前端在顶部展示，告诉用户“现在在做什么”，尤其说明哪些是正常等待、哪些是异常。
 def _status_message(reason: str, status: Optional[str], map_found: bool) -> str:
+    if reason == "reference-missing":
+        return "地图定位底图缺失，位置定位已停用（其余功能正常）"
     if reason == "game-window-not-found":
         return "未找到游戏窗口，请先打开「洛克王国：世界」"
     if reason == "capture-failed":
@@ -92,16 +96,20 @@ class _MapMonitor:
         }
 
     def start(self, title: Optional[str] = None) -> None:
-        if self._started:
+        if self._started and not self._stop.is_set():
             return
+        # 允许停止后再次启动（重新拉起的线程要复用同一个事件对象）。
+        self._stop = threading.Event()
+        self._started = True
         if title:
             self._title = title
-        self._started = True
         threading.Thread(target=self._loop, name="map-observer", daemon=True).start()
         logger.info("map observer background thread started (interval=%.2fs)", self._interval)
 
     def stop(self) -> None:
         self._stop.set()
+        self._started = False
+        logger.info("map observer background thread stopped")
 
     def _loop(self) -> None:
         try:
@@ -171,6 +179,12 @@ class _MapMonitor:
             from core.map_localizer import get_localizer
 
             loc = get_localizer()
+            # 参考底图缺失：不进入逐帧定位，直接给出明确提示，避免每帧都报错。
+            if getattr(loc, "_ref_error", None):
+                base["reason"] = "reference-missing"
+                base["status_message"] = _status_message("reference-missing", None, False)
+                base["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 1)
+                return base
             obs = loc.localize(image, ts_ms=now_ts)
             if obs:
                 base["map_found"] = bool(obs.get("map_found", False))
@@ -277,8 +291,12 @@ class _MapMonitor:
     def _ref_view(self, obs: Optional[Dict]) -> np.ndarray:
         """参考图缩略图上标出定位点；未定位时显示整图缩略。"""
         if self._ref_thumb is None:
-            img = Image.open(config.MAP_LOCALIZE_REFERENCE).convert("RGB")
-            self._ref_thumb = np.array(img.resize((1024, 1024), Image.LANCZOS))
+            try:
+                img = Image.open(config.MAP_LOCALIZE_REFERENCE).convert("RGB")
+                self._ref_thumb = np.array(img.resize((1024, 1024), Image.LANCZOS))
+            except Exception as exc:  # noqa: BLE001
+                # 参考底图缺失时，用一块空白图替代，避免保存调试图时再抛错。
+                self._ref_thumb = np.full((1024, 1024, 3), 245, np.uint8)
         view = self._ref_thumb.copy()
         if obs and obs.get("x") is not None:
             x, y = obs["x"], obs["y"]
@@ -307,3 +325,8 @@ def observe_map(title: Optional[str] = None) -> Dict[str, Any]:
     mon = get_monitor()
     mon.start(title or config.GAME_WINDOW_TITLE)
     return mon.latest()
+
+
+def stop_map_monitor() -> None:
+    """停止后台监控线程(不再抓图/不再恢复窗口)。"""
+    get_monitor().stop()

@@ -49,13 +49,13 @@ GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
 MAP_LOCALIZE_ENABLED = _env("ROCO_MAP_LOCALIZE_ENABLED", "1") == "1"
 MAP_LOCALIZE_REFERENCE = _env(
     "ROCO_MAP_LOCALIZE_REFERENCE",
-    get_resource_path(os.path.join("static", "map", "level_13_4064_4095_4064_4095.png")),
+    get_resource_path(os.path.join("static", "mapdata", "level_13_4064_4095_4064_4095.png")),
 )
 MAP_LOCALIZE_MIN_SCORE = float(_env("ROCO_MAP_LOCALIZE_MIN_SCORE", "0.34"))
 MAP_LOCALIZE_DEBUG = _env("ROCO_MAP_LOCALIZE_DEBUG", "0") == "1"
 # 首次确认(init/无先验锚点)的更高置信度门槛：得分须达到 INIT_MIN 才转入待确认，
 # 避免用“首帧碰巧低分/两处金色区接近”的歧义位置做首次锚定。
-MAP_LOCALIZE_INIT_MIN = float(_env("ROCO_MAP_LOCALIZE_INIT_MIN", "0.6"))
+MAP_LOCALIZE_INIT_MIN = float(_env("ROCO_MAP_LOCALIZE_INIT_MIN", "0.5"))
 # 小地图定位：初始化/场景切换的多帧确认与候选短名单参数
 MAP_LOCALIZE_MAX_JUMP = float(_env("ROCO_MAP_LOCALIZE_MAX_JUMP", "180"))
 MAP_LOCALIZE_TRACK_CONF_MIN = float(_env("ROCO_MAP_LOCALIZE_TRACK_CONF_MIN", "0.52"))
@@ -81,6 +81,7 @@ FEISHU_WEBHOOK_URL = _env(
 # 本地清单（datasets/data_manifest.json）由 tools/pack_update.py 生成，用于 md5 对比
 DATA_MANIFEST_URL = _env("ROCO_DATA_MANIFEST_URL",
                          "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/data_manifest.json")
+ROCO_AUTH_SERVER = _env("ROCO_AUTH_SERVER", "http://47.100.242.141:8000")
 
 # 徽章试炼定义：草系为正式内容，火系为开发环境专属。
 # collection_key 对应 roco_user_data.json 中独立的“已遇见精灵”集合。

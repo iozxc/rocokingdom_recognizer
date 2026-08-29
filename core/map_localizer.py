@@ -277,6 +277,7 @@ class PlayerLocalizer:
         self._min_score = config.MAP_LOCALIZE_MIN_SCORE
         self._lock = threading.RLock()
         self._built = False
+        self._ref_error: Optional[str] = None   # 参考底图加载失败原因(非致命)
         self._ref_g25: Optional[np.ndarray] = None
         # 跟踪状态
         self._confirmed: Optional[tuple[float, float]] = None  # 已确认(可发布)位置
@@ -295,6 +296,9 @@ class PlayerLocalizer:
         if not self._enabled:
             logger.info("map localizer disabled.")
             return False
+        if self._ref_error is not None:
+            # 已经失败过一次，避免每次调用都重试/狂打日志。
+            return False
         try:
             path = self._ref_path
             arr = np.array(Image.open(path).convert("RGB"))
@@ -308,7 +312,13 @@ class PlayerLocalizer:
             logger.info("map localizer reference loaded: %s (%dx%d frame)", path, h, w)
             return True
         except Exception as exc:  # noqa: BLE001
-            logger.error("map localizer failed to load reference: %s", exc, exc_info=True)
+            self._ref_error = str(exc)
+            # 参考底图缺失属于“可选资源缺失”，不应让应用报错崩溃；低调地提示即可。
+            logger.warning(
+                "map localizer 参考底图缺失，地图实时定位已停用（不影响其他功能）。"
+                "请确认已打包/导入 %s（可用 ROCO_MAP_LOCALIZE_REFERENCE 覆盖）。原因: %s",
+                self._ref_path, exc,
+            )
             return False
 
     def reset(self) -> None:
@@ -366,7 +376,6 @@ class PlayerLocalizer:
             # 候选稳定且达标：多帧确认后提交。init 和场景切换都要求多帧一致，
             # 因为歧义小地图(金色区/低纹理)单帧峰值会给出错误目标，多帧能抑制。
             self._pending_count += 1
-            self._pending_age += 1
             if self._pending_count >= INIT_CONFIRM_FRAMES:
                 self._confirmed = pred
                 self._clear_pending()
@@ -375,8 +384,8 @@ class PlayerLocalizer:
             t_refine = t_local
             return self._confirmed, None, "pending-hint", t_coarse, t_refine
 
-        # 本帧候选未达标：不立即丢弃，但每 PENDING_LIMIT 帧重新做一次全图搜索，
-        # 避免场景切换因候选被本地窗口“锁死”而永远停在 switch-pending。
+        # 本帧候选未达标：不立即丢弃，但连续 PENDING_LIMIT 次不达标才重新全图搜索，
+        # 避免把“正在缓慢达标”的候选(如 0.50 边缘)误杀，也避免低纹理区死循环。
         self._pending_age += 1
         if self._pending_age >= PENDING_LIMIT:
             _t2 = time.perf_counter()
