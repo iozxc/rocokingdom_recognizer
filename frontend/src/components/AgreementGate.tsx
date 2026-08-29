@@ -82,7 +82,7 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
 
         {showOverlay && (
             <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-slate-900/25 backdrop-blur-[2px]">
-              <div className="relative w-full max-w-md max-h-[85vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col">
+              <div className="relative w-full max-w-lg max-h-[85vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col">
 
                 {/* 顶部标题栏 */}
                 <div className="px-4 py-3 bg-[#7ABCF4] text-white flex items-center gap-2.5 border-b-2 border-[#5DA8E8] shrink-0">
