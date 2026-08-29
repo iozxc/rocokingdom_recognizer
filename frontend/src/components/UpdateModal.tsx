@@ -26,6 +26,12 @@ interface UpdateModalProps {
     onClose: () => void;
 }
 
+// 开源项目源码/仓库地址：始终可查看，不依赖是否检测到更新
+const SOURCE_LINKS: Array<{ name: string; url: string }> = [
+    { name: 'Gitee 源码仓库', url: 'https://gitee.com/iozxc/rocokingdom_recognizer' },
+    { name: 'GitHub 镜像仓库', url: 'https://github.com/iozxc/rocokingdom_recognizer' },
+];
+
 // 格式化字节大小 (B, KB, MB, GB)，保留 1 位小数
 export const formatBytes = (bytes?: number): string => {
     if (typeof bytes !== 'number' || isNaN(bytes) || bytes <= 0) return '0 B';
@@ -210,7 +216,10 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         downloadStatus.startsWith('verifying');
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+            onClick={onClose}
+        >
             <div
                 className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col relative"
                 onClick={(e) => e.stopPropagation()}
@@ -631,6 +640,31 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                             </p>
                         </div>
                     ) : null}
+
+                    {/* 源码链接：始终可见，不依赖是否检测到更新 */}
+                    <div className="pt-3 border-t border-slate-100 space-y-2">
+                        <span className="text-xs font-black text-slate-700 flex items-center gap-1">
+                            <ExternalLink className="w-3.5 h-3.5 text-[#2B78C4]" />
+                            开源项目地址
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {SOURCE_LINKS.map((item) => (
+                                <a
+                                    key={item.name}
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-3 bg-[#F0F6FC] hover:bg-[#E1F0FE] border-2 border-[#BCD7F2] hover:border-[#7ABCF4] rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] transition-all group shadow-2xs cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <ExternalLink className="w-4 h-4 text-[#2B78C4]" />
+                                        <span>{item.name}</span>
+                                    </div>
+                                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#2B78C4]" />
+                                </a>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Footer */}
