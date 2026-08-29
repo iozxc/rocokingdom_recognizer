@@ -1189,6 +1189,51 @@ export class ApiService {
     }
   }
 
+  /** 是否仍需展示用户协议（后端以 roco_user_data.json 中 appSettings.agreementAccepted 判断） */
+  public async isAgreementRequired(): Promise<boolean> {
+    try {
+      const res = await axios.get<{ data?: { required?: boolean } }>(
+          `${this.apiBase}/api/app/agreement_required`,
+          { timeout: 4000 },
+      );
+      return !!res.data?.data?.required;
+    } catch (err: unknown) {
+      console.warn('API isAgreementRequired failed:', (err as AxiosError).message);
+      // 接口异常时保守返回 true，确保协议不会因接口问题被跳过
+      return true;
+    }
+  }
+
+  /** 同意协议后落盘用户数据，标记为非首次 */
+  public async acceptAgreement(): Promise<void> {
+    try {
+      await axios.post(`${this.apiBase}/api/app/agreement_accept`, {}, { timeout: 5000 });
+    } catch (err: unknown) {
+      console.warn('API acceptAgreement failed:', (err as AxiosError).message);
+    }
+  }
+
+  /** 读取 resources/chat.json 的联系方式配置（QQ 群等） */
+  public async getChatConfig(): Promise<any | null> {
+    try {
+      // 走本地接口：后端会优先读本地 resources，缺失时再从 Gitee raw 拉取（避免前端跨域/302）
+      const res = await axios.get<any>(`${this.apiBase}/api/resources/chat.json`, { timeout: 6000 });
+      const data = res.data;
+      // 兼容直接返回 {qq_group:[...]} 或包装成 {data:{qq_group:[...]}}
+      if (data && Array.isArray(data.qq_group)) return data;
+      if (data?.data && Array.isArray(data.data.qq_group)) return data.data;
+      return null;
+    } catch (err: unknown) {
+      console.warn('API getChatConfig failed:', (err as AxiosError).message);
+      return null;
+    }
+  }
+
+  /** 生成 resources 目录下静态资源（如二维码图片）的访问地址（走本地接口，后端负责远程兜底） */
+  public resourceUrl(filename: string): string {
+    return `${this.apiBase}/api/resources/${encodeURIComponent(filename)}`;
+  }
+
 }
 
 export const api = new ApiService();
