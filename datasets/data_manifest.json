@@ -1,5 +1,5 @@
 {
-  "version": "1.4.1",
+  "version": "1.4.2",
   "files": [
     {
       "name": "datasets/datasets.db",
@@ -9,26 +9,26 @@
     },
     {
       "name": "datasets/map_pets1.json",
-      "md5": "524122c3ff289be9b1072d1ecb1d62a5",
-      "size": 78136,
+      "md5": "406fc2f9369760a731789f5d50af7b64",
+      "size": 74499,
       "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/map_pets1.json"
     },
     {
       "name": "datasets/roco_all_pets_info.json",
-      "md5": "833acbf9c4ff360607a94c83b82d21a2",
-      "size": 96462,
+      "md5": "dad9ab23e7c81d09f4ba5dec9f047701",
+      "size": 91059,
       "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/roco_all_pets_info.json"
     },
     {
       "name": "datasets/ocr_corrections.json",
-      "md5": "91192844c02d495271ae5ef9205aff69",
-      "size": 2720,
+      "md5": "844617b5dd6851f899e81f21c6e22be4",
+      "size": 2648,
       "url": ""
     },
     {
       "name": "datasets/pet_renames.json",
-      "md5": "d17b459e389483ae5998e42678772909",
-      "size": 1082,
+      "md5": "ae4f4b2076a2025643b832b3afe17db2",
+      "size": 1052,
       "url": ""
     }
   ]
