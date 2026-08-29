@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ScannerApp } from './ScannerApp.tsx';
 import { AuthGate } from './components/AuthGate';
+import { AgreementGate } from './components/AgreementGate';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
@@ -30,9 +31,11 @@ createRoot(rootElement).render(
   <StrictMode>
     <ErrorBoundary>
       {isStandaloneScanner ? <ScannerApp /> : (
-        <AuthGate>
-          <App />
-        </AuthGate>
+        <AgreementGate>
+          <AuthGate>
+            <App />
+          </AuthGate>
+        </AgreementGate>
       )}
     </ErrorBoundary>
   </StrictMode>,
