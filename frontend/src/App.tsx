@@ -16,6 +16,9 @@ import { DataUpdateModal } from './components/DataUpdateModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
+import { AuthBadge } from './components/AuthBadge';
+import { useFeatureLock } from './services/auth';
+import { showFeatureLockNotice } from './services/featureLock';
 import { FireBadgeTrial } from './components/Trial/FireBadgeTrial';
 import { MapAwareness } from './components/Tool/MapAwareness';
 import { MAP_CONFIGS } from './data/mockPets';
@@ -82,6 +85,16 @@ export default function App() {
     type: 'encounter',
   });
   const syncPopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 未授权时锁定“识别”相关功能：点击弹“请授权，解锁更多功能”，不执行。
+  const { locked } = useFeatureLock();
+  const guardRecognition = useCallback((action: () => void) => {
+    if (locked) {
+      showFeatureLockNotice();
+      return;
+    }
+    action();
+  }, [locked]);
 
   // Trigger celebration confetti & sleek pop notification
   const triggerScanSyncEffect = useCallback(
@@ -468,6 +481,7 @@ export default function App() {
             }}
             showMapNav={view === 'assistant'}
             mapsConfig={activeTrialMaps}
+            rightStatus={<AuthBadge />}
         />
 
         {/* Sub-Header Toolbar: Displayed only when floating buttons are in 'hidden' mode */}
@@ -477,8 +491,8 @@ export default function App() {
                 onFilterChange={(mode) => setFilterMode(mode)}
                 encounteredCount={currentMapStats.encounteredCount}
                 totalCount={currentMapPets.length}
-                onOpenSingleRecognizer={() => setIsSingleRecognizerOpen(true)}
-                onOpenBatchInit={() => setIsBatchInitOpen(true)}
+                onOpenSingleRecognizer={() => guardRecognition(() => setIsSingleRecognizerOpen(true))}
+                onOpenBatchInit={() => guardRecognition(() => setIsBatchInitOpen(true))}
                 onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
             />
         )}
@@ -618,8 +632,8 @@ export default function App() {
                 records={records}
                 onNavigateToPet={handleNavigateToPet}
                 onToggleEncounter={handleToggleEncounter}
-                onOpenSingleRecognizer={() => setIsSingleRecognizerOpen(true)}
-                onOpenBatchInit={() => setIsBatchInitOpen(true)}
+                onOpenSingleRecognizer={() => guardRecognition(() => setIsSingleRecognizerOpen(true))}
+                onOpenBatchInit={() => guardRecognition(() => setIsBatchInitOpen(true))}
                 mapsConfig={activeTrialMaps}
             />
         )}

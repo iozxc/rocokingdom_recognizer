@@ -40,6 +40,10 @@ def main() -> None:
             hint.close()
         return
 
+    # 启动后台授权校验：未授权时前端弹窗引导绑定，不阻塞 UI。
+    from core.auth_service import start_auth_check
+    start_auth_check()
+
     from core import create_app
     from desktop import run
 

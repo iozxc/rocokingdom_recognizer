@@ -4,9 +4,16 @@
  * 带防重入保护：快速连点时只发起一次，避免并发调用 pywebview 开窗
  * 造成竞态（卡住 / 白屏）。
  */
+import { authStore } from './auth';
+import { showFeatureLockNotice } from './featureLock';
+
 let openingScanner = false;
 
 export async function openFollowScanner(): Promise<void> {
+  if (authStore.getState().status !== 'authorized') {
+    showFeatureLockNotice();
+    return;
+  }
   if (openingScanner) {
     console.warn('跟随识别窗口正在打开，忽略本次点击');
     return;

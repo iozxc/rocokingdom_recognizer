@@ -5,8 +5,8 @@ from core.api.main import bp as main_bp
 from core.api.predict import bp as predict_bp
 from core.api.storage import bp as storage_bp
 from core.api.trials import bp as trials_bp
-from core.api.seek import bp as seek_bp
 from core.api.updater import bp as updater_bp
+from core.api.auth import bp as auth_bp
 
 
 def register_blueprints(app):
@@ -19,3 +19,4 @@ def register_blueprints(app):
     app.register_blueprint(feedback_bp)
     app.register_blueprint(data_updater_bp)
     app.register_blueprint(updater_bp)
+    app.register_blueprint(auth_bp)

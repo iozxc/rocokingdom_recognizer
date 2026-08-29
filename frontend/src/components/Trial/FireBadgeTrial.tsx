@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode } from '../../types';
+import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode, AdvancedFilterState } from '../../types';
 import { fireStorage } from '../../services/fireStorage';
 import { getCachedFirePets, getFireTrialPetsCached } from '../../services/fireTrialData';
 import { storage } from '../../services/storage';
 import { sound } from '../../services/sound';
+import { FIRE_MAP_CONFIGS } from '../../data/trials';
 import { Header } from '../Header';
+import { AuthBadge } from '../AuthBadge';
 import { StatsBanner } from '../StatsBanner';
 import { PetGrid } from '../PetGrid';
 import { PetDetailModal } from '../PetDetailModal';
@@ -24,6 +26,8 @@ interface FireBadgeTrialProps {
 }
 
 export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) => {
+  // 兜底：即使后端未下发地图配置，也使用本地火系地图，避免空数组导致渲染崩溃
+  const safeMaps = maps && maps.length > 0 ? maps : FIRE_MAP_CONFIGS;
   const initialPets = getCachedFirePets();
   const [activeMapNum, setActiveMapNum] = useState<number>(1);
   const [pokedex, setPokedex] = useState<FirePokedexEntry[]>(initialPets ?? []);
@@ -43,11 +47,18 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const [floatingMode, setFloatingMode] = useState<FloatingButtonsMode>(() => {
     return storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal');
   });
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({
+    elements: [],
+    specialTypes: [],
+  });
 
   useEffect(() => {
     const unsubscribe = fireStorage.subscribe((newRecords) => setRecords(newRecords));
     getFireTrialPetsCached().then((pets) => {
       setPokedex(pets);
+      setLoaded(true);
+    }).catch(() => {
+      setPokedex([]);
       setLoaded(true);
     });
     return unsubscribe;
@@ -67,28 +78,30 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
 
   // 三张地图都展示全图鉴精灵，宠物名带 .png 后缀以保持与草系相同的记录 key（map1_火花.png）
   const fireMapsPets: Record<string, { count: number; items: PetItem[] }> = useMemo(() => {
-    const items: PetItem[] = pokedex.map((pet) => ({
-      name: `${pet.name}.png`,
-      id: pet.id,
-      seq: pet.seq,
-      elements: pet.elements ?? [],
-      rarity: 'common',
-      url: pet.url || createSvgPetAvatar(pet.name, '火', (pet.id * 47) % 360, '#ef4444', '🔥'),
-    }));
+    const items: PetItem[] = pokedex
+        .filter((pet): pet is FirePokedexEntry => !!pet && typeof pet === 'object')
+        .map((pet) => ({
+          name: `${pet.name}.png`,
+          id: pet.id,
+          seq: pet.seq,
+          elements: pet.elements ?? [],
+          rarity: 'common',
+          url: pet.url || createSvgPetAvatar(pet.name, '火', (pet.id * 47) % 360, '#ef4444', '🔥'),
+        }));
     const base = { count: items.length, items };
     return { map1: base, map2: base, map3: base };
   }, [pokedex]);
 
   const currentMap: MapConfig = useMemo(() => {
-    return maps.find((m) => m.num === activeMapNum) || maps[0];
-  }, [activeMapNum, maps]);
+    return safeMaps.find((m) => m.num === activeMapNum) || safeMaps[0];
+  }, [activeMapNum, safeMaps]);
 
   const currentMapPets: PetItem[] = useMemo(() => {
     return fireMapsPets[`map${activeMapNum}`]?.items || [];
   }, [activeMapNum, fireMapsPets]);
 
   const allMapsStats = useMemo(() => {
-    return maps.map((map) => {
+    return safeMaps.map((map) => {
       const list = fireMapsPets[map.id]?.items || [];
       const encountered = list.filter((p) =>
           isPetEncounteredInRecords(records, map.id, p.name)
@@ -101,13 +114,13 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         total: list.length,
       };
     });
-  }, [fireMapsPets, records, maps]);
+  }, [fireMapsPets, records, safeMaps]);
 
   const totalPetsCount = useMemo(() => {
-    return maps.reduce((sum, map) => {
+    return safeMaps.reduce((sum, map) => {
       return sum + (fireMapsPets[map.id]?.items.length || 0);
     }, 0);
-  }, [fireMapsPets, maps]);
+  }, [fireMapsPets, safeMaps]);
 
   const totalEncounteredCount = useMemo(() => {
     return allMapsStats.reduce((sum, s) => sum + s.encountered, 0);
@@ -149,7 +162,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const handleNavigateToPet = (mapNum: number, petName: string) => {
     setActiveMapNum(mapNum);
     setTimeout(() => {
-      const targetMap = maps.find((m) => m.num === mapNum);
+      const targetMap = safeMaps.find((m) => m.num === mapNum);
       if (!targetMap) return;
       const elementId = `pet-card-${targetMap.id}-${petName.replace('.', '-')}`;
       const el = document.getElementById(elementId);
@@ -191,8 +204,9 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             }}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenHub={onBack}
-            mapsConfig={maps}
+            mapsConfig={safeMaps}
             devBadge
+            rightStatus={<AuthBadge />}
         />
 
         {/* 移至顶栏：显示与草系一致的顶栏工具栏（筛选 + 全域搜索） */}
@@ -218,6 +232,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               searchQuery={searchQuery}
               onSearchChange={(q) => setSearchQuery(q)}
               onResetEncounters={handleResetCurrentMap}
+              advancedFilters={advancedFilters}
+              onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
           />
 
           <PetGrid
@@ -228,6 +244,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               filterMode={filterMode}
               onFilterChange={(mode) => setFilterMode(mode)}
               searchQuery={searchQuery}
+              advancedFilters={advancedFilters}
               onOpenPetDetail={(pet) => setDetailPet(pet)}
               onOpenFeedback={(type) => {
                 setFeedbackInitialType(type);
@@ -248,14 +265,14 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             filterMode={filterMode}
             onFilterChange={(mode) => setFilterMode(mode)}
             onCycleMap={() => {
-              setActiveMapNum((prev) => (prev % maps.length) + 1);
+              setActiveMapNum((prev) => (prev % safeMaps.length) + 1);
             }}
-            mapsConfig={maps}
+            mapsConfig={safeMaps}
         />
 
         {/* 右下角：复用通用全域搜索（仅搜索模式） */}
         <GlobalFloatingSearch
-            mapsConfig={maps}
+            mapsConfig={safeMaps}
             searchOnly
             allMapsPets={fireMapsPets}
             records={records}

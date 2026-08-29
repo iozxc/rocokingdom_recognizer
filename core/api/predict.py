@@ -11,6 +11,7 @@ from core.services.trials import get_trial
 from core.services.trial_filter import filter_candidates_by_trial
 from core.utils import get_top_k_matches, get_icon_file_name
 from core.logger import logger
+from core.auth_service import is_authorized
 
 bp = Blueprint("predict", __name__)
 
@@ -55,6 +56,8 @@ def ocr_top_k_match(image, map_num, top_k=6, trial_key="grass"):
 
 @bp.route('/predict', methods=['POST'])
 def predict():
+    if not is_authorized():
+        return error("请授权，解锁更多功能", 200)
     logger.info(f"[/predict] 请求开始, map_num={request.form.get('map_num')}, "
                 f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
                 f"trial={request.form.get('trial', 'grass')}")
@@ -145,6 +148,8 @@ def predict():
 
 @bp.route('/init_batch', methods=['POST'])
 def predict_batch():
+    if not is_authorized():
+        return error("请授权，解锁更多功能", 200)
     logger.info(f"[/init_batch] 请求开始, map_num={request.form.get('map_num')}, "
                 f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
                 f"total_count={request.form.get('total_count')}, trial={request.form.get('trial', 'grass')}")

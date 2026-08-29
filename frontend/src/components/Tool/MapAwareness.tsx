@@ -38,6 +38,7 @@ import { getElementColor } from '../../utils/elements';
 import { sound } from '../../services/sound';
 import { api } from '../../services/api';
 import { Header } from '../Header';
+import { AuthBadge } from '../AuthBadge';
 import { AIRWALL_POLYGON_L13, drawSmoothClosedPolygon, isPointInPolygon } from '../../data/mapAirwall';
 
 interface MapAwarenessProps {
@@ -710,6 +711,8 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
     return () => {
       active = false;
       if (timer !== null) clearTimeout(timer);
+      // 前端停止轮询时也停掉后端后台线程，避免它继续抓图/拉起窗口。
+      api.stopMapMonitor().catch(() => {});
     };
   }, [isMonitoring, updatePlayerPosition]);
 
@@ -1358,6 +1361,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
         mapsConfig={maps}
         showMapNav={false}
         devBadge
+        rightStatus={<AuthBadge />}
       />
 
       <main className="relative flex-1 min-h-0 w-full bg-[#EAF4FB] overflow-hidden">
@@ -1548,8 +1552,15 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setIsMonitoring((previous) => !previous);
+                    const next = !isMonitoring;
+                    setIsMonitoring(next);
                     setStatusMsgDismissed(false);
+                    // 同步启停后端后台监测线程：关闭时真正停止，避免它继续抓图/拉起游戏窗口。
+                    if (next) {
+                      api.startMapMonitor().catch(() => {});
+                    } else {
+                      api.stopMapMonitor().catch(() => {});
+                    }
                     sound.playClick();
                   }}
                   className={`w-full inline-flex cursor-pointer items-center justify-between rounded-xl border px-3 py-2 text-xs font-black shadow-2xs transition-all active:scale-[0.98] ${

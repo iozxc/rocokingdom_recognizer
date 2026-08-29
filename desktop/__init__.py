@@ -99,6 +99,13 @@ def _install_exit_watchdog(main_window) -> None:
 
 def _shutdown(server, server_thread) -> None:
     """窗口全部关闭后停止 Flask 服务，并确保进程立即退出。"""
+    # 退出前上报 close（若本进程已授权并上报过 open），尽量把使用时长落库
+    try:
+        from core.auth_service import report_app_close
+        report_app_close()
+    except Exception as e:
+        logger.warning(f"上报 close 事件异常: {e}")
+
     time.sleep(_EXIT_GRACE_SECONDS)
     _close_all_hints()
     try:

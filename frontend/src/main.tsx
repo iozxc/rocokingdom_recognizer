@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ScannerApp } from './ScannerApp.tsx';
+import { AuthGate } from './components/AuthGate';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
 // Check if running as standalone scanner window (via pathname /scanner or query ?view=scanner or #scanner)
@@ -26,6 +28,12 @@ const isStandaloneScanner = isScannerMode();
 
 createRoot(rootElement).render(
   <StrictMode>
-    {isStandaloneScanner ? <ScannerApp /> : <App />}
+    <ErrorBoundary>
+      {isStandaloneScanner ? <ScannerApp /> : (
+        <AuthGate>
+          <App />
+        </AuthGate>
+      )}
+    </ErrorBoundary>
   </StrictMode>,
 );

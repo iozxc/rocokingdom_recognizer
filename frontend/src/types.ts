@@ -356,3 +356,17 @@ export interface AdvancedFilterState {
   specialTypes: string[]; // e.g. ['boss', 'multiform']
 }
 
+// ---------- 设备授权 ----------
+export type AuthStatus = 'pending' | 'waiting' | 'banned' | 'expired' | 'authorized' | 'error';
+
+export interface AuthState {
+  status: AuthStatus;
+  machine_code: string;
+  auth_code: string;
+  expire_time: string;
+  qq_id: string;
+  msg: string;
+  error: string;
+  is_authorized: boolean;
+}
+

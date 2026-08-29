@@ -1,0 +1,231 @@
+import subprocess
+import requests
+import sys
+import time
+import hmac
+import hashlib
+import os
+
+import config
+
+
+# ⚠️签名密钥不写在源码里（项目开源）。
+# 读取优先级：
+#   1) 环境变量 ROCO_AUTH_SECRET（测试/覆盖用）
+#   2) 打包环境(sys.frozen)：只信任构建期注入的 core._auth_secret，忽略外部文件，避免“换文件绕过”
+#   3) 开发环境：项目根目录 auth_secret.txt（已 gitignore）；找不到再回退到注入模块
+# 始终找不到会直接报错，绝不回退到内置默认值。
+def _default_secret_path():
+    """开发环境的 auth_secret.txt 路径（本文件位于 core/，上一级即项目根目录）。"""
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "auth_secret.txt")
+
+
+def _load_embedded_secret():
+    """读取构建期注入的 core._auth_secret 模块（打包进 PYZ，无外部文件）。"""
+    try:
+        from core._auth_secret import SECRET
+        if SECRET:
+            return bytes(SECRET)
+    except Exception:
+        pass
+    raise RuntimeError(
+        "未找到授权签名密钥：请设置环境变量 ROCO_AUTH_SECRET，"
+    )
+
+
+def _load_secret_key():
+    env_val = os.getenv("ROCO_AUTH_SECRET")
+    if env_val:
+        return env_val.encode("utf-8")
+
+    # 打包环境：只认内嵌密钥，忽略外部 auth_secret.txt（防替换绕过）
+    if getattr(sys, "frozen", False):
+        return _load_embedded_secret()
+
+    # 开发环境：优先项目根目录的 auth_secret.txt
+    key_path = _default_secret_path()
+    if os.path.isfile(key_path):
+        with open(key_path, "r", encoding="utf-8") as f:
+            secret = f.read().strip()
+        if secret:
+            return secret.encode("utf-8")
+
+    # 开发兜底：尝试构建期注入的模块
+    return _load_embedded_secret()
+
+
+SECRET_KEY = _load_secret_key()
+# 服务器地址：默认直连 8000；如需走 nginx 80 端口，用环境变量 ROCO_AUTH_SERVER 覆盖
+SERVER_BASE = config.ROCO_AUTH_SERVER.rstrip("/")
+REQUEST_URL = SERVER_BASE + "/api/auth/request"
+STATUS_URL = SERVER_BASE + "/api/auth/status"
+CHECK_URL = SERVER_BASE + "/api/auth_check"
+
+requests.packages.urllib3.disable_warnings()
+
+# 机器码缓存：启动时多次调用，避免重复启动子进程指令
+_MACHINE_CODE_CACHE = {"code": None, "ts": 0.0}
+_MACHINE_CODE_TTL = 600
+
+
+def get_machine_code(force: bool = False):
+    """读取本机硬盘序列号作为 machine_code（带缓存，降低重复子进程开销）。"""
+    if not force and _MACHINE_CODE_CACHE["code"]:
+        if time.time() - _MACHINE_CODE_CACHE["ts"] < _MACHINE_CODE_TTL:
+            return _MACHINE_CODE_CACHE["code"]
+    code = _read_machine_code()
+    _MACHINE_CODE_CACHE["code"] = code
+    _MACHINE_CODE_CACHE["ts"] = time.time()
+    return code
+
+
+def _read_machine_code():
+    # 双指令降级适配：Win11新版 + Win10旧版 全兼容
+    try:
+        # 优先使用新版PowerShell指令（适配Win11）
+        cmd = 'powershell "Get-CimInstance Win32_DiskDrive | Select-Object -ExpandProperty SerialNumber"'
+        out = subprocess.check_output(cmd, shell=True).decode("utf-8", errors="ignore")
+        serial = out.strip()
+        if serial:
+            return serial
+    except Exception:
+        pass
+
+    try:
+        # 降级使用wmic指令（适配Win10全系）
+        out = subprocess.check_output('wmic diskdrive get serialnumber', shell=True).decode()
+        lines = [x.strip() for x in out.splitlines() if x.strip()][1:]
+        serial = lines[0] if lines else "unknown"
+        return serial
+    except Exception as e:
+        return "ERROR_DEVICE"
+
+
+def make_sign(machine_code):
+    ts = str(int(time.time()))
+    raw = f"{machine_code}{ts}".encode()
+    sign = hmac.new(SECRET_KEY, raw, hashlib.sha256).hexdigest()
+    return ts, sign
+
+
+def _post(url, payload, timeout=10):
+    return requests.post(url, json=payload, timeout=timeout, verify=False)
+
+
+def request_auth(machine_code=None, timeout=10):
+    """申请/查询授权码。返回服务端 JSON（含 auth_code / is_authorized）。"""
+    mc = machine_code or get_machine_code()
+    ts, sign = make_sign(mc)
+    resp = _post(REQUEST_URL, {"machine_code": mc, "timestamp": ts, "sign": sign}, timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def status_auth(machine_code=None, auth_code=None, event=None, timeout=10):
+    """查询授权状态；可携带 event（open/close）上报事件。返回服务端 JSON。"""
+    mc = machine_code or get_machine_code()
+    ts, sign = make_sign(mc)
+    payload = {"machine_code": mc, "timestamp": ts, "sign": sign}
+    if auth_code:
+        payload["auth_code"] = auth_code
+    if event:
+        payload["event"] = event
+    resp = _post(STATUS_URL, payload, timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def refresh_code(machine_code=None, reset_binding=True, timeout=10):
+    """为指定设备重新生成授权码（客户端自服务换码）。
+
+    reset_binding=True：同管理端“刷新授权码”，清空绑定信息并置为未授权，
+    客户端可拿到新授权码重新绑定；旧授权码随即失效。
+    """
+    mc = machine_code or get_machine_code()
+    ts, sign = make_sign(mc)
+    payload = {
+        "machine_code": mc,
+        "timestamp": ts,
+        "sign": sign,
+        "reset_binding": reset_binding,
+    }
+    resp = _post(SERVER_BASE + "/api/auth/refresh_code", payload, timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def report_app_event(event, machine_code=None, timeout=10):
+    """App 打开/关闭事件上报（新增，用于统计流量与使用时长）。
+
+    event = 'open'  : App 打开，记 1 次流量并开启会话
+    event = 'close' : App 关闭，关闭会话并计算使用时长
+    example:
+        report_app_event("open")   # 在 App 启动校验过期后调用
+        report_app_event("close")  # 在 App 退出前调用
+    """
+    try:
+        return status_auth(machine_code=machine_code, event=event, timeout=timeout)
+    except Exception as e:
+        logger = None
+        try:
+            from core.logger import logger as _logger
+            logger = _logger
+        except Exception:
+            pass
+        if logger is not None:
+            logger.warning(f"事件上报失败: {e}")
+        else:
+            print(f"❌ 事件上报失败：{e}")
+        return None
+
+
+def cloud_auth():
+    machine_code = get_machine_code()
+    print(f"本机设备码 machine_code = [{machine_code}]")
+
+    # 第一步：带机器码申请授权码
+    try:
+        res = request_auth(machine_code)
+    except Exception as e:
+        print(f"❌ 无法连接授权服务器：{e}")
+        return False
+
+    if not res.get("ok"):
+        print(f"❌ 获取授权码失败：{res.get('msg')}")
+        return False
+
+    auth_code = res.get("auth_code")
+    print(f"📟 本机授权码：{auth_code}")
+
+    if res.get("is_authorized"):
+        print("✅ 当前已授权，可直接启动程序")
+        return True
+
+    # 第二步：提示用户到 QQ 群 @机器人 绑定，并轮询直到绑定成功
+    print(f"⚠️ 请到 QQ 群 @机器人 发送：bind {auth_code}")
+    print("⏳ 等待 QQ 群绑定中（每 5 秒检查一次）...")
+
+    for _ in range(120):  # 最长约 10 分钟
+        time.sleep(5)
+        try:
+            res = status_auth(machine_code=machine_code, auth_code=auth_code)
+        except Exception as e:
+            print(f"❌ 轮询异常：{e}")
+            continue
+
+        if res.get("is_authorized"):
+            print(f"✅ 绑定成功！授权到期：{res.get('expire_time')}")
+            return True
+        if not res.get("ok"):
+            print(f"❌ 授权状态异常：{res.get('msg')}")
+            return False
+        # 仍是等待状态，继续轮询
+
+    print("⏰ 等待绑定超时，请确认已在 QQ 群绑定授权码。")
+    return False
+
+
+if __name__ == "__main__":
+    ok = cloud_auth()
+    if not ok:
+        sys.exit(0)

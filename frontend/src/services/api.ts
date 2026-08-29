@@ -28,6 +28,7 @@ import {
 } from '../types';
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { formatPetName } from '../utils/petHelper';
+import { authStore } from './auth';
 
 const DEFAULT_API_BASE = 'http://127.0.0.1:5000';
 
@@ -63,6 +64,11 @@ export class ApiService {
     localStorage.removeItem('roco_api_base');
   }
 
+  /** 识别类功能是否被锁定（未授权则锁定）。 */
+  private _authLocked(): boolean {
+    return authStore.getState().status !== 'authorized';
+  }
+
   // Health / Connection check
   public async checkHealth(): Promise<{ online: boolean; message: string; data?: unknown }> {
     try {
@@ -86,6 +92,21 @@ export class ApiService {
       source: 'window-image', window_found: false, window_title: '', confidence: null,
       screenshot: null, position: null, heading: null, map_found: false, reason: 'empty-response',
     } as MapObservation);
+  }
+
+  /** 启动/停止后台实时小地图监测（对应后端 map_observer 线程）。 */
+  public async startMapMonitor(): Promise<boolean> {
+    const response = await axios.get<{ status: string; data?: { monitoring?: boolean } }>(
+      `${this.apiBase}/map_monitor/start`, { timeout: 5000 },
+    );
+    return Boolean(response.data?.data?.monitoring ?? false);
+  }
+
+  public async stopMapMonitor(): Promise<boolean> {
+    const response = await axios.get<{ status: string; data?: { monitoring?: boolean } }>(
+      `${this.apiBase}/map_monitor/stop`, { timeout: 5000 },
+    );
+    return Boolean(response.data?.data?.monitoring ?? true);
   }
 
   /**
@@ -274,6 +295,9 @@ export class ApiService {
       threshold: number = 0.25,
       topK: number = 3
   ): Promise<{ result: PredictResult; isOfflineMock: boolean }> {
+    if (this._authLocked()) {
+      throw new Error('请授权，解锁更多功能');
+    }
     const clampedK = Math.max(1, Math.min(6, Math.round(topK || 3)));
     const formData = new FormData();
     formData.append('image', imageFile);
@@ -395,6 +419,9 @@ export class ApiService {
       threshold: number = 0.25,
       topK: number = 3
   ): Promise<{ data: BatchInitApiResponse; isOfflineMock: boolean }> {
+    if (this._authLocked()) {
+      throw new Error('请授权，解锁更多功能');
+    }
     const clampedK = Math.max(1, Math.min(6, Math.round(topK || 3)));
     const formData = new FormData();
     formData.append('image', imageFile);
