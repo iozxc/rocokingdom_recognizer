@@ -4,8 +4,8 @@ from core.services.user_storage import user_storage
 
 
 def hints_enabled() -> bool:
-    """是否显示启动/退出提示窗口（默认显示，可在系统设置里关闭）。"""
+    """是否显示启动/退出提示窗口（默认关闭；首次启动会强制显示一次，可在系统设置里开启）。"""
     try:
-        return bool(user_storage.get_app_settings().get("showHints", True))
+        return bool(user_storage.get_app_settings().get("showHints", False))
     except Exception:
-        return True
+        return False
