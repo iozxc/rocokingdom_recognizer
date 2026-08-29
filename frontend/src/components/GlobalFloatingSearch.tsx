@@ -641,7 +641,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                       </span>
                                   )}
                                   <ElementBadges
-                                      elements={item.pet.elements}
+                                      elements={item?.pet?.elements}
                                       className="absolute top-0.5 left-0.5 z-10"
                                       size="sm"
                                   />
