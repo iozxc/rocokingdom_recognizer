@@ -14,6 +14,7 @@ import { FloatingFilterSwitch } from '../FloatingFilterSwitch';
 import { GlobalFloatingSearch } from '../GlobalFloatingSearch';
 import { SubHeaderToolbar } from '../SubHeaderToolbar';
 import { FeedbackContactModal } from '../FeedbackContactModal';
+import { UserManualModal } from '../UserManualModal';
 import { UpdateModal } from '../UpdateModal';
 import { AppSettingsModal } from '../AppSettingsModal';
 import { createSvgPetAvatar } from '../../data/mockPets';
@@ -38,6 +39,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
   });
+  const [isManualOpen, setIsManualOpen] = useState<boolean>(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
   const [detailPet, setDetailPet] = useState<PetItem | null>(null);
   const [feedbackInitialType, setFeedbackInitialType] = useState<string>('');
@@ -197,6 +199,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             totalPetsCount={totalPetsCount}
             isSoundMuted={isSoundMuted}
             onToggleSound={handleToggleSound}
+            onOpenManual={() => setIsManualOpen(true)}
             onOpenFeedback={() => setIsFeedbackOpen(true)}
             onOpenUpdate={() => {
               updateStore.clearDot();
@@ -287,6 +290,10 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             isOpen={isFeedbackOpen}
             onClose={() => setIsFeedbackOpen(false)}
             initialType={feedbackInitialType}
+        />
+        <UserManualModal
+            isOpen={isManualOpen}
+            onClose={() => setIsManualOpen(false)}
         />
         <UpdateModal
             isOpen={isUpdateOpen}
