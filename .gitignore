@@ -38,6 +38,9 @@ keys/
 /robot
 /setup.iss
 /Output/
+auth_secret.txt
+core/_auth_secret.py
+build_key.txt
 /frontend/dist/
 /frontend/node_modules/
 /frontend/build/
@@ -64,3 +67,4 @@ keys/
 /train/yolo_minimap/
 /frontend/public/mapdata_real/
 /train/phash/
+/test/
