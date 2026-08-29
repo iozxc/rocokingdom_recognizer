@@ -1,5 +1,6 @@
 """RocoKingdomRecognizer 桌面端入口。"""
 import ctypes
+import os
 
 import config
 from core.logger import logger
@@ -26,10 +27,12 @@ def main() -> None:
     if activate_existing_if_visible():
         return
 
-    # 启动提示：立即给出反馈，避免模型加载慢时误以为闪退（可在系统设置里关闭）
+    # 启动提示（加载进度条）：首次启动强制显示一次（roco_user_data.json 不存在），
+    # 之后默认关闭，仅当用户在“系统设置/启动提示”里开启时才显示。
     hint = None
     from bootstrap.settings import hints_enabled
-    if hints_enabled():
+    first_launch = not os.path.exists(config.DATA_JSON)
+    if first_launch or hints_enabled():
         from bootstrap.splash import show_hint
         hint = show_hint(message="正在启动，请稍候...")
 
