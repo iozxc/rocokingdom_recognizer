@@ -94,6 +94,22 @@ async function refreshCodeAuth(): Promise<AuthState> {
   return defaultAuthState();
 }
 
+async function unbindAuth(): Promise<AuthState> {
+  try {
+    const res = await axios.post<{ data?: AuthState }>(
+        `${resolveApiBase()}/api/local/auth_unbind`,
+        {},
+        { timeout: 6000 }
+    );
+    if (res.data?.data) {
+      return res.data.data;
+    }
+  } catch {
+    // 忽略
+  }
+  return defaultAuthState();
+}
+
 async function setPollMode(mode: 'fast' | 'slow'): Promise<void> {
   try {
     await axios.post(
@@ -223,6 +239,15 @@ class AuthStore {
   async refreshCode() {
     this.startAt = Date.now();
     const next = await refreshCodeAuth();
+    this.setState(next);
+    await this.refresh();
+    this._ensureTimer();
+  }
+
+  /** 解绑当前设备：清空绑定并进入待重新绑定状态。 */
+  async unbind() {
+    this.startAt = Date.now();
+    const next = await unbindAuth();
     this.setState(next);
     await this.refresh();
     this._ensureTimer();

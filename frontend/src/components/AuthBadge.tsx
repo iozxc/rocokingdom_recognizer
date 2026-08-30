@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Copy, Loader2, RefreshCw, ShieldAlert, ShieldCheck, X } from 'lucide-react';
+import { CheckCircle2, Copy, Loader2, LogOut, RefreshCw, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import { authStore, useAuthStatus } from '../services/auth';
 
 // 整个应用生命周期内只自动弹出一次“未授权”窗口
@@ -99,6 +99,8 @@ interface AuthorizedInfoDialogProps {
 
 const AuthorizedInfoDialog: React.FC<AuthorizedInfoDialogProps> = ({ expireTime, machineCode, onClose }) => {
   const [copied, setCopied] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [unbinding, setUnbinding] = useState(false);
   const clean = cleanMachineCode(machineCode);
 
   const copyMachineCode = async () => {
@@ -109,6 +111,13 @@ const AuthorizedInfoDialog: React.FC<AuthorizedInfoDialogProps> = ({ expireTime,
     } catch {
       // 忽略剪贴板不可用
     }
+  };
+
+  const handleUnbind = async () => {
+    setUnbinding(true);
+    await authStore.unbind();
+    setUnbinding(false);
+    onClose();
   };
 
   return (
@@ -146,6 +155,42 @@ const AuthorizedInfoDialog: React.FC<AuthorizedInfoDialogProps> = ({ expireTime,
                   {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                 </button>
               </span>
+            </div>
+            <div className="pt-4 border-t border-slate-100 mt-4">
+              {!confirming ? (
+                <button
+                    onClick={() => setConfirming(true)}
+                    title="解绑当前设备，解绑后需重新绑定才能继续使用"
+                    className="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200 font-black text-sm hover:bg-red-100 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  解绑当前设备
+                </button>
+              ) : (
+                <div className="text-center">
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    解绑后本机将失去授权，需要{" "}
+                    <span className="text-slate-700 font-bold">重新绑定</span> 才能继续使用。确定解绑吗？
+                  </p>
+                  <div className="mt-3 flex items-center gap-2 justify-center">
+                    <button
+                        onClick={handleUnbind}
+                        disabled={unbinding}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-black hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {unbinding && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {unbinding ? '解绑中…' : '确认解绑'}
+                    </button>
+                    <button
+                        onClick={() => setConfirming(false)}
+                        disabled={unbinding}
+                        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-500 text-sm font-bold hover:bg-slate-200 transition-colors cursor-pointer disabled:opacity-60"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -433,3 +433,36 @@ def refresh_auth_code():
         _thread = threading.Thread(target=_worker, name="auth-check", daemon=True)
         _thread.start()
     return _state.snapshot()
+
+
+def unbind_device():
+    """解绑当前设备：清空 QQ 绑定并重新生成授权码，随后进入待绑定状态。
+
+    解绑后本机立即失去授权（status -> pending -> waiting），
+    如需继续使用，需用新授权码在 QQ 群重新绑定。
+    """
+    global _worker_gen, _force_rebind, _thread
+    machine_code = auth.get_machine_code()
+    _state.update(machine_code=machine_code)
+
+    try:
+        res = auth.refresh_code(machine_code, reset_binding=True, timeout=INITIAL_TIMEOUT)
+    except Exception as e:
+        logger.warning(f"解绑失败: {e}")
+        _state.update(status="authorized", msg="解绑失败，请稍后重试", error=str(e))
+        return _state.snapshot()
+
+    if not res.get("ok"):
+        msg = res.get("msg") or "解绑失败"
+        logger.error(f"解绑失败: {msg}")
+        _state.update(status="authorized", msg=msg, error=msg)
+        return _state.snapshot()
+
+    logger.info(f"解绑成功，新授权码: {res.get('auth_code')}")
+    _worker_gen += 1
+    _force_rebind = True
+    _state.update(status="pending", msg="设备已解绑，如需继续使用请在QQ群重新绑定", error="")
+    with _start_lock:
+        _thread = threading.Thread(target=_worker, name="auth-check", daemon=True)
+        _thread.start()
+    return _state.snapshot()

@@ -7,7 +7,14 @@
 from flask import Blueprint, request
 
 from core.api.response import error, success
-from core.auth_service import get_state, retry_auth, reauthorize_auth, set_poll_mode, refresh_auth_code
+from core.auth_service import (
+    get_state,
+    retry_auth,
+    reauthorize_auth,
+    set_poll_mode,
+    refresh_auth_code,
+    unbind_device,
+)
 from core.logger import logger
 
 bp = Blueprint("auth", __name__)
@@ -62,4 +69,15 @@ def auth_refresh():
     except Exception as e:
         logger.error(f"刷新授权码异常: {e}", exc_info=True)
         return error(f"刷新授权码失败: {e}", 500)
+    return success(data=state)
+
+
+@bp.route("/api/local/auth_unbind", methods=["POST"])
+def auth_unbind():
+    """解绑当前设备：清空绑定并重新生成授权码，返回新状态（未授权/待绑定）。"""
+    try:
+        state = unbind_device()
+    except Exception as e:
+        logger.error(f"解绑异常: {e}", exc_info=True)
+        return error(f"解绑失败: {e}", 500)
     return success(data=state)
