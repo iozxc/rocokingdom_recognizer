@@ -23,13 +23,13 @@
       "name": "datasets/ocr_corrections.json",
       "md5": "df074a0d79ca63c6c6edbf5a1767b0ff",
       "size": 2648,
-      "url": ""
+      "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/ocr_corrections.json"
     },
     {
       "name": "datasets/pet_renames.json",
       "md5": "ae4f4b2076a2025643b832b3afe17db2",
       "size": 1052,
-      "url": ""
+      "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/pet_renames.json"
     }
   ]
 }
