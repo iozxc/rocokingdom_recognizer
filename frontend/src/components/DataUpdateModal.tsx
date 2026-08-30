@@ -83,6 +83,10 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
     return Math.round(sum / status.files.length);
   })();
   const finished = !downloading && status && (status.state === 'done' || status.state === 'error');
+  const failedFiles = (status?.files || []).filter((f) => f.status === 'error');
+  // 检测阶段连不上更新服务器（后端返回“未获取到远程数据清单”/API 返回“检查失败”），不能当成“已是最新”。
+  const checkFailed = !!checkResult && !checkResult.has_update &&
+      ((checkResult.message || '') === '检查失败' || (checkResult.message || '').includes('未获取'));
 
   if (!isOpen) return null;
 
@@ -123,7 +127,28 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
                   <p className="text-xs font-black">正在检测图鉴数据...</p>
                 </div>
             ) : (
-                checkResult && !checkResult.has_update ? (
+                checkResult && checkFailed ? (
+                    <div className="py-8 flex flex-col items-center justify-center text-center gap-2">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border-2 border-rose-200">
+                        <AlertCircle className="w-6 h-6" />
+                      </div>
+                      <h4 className="text-sm font-black text-slate-800">暂时读不到更新清单</h4>
+                      <p className="text-xs text-slate-500">
+                        {checkResult.message || '无法连接更新服务器，请检查网络'}，稍后重试
+                      </p>
+                      <button
+                          type="button"
+                          onClick={() => {
+                            sound.playClick();
+                            runCheck();
+                          }}
+                          className="mt-1 px-4 py-2 rounded-xl bg-[#7ABCF4] hover:bg-[#5DA8E8] text-white font-black text-xs flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        重新检测
+                      </button>
+                    </div>
+                ) : checkResult && !checkResult.has_update ? (
                     <div className="py-10 flex flex-col items-center justify-center text-center gap-2">
                       <div className="w-12 h-12 rounded-2xl bg-[#E1F7DB] text-[#2D6613] flex items-center justify-center border-2 border-[#95D151]">
                         <CheckCircle2 className="w-6 h-6" />
@@ -162,19 +187,38 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
 
                       {/* 完成/错误提示 */}
                       {finished && status && (
-                          <div
-                              className={`rounded-xl px-3 py-2.5 text-xs font-black flex items-center gap-2 ${
-                                  status.state === 'done'
-                                      ? 'bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]'
-                                      : 'bg-rose-50 text-rose-700 border border-rose-200'
-                              }`}
-                          >
-                            {status.state === 'done' ? (
-                                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                            ) : (
-                                <AlertCircle className="w-4 h-4 shrink-0" />
+                          <div className="space-y-2">
+                            <div
+                                className={`rounded-xl px-3 py-2.5 text-xs font-black flex items-center gap-2 ${
+                                    status.state === 'done'
+                                        ? 'bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]'
+                                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                }`}
+                            >
+                              {status.state === 'done' ? (
+                                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                              ) : (
+                                  <AlertCircle className="w-4 h-4 shrink-0" />
+                              )}
+                              {status.message || (status.state === 'done' ? '更新完成' : '更新失败')}
+                            </div>
+
+                            {status.state === 'error' && failedFiles.length > 0 && (
+                                <div className="rounded-xl bg-rose-50/60 border border-rose-200 p-3 space-y-1.5">
+                                  <p className="text-[11px] font-black text-rose-800">
+                                    更新失败的 {failedFiles.length} 个文件：
+                                  </p>
+                                  {failedFiles.map((f, idx) => (
+                                      <div key={idx} className="text-[11px] text-rose-700 leading-snug">
+                                        <span className="block font-bold truncate">• {f.name}</span>
+                                        <span className="block text-rose-500/90 truncate">{f.error || '下载失败，请重试'}</span>
+                                      </div>
+                                  ))}
+                                  <p className="text-[11px] text-rose-600 pt-0.5">
+                                    可点击下方“重试”再次下载失败的文件，或稍后网络恢复后再试。
+                                  </p>
+                                </div>
                             )}
-                            {status.message || (status.state === 'done' ? '更新完成' : '更新失败')}
                           </div>
                       )}
                     </>
@@ -184,7 +228,7 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
 
           {/* Footer */}
           <div className="px-5 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2">
-            {checking || (checkResult && !checkResult.has_update) ? (
+            {checking || checkFailed || (checkResult && !checkResult.has_update) ? (
                 <button
                     type="button"
                     onClick={() => {
@@ -195,6 +239,28 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
                 >
                   关闭
                 </button>
+            ) : finished && status && status.state === 'error' ? (
+                <>
+                  <button
+                      type="button"
+                      onClick={() => {
+                        sound.playClick();
+                        onClose();
+                      }}
+                      className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-black text-xs transition-colors cursor-pointer"
+                  >
+                    关闭
+                  </button>
+                  <button
+                      type="button"
+                      onClick={handleStartDownload}
+                      disabled={downloading}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] text-white font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    重试
+                  </button>
+                </>
             ) : finished ? (
                 <button
                     type="button"
