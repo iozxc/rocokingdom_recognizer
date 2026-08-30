@@ -3,25 +3,25 @@
   "files": [
     {
       "name": "datasets/datasets.db",
-      "md5": "d065a0a863e94479e995d3d954103a05",
+      "md5": "f4d45e1e65e1c6958fcd59cbcaeb5521",
       "size": 9125888,
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/datasets/datasets.db"
     },
     {
       "name": "datasets/map_pets1.json",
-      "md5": "892dbb628a2cb1e3d5ec6c7b59c4e0ae",
-      "size": 74499,
+      "md5": "099a5bf10936732a9d665a346dbd706c",
+      "size": 74505,
       "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/map_pets1.json"
     },
     {
       "name": "datasets/roco_all_pets_info.json",
-      "md5": "dad9ab23e7c81d09f4ba5dec9f047701",
+      "md5": "a086efd2609c82e50359195c40d33ab8",
       "size": 91059,
       "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/roco_all_pets_info.json"
     },
     {
       "name": "datasets/ocr_corrections.json",
-      "md5": "844617b5dd6851f899e81f21c6e22be4",
+      "md5": "df074a0d79ca63c6c6edbf5a1767b0ff",
       "size": 2648,
       "url": ""
     },
