@@ -177,10 +177,10 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('all');
                         }}
-                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap ${
+                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'all'
-                                ? 'bg-white text-[#2B78C4] border border-[#7ABCF4] shadow-2xs'
-                                : 'text-slate-500 hover:text-slate-800'
+                                ? 'bg-white text-[#2B78C4] border-[#7ABCF4] shadow-2xs'
+                                : 'bg-transparent text-slate-500 hover:text-slate-800 border-transparent'
                         }`}
                     >
                         全部 ({totalMapPets})
@@ -192,10 +192,10 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('encountered');
                         }}
-                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap ${
+                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'encountered'
-                                ? 'bg-[#95D151] text-white shadow-2xs'
-                                : 'text-[#2D6613] hover:text-slate-800'
+                                ? 'bg-[#95D151] text-white border-[#76B032] shadow-2xs'
+                                : 'bg-transparent text-[#2D6613] hover:text-slate-800 border-transparent'
                         }`}
                     >
                         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
@@ -208,10 +208,10 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('unencountered');
                         }}
-                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap ${
+                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'unencountered'
-                                ? 'bg-[#FEE061] text-[#854D0E] shadow-2xs'
-                                : 'text-slate-500 hover:text-slate-800'
+                                ? 'bg-[#FEE061] text-[#854D0E] border-[#E5C43B] shadow-2xs'
+                                : 'bg-transparent text-slate-500 hover:text-slate-800 border-transparent'
                         }`}
                     >
                         <X className="w-3.5 h-3.5 shrink-0" />
