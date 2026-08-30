@@ -75,6 +75,10 @@ _force_rebind = False
 _wait_poll_interval = POLL_INTERVAL
 # 工作线程代数：刷新授权码/重新授权会自增，让旧轮询线程识别到后自行退出。
 _worker_gen = 0
+# 心跳线程：客户端运行期间定期上报，避免崩溃/息屏后“在线卡死、时长虚增”。
+_HEARTBEAT_INTERVAL = 180  # 秒（约 3 分钟；服务端 online_idle_timeout 设为心跳的 3 倍）
+_heartbeat_stop = threading.Event()
+_heartbeat_thread = None
 
 
 def get_state():
@@ -105,6 +109,8 @@ def _report_open(machine_code):
 
 def report_app_close():
     """App 退出前上报 close 事件（仅当已成功上报 open 时）。"""
+    # 先停掉心跳，避免退出瞬间的心跳把刚关闭的会话又“重开”
+    stop_heartbeat()
     with _report_lock:
         if not _open_reported:
             return
@@ -309,7 +315,49 @@ def start_auth_check():
         _state.update(status="pending", error="")
         _thread = threading.Thread(target=_worker, name="auth-check", daemon=True)
         _thread.start()
+        start_heartbeat()
         return _thread
+
+
+def _heartbeat_loop():
+    """周期上报 heartbeat，供服务端维护“最近活跃时间”。"""
+    while not _heartbeat_stop.wait(_HEARTBEAT_INTERVAL):
+        try:
+            auth.report_app_event(
+                "heartbeat",
+                machine_code=auth.get_machine_code(),
+                timeout=EVENT_TIMEOUT,
+            )
+        except Exception as e:
+            logger.debug(f"心跳上报失败: {e}")
+
+
+def start_heartbeat():
+    """启动心跳线程（幂等）。"""
+    global _heartbeat_thread
+    with _report_lock:
+        if _heartbeat_thread is not None and _heartbeat_thread.is_alive():
+            return _heartbeat_thread
+        _heartbeat_stop.clear()
+        _heartbeat_thread = threading.Thread(
+            target=_heartbeat_loop,
+            name="auth-heartbeat",
+            daemon=True,
+        )
+        _heartbeat_thread.start()
+        return _heartbeat_thread
+
+
+def stop_heartbeat():
+    """停止心跳线程（退出前调用，避免退出时心跳重开在线会话）。"""
+    global _heartbeat_thread
+    _heartbeat_stop.set()
+    th = _heartbeat_thread
+    if th is not None and th.is_alive():
+        try:
+            th.join(timeout=EVENT_TIMEOUT)
+        except Exception:
+            pass
 
 
 def retry_auth():
