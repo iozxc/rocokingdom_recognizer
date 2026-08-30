@@ -114,6 +114,8 @@ const AuthorizedInfoDialog: React.FC<AuthorizedInfoDialogProps> = ({ expireTime,
   };
 
   const handleUnbind = async () => {
+    // 解绑后会进入“等待授权”，强制允许再次自动弹出等待弹窗
+    hasAutoOpenedOnce = false;
     setUnbinding(true);
     await authStore.unbind();
     setUnbinding(false);

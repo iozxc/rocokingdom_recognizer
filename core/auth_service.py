@@ -458,10 +458,20 @@ def unbind_device():
         _state.update(status="authorized", msg=msg, error=msg)
         return _state.snapshot()
 
-    logger.info(f"解绑成功，新授权码: {res.get('auth_code')}")
+    new_code = res.get("auth_code") or ""
+    logger.info(f"解绑成功，新授权码: {new_code}")
     _worker_gen += 1
     _force_rebind = True
-    _state.update(status="pending", msg="设备已解绑，如需继续使用请在QQ群重新绑定", error="")
+    # 立即进入“等待绑定”，不必再等后台线程多走一次 /api/auth/request 来回。
+    # 新授权码从解绑响应直接拿到并写入状态，前端可立刻展示 bind <新码>。
+    _state.update(
+        status="waiting",
+        auth_code=new_code,
+        is_authorized=False,
+        expire_time="",
+        msg="设备已解绑，如需继续使用请在QQ群重新绑定",
+        error="",
+    )
     with _start_lock:
         _thread = threading.Thread(target=_worker, name="auth-check", daemon=True)
         _thread.start()

@@ -250,6 +250,8 @@ class AuthStore {
     const next = await unbindAuth();
     this.setState(next);
     await this.refresh();
+    // 解绑后立即用快轮询(1s)，让“等待授权”弹窗/状态尽快出现，不再等慢速 5s
+    this.setEngaged(true);
     this._ensureTimer();
   }
 
