@@ -4,24 +4,24 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.4.2 更新公告】\n此次版本可选择更新\n\n主要更新：增加了用户协议，来源认证（之前版本不影响）\n\n【功能新增】\n1、跟随识别新增置顶设置\n",
+  "update_log": "【v1.4.3 更新公告】\n注意：自 1.4.2 版本起，后续所有版本均需完成来源认证并阅读用户协议后方可使用。\n\n【功能新增】\n1、历史记录功能（可在首页顶部或者跟随识别顶部查看）\n2、增加首页左下角的筛选按钮",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.3/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "32440aad91fa876e47401b284c0273c5",
+        "md5": "b00778dc64b32d758ab6aefc8afdd858",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "6da42c17cb32821301bbde6019e42fc8",
+        "md5": "2b08a6c23b80f6034bc07b89f3837e60",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "e95c0b532cf28da4065c19d1e4588724",
-        "size": 29972799
+        "md5": "d6843cdb458e05e61edb92b9561798ac",
+        "size": 29962427
       }
     ]
   },
@@ -29,24 +29,24 @@
     {
       "base_version": "1.4.2",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.3/RocoKingdomRecognizer_delta_1.4.2.7z",
-      "md5": "2b09deec3add5d9dabc8ad27462d5fbf",
-      "size": 35524088,
+      "md5": "ae4c7ddd1fa1c8a26b9885509a026452",
+      "size": 35522854,
       "changed": 13,
       "removed": 0
     },
     {
       "base_version": "1.4.1",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.3/RocoKingdomRecognizer_delta_1.4.1.7z",
-      "md5": "9e092f2037c04281423f5ca7dfdc98e3",
-      "size": 35672954,
+      "md5": "236973993fc8099978b2596784d1507a",
+      "size": 35671875,
       "changed": 15,
       "removed": 0
     },
     {
       "base_version": "1.4.0",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.3/RocoKingdomRecognizer_delta_1.4.0.7z",
-      "md5": "849c96316b0084df0666b83325636434",
-      "size": 35672955,
+      "md5": "9edc739623fc438bf3ef67806a3f86d1",
+      "size": 35671872,
       "changed": 15,
       "removed": 0
     }
