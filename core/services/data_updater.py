@@ -117,8 +117,13 @@ def start_data_update():
     with _JOB_LOCK:
         if _JOB["state"] == "running":
             return get_job_status()
-        check = check_data_updates()
-        files = check.get("updates", [])
+    # 网络请求 + 清单对比放在锁外，避免阻塞 UI 线程的状态查询（get_job_status）。
+    check = check_data_updates()
+    files = check.get("updates", [])
+    with _JOB_LOCK:
+        # 拿锁期间可能已有任务被启动，二次确认
+        if _JOB["state"] == "running":
+            return get_job_status()
         if not files:
             _JOB = {
                 "state": "done",
@@ -170,50 +175,59 @@ def _run_download_job(files):
                 continue
 
             tmp_path = f"{target}.tmp"
-            try:
-                os.makedirs(os.path.dirname(target), exist_ok=True)
-                with requests.get(url, stream=True, timeout=30) as resp:
-                    resp.raise_for_status()
-                    total_size = int(resp.headers.get("Content-Length") or 0)
-                    downloaded = 0
-                    with open(tmp_path, "wb") as f:
-                        for block in resp.iter_content(chunk_size=1024 * 256):
-                            if not block:
-                                continue
-                            f.write(block)
-                            downloaded += len(block)
-                            with _JOB_LOCK:
-                                if total_size > 0:
-                                    _JOB["files"][index]["progress"] = min(100, round(downloaded / total_size * 100))
-                with _JOB_LOCK:
-                    _JOB["files"][index]["progress"] = 100
+            done = False
+            last_err = None
+            # 下载 + md5 校验：失败自动重试一次；仍失败则置 error，不覆盖旧文件、不同步清单。
+            for attempt in range(2):
+                try:
+                    os.makedirs(os.path.dirname(target), exist_ok=True)
+                    with requests.get(url, stream=True, timeout=30) as resp:
+                        resp.raise_for_status()
+                        total_size = int(resp.headers.get("Content-Length") or 0)
+                        downloaded = 0
+                        with open(tmp_path, "wb") as f:
+                            for block in resp.iter_content(chunk_size=1024 * 256):
+                                if not block:
+                                    continue
+                                f.write(block)
+                                downloaded += len(block)
+                                with _JOB_LOCK:
+                                    if total_size > 0:
+                                        _JOB["files"][index]["progress"] = min(100, round(downloaded / total_size * 100))
+                    with _JOB_LOCK:
+                        _JOB["files"][index]["progress"] = 100
 
-                actual_md5 = file_md5(tmp_path) if expect_md5 else None
-                if expect_md5 and actual_md5 != expect_md5:
-                    # 服务器文件与清单 md5 不一致（多为换行符/编码差异，或清单未刷新）。
-                    # 仍保存服务器返回的文件，但本地清单记录清单声明的 md5，避免下次重复提示。
-                    logger.warning(
-                        f"下载文件 {name} MD5 与清单不一致（{actual_md5} != {expect_md5}），"
-                        "仍保存服务器文件并以清单声明为准记录版本"
-                    )
+                    actual_md5 = file_md5(tmp_path) if expect_md5 else None
+                    if expect_md5 and actual_md5 != expect_md5:
+                        # 下载文件与清单声明不一致：不覆盖旧文件、不同步清单，按失败处理，
+                        # 避免把损坏/不完整的文件伪装成“已更新”。
+                        raise RuntimeError(f"MD5 校验不一致（{actual_md5} != {expect_md5}）")
 
-                os.replace(tmp_path, target)
-                # 本地清单 md5 直接写远程清单声明的目标值，下次清单对比即一致，
-                # 避免下载后因本地文件与清单 md5 不一致而重复提示更新。
-                if expect_md5:
-                    _update_local_manifest_entry(name, expect_md5, os.path.getsize(target))
-                with _JOB_LOCK:
-                    _JOB["files"][index]["status"] = "done"
-            except Exception as e:
-                if os.path.exists(tmp_path):
-                    try:
-                        os.remove(tmp_path)
-                    except Exception:
-                        pass
-                logger.error(f"下载更新失败 {name}: {e}", exc_info=True)
+                    os.replace(tmp_path, target)
+                    # 本地清单 md5 直接写远程清单声明的目标值，下次清单对比即一致，
+                    # 避免下载后因本地文件与清单 md5 不一致而重复提示更新。
+                    if expect_md5:
+                        _update_local_manifest_entry(name, expect_md5, os.path.getsize(target))
+                    with _JOB_LOCK:
+                        _JOB["files"][index]["status"] = "done"
+                    done = True
+                    break
+                except Exception as e:
+                    last_err = e
+                    if os.path.exists(tmp_path):
+                        try:
+                            os.remove(tmp_path)
+                        except Exception:
+                            pass
+                    if attempt == 0:
+                        logger.warning(f"下载更新失败 {name}，自动重试一次: {e}")
+                    else:
+                        logger.error(f"下载更新失败 {name}: {e}", exc_info=True)
+
+            if not done:
                 with _JOB_LOCK:
                     _JOB["files"][index]["status"] = "error"
-                    _JOB["files"][index]["error"] = str(e)
+                    _JOB["files"][index]["error"] = str(last_err)
 
             logger.info(f"数据更新进度 {index + 1}/{total}: {name}")
 
