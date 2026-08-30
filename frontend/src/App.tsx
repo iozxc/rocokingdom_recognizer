@@ -11,6 +11,7 @@ import { BatchInitModal } from './components/BatchInitModal';
 import { GlobalFloatingSearch } from './components/GlobalFloatingSearch';
 import { FloatingFilterSwitch } from './components/FloatingFilterSwitch';
 import { FeedbackContactModal } from './components/FeedbackContactModal';
+import { EncounterHistoryModal } from './components/EncounterHistoryModal';
 import { UserManualModal } from './components/UserManualModal';
 import { UpdateModal } from './components/UpdateModal';
 import { DataUpdateModal } from './components/DataUpdateModal';
@@ -46,6 +47,7 @@ export default function App() {
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
   });
+  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [isManualOpen, setIsManualOpen] = useState<boolean>(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
   const [detailPet, setDetailPet] = useState<PetItem | null>(null);
@@ -470,6 +472,7 @@ export default function App() {
             totalPetsCount={totalAllPetsCount}
             isSoundMuted={isSoundMuted}
             onToggleSound={handleToggleSound}
+            onOpenHistory={() => setIsHistoryOpen(true)}
             onOpenManual={() => setIsManualOpen(true)}
             onOpenFeedback={() => setIsFeedbackOpen(true)}
             onOpenUpdate={() => {
@@ -623,6 +626,8 @@ export default function App() {
                   setActiveMapNum((prev) => (prev % MAP_CONFIGS.length) + 1);
                 }}
                 mapsConfig={activeTrialMaps}
+                advancedFilters={advancedFilters}
+                onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
             />
         )}
 
@@ -646,6 +651,17 @@ export default function App() {
             isOpen={isFeedbackOpen}
             onClose={() => setIsFeedbackOpen(false)}
             initialType={feedbackInitialType}
+        />
+
+        {/* Encounter History Modal */}
+        <EncounterHistoryModal
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+            records={records}
+            allMapsPets={mapsData}
+            mapsConfig={activeTrialMaps}
+            onToggleEncounter={handleToggleEncounter}
+            onNavigateToPet={handleNavigateToPet}
         />
 
         {/* User Manual Modal */}
