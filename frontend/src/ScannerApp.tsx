@@ -22,6 +22,7 @@ import {
   BookOpen,
   Pin,
   PinOff,
+  History,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse } from './types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
@@ -31,6 +32,7 @@ import { storage } from './services/storage';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
 import { EffectLevel } from './types';
 import { ScannerMapGalleryModal } from './components/ScannerMapGalleryModal';
+import { EncounterHistoryModal } from './components/EncounterHistoryModal';
 import { ImageZoom } from './components/ImageZoom';
 import { ElementBadges } from './components/ElementBadges';
 import {
@@ -228,6 +230,7 @@ export const ScannerApp: React.FC = () => {
 
   // Gallery Modal state (for browsing other maps and full gallery)
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [topmost, setTopmost] = useState<boolean>(true);
 
   // Active viewing map number (selectedMapNum takes precedence, otherwise detectedMapNum)
@@ -808,6 +811,18 @@ export const ScannerApp: React.FC = () => {
                 type="button"
                 onClick={() => {
                   sound.playClick();
+                  setIsHistoryOpen(true);
+                }}
+                className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center gap-1 text-xs font-black transition-all cursor-pointer border-2 border-white/40"
+                title="查看遇见历史与防止误点撤销"
+            >
+              <History className="w-3.5 h-3.5 text-[#FEE061]" />
+              <span>历史</span>
+            </button>
+            <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
                   setIsGalleryOpen(true);
                 }}
                 className="px-2.5 py-1 rounded-xl bg-[#FEE061] hover:bg-[#F4D349] active:opacity-80 text-[#854D0E] flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer border-2 border-[#E5C43B] mr-0.5"
@@ -1248,6 +1263,26 @@ export const ScannerApp: React.FC = () => {
             initialMapNum={activeMapNum || 1}
             mapsPets={mapsPets}
             records={records}
+        />
+
+        {/* 5. Encounter History Modal */}
+        <EncounterHistoryModal
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+            records={records}
+            allMapsPets={mapsPets}
+            onToggleEncounter={(mapId, filename) => {
+              const wasEnc = storage.isEncountered(mapId, filename);
+              storage.toggleEncountered(mapId, filename);
+              const level = storage.getSetting<EffectLevel>('effectLevel', 0);
+              if (!wasEnc) {
+                sound.playEncounter();
+                fireEncounterConfetti(level);
+              } else {
+                sound.playToggleOff();
+                fireUnencounterEffect(level);
+              }
+            }}
         />
       </div>
   );
