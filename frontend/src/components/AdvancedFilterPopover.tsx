@@ -9,6 +9,8 @@ interface AdvancedFilterPopoverProps {
   onClose: () => void;
   filters: AdvancedFilterState;
   onChange: (filters: AdvancedFilterState) => void;
+  placement?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left' | 'custom';
+  className?: string;
 }
 
 export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
@@ -16,6 +18,8 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
   onClose,
   filters,
   onChange,
+  placement = 'bottom-right',
+  className = '',
 }) => {
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -58,10 +62,18 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
 
   const activeCount = filters.elements.length + filters.specialTypes.length;
 
+  const placementClasses = {
+    'bottom-right': 'absolute right-0 mt-2',
+    'bottom-left': 'absolute left-0 mt-2',
+    'top-right': 'absolute right-0 bottom-full mb-2',
+    'top-left': 'absolute left-0 bottom-full mb-2',
+    'custom': '',
+  }[placement];
+
   return (
     <div
       ref={popoverRef}
-      className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-2xl border-2 border-slate-200 shadow-xl z-50 p-4 animate-in fade-in zoom-in-95 duration-100"
+      className={`${placementClasses} w-72 sm:w-80 bg-white rounded-2xl border-2 border-slate-200 shadow-2xl z-50 p-4 animate-in fade-in zoom-in-95 duration-100 ${className}`}
     >
       <div className="flex items-center justify-between border-b pb-2 mb-3">
         <span className="text-xs font-black text-slate-700 flex items-center gap-1.5">
