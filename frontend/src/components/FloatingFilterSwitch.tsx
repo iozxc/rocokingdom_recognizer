@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Filter, Check, EyeOff, MapPin, RefreshCw, ChevronLeft, ChevronRight, ChevronsDown, ChevronsUp, Layers } from 'lucide-react';
-import { PetItem, EncounterRecord, MapConfig, FloatingButtonsMode } from '../types';
+import { Filter, Check, EyeOff, MapPin, RefreshCw, ChevronLeft, ChevronRight, ChevronsDown, ChevronsUp, Layers, SlidersHorizontal } from 'lucide-react';
+import { PetItem, EncounterRecord, MapConfig, FloatingButtonsMode, AdvancedFilterState } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { isPetEncounteredInRecords } from '../utils/petHelper';
+import { AdvancedFilterPopover } from './AdvancedFilterPopover';
 
 interface FloatingFilterSwitchProps {
     currentMap: MapConfig;
@@ -14,6 +15,8 @@ interface FloatingFilterSwitchProps {
     onFilterChange: (mode: 'all' | 'encountered' | 'unencountered') => void;
     onCycleMap?: () => void;
     mapsConfig?: MapConfig[];
+    advancedFilters?: AdvancedFilterState;
+    onAdvancedFilterChange?: (filters: AdvancedFilterState) => void;
 }
 
 export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
@@ -24,6 +27,8 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                                                               onFilterChange,
                                                                               onCycleMap,
                                                                               mapsConfig,
+                                                                              advancedFilters,
+                                                                              onAdvancedFilterChange,
                                                                           }) => {
     const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
         return storage.getSetting<boolean>('isFilterSwitchCollapsed', false);
@@ -32,6 +37,10 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
     const [floatingMode, setFloatingMode] = useState<FloatingButtonsMode>(() => {
         return storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal');
     });
+
+    const [isAdvancedOpen, setIsAdvancedOpen] = useState<boolean>(false);
+
+    const activeAdvancedCount = (advancedFilters?.elements?.length || 0) + (advancedFilters?.specialTypes?.length || 0);
 
     // Sync settings when storage updates
     useEffect(() => {
@@ -95,7 +104,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                 </button>
 
                 {/* Filter Mode Icon Pills */}
-                <div className="flex flex-col gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-xl shadow-slate-900/10">
+                <div className="flex flex-col gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-xl shadow-slate-900/10 relative">
                     <button
                         type="button"
                         onClick={() => {
@@ -143,6 +152,40 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                     >
                         <EyeOff className="w-4 h-4" />
                     </button>
+
+                    {/* Advanced Filter Button */}
+                    {advancedFilters && onAdvancedFilterChange && (
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    sound.playClick();
+                                    setIsAdvancedOpen(!isAdvancedOpen);
+                                }}
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer relative ${
+                                    activeAdvancedCount > 0
+                                        ? 'bg-[#2B78C4] text-white shadow-sm'
+                                        : 'text-slate-600 hover:bg-slate-100'
+                                }`}
+                                title="高级筛选 (属性与类型)"
+                            >
+                                <SlidersHorizontal className="w-4 h-4" />
+                                {activeAdvancedCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">
+                                        {activeAdvancedCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            <AdvancedFilterPopover
+                                isOpen={isAdvancedOpen}
+                                onClose={() => setIsAdvancedOpen(false)}
+                                filters={advancedFilters}
+                                onChange={onAdvancedFilterChange}
+                                placement="top-left"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -159,15 +202,20 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                     type="button"
                     id="floating-filter-expand-btn"
                     onClick={() => handleToggleCollapse(false)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white relative"
                     style={{ backgroundColor: currentMap.themeColor }}
                     title={`当前: ${currentMap.name} (${encounteredCount}/${totalCount}) - 点击展开左侧筛选栏`}
                 >
                     <span className="text-sm font-black drop-shadow-xs">{currentMap.num}</span>
+                    {activeAdvancedCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                            {activeAdvancedCount}
+                        </span>
+                    )}
                 </button>
             ) : (
                 /* Expanded Stack (Arranged vertically from bottom to top) */
-                <div className="flex flex-col-reverse items-start gap-2">
+                <div className="flex flex-col-reverse items-start gap-2 relative">
                     {/* Bottom-most Bar: Map Switcher Button + Collapse Toggle */}
                     <div className="flex items-center gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-xl shadow-slate-900/10">
                         {/* 1. Map Switcher (First Button) - Clicking cycles through maps */}
@@ -204,8 +252,8 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                         </button>
                     </div>
 
-                    {/* Above the map switcher: Vertical Filter Modes Stack (From bottom to top: 全部 -> 已遇见 -> 未遇见) */}
-                    <div className="flex flex-col gap-1.5 p-1.5 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-lg shadow-slate-900/10">
+                    {/* Above the map switcher: Vertical Filter Modes Stack (From bottom to top: 全部 -> 已遇见 -> 未遇见 -> 高级筛选) */}
+                    <div className="flex flex-col gap-1.5 p-1.5 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-lg shadow-slate-900/10 relative">
                         {/* Filter 1: 全部 */}
                         <button
                             type="button"
@@ -295,6 +343,44 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                 {unencounteredCount}
               </span>
                         </button>
+
+                        {/* Filter 4: 高级筛选 (属性/类型) */}
+                        {advancedFilters && onAdvancedFilterChange && (
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    id="floating-filter-advanced-btn"
+                                    onClick={() => {
+                                        sound.playClick();
+                                        setIsAdvancedOpen(!isAdvancedOpen);
+                                    }}
+                                    className={`w-full min-w-[130px] px-3 py-1.5 rounded-xl text-xs font-black transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer ${
+                                        activeAdvancedCount > 0
+                                            ? 'bg-gradient-to-r from-[#2B78C4] to-[#1D5E9E] text-white shadow-md shadow-blue-600/20'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                                    }`}
+                                    title="高级筛选 (属性系别与首领化/多形态)"
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                                        <span>高级筛选</span>
+                                    </div>
+                                    {activeAdvancedCount > 0 && (
+                                        <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-white/25 text-white font-black">
+                                            {activeAdvancedCount}
+                                        </span>
+                                    )}
+                                </button>
+
+                                <AdvancedFilterPopover
+                                    isOpen={isAdvancedOpen}
+                                    onClose={() => setIsAdvancedOpen(false)}
+                                    filters={advancedFilters}
+                                    onChange={onAdvancedFilterChange}
+                                    placement="top-left"
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
