@@ -80,24 +80,113 @@ def get_machine_code(force: bool = False):
 
 
 def _read_machine_code():
-    # 双指令降级适配：Win11新版 + Win10旧版 全兼容
+    """主机器码：硬件/系统稳定指纹（SF-<hash>），不随磁盘/外设变化。
+
+    优先 SMBIOS 系统 UUID（硬件级，重装系统也稳定），其不可用则用 MachineGuid，
+    都不可用再回退 MG-<uuid.getnode>。避免“插个U盘/多块盘就变身份”。
+    """
+    return _read_stable_fingerprint() or _stable_fallback_id()
+
+
+def _read_stable_fingerprint():
+    """读取硬件/系统稳定标识并哈希成 SF-<hash>。"""
+    import hashlib
+    bad = {"none", "null", "not specified", "default string", "to be filled by o.e.m.",
+           "00000000-0000-0000-0000-000000000000", "ffffffff-ffff-ffff-ffff-ffffffffffff",
+           "system serial number"}
+    try:
+        cmd = 'powershell "Get-CimInstance Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"'
+        out = subprocess.check_output(cmd, shell=True).decode("utf-8", errors="ignore").strip()
+        if out and out.lower() not in bad:
+            return "SF-" + hashlib.sha256(out.encode("utf-8")).hexdigest()[:16]
+    except Exception:
+        pass
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Cryptography")
+        val, _ = winreg.QueryValueEx(key, "MachineGuid")
+        winreg.CloseKey(key)
+        if val and str(val).strip():
+            return "SF-" + hashlib.sha256(str(val).encode("utf-8")).hexdigest()[:16]
+    except Exception:
+        pass
+    return None
+
+
+_LEGACY_CODE_CACHE = {"code": None, "ts": 0.0}
+
+
+def _read_legacy_code():
+    """读取旧版规范化短码（MC-<hash>，基于磁盘序列号），仅用于服务端认领老设备。"""
+    import time
+    if _LEGACY_CODE_CACHE["code"] and (time.time() - _LEGACY_CODE_CACHE["ts"] < 600):
+        return _LEGACY_CODE_CACHE["code"]
+    code = _canonicalize_mc(_read_raw_serials())
+    if code:
+        _LEGACY_CODE_CACHE["code"] = code
+        _LEGACY_CODE_CACHE["ts"] = time.time()
+    return code
+
+
+def _read_raw_serials():
+    """读取所有磁盘序列号（可能多行）。优先 PowerShell CIM，失败回退 wmic。"""
     try:
         # 优先使用新版PowerShell指令（适配Win11）
         cmd = 'powershell "Get-CimInstance Win32_DiskDrive | Select-Object -ExpandProperty SerialNumber"'
         out = subprocess.check_output(cmd, shell=True).decode("utf-8", errors="ignore")
-        serial = out.strip()
-        if serial:
-            return serial
+        if out.strip():
+            return out
     except Exception:
         pass
-
     try:
         # 降级使用wmic指令（适配Win10全系）
-        out = subprocess.check_output('wmic diskdrive get serialnumber', shell=True).decode()
-        lines = [x.strip() for x in out.splitlines() if x.strip()][1:]
-        serial = lines[0] if lines else "unknown"
-        return serial
-    except Exception as e:
+        out = subprocess.check_output('wmic diskdrive get serialnumber', shell=True).decode(
+            "utf-8", errors="ignore"
+        )
+        if out.strip():
+            return out
+    except Exception:
+        pass
+    return ""
+
+
+def _canonicalize_mc(raw):
+    """与服务端 _canonicalize 完全一致：把序列号集合规范化成 MC-<hash>。"""
+    if not raw:
+        return None
+    import hashlib
+    placeholders = {"unknown", "error_device", "none", "null", "empty"}
+    serials = []
+    for line in str(raw).splitlines():
+        s = line.strip().rstrip(".").strip().rstrip("\x00\r\n ")
+        s = "".join(s.split()).strip()
+        low = s.lower()
+        if not s or low in placeholders or low in {"0", "0.0", "0000000000", "0000000000000000"}:
+            continue
+        if set(s) <= {"0", "."}:
+            continue
+        serials.append(s)
+    if not serials:
+        return None
+    serials.sort()
+    return "MC-" + hashlib.sha256("\n".join(serials).encode("utf-8")).hexdigest()[:16]
+
+
+def _stable_fallback_id():
+    """读取 Windows 安装唯一标识 MachineGuid，作为无磁盘序列号时的稳定机器码。"""
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Cryptography")
+        val, _ = winreg.QueryValueEx(key, "MachineGuid")
+        winreg.CloseKey(key)
+        if val and str(val).strip():
+            return "MG-" + str(val).strip()
+    except Exception:
+        pass
+    try:
+        import uuid
+        return "MG-" + str(uuid.getnode())
+    except Exception:
         return "ERROR_DEVICE"
 
 
@@ -116,7 +205,11 @@ def request_auth(machine_code=None, timeout=10):
     """申请/查询授权码。返回服务端 JSON（含 auth_code / is_authorized）。"""
     mc = machine_code or get_machine_code()
     ts, sign = make_sign(mc)
-    resp = _post(REQUEST_URL, {"machine_code": mc, "timestamp": ts, "sign": sign}, timeout=timeout)
+    payload = {"machine_code": mc, "timestamp": ts, "sign": sign}
+    legacy = _read_legacy_code()
+    if legacy:
+        payload["legacy_code"] = legacy
+    resp = _post(REQUEST_URL, payload, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
 
@@ -130,6 +223,9 @@ def status_auth(machine_code=None, auth_code=None, event=None, timeout=10):
         payload["auth_code"] = auth_code
     if event:
         payload["event"] = event
+    legacy = _read_legacy_code()
+    if legacy:
+        payload["legacy_code"] = legacy
     resp = _post(STATUS_URL, payload, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
@@ -149,6 +245,9 @@ def refresh_code(machine_code=None, reset_binding=True, timeout=10):
         "sign": sign,
         "reset_binding": reset_binding,
     }
+    legacy = _read_legacy_code()
+    if legacy:
+        payload["legacy_code"] = legacy
     resp = _post(SERVER_BASE + "/api/auth/refresh_code", payload, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
