@@ -271,6 +271,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               setActiveMapNum((prev) => (prev % safeMaps.length) + 1);
             }}
             mapsConfig={safeMaps}
+            advancedFilters={advancedFilters}
+            onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
         />
 
         {/* 右下角：复用通用全域搜索（仅搜索模式） */}
