@@ -15,6 +15,7 @@ import datetime
 
 from core import client_server as auth
 from core.logger import logger
+from config import meta_reachable
 
 # 快模式轮询间隔（秒）：用户正在“未授权”弹窗中（正在授权）。
 POLL_INTERVAL = 1.0
@@ -44,6 +45,7 @@ class AuthState:
         self.msg = ""
         self.error = ""
         self.is_authorized = False
+        self.offline_badge = False   # offline 宽限时是否在右上角显示“未授权”（用户断网→True，服务器故障→False）
 
     def update(self, **kwargs):
         with self._lock:
@@ -61,6 +63,7 @@ class AuthState:
                 "msg": self.msg,
                 "error": self.error,
                 "is_authorized": self.is_authorized,
+                "offline_badge": self.offline_badge,
             }
 
 
@@ -87,7 +90,9 @@ def get_state():
 
 
 def is_authorized():
-    return _state.snapshot().get("status") == "authorized"
+    s = _state.snapshot().get("status")
+    # 授权服务器故障（offline 宽限模式）也放行，确保“暂时可用”
+    return s in ("authorized", "offline")
 
 
 def _report_open(machine_code):
@@ -196,7 +201,22 @@ def _request_until_ok(machine_code):
             res = auth.request_auth(machine_code, timeout=INITIAL_TIMEOUT)
         except Exception as e:
             logger.warning(f"无法连接授权服务器: {e}")
-            _state.update(status="pending", msg="", error=f"无法连接授权服务器：{e}")
+            if meta_reachable():
+                # 服务器故障（外网正常）：宽限模式，暂时可用、不显示认证角标
+                _state.update(
+                    status="offline",
+                    offline_badge=False,
+                    msg="授权服务器暂时不可用，已进入临时使用模式",
+                    error=f"无法连接授权服务器：{e}",
+                )
+            else:
+                # 用户主动断网：仍可用（宽限），但右上角显示“未授权”，不弹授权框
+                _state.update(
+                    status="offline",
+                    offline_badge=True,
+                    msg="网络异常，暂时以未授权状态使用",
+                    error=f"无法连接授权服务器：{e}",
+                )
             time.sleep(RETRY_DELAY)
             continue
 
@@ -233,6 +253,10 @@ def _poll_until_authorized(machine_code, force_rebind=False, gen=None):
             res = auth.status_auth(machine_code=machine_code, auth_code=auth_code)
         except Exception as e:
             logger.warning(f"轮询授权状态异常（第 {polls} 次）: {e}")
+            if meta_reachable():
+                _state.update(status="offline", offline_badge=False, msg="授权服务器暂时不可用，已进入临时使用模式")
+            else:
+                _state.update(status="offline", offline_badge=True, msg="网络异常，暂时以未授权状态使用")
             continue
 
         # 任务已被更替（刷新授权码/重新授权）：丢弃本次旧结果，避免覆盖新状态

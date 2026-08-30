@@ -9,6 +9,41 @@ def _env(name: str, default):
     return default if value in (None, "") else value
 
 
+# --- 远程 meta 配置（“可能会变”的地址从这里读，改仓库一处分发） ---
+META_CONFIG_URL = _env(
+    "ROCO_META_CONFIG_URL",
+    "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/meta.bin",
+)
+_remote_meta_cache = None
+_remote_meta_reached = False
+
+
+def _load_remote_meta():
+    """读取远程 resources/meta.bin（解密，进程内只抓一次，失败回退 {}）。"""
+    global _remote_meta_cache, _remote_meta_reached
+    if _remote_meta_cache is not None:
+        return _remote_meta_cache
+    try:
+        from core.meta_crypto import load_meta_remote
+        _remote_meta_cache, _remote_meta_reached = load_meta_remote(META_CONFIG_URL)
+    except Exception:
+        _remote_meta_cache = {}
+        _remote_meta_reached = False
+    return _remote_meta_cache
+
+
+def meta_reachable() -> bool:
+    """meta.bin（Gitee 仓库）是否可达：用于区分“授权服务器故障”和“用户主动断网”。"""
+    _load_remote_meta()
+    return bool(_remote_meta_reached)
+
+
+def _meta(key: str):
+    """从远程 meta 取字符串值（去空白）；取不到/为空返回 None。"""
+    v = str(_load_remote_meta().get(key) or "").strip()
+    return v or None
+
+
 # --- 路径处理核心逻辑 ---
 def get_resource_path(relative_path):
     """获取资源绝对路径（用于 icons, static, features_db.pt）"""
@@ -72,15 +107,18 @@ UPDATE_CHECK_URL = _env(
     "ROCO_UPDATE_CHECK_URL",
     "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
 )
-FEISHU_WEBHOOK_URL = _env(
-    "ROCO_FEISHU_WEBHOOK_URL",
-    "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab",
+FEISHU_WEBHOOK_URL = (
+    _env("ROCO_FEISHU_WEBHOOK_URL", _meta("feishu_webhook"))
+    or "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab"
 )
 # 图鉴/关键数据更新清单：远程地址为空表示不启用；
 # 本地清单（datasets/data_manifest.json）由 tools/pack_update.py 生成，用于 md5 对比
 DATA_MANIFEST_URL = _env("ROCO_DATA_MANIFEST_URL",
                          "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/data_manifest.json")
+# 授权服务器：优先本地 config（环境变量/内置默认）；meta 里的地址作为“主地址连不上”的备用。
 ROCO_AUTH_SERVER = _env("ROCO_AUTH_SERVER", "http://47.100.242.141:8000")
+# 远程 meta 下发的备用授权服务器（client_server 在主地址连接失败时回退到它）。
+META_AUTH_SERVER = _meta("auth_server")
 
 # 徽章试炼定义：草系为正式内容，火系为开发环境专属。
 # collection_key 对应 roco_user_data.json 中独立的“已遇见精灵”集合。

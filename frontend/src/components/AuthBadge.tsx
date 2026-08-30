@@ -59,8 +59,12 @@ export const AuthBadge: React.FC = () => {
     return null;
   }
 
-  // 校验中（pending）暂不显示，避免已授权用户启动瞬间闪一下红色
+  // 校验中（pending）不显示
   if (auth.status === 'pending') {
+    return null;
+  }
+  // 授权服务器故障（offline 且不需要右上角角标）：隐藏
+  if (auth.status === 'offline' && !auth.offline_badge) {
     return null;
   }
 
@@ -305,6 +309,16 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ auth, onClose }) => {
                   <RefreshCw className="w-4 h-4" />
                   {auth.status === 'expired' ? '重新授权' : '重试'}
                 </button>
+              </div>
+          )}
+
+          {auth.status === 'offline' && (
+              <div className="text-center">
+                <ShieldAlert className="w-12 h-12 mx-auto text-amber-500" />
+                <h2 className="mt-4 text-lg font-black text-slate-800">暂时无法连接授权服务器</h2>
+                <p className="mt-2 text-sm text-slate-500 leading-relaxed">
+                  当前以「未授权」状态临时使用，网络或服务器恢复后会自动重新校验，无需手动重试。
+                </p>
               </div>
           )}
         </div>

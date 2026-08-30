@@ -55,11 +55,14 @@ def _load_secret_key():
 
 
 SECRET_KEY = _load_secret_key()
-# 服务器地址：默认直连 8000；如需走 nginx 80 端口，用环境变量 ROCO_AUTH_SERVER 覆盖
+# 服务器地址：优先本地 config（环境变量/内置默认）；远程 meta 里的地址作为“主地址连不上”的备用。
 SERVER_BASE = config.ROCO_AUTH_SERVER.rstrip("/")
-REQUEST_URL = SERVER_BASE + "/api/auth/request"
-STATUS_URL = SERVER_BASE + "/api/auth/status"
-CHECK_URL = SERVER_BASE + "/api/auth_check"
+# meta 下发的备用授权服务器（config 主地址连不上时回退；为空则无回退）
+_META_BASE = (getattr(config, "META_AUTH_SERVER", "") or "").rstrip("/") or None
+REQUEST_PATH = "/api/auth/request"
+STATUS_PATH = "/api/auth/status"
+CHECK_PATH = "/api/auth_check"
+REFRESH_PATH = "/api/auth/refresh_code"
 
 requests.packages.urllib3.disable_warnings()
 
@@ -197,8 +200,23 @@ def make_sign(machine_code):
     return ts, sign
 
 
-def _post(url, payload, timeout=10):
-    return requests.post(url, json=payload, timeout=timeout, verify=False)
+def _post_api(path, payload, timeout=10):
+    """向授权服务器发请求；主地址(config)连不上时回退到 meta 备用地址。
+
+    仅对“连接层面”失败（ConnectionError / Timeout）回退，避免把服务器返回的
+    业务错误(4xx/5xx)误判为“地址失效”。meta 备用地址为空或与主地址相同则不回退。
+    """
+    try:
+        return requests.post(SERVER_BASE + path, json=payload, timeout=timeout, verify=False)
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        if _META_BASE and _META_BASE != SERVER_BASE:
+            try:
+                from core.logger import logger
+                logger.warning(f"授权服务器主地址连不上({SERVER_BASE})，回退 meta 备用地址({_META_BASE})")
+            except Exception:
+                pass
+            return requests.post(_META_BASE + path, json=payload, timeout=timeout, verify=False)
+        raise
 
 
 def request_auth(machine_code=None, timeout=10):
@@ -209,7 +227,7 @@ def request_auth(machine_code=None, timeout=10):
     legacy = _read_legacy_code()
     if legacy:
         payload["legacy_code"] = legacy
-    resp = _post(REQUEST_URL, payload, timeout=timeout)
+    resp = _post_api(REQUEST_PATH, payload, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
 
@@ -226,7 +244,7 @@ def status_auth(machine_code=None, auth_code=None, event=None, timeout=10):
     legacy = _read_legacy_code()
     if legacy:
         payload["legacy_code"] = legacy
-    resp = _post(STATUS_URL, payload, timeout=timeout)
+    resp = _post_api(STATUS_PATH, payload, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
 
@@ -248,7 +266,7 @@ def refresh_code(machine_code=None, reset_binding=True, timeout=10):
     legacy = _read_legacy_code()
     if legacy:
         payload["legacy_code"] = legacy
-    resp = _post(SERVER_BASE + "/api/auth/refresh_code", payload, timeout=timeout)
+    resp = _post_api(REFRESH_PATH, payload, timeout=timeout)
     resp.raise_for_status()
     return resp.json()
 

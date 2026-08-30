@@ -358,7 +358,7 @@ export interface AdvancedFilterState {
 }
 
 // ---------- 设备授权 ----------
-export type AuthStatus = 'pending' | 'waiting' | 'banned' | 'expired' | 'authorized' | 'error';
+export type AuthStatus = 'pending' | 'waiting' | 'banned' | 'expired' | 'authorized' | 'error' | 'offline';
 
 export interface AuthState {
   status: AuthStatus;
@@ -369,5 +369,7 @@ export interface AuthState {
   msg: string;
   error: string;
   is_authorized: boolean;
+  // offline（服务器故障/断网宽限）时是否显示右上角“未授权”角标：用户断网 True，服务器故障 False
+  offline_badge: boolean;
 }
 

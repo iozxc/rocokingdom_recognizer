@@ -11,6 +11,7 @@ const initialState: AuthState = {
   msg: '',
   error: '',
   is_authorized: false,
+  offline_badge: false,
 };
 
 export function defaultAuthState(): AuthState {
@@ -19,6 +20,7 @@ export function defaultAuthState(): AuthState {
 
 const FAST_POLL_MS = 1000;
 const SLOW_POLL_MS = 5000;
+const OFFLINE_POLL_MS = 10000;
 const WAIT_TIMEOUT_MS = 2 * 60 * 1000;
 
 function resolveApiBase(): string {
@@ -161,6 +163,12 @@ class AuthStore {
       if (JSON.stringify(next) !== JSON.stringify(this.state)) {
         this.setState(next);
       }
+      // 授权服务器故障/断网（offline 宽限）：继续每 10s 轮询，服务器/网络恢复后自动回正常。
+      // 不视为终态，也不受 2 分钟超时限制（无需用户手动点重试）。
+      if (next.status === 'offline') {
+        this._startTimer(OFFLINE_POLL_MS);
+        return;
+      }
       // 终态（授权/拉黑/过期/异常）停止轮询；或在等待超时（2 分钟未授权）后停止。
       const terminal = ['authorized', 'banned', 'expired', 'error'].includes(next.status);
       const waitTimeout = Date.now() - this.startAt > WAIT_TIMEOUT_MS && next.status !== 'authorized';
@@ -179,10 +187,18 @@ class AuthStore {
     this.pollTimer = setInterval(this.refresh, ms);
   }
 
+  /** 当前状态对应的轮询间隔：offline 宽限固定 10s，其余按弹窗开关快/慢。 */
+  private _pollInterval(): number {
+    if (this.state.status === 'offline') {
+      return OFFLINE_POLL_MS;
+    }
+    return this.engageMode === 'fast' ? FAST_POLL_MS : SLOW_POLL_MS;
+  }
+
   /** 非终态时确保存在轮询计时器（手动重试/重新授权后恢复轮询）。 */
   private _ensureTimer() {
-    if (this.state.status === 'waiting' || this.state.status === 'pending') {
-      this._startTimer(this.engageMode === 'fast' ? FAST_POLL_MS : SLOW_POLL_MS);
+    if (['waiting', 'pending', 'offline'].includes(this.state.status)) {
+      this._startTimer(this._pollInterval());
     }
   }
 
@@ -196,7 +212,7 @@ class AuthStore {
       return;
     }
     this.startAt = Date.now();
-    this._startTimer(this.engageMode === 'fast' ? FAST_POLL_MS : SLOW_POLL_MS);
+    this._startTimer(this._pollInterval());
     this.refresh();
     // 打开时弹窗未开，默认后端也用慢速轮询（5s）
     setPollMode(this.engageMode);
@@ -207,7 +223,7 @@ class AuthStore {
     this.engageMode = engaged ? 'fast' : 'slow';
     this.startAt = Date.now(); // 重新打开弹窗时重新给 2 分钟预算
     if (this.state.status !== 'authorized') {
-      this._startTimer(engaged ? FAST_POLL_MS : SLOW_POLL_MS);
+      this._startTimer(this._pollInterval());
     }
     setPollMode(engaged ? 'fast' : 'slow');
   }
@@ -273,8 +289,10 @@ export function useAuthStatus(): AuthState {
 /** React Hook：识别类功能是否被锁定（未授权则锁定）。 */
 export function useFeatureLock(): { isAuthorized: boolean; locked: boolean } {
   const auth = useAuthStatus();
+  // 服务器故障（offline）也暂时放行：识别可用，但前端不会显示已授权/未授权角标。
+  const usable = auth.status === 'authorized' || auth.status === 'offline';
   return {
-    isAuthorized: auth.status === 'authorized',
-    locked: auth.status !== 'authorized',
+    isAuthorized: usable,
+    locked: !usable,
   };
 }
