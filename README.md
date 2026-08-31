@@ -31,7 +31,12 @@
 
 ## 主页面同步展示
 
-![image-20260825054648863](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825054648863.png)
+![主页面同步展示](https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/img_4.png)
+
+## 历史记录
+
+![历史记录](https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/img_5.png)
+
 
 ## 单个精灵识别（通过截图或者上传图片）
 
