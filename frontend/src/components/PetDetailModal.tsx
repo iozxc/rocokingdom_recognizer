@@ -3,7 +3,9 @@ import { X, Check, RotateCcw, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { MapConfig, PetItem, EncounterRecord } from '../types';
 import { sound } from '../services/sound';
+import { IS_STATIC } from '../services/staticMode';
 import { ElementBadges } from './ElementBadges';
+import { PetSprite } from './PetSprite';
 import { formatPetName } from '../utils/petHelper';
 import { createSvgPetAvatar } from '../data/mockPets';
 
@@ -76,17 +78,25 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
         {/* Pet Visual Display */}
         <div className="flex flex-col items-center text-center mt-2">
           <div className="relative w-36 h-36 rounded-3xl bg-[#F5F9FF] border-3 border-[#E6EEF8] p-4 shadow-inner flex items-center justify-center">
-            <img
-              src={pet.url || fallbackAvatar}
-              alt={displayName}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                const el = e.target as HTMLImageElement;
-                if (!el.src.endsWith('svg+xml')) {
-                  (e.target as HTMLImageElement).src = fallbackAvatar;
-                }
-              }}
-            />
+            {IS_STATIC && pet.sprite ? (
+                <PetSprite
+                    pet={pet}
+                    alt={displayName}
+                    className="w-full h-full object-contain"
+                />
+            ) : (
+                <img
+                    src={pet.url || fallbackAvatar}
+                    alt={displayName}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      const el = e.target as HTMLImageElement;
+                      if (!el.src.endsWith('svg+xml')) {
+                        (e.target as HTMLImageElement).src = fallbackAvatar;
+                      }
+                    }}
+                />
+            )}
             {/* Green Checkmark Badge at Bottom Left */}
             {isEncountered && (
               <div className="encountered-badge-check scale-120">

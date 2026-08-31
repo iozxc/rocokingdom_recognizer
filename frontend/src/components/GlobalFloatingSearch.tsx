@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { PetSprite } from './PetSprite';
 import {
   Search,
   X,
@@ -707,11 +708,10 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               <div className="flex items-center gap-3.5 min-w-0">
                                 {/* Pet Image Avatar */}
                                 <div className="relative w-12 h-12 rounded-xl bg-white p-1 border border-[#E6EEF8] shadow-inner flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                  <img
-                                      src={item.pet.url}
+                                  <PetSprite
+                                      pet={item.pet}
                                       alt={item.cleanName}
                                       className="w-full h-full object-contain"
-                                      loading="lazy"
                                   />
                                   {item.pet.id != null && (
                                       <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">

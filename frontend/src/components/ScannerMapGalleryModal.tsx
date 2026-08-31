@@ -16,6 +16,7 @@ import { storage } from '../services/storage';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
+import { PetSprite } from './PetSprite';
 
 interface ScannerMapGalleryModalProps {
     isOpen: boolean;
@@ -366,11 +367,10 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                     )}
                                     {/* Pet Avatar Container */}
                                     <div className="relative w-full aspect-square rounded-xl bg-white p-1 flex items-center justify-center border-2 border-[#E9F2FA] overflow-hidden">
-                                        <img
-                                            src={pet.url}
+                                        <PetSprite
+                                            pet={pet}
                                             alt={displayName}
                                             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-150"
-                                            loading="lazy"
                                         />
                                         {pet.id != null && (
                                             <span className="absolute top-0.5 right-0.5 z-[1] text-[9px] font-mono font-black leading-none px-1.5 py-0.5 rounded bg-slate-800/70 text-white/90">

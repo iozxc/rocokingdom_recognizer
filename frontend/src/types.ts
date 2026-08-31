@@ -2,6 +2,9 @@ export interface PetItem {
   name: string; // 精灵名称 (后端返回的精灵名字)
   displayName?: string;
   url: string;  // 图标地址
+  sprite?: string; // 雪碧图文件名（web 纯前端使用），如 'sprite-1.png'
+  col?: number;    // 在雪碧图中的列
+  row?: number;    // 在雪碧图中的行
   element?: 'grass' | 'fire' | 'water' | 'electric' | 'normal' | 'ghost' | 'dragon' | 'light' | 'stone'; // 旧字段（英文枚举，用于兜底头像颜色）
   elements?: string[]; // 属性列表（中文），第一个为主属性，如 ['光'] / ['光','火']
   id?: number;

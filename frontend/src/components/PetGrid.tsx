@@ -5,6 +5,7 @@ import { sound } from '../services/sound';
 import { IS_STATIC } from '../services/staticMode';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
+import { PetSprite } from './PetSprite';
 
 interface PetGridProps {
   currentMap: MapConfig;
@@ -224,16 +225,14 @@ export const PetGrid: React.FC<PetGridProps> = ({
                             className="absolute top-1 left-1 z-10 scale-90 sm:scale-100 origin-top-left"
                             size="xs"
                         />
-                        <img
-                            src={pet.url}
+                        <PetSprite
+                            pet={pet}
                             alt={pet.name}
-                            draggable={false}
                             className={`w-full h-full object-contain pointer-events-none transition-transform duration-200 ${
                                 isJustEncountered
                                     ? 'scale-105'
                                     : 'group-hover:scale-105'
                             }`}
-                            loading="lazy"
                         />
                       </div>
 

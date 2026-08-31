@@ -18,8 +18,10 @@ import { MAP_CONFIGS } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { formatPetName } from '../utils/petHelper';
 import { api } from '../services/api';
+import { IS_STATIC } from '../services/staticMode';
 import { ElementBadges } from './ElementBadges';
 import { ImageZoom } from './ImageZoom';
+import { PetSprite } from './PetSprite';
 
 interface EncounterHistoryModalProps {
   isOpen: boolean;
@@ -340,14 +342,22 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                   {/* Left: Avatar + Details */}
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                     <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-[#E6EEF8] p-0.5 flex items-center justify-center shrink-0 shadow-2xs">
-                      <ImageZoom
-                        src={avatarUrl}
-                        alt={cleanName}
-                        className="w-full h-full"
-                        imgClassName="w-full h-full object-contain pointer-events-none"
-                        zoomWidth={240}
-                        zoomHeight={240}
-                      />
+                      {IS_STATIC && petMeta?.sprite ? (
+                          <PetSprite
+                              pet={petMeta}
+                              alt={cleanName}
+                              className="w-full h-full object-contain pointer-events-none"
+                          />
+                      ) : (
+                          <ImageZoom
+                              src={avatarUrl}
+                              alt={cleanName}
+                              className="w-full h-full"
+                              imgClassName="w-full h-full object-contain pointer-events-none"
+                              zoomWidth={240}
+                              zoomHeight={240}
+                          />
+                      )}
                       <ElementBadges
                         elements={petMeta?.elements}
                         className="absolute top-0 left-0 z-10 scale-90 origin-top-left"

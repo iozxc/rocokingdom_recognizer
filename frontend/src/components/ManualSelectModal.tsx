@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { MapConfig, PetItem, PredictResult, EncounterRecord } from '../types';
 import { sound } from '../services/sound';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
+import { PetSprite } from './PetSprite';
 
 interface ManualSelectModalProps {
   isOpen: boolean;
@@ -311,8 +312,8 @@ export const ManualSelectModal: React.FC<ManualSelectModalProps> = ({
 
                         {/* Pet Avatar */}
                         <div className="relative w-14 h-14 rounded-xl bg-white p-1 flex items-center justify-center border border-[#E6EEF8] shadow-inner group-hover:scale-105 transition-transform">
-                          <img
-                              src={pet.url}
+                          <PetSprite
+                              pet={pet}
                               alt={cleanPetName}
                               className="w-full h-full object-contain"
                           />

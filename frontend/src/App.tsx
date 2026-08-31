@@ -153,9 +153,9 @@ export default function App() {
 
   // Fetch pet icons silently
   const fetchIconsData = useCallback(async () => {
-    const iconsRes = await api.getIcons();
+    const iconsRes = await api.getIcons(activeTrialKey);
     setMapsData(iconsRes.data);
-  }, []);
+  }, [activeTrialKey]);
 
   useEffect(() => {
     refreshRecords();

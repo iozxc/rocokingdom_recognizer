@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { getElementColor, getElementIconUrl } from '../utils/elements';
+import { IS_STATIC } from '../services/staticMode';
+import { getElementSprite, getSpriteMeta } from '../services/spriteMeta';
+import { SpriteIcon } from './SpriteIcon';
 
 interface ElementBadgesProps {
   /** 属性列表（中文），如 ['光'] 或 ['光','火']；第一个为主属性。 */
@@ -17,12 +20,41 @@ const ElementBadge: React.FC<{ element: string; size: 'xs' | 'sm' | 'md' }> = ({
   const [failed, setFailed] = useState(false);
   const style = getElementColor(element);
   const px = size === 'md' ? 24 : size === 'sm' ? 16 : 12;
+  const sizeCls = size === 'md' ? 'w-6 h-6' : size === 'sm' ? 'w-4 h-4' : 'w-3 h-3';
   const fallbackCls =
       size === 'md' ? 'text-[11px] px-2 py-0.5'
           : size === 'sm' ? 'text-[9px] px-1.5 py-0.5'
               : 'text-[8px] px-1 py-0.5';
 
   if (failed) {
+    return (
+        <span
+            title={element}
+            className={`inline-flex items-center justify-center rounded-full font-black text-white shadow-sm ring-1 ring-white/70 select-none ${fallbackCls}`}
+            style={{ backgroundColor: style.bg, color: style.fg || '#ffffff' }}
+        >
+          {element}
+        </span>
+    );
+  }
+
+  // web 版：用属性雪碧图切片（18 系别基本不变）
+  if (IS_STATIC) {
+    const es = getElementSprite(element);
+    const meta = es ? getSpriteMeta(es.sprite) : null;
+    if (es && meta) {
+      return (
+          <SpriteIcon
+              name={es.sprite}
+              col={es.col}
+              row={es.row}
+              cols={meta.cols}
+              rows={meta.rows}
+              className={`inline-block rounded-full shadow-sm ring-1 ring-white/60 ${sizeCls}`}
+              alt={element}
+          />
+      );
+    }
     return (
         <span
             title={element}

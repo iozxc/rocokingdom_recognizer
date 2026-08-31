@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { loadSpriteMeta, loadElementSprites } from './spriteMeta';
 import {
   IconsApiResponse,
   PredictApiResponse,
@@ -237,7 +238,7 @@ export class ApiService {
   }
 
   // Fetch all icons for map1, map2, map3
-  public async getIcons(): Promise<{
+  public async getIcons(trialKey?: string): Promise<{
     data: Record<string, { count: number; items: PetItem[] }>;
     isOfflineMock: boolean;
     errorMsg?: string;
@@ -245,14 +246,25 @@ export class ApiService {
     if (IS_STATIC) {
       // 纯前端版：读取打包进 public-web/data/icons.json 的静态图鉴。
       try {
+        // 先预载雪碧图/属性图元信息，保证渲染时能同步拿到 cols/rows
+        await loadSpriteMeta();
+        await loadElementSprites();
         const res = await axios.get(`${import.meta.env.BASE_URL}data/icons.json`, {
           timeout: 10000,
         });
-        const remoteData = res.data as Record<string, { count: number; items: PetItem[] }>;
+        // icons.json 顶层按试炼分组：{ "t1": {map1,map2,map3}, "t2": {...} }
+        const remoteData = res.data as Record<
+            string,
+            Record<string, { count: number; items: PetItem[] }>
+        >;
         if (remoteData && typeof remoteData === 'object') {
+          const trialKeys = Object.keys(remoteData);
+          // 默认取第一个试炼（当前 = 草系, t1）；多试炼时可传入 iconsKey（如 't2'）
+          const activeKey = trialKey && remoteData[trialKey] ? trialKey : (trialKeys[0] || '');
+          const trialMaps = remoteData[activeKey] || {};
           const normalized: Record<string, { count: number; items: PetItem[] }> = {};
-          ['map1', 'map2', 'map3'].forEach((mapKey) => {
-            const mapInfo = remoteData[mapKey] || { count: 0, items: [] };
+          Object.keys(trialMaps).forEach((mapKey) => {
+            const mapInfo = trialMaps[mapKey] || { count: 0, items: [] };
             const enrichedItems: PetItem[] = (mapInfo.items || []).map((item) => {
               // url 已为 /icons/<file>，直接用即可；若为相对路径则补 base。
               let fullUrl = item.url || '';
@@ -264,6 +276,9 @@ export class ApiService {
                 id: item.id,
                 seq: item.seq,
                 url: fullUrl,
+                sprite: item.sprite,
+                col: item.col,
+                row: item.row,
                 elements: Array.isArray(item.elements) ? item.elements : [],
                 element: item.element || 'grass',
                 rarity: item.rarity || 'common',
