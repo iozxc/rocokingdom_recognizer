@@ -92,8 +92,8 @@
 
 # 📥 安装与运行
 
-1. 前往 [Releases（Github）](https://github.com/iozxc/rocokingdom_recognizer/releases/tag/1.0.0) 页面下载。
-1. 前往 [Releases（国内Gitee）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/tag/v1.0.0) 页面下载。
+1. 前往 [Releases（Github）](https://github.com/iozxc/rocokingdom_recognizer/releases/) 页面下载。
+1. 前往 [Releases（国内Gitee）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/) 页面下载。
 2. 运行安装程序，按照指引完成安装。
 3. 桌面双击 **RocoKingdomRecognizer** 即可启动。
 
