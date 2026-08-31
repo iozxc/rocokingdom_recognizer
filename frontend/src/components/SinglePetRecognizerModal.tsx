@@ -317,7 +317,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                     className="text-xs font-black text-[#2D6613] bg-white border border-[#D5E2F0] px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                 >
                   <Sliders className="w-3.5 h-3.5 text-[#95D151]" />
-                  <span>阈值 ({threshold})</span>
+                  <span>门槛 ({Math.round(threshold * 100)}%)</span>
                 </button>
               </div>
             </div>
@@ -327,8 +327,8 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                 <div className="p-3 bg-[#F9FEF8] rounded-2xl border border-[#95D151]/40 flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2">
                     <Sliders className="w-4 h-4 text-[#95D151]" />
-                    <span className="font-black text-slate-700">置信度过滤阈值:</span>
-                    <span className="font-mono font-black text-[#2D6613]">{threshold}</span>
+                    <span className="font-black text-slate-700">识别门槛:</span>
+                    <span className="font-mono font-black text-[#2D6613]">{Math.round(threshold * 100)}%</span>
                   </div>
                   <input
                       type="range"

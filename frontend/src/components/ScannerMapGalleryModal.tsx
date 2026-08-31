@@ -364,14 +364,6 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                       图{mapNum}
                     </span>
                                     )}
-
-                                    {/* Check icon if encountered */}
-                                    {isEnc && (
-                                        <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#95D151] flex items-center justify-center text-white z-10 border border-white">
-                                            <Check className="w-2.5 h-2.5 stroke-[3.5]" />
-                                        </div>
-                                    )}
-
                                     {/* Pet Avatar Container */}
                                     <div className="relative w-full aspect-square rounded-xl bg-white p-1 flex items-center justify-center border-2 border-[#E9F2FA] overflow-hidden">
                                         <img
@@ -381,7 +373,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                             loading="lazy"
                                         />
                                         {pet.id != null && (
-                                            <span className="absolute top-0.5 right-0.5 z-10 text-[9px] font-mono font-black leading-none px-1.5 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                            <span className="absolute top-0.5 right-0.5 z-[1] text-[9px] font-mono font-black leading-none px-1.5 py-0.5 rounded bg-slate-800/70 text-white/90">
                                               #{pet.id}
                                             </span>
                                         )}
@@ -390,6 +382,12 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                             className="absolute top-0.5 left-0.5 z-10"
                                             size="md"
                                         />
+                                        {/* Check icon if encountered */}
+                                        {isEnc && (
+                                            <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-[#95D151] flex items-center justify-center text-white z-10 border border-white">
+                                                <Check className="w-2.5 h-2.5 stroke-[3.5]" />
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Pet Name */}

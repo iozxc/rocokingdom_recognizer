@@ -6,6 +6,7 @@ import {
   AlertCircle,
   RefreshCw,
   Sliders,
+  Award,
   Check,
   Edit3,
   HelpCircle,
@@ -24,6 +25,7 @@ import {
   Maximize2,
   Image as ImageIcon,
 } from 'lucide-react';
+import { ImageZoom } from './ImageZoom';
 import confetti from 'canvas-confetti';
 import {
   MapConfig,
@@ -63,6 +65,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [threshold, setThreshold] = useState<number>(() => storage.getThreshold('batch_threshold', 0.25));
+  const [topK, setTopK] = useState<number>(() => storage.getTopK(4));
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
@@ -194,6 +197,11 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     storage.setThreshold('batch_threshold', val);
   };
 
+  const handleTopKChange = (k: number) => {
+    setTopK(k);
+    storage.setTopK(k);
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
@@ -242,7 +250,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         throw new Error('请先导入或选择图片');
       }
 
-      const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, 5);
+      const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, topK);
 
       setTotalDetected(data.total_detected || data.results.length);
 
@@ -602,20 +610,42 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
               })}
             </div>
 
-            {/* Threshold Slider */}
-            <div className="flex items-center gap-2 text-xs text-slate-600">
-              <Sliders className="w-3.5 h-3.5 text-[#7ABCF4]" />
-              <span className="font-bold">过滤阈值:</span>
-              <input
-                  type="range"
-                  min="0.1"
-                  max="0.95"
-                  step="0.05"
-                  value={threshold}
-                  onChange={(e) => handleThresholdChange(parseFloat(e.target.value))}
-                  className="w-24 h-1.5 bg-slate-200 rounded-lg accent-[#7ABCF4] cursor-pointer"
-              />
-              <span className="font-mono font-black text-[#2B78C4]">{threshold}</span>
+            {/* 识别门槛 + 候选数量(top-k) */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
+              <div className="flex items-center gap-2">
+                <Sliders className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                <span className="font-bold">识别门槛:</span>
+                <input
+                    type="range"
+                    min="0.1"
+                    max="0.95"
+                    step="0.05"
+                    value={threshold}
+                    onChange={(e) => handleThresholdChange(parseFloat(e.target.value))}
+                    className="w-24 h-1.5 bg-slate-200 rounded-lg accent-[#7ABCF4] cursor-pointer"
+                />
+                <span className="font-mono font-black text-[#2B78C4]">{Math.round(threshold * 100)}%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Award className="w-3.5 h-3.5 text-amber-500" />
+                <span className="font-bold">候选数量 (Top-K):</span>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5, 6].map((k) => (
+                      <button
+                          key={k}
+                          type="button"
+                          onClick={() => handleTopKChange(k)}
+                          className={`px-1.5 py-0.5 rounded-md text-[11px] font-black cursor-pointer border transition-colors ${
+                              topK === k
+                                  ? 'bg-amber-400 text-amber-950 border-amber-500'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                          }`}
+                      >
+                        {k}
+                      </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -779,8 +809,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                             <span className="font-black text-[#1E5B99]">{targetMap.num}、{targetMap.name.replace('记忆中的', '')}</span>
                           </div>
                           <div className="flex items-center justify-between text-slate-600">
-                            <span className="font-bold">检测过滤阈值:</span>
-                            <span className="font-mono font-black text-[#2B78C4]">{threshold}</span>
+                            <span className="font-bold">识别门槛:</span>
+                            <span className="font-mono font-black text-[#2B78C4]">{Math.round(threshold * 100)}%</span>
                           </div>
                         </div>
 
@@ -1063,15 +1093,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           <div className="flex flex-col items-center text-center my-1">
                             <div className="relative w-16 h-16 rounded-xl bg-white p-1 border border-[#E6EEF8] shadow-inner flex items-center justify-center">
                               {isMatched && item.matchedPet ? (
-                                  <img
+                                  <ImageZoom
                                       src={item.view_url || item.matchedPet.url}
                                       alt={displayName}
-                                      className="w-full h-full object-contain"
-                                      onError={(e) => {
-                                        if (item.matchedPet?.url) {
-                                          (e.target as HTMLImageElement).src = item.matchedPet.url;
-                                        }
-                                      }}
+                                      trigger="hover"
+                                      className="w-full h-full"
+                                      imgClassName="w-full h-full object-contain"
                                   />
                               ) : (
                                   <HelpCircle className="w-8 h-8 text-rose-300" />

@@ -614,7 +614,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                 {/* Threshold Setting */}
                 <div className="flex items-center gap-2 text-xs text-slate-600">
                   <Sliders className="w-3.5 h-3.5 text-[#7ABCF4]" />
-                  <span className="font-bold">过滤阈值:</span>
+                  <span className="font-bold">识别门槛:</span>
                   <input
                       type="range"
                       min="0.1"
@@ -624,7 +624,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                       onChange={(e) => handleThresholdChange(parseFloat(e.target.value))}
                       className="w-24 h-1.5 bg-slate-200 rounded-lg accent-[#7ABCF4] cursor-pointer"
                   />
-                  <span className="font-mono font-black text-[#2B78C4]">{threshold}</span>
+                  <span className="font-mono font-black text-[#2B78C4]">{Math.round(threshold * 100)}%</span>
                 </div>
               </div>
 
@@ -786,8 +786,8 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                 <span className="font-black text-[#1E5B99]">{targetMap.num}、{targetMap.name.replace('记忆中的', '')}</span>
                               </div>
                               <div className="flex items-center justify-between text-slate-600">
-                                <span className="font-bold">检测过滤阈值:</span>
-                                <span className="font-mono font-black text-[#2B78C4]">{threshold}</span>
+                                <span className="font-bold">识别门槛:</span>
+                                <span className="font-mono font-black text-[#2B78C4]">{Math.round(threshold * 100)}%</span>
                               </div>
                             </div>
 

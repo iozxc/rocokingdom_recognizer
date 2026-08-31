@@ -228,6 +228,7 @@ def predict_batch():
                 for m in matches:
                     # 只有当 OCR 匹配准确率（score）大于指定值时才作为强力候选
                     # 或者当没有图像块可用时，也接受这个结果
+                    if m['score'] <= 0.1: continue
                     file_name = get_icon_file_name(map_name, m['name'], trial_key)
                     if file_name:
                         ocr_match_results.append({
@@ -252,9 +253,6 @@ def predict_batch():
             final_candidates = sorted(unique_results.values(), key=lambda x: x['score'], reverse=True)
             final_candidates = final_candidates[:top_k]
 
-            # 剔除逻辑：多于1个结果时剔除最低分
-            if len(final_candidates) > 1:
-                final_candidates.pop()
 
             # D. 注入 view_url 并封装
             res_item = {"index": i}

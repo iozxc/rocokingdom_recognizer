@@ -301,7 +301,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                   <ul className="text-xs text-blue-950/80 space-y-1.5 list-disc list-inside">
                     <li>当置信度低于 70% 或候选相似度接近时，卡片会提示手动确认。</li>
                     <li>点击识别卡片上的“手动纠错 / 手动选择”可快速搜索并更正。</li>
-                    <li>可在系统设置中调节“自动确认置信度阈值”。</li>
+                    <li>可在系统设置中调节“自动确认识别门槛”。</li>
                   </ul>
                 </div>
               </div>

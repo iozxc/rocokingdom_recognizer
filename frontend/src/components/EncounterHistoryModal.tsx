@@ -331,7 +331,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
               return (
                 <div
                   key={`${record.mapId}_${record.filename}_${record.lastSeenAt || ''}`}
-                  className={`group p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 ${
+                  className={`group p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-2.5 sm:gap-3 ${
                     isEnc
                       ? 'bg-[#F9FEF8] border-[#95D151]/60 hover:border-[#95D151]'
                       : 'bg-slate-50/80 border-slate-200 hover:border-slate-300'
@@ -365,14 +365,14 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate" title={cleanName}>
+                      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                        <h4 className="text-xs sm:text-sm font-black text-slate-800 min-w-0 truncate" title={cleanName}>
                           {cleanName}
                         </h4>
 
                         {/* Map Badge */}
                         <span
-                          className="text-[10px] font-black px-1.5 py-0.2 rounded-md border flex items-center gap-0.5"
+                          className="text-[10px] font-black px-1.5 py-0.2 rounded-md border flex items-center gap-0.5 whitespace-nowrap shrink-0"
                           style={{
                             backgroundColor:
                               mapObj.num === 1 ? '#E1F7DB' : mapObj.num === 2 ? '#FEF9E6' : '#EBF4FE',
@@ -387,11 +387,11 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
 
                         {/* Status Badge */}
                         {isEnc ? (
-                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/50">
+                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/50 whitespace-nowrap shrink-0">
                             已点亮
                           </span>
                         ) : (
-                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600">
+                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600 whitespace-nowrap shrink-0">
                             未遇见
                           </span>
                         )}
@@ -399,12 +399,12 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
 
                       {/* Time info and note */}
                       <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-400 mt-1 flex-wrap font-medium">
-                        <span className="flex items-center gap-1 font-mono text-slate-500" title={timeObj.fullTime}>
+                        <span className="flex items-center gap-1 font-mono text-slate-500 shrink-0" title={timeObj.fullTime}>
                           <Clock className="w-3 h-3 text-slate-400" />
                           {timeObj.relative}
                         </span>
                         {record.note && (
-                          <span className="bg-white px-1.5 py-0.2 rounded border border-slate-200 text-slate-500 text-[10px] truncate max-w-[150px]">
+                          <span className="bg-white px-1.5 py-0.2 rounded border border-slate-200 text-slate-500 text-[10px] truncate max-w-[180px]">
                             {record.note}
                           </span>
                         )}
@@ -413,7 +413,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                   </div>
 
                   {/* Right Actions: Quick Undo Toggle & Optional Navigate */}
-                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  <div className="flex items-center gap-2 shrink-0">
                     {/* Toggle Button for undoing accidental clicks */}
                     <button
                       type="button"

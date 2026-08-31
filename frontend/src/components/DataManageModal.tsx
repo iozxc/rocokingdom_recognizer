@@ -114,7 +114,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
           {/* Content */}
           <div className="p-5 space-y-4">
             <p className="text-[11px] text-slate-500 leading-snug">
-              数据包含图鉴点亮记录、识别阈值与偏好设置。{IS_STATIC ? '导出将直接下载 JSON 文件。' : '导出时支持自选保存目录与路径。'}
+              数据包含图鉴点亮记录、识别门槛与偏好设置。{IS_STATIC ? '导出将直接下载 JSON 文件。' : '导出时支持自选保存目录与路径。'}
             </p>
 
             <div className="grid grid-cols-2 gap-3">

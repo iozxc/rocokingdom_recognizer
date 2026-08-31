@@ -15,12 +15,12 @@ import { APP_VERSION } from '../version';
  * - machine_code 用浏览器本地持久化 ID 代替桌面端硬盘序列号，用于统计“web 设备/会话”。
  */
 
-// 优先用 VITE_ROCO_AUTH_SERVER（如果你有独立 HTTPS 统计域名）；
-// 否则默认打【同源】/api/auth/status（由 Vercel 的 serverless 代理转发到远端统计服务器）。
+// 优先用 VITE_ROCO_AUTH_SERVER（如需指定其它 HTTPS 统计域名）；
+// 否则默认直连 https://api.omisheep.cn（已是 HTTPS，浏览器可直接请求，无需 Vercel 代理）。
 const AUTH_SERVER: string =
     ((import.meta.env.VITE_ROCO_AUTH_SERVER as string | undefined) ?? '')
         .replace(/\/+$/, '') ||
-    (typeof window !== 'undefined' ? window.location.origin : '');
+    'https://api.omisheep.cn';
 const EVENT_PATH = '/api/auth/status';
 const HEARTBEAT_MS = 180_000; // 与桌面端 _HEARTBEAT_INTERVAL 一致：约 3 分钟
 const MACHINE_CODE_KEY = 'roco_web_machine_code_v1';
@@ -82,19 +82,15 @@ function reportClose(): void {
   };
   const body = JSON.stringify(payload);
   try {
-    if (navigator.sendBeacon) {
-      // sendBeacon 用 Blob 指定 application/json，服务器才能正确解析
-      navigator.sendBeacon(`${AUTH_SERVER}${EVENT_PATH}`, new Blob([body], { type: 'application/json' }));
-    } else {
-      void fetch(`${AUTH_SERVER}${EVENT_PATH}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-        keepalive: true,
-        mode: 'cors',
-        credentials: 'omit',
-      });
-    }
+    // 统一用 fetch keepalive：能正确触发并处理跨域预检，且可存活于页面卸载
+    void fetch(`${AUTH_SERVER}${EVENT_PATH}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+      mode: 'cors',
+      credentials: 'omit',
+    });
   } catch {
     // 忽略
   }

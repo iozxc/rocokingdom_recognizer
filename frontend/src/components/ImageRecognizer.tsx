@@ -305,7 +305,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 className="text-xs font-black text-[#2B78C4] hover:text-[#1D5E9E] bg-[#F5F9FF] hover:bg-[#EBF4FE] border border-[#D5E2F0] px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Sliders className="w-3.5 h-3.5 text-[#7ABCF4]" />
-              设置 (阈值 {threshold})
+              设置 (门槛 {Math.round(threshold * 100)}%)
             </button>
           </div>
         </div>
@@ -316,9 +316,9 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Sliders className="w-4 h-4 text-[#7ABCF4]" />
-                  <span className="font-black">置信度过滤阈值:</span>
-                  <span className="font-mono font-black text-[#2B78C4] text-sm">{threshold}</span>
-                  <span className="text-slate-500">(低于此置信度的匹配将被标注为低置信推荐)</span>
+                  <span className="font-black">识别门槛:</span>
+                  <span className="font-mono font-black text-[#2B78C4] text-sm">{Math.round(threshold * 100)}%</span>
+                  <span className="text-slate-500">(低于此门槛的匹配不推荐)</span>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-48">
                   <span className="text-xs text-slate-400 font-bold">0.1</span>
