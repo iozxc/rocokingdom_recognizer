@@ -116,7 +116,7 @@ FEISHU_WEBHOOK_URL = (
 DATA_MANIFEST_URL = _env("ROCO_DATA_MANIFEST_URL",
                          "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/data_manifest.json")
 # 授权服务器：优先本地 config（环境变量/内置默认）；meta 里的地址作为“主地址连不上”的备用。
-ROCO_AUTH_SERVER = _env("ROCO_AUTH_SERVER", "http://47.100.242.141:8000")
+ROCO_AUTH_SERVER = _env("ROCO_AUTH_SERVER", "https://api.omisheep.cn")
 # 远程 meta 下发的备用授权服务器（client_server 在主地址连接失败时回退到它）。
 META_AUTH_SERVER = _meta("auth_server")
 
