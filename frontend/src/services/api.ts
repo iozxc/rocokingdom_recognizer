@@ -29,6 +29,7 @@ import {
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { formatPetName } from '../utils/petHelper';
 import { authStore } from './auth';
+import { IS_STATIC, PLATFORM } from './staticMode';
 
 const DEFAULT_API_BASE = 'http://127.0.0.1:5000';
 
@@ -115,6 +116,21 @@ export class ApiService {
    * 获取当前环境可见的徽章试炼列表（打包环境不返回火系试炼）。
    */
   public async getTrials(): Promise<{ trials: Trial[]; isOfflineMock: boolean }> {
+    if (IS_STATIC) {
+      // 纯前端版只保留草系正式试炼；火系/地图感知为 dev_only，不对外展示。
+      return {
+        trials: [
+          {
+            key: 'grass',
+            title: '草系徽章试炼',
+            element: 'grass',
+            collection_key: 'encounteredPets',
+            dev_only: false,
+          },
+        ],
+        isOfflineMock: false,
+      };
+    }
     try {
       const response = await axios.get<TrialsApiResponse>(`${this.apiBase}/api/trials`, {
         timeout: 4000,
@@ -152,6 +168,9 @@ export class ApiService {
    * 火系试炼：读取全图鉴精灵列表，供用户自选。
    */
   public async getFireTrialPets(): Promise<{ pets: FirePokedexEntry[]; isOfflineMock: boolean }> {
+    if (IS_STATIC) {
+      return { pets: [], isOfflineMock: true };
+    }
     try {
       const response = await axios.get<FirePokedexApiResponse>(
           `${this.apiBase}/api/trials/fire/pets`,
@@ -172,6 +191,9 @@ export class ApiService {
    * 检测图鉴数据是否需要更新（md5 对比）。
    */
   public async checkDataUpdates(): Promise<DataUpdateCheckData> {
+    if (IS_STATIC) {
+      return { has_update: false, updates: [], message: '纯前端版不检查数据更新' };
+    }
     try {
       const response = await axios.get<{ data?: DataUpdateCheckData }>(
           `${this.apiBase}/api/data_updates/check`,
@@ -204,6 +226,9 @@ export class ApiService {
    * 查询图鉴数据下载进度。
    */
   public async getDataUpdateStatus(): Promise<DataUpdateStatusData> {
+    if (IS_STATIC) {
+      return { state: 'idle', files: [] };
+    }
     const response = await axios.get<{ data?: DataUpdateStatusData }>(
         `${this.apiBase}/api/data_updates/status`,
         { timeout: 5000 }
@@ -217,6 +242,43 @@ export class ApiService {
     isOfflineMock: boolean;
     errorMsg?: string;
   }> {
+    if (IS_STATIC) {
+      // 纯前端版：读取打包进 public-web/data/icons.json 的静态图鉴。
+      try {
+        const res = await axios.get(`${import.meta.env.BASE_URL}data/icons.json`, {
+          timeout: 10000,
+        });
+        const remoteData = res.data as Record<string, { count: number; items: PetItem[] }>;
+        if (remoteData && typeof remoteData === 'object') {
+          const normalized: Record<string, { count: number; items: PetItem[] }> = {};
+          ['map1', 'map2', 'map3'].forEach((mapKey) => {
+            const mapInfo = remoteData[mapKey] || { count: 0, items: [] };
+            const enrichedItems: PetItem[] = (mapInfo.items || []).map((item) => {
+              // url 已为 /icons/<file>，直接用即可；若为相对路径则补 base。
+              let fullUrl = item.url || '';
+              if (fullUrl && !fullUrl.startsWith('http') && !fullUrl.startsWith('data:') && !fullUrl.startsWith('/')) {
+                fullUrl = `${import.meta.env.BASE_URL}${fullUrl}`;
+              }
+              return {
+                name: item.name,
+                id: item.id,
+                seq: item.seq,
+                url: fullUrl,
+                elements: Array.isArray(item.elements) ? item.elements : [],
+                element: item.element || 'grass',
+                rarity: item.rarity || 'common',
+              };
+            });
+            normalized[mapKey] = { count: mapInfo.count || enrichedItems.length, items: enrichedItems };
+          });
+          return { data: normalized, isOfflineMock: false };
+        }
+        throw new Error('静态图鉴数据格式不符合规范');
+      } catch (err) {
+        console.warn('静态图鉴加载失败:', (err as AxiosError).message || err);
+        return { data: {}, isOfflineMock: true, errorMsg: '静态图鉴加载失败' };
+      }
+    }
     try {
       const response = await axios.get<IconsApiResponse>(`${this.apiBase}/icons`, {
         timeout: 4000,
@@ -1093,7 +1155,7 @@ export class ApiService {
     try {
       const response = await axios.post<SubmitFeedbackResponse>(
           `${this.apiBase}/api/submit_feedback`,
-          payload,
+          { ...payload, platform: PLATFORM },
           {
             headers: { 'Content-Type': 'application/json' },
             timeout: 6000,
@@ -1143,6 +1205,7 @@ export class ApiService {
 
   /** 获取远程存储数据 (roco_user_data.json) */
   public async getStorageRemote(): Promise<Record<string, any> | null> {
+    if (IS_STATIC) return null;
     try {
       const res = await axios.get<Record<string, any>>(`${this.apiBase}/api/storage/0`, {
         timeout: 4000,
@@ -1155,6 +1218,7 @@ export class ApiService {
 
   /** 保存数据到远程存储 (roco_user_data.json) */
   public async saveStorageRemote(payload: Record<string, any>): Promise<{ success: boolean; version?: number }> {
+    if (IS_STATIC) return { success: true };
     try {
       const res = await axios.post<{ version?: number }>(`${this.apiBase}/api/storage`, payload, {
         timeout: 5000,
@@ -1168,6 +1232,7 @@ export class ApiService {
 
   /** 获取地图专用存储数据 (roco_user_mapdata.json) */
   public async getMapStorageRemote(): Promise<Record<string, any> | null> {
+    if (IS_STATIC) return null;
     try {
       const res = await axios.get<Record<string, any>>(`${this.apiBase}/api/map_storage/0`, {
         timeout: 4000,
@@ -1180,6 +1245,7 @@ export class ApiService {
 
   /** 保存地图专用存储数据到远程 (roco_user_mapdata.json) */
   public async saveMapStorageRemote(payload: Record<string, any>): Promise<{ success: boolean; version?: number }> {
+    if (IS_STATIC) return { success: true };
     try {
       const res = await axios.post<{ version?: number }>(`${this.apiBase}/api/map_storage`, payload, {
         timeout: 5000,
@@ -1193,6 +1259,11 @@ export class ApiService {
 
   /** 是否仍需展示用户协议（后端以 roco_user_data.json 中 appSettings.agreementAccepted 判断） */
   public async isAgreementRequired(): Promise<boolean> {
+    if (IS_STATIC) {
+      // 纯前端版：首次进入必须阅读协议，结果存 localStorage（仅第一次）。
+      if (typeof localStorage === 'undefined') return false;
+      return !localStorage.getItem('roco_agreement_web');
+    }
     try {
       const res = await axios.get<{ data?: { required?: boolean } }>(
           `${this.apiBase}/api/app/agreement_required`,
@@ -1208,6 +1279,12 @@ export class ApiService {
 
   /** 同意协议后落盘用户数据，标记为非首次 */
   public async acceptAgreement(): Promise<void> {
+    if (IS_STATIC) {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('roco_agreement_web', '1');
+      }
+      return;
+    }
     try {
       await axios.post(`${this.apiBase}/api/app/agreement_accept`, {}, { timeout: 5000 });
     } catch (err: unknown) {
@@ -1215,15 +1292,43 @@ export class ApiService {
     }
   }
 
-  /** 读取 resources/chat.json 的联系方式配置（QQ 群等） */
+  /** 读取 resources/chat.json 的联系方式配置（QQ 群、网页版等） */
   public async getChatConfig(): Promise<any | null> {
+    const t = Date.now();
+    if (IS_STATIC) {
+      // 纯前端版：优先读 Gitee 远程 raw，失败回退打包进 public-web/resources/chat.json 的静态配置。
+      const remoteUrls = [
+        `https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t=${t}`,
+        `https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t=${t}`,
+      ];
+      for (const url of remoteUrls) {
+        try {
+          const res = await axios.get(url, { timeout: 4000 });
+          const data = res.data;
+          if (data && (Array.isArray(data.qq_group) || data.web_path)) return data;
+          if (data?.data && (Array.isArray(data.data.qq_group) || data.data.web_path)) return data.data;
+        } catch {
+          // fallback
+        }
+      }
+      try {
+        const res = await axios.get(`${import.meta.env.BASE_URL}resources/chat.json?_t=${t}`, { timeout: 6000 });
+        const data = res.data;
+        if (data && (Array.isArray(data.qq_group) || data.web_path)) return data;
+        if (data?.data && (Array.isArray(data.data.qq_group) || data.data.web_path)) return data.data;
+        return null;
+      } catch (err: unknown) {
+        console.warn('静态 chat 配置加载失败:', (err as AxiosError).message);
+        return null;
+      }
+    }
     try {
-      // 走本地接口：后端会优先读本地 resources，缺失时再从 Gitee raw 拉取（避免前端跨域/302）
-      const res = await axios.get<any>(`${this.apiBase}/api/resources/chat.json`, { timeout: 6000 });
+      // 桌面端走本地接口：后端会优先直连 Gitee raw 拉取最新配置（带时间戳去缓存），失败时自动回退本地 resources/chat.json
+      const res = await axios.get<any>(`${this.apiBase}/api/resources/chat.json?_t=${t}`, { timeout: 6000 });
       const data = res.data;
-      // 兼容直接返回 {qq_group:[...]} 或包装成 {data:{qq_group:[...]}}
-      if (data && Array.isArray(data.qq_group)) return data;
-      if (data?.data && Array.isArray(data.data.qq_group)) return data.data;
+      // 兼容直接返回 {qq_group:[...], web_path:...} 或包装成 {data:{...}}
+      if (data && (Array.isArray(data.qq_group) || data.web_path)) return data;
+      if (data?.data && (Array.isArray(data.data.qq_group) || data.data.web_path)) return data.data;
       return null;
     } catch (err: unknown) {
       console.warn('API getChatConfig failed:', (err as AxiosError).message);
@@ -1233,7 +1338,44 @@ export class ApiService {
 
   /** 生成 resources 目录下静态资源（如二维码图片）的访问地址（走本地接口，后端负责远程兜底） */
   public resourceUrl(filename: string): string {
+    if (IS_STATIC) {
+      return `${import.meta.env.BASE_URL}resources/${encodeURIComponent(filename)}`;
+    }
     return `${this.apiBase}/api/resources/${encodeURIComponent(filename)}`;
+  }
+
+  /** 纯前端版：读取打包的 version.json，返回当前版本与下载镜像。 */
+  public async getAppInfo(): Promise<{ version: string; mirrors: Record<string, string> } | null> {
+    if (!IS_STATIC) {
+      return null;
+    }
+    // 优先直接读 Gitee 上的 version.json；若浏览器跨域/网络失败，再退回本地打包的副本。
+    const remoteUrls = [
+      'https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json',
+      'https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/version.json',
+    ];
+    for (const url of remoteUrls) {
+      try {
+        const res = await axios.get(url, { timeout: 6000 });
+        const data = res.data;
+        if (data && typeof data.version === 'string') {
+          return { version: data.version, mirrors: data.mirrors || {} };
+        }
+      } catch {
+        // 继续尝试 fallback
+      }
+    }
+    try {
+      const res = await axios.get(`${import.meta.env.BASE_URL}resources/version.json`, { timeout: 6000 });
+      const data = res.data;
+      if (data && typeof data.version === 'string') {
+        return { version: data.version, mirrors: data.mirrors || {} };
+      }
+      return null;
+    } catch (err: unknown) {
+      console.warn('版本信息加载失败（远程与本地兜底均失败）:', (err as AxiosError).message);
+      return null;
+    }
   }
 
 }

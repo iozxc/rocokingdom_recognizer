@@ -2,6 +2,7 @@ import axios from 'axios';
 import { EncounterRecord, AppSettings, PetItem } from '../types';
 import { api } from './api';
 import { sound } from './sound';
+import { IS_STATIC, PLATFORM } from './staticMode';
 import {
   isPetEncounteredInRecords,
   findMatchingRecordKeys,
@@ -19,6 +20,7 @@ export interface StoragePayload {
   thresholds?: Record<string, number>;
   appSettings?: AppSettings;
   version?: number;
+  platform?: 'app' | 'web';
 }
 
 type StorageListener = (records: Record<string, EncounterRecord>) => void;
@@ -41,11 +43,14 @@ export class StorageService {
 
   constructor() {
     this.loadFromLocalStorage();
-    this.startPoll(); // 启动轮询替代websocket
-    this.flushOnUnload(); // 窗口关闭前把未落盘的改动刷到后端
-    this.fetchRemote().catch(() => {
-      // 降级使用localStorage
-    });
+    // 纯前端静态版：无后端存储，仅用 localStorage；不做轮询/上报。
+    if (!IS_STATIC) {
+      this.startPoll(); // 启动轮询替代websocket
+      this.flushOnUnload(); // 窗口关闭前把未落盘的改动刷到后端
+      this.fetchRemote().catch(() => {
+        // 降级使用localStorage
+      });
+    }
   }
 
   /**
@@ -54,6 +59,7 @@ export class StorageService {
    */
   private flushOnUnload() {
     if (typeof window === 'undefined') return;
+    if (IS_STATIC) return;
     const flush = () => {
       if (!this.hasPendingLocalChanges && !this.saveTimeout) return;
       try {
@@ -76,6 +82,7 @@ export class StorageService {
       thresholds: { ...this.thresholds },
       appSettings: { ...this.appSettings },
       version: this.localVersion,
+      platform: PLATFORM,
     };
   }
 
@@ -220,6 +227,10 @@ export class StorageService {
    * 全部使用http post，移除socket逻辑
    */
   public async saveToRemote(): Promise<boolean> {
+    if (IS_STATIC) {
+      this.hasPendingLocalChanges = false;
+      return true;
+    }
     const payload = this.getPayload();
     const apiBase = api.getApiBase();
     try {
@@ -567,7 +578,11 @@ export class StorageService {
         } else {
           this.records = parsed;
         }
+        if (typeof this.appSettings.isSoundMuted === 'boolean') {
+          sound.setMuted(this.appSettings.isSoundMuted);
+        }
         this.triggerSave();
+        this.notifySettingsListeners();
         return true;
       }
       return false;

@@ -7,6 +7,8 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "postbuild": "node scripts/copy-to-static.mjs",
+    "build:web": "npm run export:web:icons && vite build --mode web",
+    "export:web:icons": "node scripts/export_web_icons.mjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"

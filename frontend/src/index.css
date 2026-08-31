@@ -22,6 +22,25 @@
     background-image: radial-gradient(#dce8f5 1px, transparent 1px);
     background-size: 24px 24px;
     min-height: 100vh;
+    /* 全局禁用文本选中与长按弹出菜单（保护图鉴资源） */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* 输入框与文本域允许正常交互与选中输入 */
+  input, textarea {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+  }
+
+  /* 全局禁止图片拖拽与长按保存行为 */
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: auto;
   }
 
   body.scanner-transparent-mode {

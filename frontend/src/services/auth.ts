@@ -1,18 +1,31 @@
 import { useSyncExternalStore } from 'react';
 import axios from 'axios';
 import { AuthState } from '../types';
+import { IS_STATIC, PLATFORM } from './staticMode';
 
-const initialState: AuthState = {
-  status: 'pending',
-  machine_code: '',
-  auth_code: '',
-  expire_time: '',
-  qq_id: '',
-  msg: '',
-  error: '',
-  is_authorized: false,
-  offline_badge: false,
-};
+const initialState: AuthState = IS_STATIC
+    ? {
+        status: 'authorized',
+        machine_code: '',
+        auth_code: '',
+        expire_time: '',
+        qq_id: '',
+        msg: '纯前端静态版',
+        error: '',
+        is_authorized: true,
+        offline_badge: false,
+      }
+    : {
+        status: 'pending',
+        machine_code: '',
+        auth_code: '',
+        expire_time: '',
+        qq_id: '',
+        msg: '',
+        error: '',
+        is_authorized: false,
+        offline_badge: false,
+      };
 
 export function defaultAuthState(): AuthState {
   return { ...initialState };
@@ -36,7 +49,7 @@ function resolveApiBase(): string {
 async function fetchAuthStatus(): Promise<AuthState> {
   try {
     const res = await axios.get<{ data?: AuthState }>(
-        `${resolveApiBase()}/api/local/auth_status`,
+        `${resolveApiBase()}/api/local/auth_status?platform=${PLATFORM}`,
         { timeout: 4000 }
     );
     if (res.data?.data) {
@@ -52,7 +65,7 @@ async function retryAuth(): Promise<AuthState> {
   try {
     const res = await axios.post<{ data?: AuthState }>(
         `${resolveApiBase()}/api/local/auth_retry`,
-        {},
+        { platform: PLATFORM },
         { timeout: 4000 }
     );
     if (res.data?.data) {
@@ -68,7 +81,7 @@ async function reauthorizeAuth(): Promise<AuthState> {
   try {
     const res = await axios.post<{ data?: AuthState }>(
         `${resolveApiBase()}/api/local/auth_reauthorize`,
-        {},
+        { platform: PLATFORM },
         { timeout: 4000 }
     );
     if (res.data?.data) {
@@ -84,7 +97,7 @@ async function refreshCodeAuth(): Promise<AuthState> {
   try {
     const res = await axios.post<{ data?: AuthState }>(
         `${resolveApiBase()}/api/local/auth_refresh`,
-        {},
+        { platform: PLATFORM },
         { timeout: 6000 }
     );
     if (res.data?.data) {
@@ -100,7 +113,7 @@ async function unbindAuth(): Promise<AuthState> {
   try {
     const res = await axios.post<{ data?: AuthState }>(
         `${resolveApiBase()}/api/local/auth_unbind`,
-        {},
+        { platform: PLATFORM },
         { timeout: 6000 }
     );
     if (res.data?.data) {
@@ -116,7 +129,7 @@ async function setPollMode(mode: 'fast' | 'slow'): Promise<void> {
   try {
     await axios.post(
         `${resolveApiBase()}/api/local/auth_poll_mode`,
-        { mode },
+        { mode, platform: PLATFORM },
         { timeout: 4000 }
     );
   } catch {
@@ -204,6 +217,10 @@ class AuthStore {
 
   /** 打开 App 只拉一次状态，随后按当前模式（默认慢 5s）低频轮询。 */
   init() {
+    // 纯前端版无后端授权，不做任何轮询。
+    if (IS_STATIC) {
+      return;
+    }
     if (this.state.status === 'authorized') {
       this.refresh();
       return;

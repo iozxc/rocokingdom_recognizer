@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Sparkles, Check, Sparkle, Filter, Info, Bug } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState } from '../types';
 import { sound } from '../services/sound';
+import { IS_STATIC } from '../services/staticMode';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 
@@ -174,8 +175,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
               <p className="text-xs text-slate-400 mt-1">请尝试调整搜索关键词或切换筛选条件</p>
             </div>
         ) : (
-            /* Uniform Grid of Scaled Pet Icons */
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(118px,1fr))] sm:grid-cols-[repeat(auto-fill,145px)] justify-center gap-2 sm:gap-4">
+            /* Uniform Grid of Scaled Pet Icons - Responsive density on mobile phones & desktop */
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(84px,1fr))] sm:grid-cols-[repeat(auto-fill,145px)] justify-center gap-2 sm:gap-4">
               {filteredPets.map((pet) => {
                 const key = `${currentMap.id}_${pet.name}`;
                 const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);
@@ -186,12 +187,16 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         key={pet.name}
                         id={`pet-card-${currentMap.id}-${pet.name.replace('.', '-')}`}
                         onClick={() => handleCardClick(pet.name, isEnc)}
-                        onContextMenu={(e) => {
+                        onContextMenu={IS_STATIC ? (e) => {
+                          // web 版删除右键菜单：拦截默认菜单但不打开自定义菜单
+                          e.preventDefault();
+                          e.stopPropagation();
+                        } : (e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           setContextMenu({ pet, x: e.clientX, y: e.clientY });
                         }}
-                        className={`group relative rounded-2xl p-2.5 flex flex-col items-center cursor-pointer transition-all duration-200 select-none ${
+                        className={`group relative rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 flex flex-col items-center cursor-pointer transition-all duration-200 select-none ${
                             isJustEncountered
                                 ? 'encounter-pop-active bg-[#F2FBF0] border-2 border-[#95D151] ring-2 ring-[#95D151]/40'
                                 : isEnc
@@ -208,20 +213,22 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       )}
 
                       {/* Fixed Uniform Image Container - 1:1 Aspect Ratio with object-contain */}
-                      <div className="relative w-full aspect-square rounded-xl bg-white p-1.5 flex items-center justify-center overflow-hidden border border-[#E6EEF8]">
+                      <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-white p-1 sm:p-1.5 flex items-center justify-center overflow-hidden border border-[#E6EEF8]">
                         {pet.id != null && (
-                            <span className="absolute top-1 right-1 z-10 text-[9px] font-mono font-black px-1.5 py-0.5 rounded-md bg-slate-800/70 text-white/90">
+                            <span className="absolute top-1 right-1 z-[1] text-[8px] sm:text-[9px] font-mono font-black px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md bg-slate-800/70 text-white/90">
                               #{pet.id}
                             </span>
                         )}
                         <ElementBadges
                             elements={pet?.elements}
-                            className="absolute top-1 left-1 z-10"
+                            className="absolute top-1 left-1 z-10 scale-90 sm:scale-100 origin-top-left"
+                            size="xs"
                         />
                         <img
                             src={pet.url}
                             alt={pet.name}
-                            className={`w-full h-full object-contain transition-transform duration-200 ${
+                            draggable={false}
+                            className={`w-full h-full object-contain pointer-events-none transition-transform duration-200 ${
                                 isJustEncountered
                                     ? 'scale-105'
                                     : 'group-hover:scale-105'
@@ -231,9 +238,9 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       </div>
 
                       {/* Pet Name Label */}
-                      <div className="mt-2 w-full text-center">
+                      <div className="mt-1 sm:mt-2 w-full text-center">
                         <p
-                            className={`text-xs font-black truncate transition-colors duration-200 ${
+                            className={`text-[11px] sm:text-xs font-black truncate transition-colors duration-200 ${
                                 isEnc ? 'text-[#2D6613]' : 'text-slate-700'
                             }`}
                             title={formatPetName(pet.name)}
@@ -243,13 +250,13 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       </div>
 
                       {/* Status indicator pill */}
-                      <div className="mt-2 flex items-center justify-center w-full">
+                      <div className="mt-1 sm:mt-2 flex items-center justify-center w-full">
                         {isEnc ? (
-                            <span className="text-[11px] font-black text-[#2D6613] bg-[#E1F7DB] px-2.5 py-0.5 rounded-md w-full text-center border border-[#95D151]/40">
+                            <span className="text-[10px] sm:text-[11px] font-black text-[#2D6613] bg-[#E1F7DB] px-1.5 sm:px-2.5 py-0.5 rounded-md w-full text-center border border-[#95D151]/40 truncate">
                       已遇见
                     </span>
                         ) : (
-                            <span className="text-[11px] font-medium text-slate-400 bg-white px-2 py-0.5 rounded-md w-full text-center border border-slate-200 group-hover:border-[#BCD7F2] group-hover:text-slate-600 transition-colors">
+                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 bg-white px-1.5 sm:px-2 py-0.5 rounded-md w-full text-center border border-slate-200 group-hover:border-[#BCD7F2] group-hover:text-slate-600 transition-colors truncate">
                       未探索
                     </span>
                         )}

@@ -224,6 +224,8 @@ def request_auth(machine_code=None, timeout=10):
     mc = machine_code or get_machine_code()
     ts, sign = make_sign(mc)
     payload = {"machine_code": mc, "timestamp": ts, "sign": sign}
+    payload["version"] = str(config.APP_VERSION)  # 客户端版本（供 admin 版本统计）
+    payload["platform"] = "app"  # 客户端平台：桌面端固定 app（未带该字段的按旧设备/app 处理）
     legacy = _read_legacy_code()
     if legacy:
         payload["legacy_code"] = legacy
@@ -237,6 +239,8 @@ def status_auth(machine_code=None, auth_code=None, event=None, timeout=10):
     mc = machine_code or get_machine_code()
     ts, sign = make_sign(mc)
     payload = {"machine_code": mc, "timestamp": ts, "sign": sign}
+    payload["version"] = str(config.APP_VERSION)  # 客户端版本（供 admin 版本统计）
+    payload["platform"] = "app"  # 客户端平台：桌面端固定 app
     if auth_code:
         payload["auth_code"] = auth_code
     if event:

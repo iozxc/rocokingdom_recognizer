@@ -42,6 +42,8 @@ auth_secret.txt
 core/_auth_secret.py
 build_key.txt
 /frontend/dist/
+/frontend/dist-web/
+/frontend/public-web/
 /frontend/node_modules/
 /frontend/build/
 /frontend/.env*
@@ -68,3 +70,4 @@ build_key.txt
 /frontend/public/mapdata_real/
 /train/phash/
 /test/
+/build-web.bat

@@ -1,5 +1,6 @@
 import { FirePokedexEntry } from '../types';
 import { api } from './api';
+import { IS_STATIC } from './staticMode';
 
 /**
  * 火系全图鉴数据缓存：应用启动时预取一次，
@@ -13,6 +14,9 @@ export function getCachedFirePets(): FirePokedexEntry[] | null {
 }
 
 export function getFireTrialPetsCached(): Promise<FirePokedexEntry[]> {
+  if (IS_STATIC) {
+    return Promise.resolve([]);
+  }
   if (cachedFirePets) {
     return Promise.resolve(cachedFirePets);
   }

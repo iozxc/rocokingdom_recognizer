@@ -45,6 +45,34 @@ class AppApi:
             logger.error(f"退出程序异常: {e}", exc_info=True)
         return {"status": "error", "message": "退出失败"}
 
+    def save_export_file(self, content_str: str, default_filename: str = "roco_user_data.json"):
+        """通过系统原生保存文件对话框让用户自选导出路径，并保存文件。"""
+        import webview
+        try:
+            win = self._windows.main_window
+            if win is None:
+                return {"status": "error", "message": "主窗口未就绪"}
+
+            # pywebview 自带 create_file_dialog 支持 SAVE_DIALOG
+            file_types = ('JSON 文件 (*.json)', '所有文件 (*.*)')
+            save_path = win.create_file_dialog(
+                webview.SAVE_DIALOG,
+                save_filename=default_filename,
+                file_types=file_types
+            )
+            if not save_path:
+                return {"status": "cancelled", "message": "用户取消了保存"}
+
+            target_path = save_path if isinstance(save_path, str) else save_path[0]
+            with open(target_path, 'w', encoding='utf-8') as f:
+                f.write(content_str)
+
+            logger.info(f"数据已成功导出到用户自选路径: {target_path}")
+            return {"status": "ok", "path": target_path}
+        except Exception as e:
+            logger.error(f"导出文件异常: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+
     def set_scanner_topmost(self, flag=True):
         """切换跟随识别窗口是否置顶（置顶到所有窗口前面），并同步到系统设置。"""
         try:

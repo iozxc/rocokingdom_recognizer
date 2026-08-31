@@ -331,26 +331,26 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
               return (
                 <div
                   key={`${record.mapId}_${record.filename}_${record.lastSeenAt || ''}`}
-                  className={`group p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 ${
+                  className={`group p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 ${
                     isEnc
                       ? 'bg-[#F9FEF8] border-[#95D151]/60 hover:border-[#95D151]'
                       : 'bg-slate-50/80 border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   {/* Left: Avatar + Details */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="relative w-11 h-11 rounded-xl bg-white border border-[#E6EEF8] p-0.5 flex items-center justify-center shrink-0 shadow-2xs">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-[#E6EEF8] p-0.5 flex items-center justify-center shrink-0 shadow-2xs">
                       <ImageZoom
                         src={avatarUrl}
                         alt={cleanName}
                         className="w-full h-full"
-                        imgClassName="w-full h-full object-contain"
+                        imgClassName="w-full h-full object-contain pointer-events-none"
                         zoomWidth={240}
                         zoomHeight={240}
                       />
                       <ElementBadges
                         elements={petMeta?.elements}
-                        className="absolute top-0 left-0 z-10"
+                        className="absolute top-0 left-0 z-10 scale-90 origin-top-left"
                         size="xs"
                       />
                       {isEnc ? (
@@ -364,8 +364,8 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                       )}
                     </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate" title={cleanName}>
                           {cleanName}
                         </h4>
@@ -388,23 +388,23 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                         {/* Status Badge */}
                         {isEnc ? (
                           <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/50">
-                            已点亮图鉴
+                            已点亮
                           </span>
                         ) : (
                           <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600">
-                            已置为未遇见
+                            未遇见
                           </span>
                         )}
                       </div>
 
                       {/* Time info and note */}
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1 flex-wrap font-medium">
+                      <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-400 mt-1 flex-wrap font-medium">
                         <span className="flex items-center gap-1 font-mono text-slate-500" title={timeObj.fullTime}>
                           <Clock className="w-3 h-3 text-slate-400" />
                           {timeObj.relative}
                         </span>
                         {record.note && (
-                          <span className="bg-white px-1.5 py-0.2 rounded border border-slate-200 text-slate-500 text-[10px]">
+                          <span className="bg-white px-1.5 py-0.2 rounded border border-slate-200 text-slate-500 text-[10px] truncate max-w-[150px]">
                             {record.note}
                           </span>
                         )}
@@ -413,7 +413,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                   </div>
 
                   {/* Right Actions: Quick Undo Toggle & Optional Navigate */}
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                     {/* Toggle Button for undoing accidental clicks */}
                     <button
                       type="button"
@@ -421,7 +421,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                         sound.playClick();
                         onToggleEncounter(record.mapId, record.filename);
                       }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all flex items-center gap-1 cursor-pointer active:scale-95 ${
+                      className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-black border-2 transition-all flex items-center gap-1 cursor-pointer active:scale-95 ${
                         isEnc
                           ? 'bg-white hover:bg-rose-50 hover:border-rose-300 text-rose-600 border-slate-200'
                           : 'bg-[#E1F7DB] hover:bg-[#D3F3CA] text-[#2D6613] border-[#95D151]'
@@ -441,7 +441,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                           onNavigateToPet(mapObj.num, record.filename);
                           onClose();
                         }}
-                        className="p-1.5 rounded-xl bg-white hover:bg-[#7ABCF4] text-slate-400 hover:text-white border border-slate-200 hover:border-[#7ABCF4] transition-colors cursor-pointer"
+                        className="p-1 sm:p-1.5 rounded-xl bg-white hover:bg-[#7ABCF4] text-slate-400 hover:text-white border border-slate-200 hover:border-[#7ABCF4] transition-colors cursor-pointer"
                         title="在主界面图鉴中定位此精灵"
                       >
                         <ArrowRight className="w-4 h-4" />

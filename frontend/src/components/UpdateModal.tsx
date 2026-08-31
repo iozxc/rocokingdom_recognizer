@@ -16,10 +16,13 @@ import {
     Trash2,
     Activity,
     HardDrive,
+    Globe,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { useUpdateStore } from '../services/useUpdateStore';
 import { updateStore } from '../services/updateStore';
+import { api } from '../services/api';
+import { IS_STATIC } from '../services/staticMode';
 
 interface UpdateModalProps {
     isOpen: boolean;
@@ -83,6 +86,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
     const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
     const [isInstalling, setIsInstalling] = useState<boolean>(false);
     const [installSuccessMessage, setInstallSuccessMessage] = useState<string | null>(null);
+    const [webPath, setWebPath] = useState<string>('https://roco.omisheep.cn/');
 
     const updateData = updateState.updateData;
     const downloadStatus = updateState.downloadStatus;
@@ -200,6 +204,14 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
     useEffect(() => {
         if (isOpen) {
             fetchUpdate();
+            // 在桌面端 App 下加载 resources/chat.json 中的 web_path 网页版链接
+            if (!IS_STATIC) {
+                api.getChatConfig().then((cfg) => {
+                    if (cfg?.web_path && typeof cfg.web_path === 'string') {
+                        setWebPath(cfg.web_path);
+                    }
+                }).catch(() => {});
+            }
         } else {
             setHasChecked(false);
             setIsInstalling(false);
@@ -641,8 +653,38 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                         </div>
                     ) : null}
 
-                    {/* 源码链接：始终可见，不依赖是否检测到更新 */}
-                    <div className="pt-3 border-t border-slate-100 space-y-2">
+                    {/* 网页版与源码链接：始终可见，不依赖是否检测到更新 */}
+                    <div className="pt-3 border-t border-slate-100 space-y-2.5">
+                        {/* 网页版入口（仅 App 桌面端展示） */}
+                        {!IS_STATIC && webPath && (
+                            <div>
+                                <span className="text-xs font-black text-slate-700 flex items-center gap-1 mb-1.5">
+                                    <Globe className="w-3.5 h-3.5 text-[#2B78C4]" />
+                                    网页在线版
+                                </span>
+                                <a
+                                    href={webPath}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-3 bg-gradient-to-r from-[#EBF4FE] to-[#F5F9FF] hover:from-[#DFEEFD] hover:to-[#EBF4FE] border-2 border-[#BCD7F2] hover:border-[#7ABCF4] rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] transition-all group shadow-2xs cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="w-7 h-7 rounded-xl bg-[#7ABCF4] text-white flex items-center justify-center shrink-0 shadow-xs">
+                                            <Globe className="w-4 h-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                                                <span>洛克王国徽章试炼图鉴·网页版</span>
+                                                <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 font-bold">免安装·多端通用</span>
+                                            </div>
+                                            <p className="text-[11px] text-slate-500 font-normal truncate mt-0.5">{webPath}</p>
+                                        </div>
+                                    </div>
+                                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#2B78C4] shrink-0 ml-2" />
+                                </a>
+                            </div>
+                        )}
+
                         <span className="text-xs font-black text-slate-700 flex items-center gap-1">
                             <ExternalLink className="w-3.5 h-3.5 text-[#2B78C4]" />
                             开源项目地址

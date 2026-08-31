@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { AgreementBody } from './AgreementBody';
 import { api } from '../services/api';
+import { IS_STATIC } from '../services/staticMode';
 
 const REQUIRED_READ_SECONDS = 3;
 // 距底部小于该值即可认为已滚动到底
@@ -81,8 +82,8 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
         {children}
 
         {showOverlay && (
-            <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-slate-900/25 backdrop-blur-[2px]">
-              <div className="relative w-full max-w-lg max-h-[85vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col">
+            <div className="fixed inset-0 z-[3000] flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-[2px] select-none">
+              <div className="relative w-full max-w-lg max-h-[88vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col">
 
                 {/* 顶部标题栏 */}
                 <div className="px-4 py-3 bg-[#7ABCF4] text-white flex items-center gap-2.5 border-b-2 border-[#5DA8E8] shrink-0">
@@ -101,35 +102,35 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
                 <div
                     ref={bodyRef}
                     onScroll={handleScroll}
-                    className="flex-1 min-h-0 max-h-[46vh] overflow-y-auto px-4 py-3"
+                    className="flex-1 min-h-0 max-h-[48vh] overflow-y-auto px-4 py-3"
                 >
                   <AgreementBody />
                 </div>
 
                 {/* 底部：说明 + 按钮 */}
-                <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+                <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 shrink-0">
                   <p className="text-[10px] text-slate-500 leading-snug">
                     开源不收费 · 源码可见
                   </p>
-                  <div className="flex flex-col items-end gap-1">
+                  <div className="flex flex-col items-stretch sm:items-end gap-1.5">
                     {!unlocked && (
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-slate-400 text-center sm:text-right">
                           滑动到底部或等待 {countdown}s 后即可同意
                         </span>
                     )}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                       <button
                           type="button"
                           onClick={handleExit}
-                          className="px-3.5 h-8 rounded-lg bg-white border-2 border-[#7ABCF4] text-[#2B78C4] text-[11px] font-black hover:bg-[#EAF4FF] transition-colors cursor-pointer"
+                          className="flex-1 sm:flex-none px-3.5 h-8 rounded-lg bg-white border-2 border-[#7ABCF4] text-[#2B78C4] text-[11px] font-black hover:bg-[#EAF4FF] transition-colors cursor-pointer whitespace-nowrap"
                       >
-                        退出程序
+                        {IS_STATIC ? '关闭窗口' : '退出程序'}
                       </button>
                       <button
                           type="button"
                           onClick={handleAccept}
                           disabled={!unlocked}
-                          className={`px-4 h-8 rounded-lg text-[11px] font-black transition-colors cursor-pointer ${
+                          className={`flex-1 sm:flex-none px-4 h-8 rounded-lg text-[11px] font-black transition-colors cursor-pointer whitespace-nowrap ${
                               unlocked
                                   ? 'bg-[#7ABCF4] hover:bg-[#5DA8E8] text-white shadow-md shadow-sky-200'
                                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
@@ -146,3 +147,4 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
       </>
   );
 };
+

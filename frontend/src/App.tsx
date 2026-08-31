@@ -15,6 +15,8 @@ import { EncounterHistoryModal } from './components/EncounterHistoryModal';
 import { UserManualModal } from './components/UserManualModal';
 import { UpdateModal } from './components/UpdateModal';
 import { DataUpdateModal } from './components/DataUpdateModal';
+import { DownloadAppModal } from './components/DownloadAppModal';
+import { DataManageModal } from './components/DataManageModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
@@ -31,6 +33,7 @@ import { getFireTrialPetsCached, invalidateFireTrialData } from './services/fire
 import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
+import { IS_STATIC } from './services/staticMode';
 import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState } from './types';
 import { isPetEncounteredInRecords } from './utils/petHelper';
 
@@ -53,6 +56,8 @@ export default function App() {
   const [detailPet, setDetailPet] = useState<PetItem | null>(null);
   const [feedbackInitialType, setFeedbackInitialType] = useState<string>('');
   const [isUpdateOpen, setIsUpdateOpen] = useState<boolean>(false);
+  const [isDownloadOpen, setIsDownloadOpen] = useState<boolean>(false);
+  const [isDataManageOpen, setIsDataManageOpen] = useState<boolean>(false);
   const [isDataUpdateOpen, setIsDataUpdateOpen] = useState<boolean>(false);
   const [dataUpdateAvailable, setDataUpdateAvailable] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
@@ -155,7 +160,9 @@ export default function App() {
   useEffect(() => {
     refreshRecords();
     fetchIconsData();
-    updateStore.init();
+    if (!IS_STATIC) {
+      updateStore.init();
+    }
 
     // 拉取后端可见的试炼列表（火系仅开发环境返回）
     api.getTrials().then((res) => {
@@ -164,11 +171,15 @@ export default function App() {
       }
     });
     // 预热火系全图鉴，进入火系试炼时不闪加载页
-    getFireTrialPetsCached().catch(() => {});
+    if (!IS_STATIC) {
+      getFireTrialPetsCached().catch(() => {});
+    }
     // 启动时异步检测图鉴数据是否需要更新（不阻塞界面）
-    api.checkDataUpdates()
-        .then((res) => setDataUpdateAvailable(res.has_update))
-        .catch(() => {});
+    if (!IS_STATIC) {
+      api.checkDataUpdates()
+          .then((res) => setDataUpdateAvailable(res.has_update))
+          .catch(() => {});
+    }
 
     // 订阅 storage 变更（当从 Flask 后端加载完成时自动更新 UI）
     const unsubscribeRecords = storage.subscribe((newRecords) => {
@@ -474,11 +485,12 @@ export default function App() {
             onToggleSound={handleToggleSound}
             onOpenHistory={() => setIsHistoryOpen(true)}
             onOpenManual={() => setIsManualOpen(true)}
-            onOpenFeedback={() => setIsFeedbackOpen(true)}
-            onOpenUpdate={() => {
+            onOpenFeedback={IS_STATIC ? undefined : () => setIsFeedbackOpen(true)}
+            onOpenUpdate={IS_STATIC ? undefined : () => {
               updateStore.clearDot();
               setIsUpdateOpen(true);
             }}
+            onOpenDownloadApp={IS_STATIC ? () => setIsDownloadOpen(true) : undefined}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenHub={() => {
               // 先归零滚动，避免切换后内容高度变化导致浏览器夹回滚动位置产生跳动
@@ -487,7 +499,7 @@ export default function App() {
             }}
             showMapNav={view === 'assistant'}
             mapsConfig={activeTrialMaps}
-            rightStatus={<AuthBadge />}
+            rightStatus={IS_STATIC ? undefined : <AuthBadge />}
         />
 
         {/* Sub-Header Toolbar: Displayed only when floating buttons are in 'hidden' mode */}
@@ -497,8 +509,9 @@ export default function App() {
                 onFilterChange={(mode) => setFilterMode(mode)}
                 encounteredCount={currentMapStats.encounteredCount}
                 totalCount={currentMapPets.length}
-                onOpenSingleRecognizer={() => guardRecognition(() => setIsSingleRecognizerOpen(true))}
-                onOpenBatchInit={() => guardRecognition(() => setIsBatchInitOpen(true))}
+                showFollow={!IS_STATIC}
+                onOpenSingleRecognizer={IS_STATIC ? undefined : () => guardRecognition(() => setIsSingleRecognizerOpen(true))}
+                onOpenBatchInit={IS_STATIC ? undefined : () => guardRecognition(() => setIsBatchInitOpen(true))}
                 onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
             />
         )}
@@ -534,15 +547,17 @@ export default function App() {
                 />
 
                 {/* Pet Image Recognition Module (BatchRecognizerCard: 3 columns layout + ? help button) */}
-                <BatchRecognizerCard
-                    key={`${currentMap.id}_${recognizerKey}`}
-                    currentMap={currentMap}
-                    allMapsPets={mapsData}
-                    records={records}
-                    isEncountered={isPetEncountered}
-                    onBatchEncounterSuccess={handleBatchEncounterSuccess}
-                    onSelectMap={(num) => setActiveMapNum(num)}
-                />
+                {!IS_STATIC && (
+                    <BatchRecognizerCard
+                        key={`${currentMap.id}_${recognizerKey}`}
+                        currentMap={currentMap}
+                        allMapsPets={mapsData}
+                        records={records}
+                        isEncountered={isPetEncountered}
+                        onBatchEncounterSuccess={handleBatchEncounterSuccess}
+                        onSelectMap={(num) => setActiveMapNum(num)}
+                    />
+                )}
 
                 {/* Map Pets Grid */}
                 <PetGrid
@@ -554,7 +569,7 @@ export default function App() {
                     onFilterChange={(mode) => setFilterMode(mode)}
                     searchQuery={searchQuery}
                     onOpenPetDetail={(pet) => setDetailPet(pet)}
-                    onOpenFeedback={(type) => {
+                    onOpenFeedback={IS_STATIC ? undefined : (type) => {
                       setFeedbackInitialType(type);
                       setIsFeedbackOpen(true);
                     }}
@@ -567,6 +582,18 @@ export default function App() {
         {/* Footer */}
         <footer className="mt-12 text-center text-xs text-slate-400">
           <p>洛克王国徽章试炼 · 精灵图鉴识别 · 支持本地离线存储</p>
+          {IS_STATIC && (
+              <p className="mt-1.5">
+                <a
+                    href="https://beian.miit.gov.cn/"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="hover:text-slate-600"
+                >
+                  湘ICP备2021012842号-1
+                </a>
+              </p>
+          )}
         </footer>
 
         {/* Modals */}
@@ -610,7 +637,7 @@ export default function App() {
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
             onTestEffect={(level, type) => triggerScanSyncEffect(type, level)}
-            onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
+            onOpenDataUpdate={IS_STATIC ? undefined : () => setIsDataUpdateOpen(true)}
         />
 
 
@@ -640,8 +667,10 @@ export default function App() {
                 records={records}
                 onNavigateToPet={handleNavigateToPet}
                 onToggleEncounter={handleToggleEncounter}
-                onOpenSingleRecognizer={() => guardRecognition(() => setIsSingleRecognizerOpen(true))}
-                onOpenBatchInit={() => guardRecognition(() => setIsBatchInitOpen(true))}
+                searchOnly={IS_STATIC}
+                onOpenDataManage={() => setIsDataManageOpen(true)}
+                onOpenSingleRecognizer={IS_STATIC ? undefined : () => guardRecognition(() => setIsSingleRecognizerOpen(true))}
+                onOpenBatchInit={IS_STATIC ? undefined : () => guardRecognition(() => setIsBatchInitOpen(true))}
                 mapsConfig={activeTrialMaps}
             />
         )}
@@ -684,6 +713,18 @@ export default function App() {
         <UpdateModal
             isOpen={isUpdateOpen}
             onClose={() => setIsUpdateOpen(false)}
+        />
+
+        {/* 下载桌面APP弹窗（web 版专用） */}
+        <DownloadAppModal
+            isOpen={isDownloadOpen}
+            onClose={() => setIsDownloadOpen(false)}
+        />
+
+        {/* 数据管理弹窗（web 版：导入/导出） */}
+        <DataManageModal
+            isOpen={isDataManageOpen}
+            onClose={() => setIsDataManageOpen(false)}
         />
 
         {/* 图鉴数据更新弹窗 */}

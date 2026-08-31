@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { api } from '../services/api';
+import { IS_STATIC } from '../services/staticMode';
 
 
 interface FeedbackContactModalProps {
@@ -240,7 +241,8 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                         })}
                     </div>
 
-                    {/* Online Feedback Form */}
+                    {/* Online Feedback Form（web 版隐藏：无后端接收，改为引导到 QQ 群） */}
+                    {!IS_STATIC && (
                     <form onSubmit={handleSubmitFeedback} className="space-y-3 pt-1">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-black text-slate-700 flex items-center gap-1.5">
@@ -339,6 +341,7 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                             )}
                         </button>
                     </form>
+                    )}
                 </div>
             </div>
         </div>

@@ -120,12 +120,39 @@ def api_app_agreement_accept():
 
 @bp.route('/api/resources/<path:filename>', methods=['GET'])
 def api_resources_file(filename):
-    """读取 resources 目录下的资源文件；本地未打包时从 Gitee raw 拉取。"""
+    """读取 resources 目录下的资源文件。对于 chat.json 等动态配置，优先从 Gitee raw 拉取最新配置，失败时回退本地。"""
     try:
         base = os.path.normpath(config.get_resource_path('resources'))
         safe = os.path.normpath(os.path.join(base, filename))
         if not safe.startswith(base):
             return error('非法资源路径', 400)
+
+        # 对于 chat.json 等需要动态修改生效的配置文件，优先请求 Gitee 远程仓库获取最新内容
+        if filename.lower() == 'chat.json':
+            try:
+                import requests
+                t = int(time.time())
+                urls = [
+                    f'https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t={t}',
+                    f'https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t={t}',
+                ]
+                for u in urls:
+                    try:
+                        r = requests.get(u, timeout=4, headers={'Cache-Control': 'no-cache', 'User-Agent': 'Mozilla/5.0'})
+                        if r.status_code == 200 and r.content:
+                            # 成功获取最新远程配置，同时同步写入本地文件作为离线缓存
+                            if os.path.exists(base):
+                                try:
+                                    with open(safe, 'wb') as f:
+                                        f.write(r.content)
+                                except Exception:
+                                    pass
+                            return Response(r.content, mimetype='application/json; charset=utf-8')
+                    except Exception:
+                        continue
+            except Exception as e:
+                logger.warning(f"动态获取远程 chat.json 失败，回退本地文件: {e}")
+
         if os.path.exists(safe) and os.path.isfile(safe):
             return send_from_directory(base, filename)
 

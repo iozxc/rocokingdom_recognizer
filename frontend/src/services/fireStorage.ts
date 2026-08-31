@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { EncounterRecord } from '../types';
 import { api } from './api';
+import { IS_STATIC, PLATFORM } from './staticMode';
 import { isPetEncounteredInRecords } from '../utils/petHelper';
 
 const LOCAL_STORAGE_KEY = 'roco_encountered_pets_fire_v1';
@@ -10,6 +11,7 @@ type Listener = (records: Record<string, EncounterRecord>) => void;
 interface FireStoragePayload {
   encounteredPets2?: Record<string, EncounterRecord>;
   version?: number;
+  platform?: 'app' | 'web';
 }
 
 /**
@@ -29,15 +31,19 @@ export class FireStorageService {
 
   constructor() {
     this.loadFromLocalStorage();
-    this.startPoll();
-    this.flushOnUnload();
-    this.fetchRemote().catch(() => {
-      // 离线时继续使用 localStorage
-    });
+    // 纯前端静态版：仅用 localStorage，不做后端轮询/同步。
+    if (!IS_STATIC) {
+      this.startPoll();
+      this.flushOnUnload();
+      this.fetchRemote().catch(() => {
+        // 离线时继续使用 localStorage
+      });
+    }
   }
 
   private flushOnUnload() {
     if (typeof window === 'undefined') return;
+    if (IS_STATIC) return;
     const flush = () => {
       if (!this.hasPendingLocalChanges && !this.saveTimeout) return;
       try {
@@ -75,6 +81,7 @@ export class FireStorageService {
     return {
       encounteredPets2: { ...this.records },
       version: this.localVersion,
+      platform: PLATFORM,
     };
   }
 
@@ -150,6 +157,10 @@ export class FireStorageService {
   }
 
   private async saveToRemote() {
+    if (IS_STATIC) {
+      this.hasPendingLocalChanges = false;
+      return;
+    }
     try {
       const res = await axios.post<{ version?: number }>(
           `${api.getApiBase()}/api/storage`,
@@ -253,4 +264,3 @@ export class FireStorageService {
 }
 
 export const fireStorage = new FireStorageService();
-

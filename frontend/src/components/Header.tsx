@@ -1,9 +1,11 @@
 import React from 'react';
-import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings, BookOpen, History} from 'lucide-react';
+import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings, BookOpen, History, Download} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { MapConfig } from '../types';
 import { sound } from '../services/sound';
 import { useUpdateStore } from '../services/useUpdateStore';
+import { IS_STATIC } from '../services/staticMode';
+import { APP_VERSION } from '../version';
 
 export interface HeaderMapStat {
     num: number;
@@ -25,6 +27,7 @@ interface HeaderProps {
     onOpenManual?: () => void;
     onOpenFeedback?: () => void;
     onOpenUpdate?: () => void;
+    onOpenDownloadApp?: () => void;
     onOpenSettings?: () => void;
     onOpenHub?: () => void;
     showMapNav?: boolean;
@@ -46,6 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                   onOpenManual,
                                                   onOpenFeedback,
                                                   onOpenUpdate,
+                                                  onOpenDownloadApp,
                                                   onOpenSettings,
                                                   onOpenHub,
                                                   showMapNav = true,
@@ -68,7 +72,8 @@ export const Header: React.FC<HeaderProps> = ({
     const showUpdateFill = updatePercent > 0;
 
     return (
-        <header className="bg-[#7ABCF4] border-b-4 border-[#5DA8E8] sticky top-0 z-30 shadow-md text-white select-none">
+        <>
+        <header className="relative bg-[#7ABCF4] border-b-4 border-[#5DA8E8] sticky top-0 z-30 shadow-md text-white select-none">
             <div className="mx-auto px-2 sm:px-4 lg:px-8 py-1.5 sm:py-2">
                 <div className="relative flex items-center justify-between gap-1.5 sm:gap-3">
                     {/* Logo & Kingdom Branding */}
@@ -118,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 <div className="hidden min-[840px]:flex items-center gap-1.5 text-[10px] text-white/80 font-medium whitespace-nowrap min-w-0">
                                     <span>图鉴识别 · 本地记录</span>
                                     <span className="text-[9px] font-mono text-white/40 tracking-wider">
-                                        v{updateState.updateData?.current_version || '1.0.0'}
+                                        v{APP_VERSION}
                                     </span>
                                 </div>
                             </div>
@@ -226,8 +231,22 @@ export const Header: React.FC<HeaderProps> = ({
                             </button>
                         )}
 
-                        {/* Check Update Button */}
-                        {onOpenUpdate && (
+                        {/* Web: 下载APP；桌面: 检查更新 */}
+                        {onOpenDownloadApp ? (
+                            <button
+                                id="download-app-btn"
+                                onClick={() => {
+                                    sound.playClick();
+                                    onOpenDownloadApp();
+                                }}
+                                title="下载桌面版使用本地识别AI"
+                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
+                            >
+                                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
+                                <span className="hidden min-[1100px]:inline">下载APP</span>
+                                <span className="hidden min-[540px]:inline min-[1100px]:hidden">下载</span>
+                            </button>
+                        ) : (onOpenUpdate && (
                             <span className="relative inline-flex shrink-0">
                                 <button
                                     id="check-update-btn"
@@ -252,7 +271,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
                                 )}
                             </span>
-                        )}
+                        ))}
 
                         <button
                             id="sound-toggle-btn"
@@ -287,6 +306,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
             </div>
         </header>
+        </>
     );
 };
 
