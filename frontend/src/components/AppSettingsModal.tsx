@@ -44,6 +44,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     return storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
   });
   const [view, setView] = useState<'main' | 'update' | 'system'>('main');
+  const [exiting, setExiting] = useState<boolean>(false);
   const [autoCheckUpdate, setAutoCheckUpdate] = useState<boolean>(() => {
     return storage.getSetting<boolean>('autoCheckUpdate', true);
   });
@@ -135,6 +136,16 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     sound.playClick();
     setEffectLevel(level);
     storage.setSetting('effectLevel', level);
+  };
+
+  const handleBack = () => {
+    if (view === 'main') return;
+    sound.playClick();
+    setExiting(true);
+    window.setTimeout(() => {
+      setView('main');
+      setExiting(false);
+    }, 200);
   };
 
 
@@ -235,10 +246,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   <button
                       type="button"
                       id="app-settings-back-btn"
-                      onClick={() => {
-                        sound.playClick();
-                        setView('main');
-                      }}
+                      onClick={handleBack}
                       className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer"
                       title="返回"
                   >
@@ -267,9 +275,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
           <div
               ref={contentRef}
               onScroll={checkScrollable}
-              className="relative grid flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="relative grid flex-1 min-h-0 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
-            <div className={`col-start-1 row-start-1 p-4 sm:p-5 space-y-4 sm:space-y-5 text-xs text-slate-600 transition-transform duration-300 ease-out ${view === 'main' ? 'translate-x-full pointer-events-none' : 'translate-x-0'}`}>
+            <div key={`sub-${view}`} className={`col-start-1 row-start-1 p-4 sm:p-5 space-y-4 sm:space-y-5 text-xs text-slate-600 ${view === 'main' ? 'hidden' : (exiting ? 'animate-out fade-out slide-out-to-right duration-200' : 'animate-in fade-in slide-in-from-right duration-300')}`}>
             {view === 'update' ? (
                 <div className="space-y-5">
                   <div className="flex items-center justify-between">
@@ -430,7 +438,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
 
             {/* 主菜单 */}
-            <div className={`col-start-1 row-start-1 p-5 space-y-5 text-xs text-slate-600 transition-transform duration-300 ease-out ${view === 'main' ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div key={`main-${view}`} className={`col-start-1 row-start-1 p-5 space-y-5 text-xs text-slate-600 ${view === 'main' ? 'animate-in fade-in duration-200' : 'hidden'}`}>
 
             {/* Section 1: 视觉与特效 */}
             <div className="space-y-2">
