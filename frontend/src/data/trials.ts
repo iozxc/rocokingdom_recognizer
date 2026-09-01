@@ -39,10 +39,13 @@ export const FIRE_MAP_CONFIGS: MapConfig[] = [
 ];
 
 /**
- * 地图感知试炼的本地兜底地图配置：正常由后端 /api/trials 下发，
+ * 地图感知的本地兜底地图配置：正常由后端 /api/trials 下发，
  * 后端不可用或字段缺失时才使用这里。
+ * 注意：地图感知是开放世界跑图工具（按小地图定位玩家世界坐标），
+ * 不是徽章试炼；这里只是复用 Trial/MapConfig 的展示结构，
+ * trialKey 'map' 仅为前端内部伪 key，后端 config.TRIALS 中并不存在该试炼。
  */
-export const MAP_MAP_CONFIG: MapConfig[] = [
+export const WORLD_MAP_CONFIG: MapConfig[] = [
   {
     id: 'map1',
     num: 1,
@@ -68,7 +71,7 @@ export function resolveTrialMaps(trials: Trial[], trialKey: string): MapConfig[]
     return FIRE_MAP_CONFIGS;
   }
   if (trialKey === 'map') {
-    return MAP_MAP_CONFIG;
+    return WORLD_MAP_CONFIG;
   }
   return MAP_CONFIGS;
 }

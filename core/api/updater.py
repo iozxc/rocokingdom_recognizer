@@ -10,8 +10,8 @@ from py7zr.exceptions import UnsupportedCompressionMethodError
 
 import config
 from flask import Blueprint, request
-from core.logger import logger
-from core.version import get_update_info
+from core.infra.logger import logger
+from core.infra.version import get_update_info
 import threading
 
 bp = Blueprint("updater", __name__)

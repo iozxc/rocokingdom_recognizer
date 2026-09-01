@@ -4,7 +4,7 @@ import os
 import time
 
 import config
-from core.logger import logger
+from core.infra.logger import logger
 
 DATA_FILE = config.DATA_JSON
 

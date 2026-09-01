@@ -12,7 +12,7 @@ def create_app():
 
     from config import get_resource_path
     from core.api import register_blueprints
-    from core.db import close_db_connection
+    from core.infra.db import close_db_connection
 
     app = Flask(
         __name__,
@@ -29,7 +29,7 @@ def create_app():
 def _register_error_handlers(app):
     """全局错误处理：未捕获异常与 404 统一返回 JSON 而非 HTML 错误页。"""
     from core.api.response import error as api_error
-    from core.logger import logger
+    from core.infra.logger import logger
 
     @app.errorhandler(404)
     def not_found(e):

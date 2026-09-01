@@ -5,7 +5,7 @@ import threading
 import pygetwindow as gw
 import webview
 
-from core.logger import logger
+from core.infra.logger import logger
 
 # 主窗口的默认配置尺寸；低分辨率屏幕下会自动降级为全屏
 _MAIN_WINDOW_WIDTH = 1500

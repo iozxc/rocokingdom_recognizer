@@ -539,7 +539,7 @@ export const ScannerApp: React.FC = () => {
     }
   };
 
-  // 钉住/取消钉住当前地图：钉住后识别完成不再跳回识别结果对应的地图
+  // 钉住/取消钉住当前试炼关卡：钉住后识别完成不再跳回识别结果对应的关卡
   const handleTogglePin = () => {
     sound.playClick();
     if (pinnedMapNum !== null) {
@@ -738,7 +738,7 @@ export const ScannerApp: React.FC = () => {
 
       if (pyApi) {
         if (isReRecognize && targetMap) {
-          // 重新识别：指定地图识别
+          // 重新识别：指定试炼关卡（图1-3）识别
           console.log(`[PyWebView] 调用 capture_and_recognize_by_map(${targetMap})`);
           if (typeof pyApi.capture_and_recognize_by_map === 'function') {
             capRes = await pyApi.capture_and_recognize_by_map(targetMap);
@@ -965,7 +965,7 @@ export const ScannerApp: React.FC = () => {
                               title={
                                 pinnedMapNum !== null
                                     ? `已钉住【${currentDetectedMap.name}】：再次识别后视图不再跳回`
-                                    : '钉住当前地图：再次识别后视图不再跳回识别出的地图'
+                                    : '钉住当前关卡：再次识别后视图不再跳回识别出的关卡'
                               }
                           >
                             <MapPin className={`w-3 h-3 ${pinnedMapNum !== null ? 'fill-[#E5C43B]' : ''}`} />

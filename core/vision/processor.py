@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from core.logger import logger
+from core.infra.logger import logger
 
 
 def segment_icons(image_bytes, total_count=999):

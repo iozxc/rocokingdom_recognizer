@@ -1,10 +1,14 @@
-"""地图专用用户数据存储服务：roco_user_mapdata.json 的读写、内存缓存与原子持久化。"""
+"""【地图感知】开放世界地图专用用户数据存储：roco_user_mapdata.json 的读写、内存缓存与原子持久化。
+
+存的是地图感知（开放世界跑图）的足迹与地图样式，与徽章试炼的图鉴数据
+（roco_user_data.json）完全分离。
+"""
 import json
 import os
 import time
 
 import config
-from core.logger import logger
+from core.infra.logger import logger
 
 MAP_DATA_FILE = config.MAP_DATA_JSON
 
@@ -47,7 +51,7 @@ class UserMapStorage:
         self._cache = None
 
     def load(self) -> dict:
-        """返回当前地图存储数据（内存缓存优先，首次读取磁盘）。"""
+        """返回地图感知存储数据（内存缓存优先，首次读取磁盘）。"""
         if self._cache is not None:
             return self._cache
 
@@ -76,7 +80,7 @@ class UserMapStorage:
 
     @property
     def version(self) -> int:
-        """当前地图数据版本号。"""
+        """地图感知数据版本号。"""
         return int(self.load().get("version", 0))
 
     def save(self, payload: dict) -> dict:

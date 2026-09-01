@@ -23,7 +23,7 @@ def _default_secret_path():
 def _load_embedded_secret():
     """读取构建期注入的 core._auth_secret 模块（打包进 PYZ，无外部文件）。"""
     try:
-        from core._auth_secret import SECRET
+        from core.auth._auth_secret import SECRET
         if SECRET:
             return bytes(SECRET)
     except Exception:
@@ -211,7 +211,7 @@ def _post_api(path, payload, timeout=10):
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         if _META_BASE and _META_BASE != SERVER_BASE:
             try:
-                from core.logger import logger
+                from core.infra.logger import logger
                 logger.warning(f"授权服务器主地址连不上({SERVER_BASE})，回退 meta 备用地址({_META_BASE})")
             except Exception:
                 pass
@@ -289,7 +289,7 @@ def report_app_event(event, machine_code=None, timeout=10):
     except Exception as e:
         logger = None
         try:
-            from core.logger import logger as _logger
+            from core.infra.logger import logger as _logger
             logger = _logger
         except Exception:
             pass

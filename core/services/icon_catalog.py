@@ -1,5 +1,5 @@
 """图标目录服务：按试炼读取并缓存精灵名称。"""
-from core.icon_names import scan_icon_names
+from core.infra.icon_names import scan_icon_names
 
 
 class IconCatalog:

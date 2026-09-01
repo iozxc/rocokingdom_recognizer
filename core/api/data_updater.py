@@ -7,7 +7,7 @@ from core.services.data_updater import (
     get_job_status,
     start_data_update,
 )
-from core.logger import logger
+from core.infra.logger import logger
 
 bp = Blueprint("data_updater", __name__)
 

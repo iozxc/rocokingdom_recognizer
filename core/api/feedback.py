@@ -2,8 +2,8 @@ import requests
 from flask import Blueprint, request
 
 import config
-from core.logger import logger
-from core.ocr_corrections import add_correction
+from core.infra.logger import logger
+from core.vision.ocr_corrections import add_correction
 
 bp = Blueprint("feedback", __name__)
 

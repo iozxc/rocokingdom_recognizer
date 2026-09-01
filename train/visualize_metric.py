@@ -36,7 +36,7 @@ except Exception:
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from core.pet_path import split_pet_filename
+from core.infra.pet_path import split_pet_filename
 
 ONNX_DIR = PROJECT_ROOT / "train" / "onnx"
 VIZ_DIR = ONNX_DIR / "viz"

@@ -3,7 +3,7 @@ import ctypes
 import sys
 import time
 
-from core.logger import logger
+from core.infra.logger import logger
 
 # 会话级命名互斥体：进程正常退出或崩溃后由系统自动释放，不会残留锁文件
 _MUTEX_NAME = "Local\\RocoKingdomRecognizer_SingleInstance"

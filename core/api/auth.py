@@ -7,7 +7,7 @@
 from flask import Blueprint, request
 
 from core.api.response import error, success
-from core.auth_service import (
+from core.auth.service import (
     get_state,
     retry_auth,
     reauthorize_auth,
@@ -15,7 +15,7 @@ from core.auth_service import (
     refresh_auth_code,
     unbind_device,
 )
-from core.logger import logger
+from core.infra.logger import logger
 
 bp = Blueprint("auth", __name__)
 

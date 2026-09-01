@@ -5,9 +5,9 @@
 现有用 resnet50 提取的 title 特征库是 onnx/features_title_db_1.pkl(features 3x2048)。
 本脚本改用 DINOv2 backbone(onnx/dino_backbone.onnx, 输入 518, 输出 384)，
 对 train/dataset/title_1 的 1.png/2.png/3.png 生成多视角(多 view)特征，
-输出成 onnx/features_title_db_1.pkl(features 3x384)，供 MapClassifier 使用。
+输出成 onnx/features_title_db_1.pkl(features 3x384)，供 StageClassifier 使用。
 
-说明：DINOv2 特征维度 384；MapClassifier 已改为自动适配 518 输入。
+说明：DINOv2 特征维度 384；StageClassifier 已改为自动适配 518 输入。
 用法(GPU 环境，无训练，纯前向，几秒到几十秒)：
   D:...python.exe train/train_title_dino.py --views 8 --device cuda
 """
@@ -134,12 +134,12 @@ def main():
     pickle.dump(db, open(out, "wb"))
     print(f"已写入 {out}（features {feats.shape}, paths {paths}）", flush=True)
 
-    # 验证 ONNX 推理端(MapClassifier 会用)能正常加载
+    # 验证 ONNX 推理端(StageClassifier 会用)能正常加载
     import onnxruntime as ort
     import cv2
     sess = ort.InferenceSession(args.backbone, providers=["CPUExecutionProvider"])
     in_sz = sess.get_inputs()[0].shape[2]
-    print(f"backbone 输入尺寸: {in_sz}（MapClassifier 将自动适配）", flush=True)
+    print(f"backbone 输入尺寸: {in_sz}（StageClassifier 将自动适配）", flush=True)
 
 
 if __name__ == "__main__":

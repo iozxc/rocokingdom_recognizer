@@ -5,7 +5,7 @@
     char_corrections: 单字替换（全局形近字，误伤风险高，默认留空）
 
 用法：
-    from core.ocr_corrections import correct_ocr_text
+    from core.vision.ocr_corrections import correct_ocr_text
     final = correct_ocr_text(ocr_recognized_text)
 
 模块级缓存，数据文件变化后可调用 invalidate() 刷新。
@@ -15,7 +15,7 @@ import json
 from functools import lru_cache
 
 import config
-from core.logger import logger
+from core.infra.logger import logger
 
 
 # 数据文件路径（config.OCR_CORRECTIONS_JSON，缺省回退到项目根）

@@ -6,11 +6,11 @@ import cv2
 from PIL import Image, ImageDraw, ImageFont  # 增加了 ImageDraw 和 ImageFont
 
 import config
-from core.logger import logger
-from core.tools import clean_debug_folder
+from core.infra.logger import logger
+from core.infra.capture import clean_debug_folder
 
 # --- 配置 ---
-MODEL_PATH = config.SCANNER_MODAL if config.SCANNER_MODAL.endswith(".onnx") else config.SCANNER_MODAL.replace(".pt", ".onnx")
+MODEL_PATH = config.SCANNER_MODEL if config.SCANNER_MODEL.endswith(".onnx") else config.SCANNER_MODEL.replace(".pt", ".onnx")
 INFER_IMGSZ = 1920
 CONF_THRESH = 0.1
 NMS_THRESH = 0.4

@@ -51,7 +51,7 @@ from PIL import Image
 import timm
 from tqdm import tqdm
 
-from core.pet_path import split_pet_filename, sort_key
+from core.infra.pet_path import split_pet_filename, sort_key
 
 
 DINO_CKPT = str(PROJECT_ROOT / "assets" / "dino" / "vit_small_patch14_dinov2.safetensors")

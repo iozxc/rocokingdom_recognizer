@@ -3,8 +3,8 @@ from flask import Blueprint, url_for
 
 from core.api.response import error, success
 from core.services.trials import available_trials, load_pet_elements, load_pokedex, get_trial
-from core.db import get_db
-from core.logger import logger
+from core.infra.db import get_db
+from core.infra.logger import logger
 
 bp = Blueprint("trials", __name__)
 
@@ -94,11 +94,11 @@ def list_trial_pets(trial_key):
 
 @bp.route("/api/trials/<trial_key>/map_pets", methods=["GET"])
 def get_trial_map_pets(trial_key):
-    """动态下发指定试炼的地图数据（map_pets JSON），供服务器/前端使用。"""
+    """动态下发指定试炼的关卡-精灵数据（map_pets JSON，按图1-3组织），供服务器/前端使用。"""
     try:
         if get_trial(trial_key) is None:
             return error("未知的徽章试炼", 404)
-        from core.icon_names import load_map_pets
+        from core.infra.icon_names import load_map_pets
         data = load_map_pets(trial_key)
         return success(data={"map_pets": data})
     except Exception as e:

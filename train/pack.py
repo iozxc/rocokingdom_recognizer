@@ -28,7 +28,7 @@ if str(Path(__file__).resolve().parent) not in sys.path:
 
 import train_config  # noqa: E402
 
-from core.pet_path import split_pet_filename  # noqa: E402
+from core.infra.pet_path import split_pet_filename  # noqa: E402
 
 
 def build_assets_db(source_dir, db_path):

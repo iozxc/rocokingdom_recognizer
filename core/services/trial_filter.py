@@ -7,7 +7,7 @@
 import os
 import re
 
-from core.pet_path import format_display_name
+from core.infra.pet_path import format_display_name
 from core.services.trials import get_trial
 
 _ID_PREFIX_RE = re.compile(r"^\d+_(.*)$")
@@ -41,7 +41,7 @@ def allowed_pet_names(trial_key, map_name=None):
     if trial is None or trial.get("pets_source") == "pokedex":
         return None
 
-    from core.icon_names import scan_icon_names
+    from core.infra.icon_names import scan_icon_names
 
     names = scan_icon_names(trial_key)
     if map_name:

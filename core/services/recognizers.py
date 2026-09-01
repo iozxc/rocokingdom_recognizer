@@ -1,10 +1,10 @@
-"""识别模型单例服务：全图鉴图标识别器全局唯一，地图分类器按试炼懒加载。"""
+"""识别模型单例服务：全图鉴图标识别器全局唯一，试炼关卡分类器按试炼懒加载。"""
 import os
 
 import config
-from core.map_classifier import MapClassifier
-from core.recognizer import ImageRecognizer
-from core.logger import logger
+from core.vision.stage_classifier import StageClassifier
+from core.vision.recognizer import ImageRecognizer
+from core.infra.logger import logger
 from core.services.trials import get_trial_or_default
 
 
@@ -13,7 +13,7 @@ class _ModelRegistry:
 
     def __init__(self):
         self._icon_recognizer = None
-        self._map_classifiers = {}
+        self._stage_classifiers = {}
 
     def get_icon_recognizer(self):
         """ImageRecognizer（全图鉴图标特征匹配）全局单例。固定使用 dino_full。"""
@@ -36,27 +36,27 @@ class _ModelRegistry:
             self._icon_recognizer = None
             return None
 
-    def get_map_classifier(self, trial_key="grass"):
-        """MapClassifier（地图识别）单例，按试炼隔离。"""
-        if trial_key in self._map_classifiers:
-            return self._map_classifiers[trial_key]
+    def get_stage_classifier(self, trial_key="grass"):
+        """StageClassifier（试炼关卡判定：关卡标题识别，图1-3）单例，按试炼隔离。"""
+        if trial_key in self._stage_classifiers:
+            return self._stage_classifiers[trial_key]
 
         trial = get_trial_or_default(trial_key)
         feature_path = trial.get("title_feature_path")
         if not feature_path or not os.path.exists(feature_path):
             logger.warning(f"试炼 {trial_key} 的地图标题特征库不存在: {feature_path}，跳过加载")
-            self._map_classifiers[trial_key] = None
+            self._stage_classifiers[trial_key] = None
             return None
 
         try:
             logger.info(f"试炼 {trial_key} 地图分类器未初始化，执行懒加载...")
             # title 识别也统一用 DINOv2 backbone（自动适配 518 输入），不再用 resnet50
-            classifier = MapClassifier(config.DINO_BACKBONE, feature_path)
-            self._map_classifiers[trial_key] = classifier
+            classifier = StageClassifier(config.DINO_BACKBONE, feature_path)
+            self._stage_classifiers[trial_key] = classifier
             return classifier
         except Exception as e:
             logger.error(f"试炼 {trial_key} 地图分类器加载失败: {e}", exc_info=True)
-            self._map_classifiers[trial_key] = None
+            self._stage_classifiers[trial_key] = None
             return None
 
 

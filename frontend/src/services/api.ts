@@ -87,8 +87,8 @@ export class ApiService {
     }
   }
 
-  /** 单次真实窗口截图观测；未知位置/朝向保持 null。 */
-  public async observeMap(trial = 'grass'): Promise<MapObservation> {
+  /** 【地图感知】单次真实窗口截图观测（开放世界大地图识别）；未知位置/朝向保持 null。 */
+  public async observeMap(): Promise<MapObservation> {
     const response = await axios.get<{ status: string; data?: MapObservation }>(
       `${this.apiBase}/map_observation`, { timeout: 15000 },
     );
@@ -98,7 +98,7 @@ export class ApiService {
     } as MapObservation);
   }
 
-  /** 启动/停止后台实时小地图监测（对应后端 map_observer 线程）。 */
+  /** 【地图感知】启动/停止后台实时小地图监测（对应后端 world_observer 线程）。 */
   public async startMapMonitor(): Promise<boolean> {
     const response = await axios.get<{ status: string; data?: { monitoring?: boolean } }>(
       `${this.apiBase}/map_monitor/start`, { timeout: 5000 },

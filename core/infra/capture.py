@@ -14,7 +14,7 @@ import win32gui
 import win32ui
 from PIL import Image, ImageGrab
 
-from core.logger import logger
+from core.infra.logger import logger
 from core.services.user_storage import user_storage
 
 def clean_debug_folder(folder_path: str, max_count: int = 30):
@@ -185,7 +185,7 @@ def clean_text(raw_text: str):
 
 
 def get_scene_features(trial_key="grass"):
-    """按试炼返回场景独有字符特征（来自 config.TRIALS）。"""
+    """按试炼返回各关卡（图1-3）标题的独有字符特征（来自 config.TRIALS.scene_features）。"""
     from core.services.trials import get_trial_or_default
     trial = get_trial_or_default(trial_key)
     return trial.get("scene_features", [])
@@ -193,7 +193,9 @@ def get_scene_features(trial_key="grass"):
 
 def match_scene_unique_char(ocr_raw_text: str, trial_key="grass"):
     """
-    独有单字匹配：只要命中该场景任意一个独有字符，返回场景名；都不命中返回None
+    【徽章试炼】关卡判定：对关卡标题 OCR 文本做独有单字匹配，
+    命中某关卡任意一个独有字符即返回该关卡 map id（map1/map2/map3）；都不命中返回 None。
+    （识别的是试炼关卡标题，与开放世界地图感知无关。）
     """
     txt = clean_text(ocr_raw_text)
     for scene_name, char_set in get_scene_features(trial_key):

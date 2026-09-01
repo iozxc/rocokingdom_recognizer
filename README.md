@@ -17,7 +17,7 @@
 
 ### 游戏跟随识别
 
-- 游戏画面可直接识别出当前地图和精灵
+- 游戏画面可直接识别出当前试炼关卡（图1-3）和精灵
 
 ![image-20260825055259984](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825055259984.png)
 

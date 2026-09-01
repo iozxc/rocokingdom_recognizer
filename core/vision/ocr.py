@@ -7,8 +7,8 @@ from rapidocr_onnxruntime import RapidOCR  # 导入 RapidOCR
 
 import config
 from config import get_resource_path
-from core.logger import logger
-from core.ocr_corrections import correct_ocr_text
+from core.infra.logger import logger
+from core.vision.ocr_corrections import correct_ocr_text
 
 # 彻底移除对 torch 和 ssl 的依赖
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -44,9 +44,9 @@ class OCREngine:
         """
         logger.debug("RapidOCR引擎初始化开始")
 
-        det_model_path = config.DET_MODEL_MODAL
-        cls_model_path = config.CLS_MODEL_MODAL
-        rec_model_path = config.REC_MODEL_MODAL
+        det_model_path = config.DET_MODEL
+        cls_model_path = config.CLS_MODEL
+        rec_model_path = config.REC_MODEL
 
         for name, path in [("det", det_model_path), ("cls", cls_model_path), ("rec", rec_model_path)]:
             if not os.path.exists(path):

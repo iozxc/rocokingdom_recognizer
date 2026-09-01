@@ -7,7 +7,7 @@ import ctypes
 import threading
 import time
 
-from core.logger import logger
+from core.infra.logger import logger
 
 # ---- 配色（与前端 Header 一致；调试时可临时修改）----
 BORDER_COLOR = "#5DA8E8"       # 外框蓝

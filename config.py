@@ -24,7 +24,7 @@ def _load_remote_meta():
     if _remote_meta_cache is not None:
         return _remote_meta_cache
     try:
-        from core.meta_crypto import load_meta_remote
+        from core.auth.meta_crypto import load_meta_remote
         _remote_meta_cache, _remote_meta_reached = load_meta_remote(META_CONFIG_URL)
     except Exception:
         _remote_meta_cache = {}
@@ -79,7 +79,8 @@ APP_VERSION = _env("ROCO_APP_VERSION", "1.4.5")
 MAX_DELTA_UPDATE_SIZE = int(_env("ROCO_MAX_DELTA_UPDATE_SIZE", str(90 * 1024 * 1024)))
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
-# 实时地图玩家定位(零训练视觉方案)：是否启用、参考底图、开关阈值
+# 【地图感知】开放世界玩家定位(零训练视觉方案)：是否启用、参考底图、开关阈值。
+# 与徽章试炼无关：这是大世界跑图时按游戏右上角小地图推算玩家世界坐标的功能。
 MAP_LOCALIZE_ENABLED = _env("ROCO_MAP_LOCALIZE_ENABLED", "1") == "1"
 MAP_LOCALIZE_REFERENCE = _env(
     "ROCO_MAP_LOCALIZE_REFERENCE",
@@ -121,6 +122,8 @@ ROCO_AUTH_SERVER = _env("ROCO_AUTH_SERVER", "https://api.omisheep.cn")
 META_AUTH_SERVER = _meta("auth_server")
 
 # 徽章试炼定义：草系为正式内容，火系为开发环境专属。
+# 徽章试炼是游戏内的 roguelike 小游戏：3 个关卡（本配置称 map1/map2/map3，即图1-3），
+# 每关顶部有关卡标题，关卡识别 = 标题 OCR + 特征字 / 标题图像分类（非开放世界定位）。
 # collection_key 对应 roco_user_data.json 中独立的“已遇见精灵”集合。
 TRIALS = [
     {
@@ -241,10 +244,10 @@ DINO_BACKBONE = get_resource_path(os.path.join('onnx', 'dino_backbone.onnx'))
 DINO_FEATURE_FULL = get_resource_path(os.path.join('onnx', 'feature_icon_dino_full.pkl'))
 DINO = (DINO_BACKBONE, DINO_FEATURE_FULL)
 
-SCANNER_MODAL = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
-DET_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_det_infer.onnx"))
-CLS_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))
-REC_MODEL_MODAL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_rec_infer.onnx"))
+SCANNER_MODEL = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
+DET_MODEL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_det_infer.onnx"))
+CLS_MODEL = get_resource_path(os.path.join("onnx", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))
+REC_MODEL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_rec_infer.onnx"))
 
 # 全局设置
 DEFAULT_THRESHOLD = 0.9

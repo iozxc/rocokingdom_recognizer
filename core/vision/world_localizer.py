@@ -1,4 +1,7 @@
-"""实时地图玩家定位(零训练视觉方案)。
+"""【地图感知】开放世界大地图识别——玩家实时定位(零训练视觉方案)。
+
+开放世界跑图工具：与徽章试炼的关卡判定（core/vision/stage_classifier.py）
+完全无关，不读试炼配置、不写试炼图鉴。
 
 输入：一帧游戏窗口/全屏截图。输出：玩家在「前端地图世界坐标系」(8192x8192，
 即 mapdata / static/map/level_13_* 的像素坐标) 下的 (x, y)，以及可选朝向。
@@ -22,7 +25,7 @@ import numpy as np
 from PIL import Image
 
 import config
-from core.logger import logger
+from core.infra.logger import logger
 
 # —— 归一化与尺度先验 ——
 TEMPLATE = 200          # 归一化小地图(圆盘所在正方形)边长
@@ -583,8 +586,8 @@ class PlayerLocalizer:
 _localizer: Optional[PlayerLocalizer] = None
 
 
-def get_localizer() -> Optional[PlayerLocalizer]:
-    """获取全局单例定位器。"""
+def get_world_localizer() -> Optional[PlayerLocalizer]:
+    """获取全局单例定位器（开放世界大地图识别）。"""
     global _localizer
     if _localizer is None:
         _localizer = PlayerLocalizer()

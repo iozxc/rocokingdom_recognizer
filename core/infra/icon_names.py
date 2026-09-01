@@ -3,8 +3,8 @@ import json
 import re
 
 import config
-from core.logger import logger
-from core.pet_path import format_display_name, split_pet_filename, sort_key
+from core.infra.logger import logger
+from core.infra.pet_path import format_display_name, split_pet_filename, sort_key
 from core.services.trials import get_trial_or_default
 
 
@@ -28,7 +28,7 @@ def load_map_pets(trial_key="grass"):
 
 
 def _read_local_map_pets(path, trial_key):
-    """读取本地地图 JSON 文件；失败返回空 dict。"""
+    """读取试炼关卡-精灵 JSON 文件（map_petsN.json，按图1-3组织）；失败返回空 dict。"""
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -86,7 +86,7 @@ def sprite_to_file(map_name, sprite_name, trial_key="grass"):
 
 
 def sprite_to_file_any(sprite_name, trial_key="grass"):
-    """跨该试炼的所有地图反查数据集文件名（图标访问不再受地图约束）。"""
+    """跨该试炼的所有关卡（图1-3）反查数据集文件名（图标访问不再受关卡约束）。"""
     data = load_map_pets(trial_key)
     for map_name in data:
         found = sprite_to_file(map_name, sprite_name, trial_key)
@@ -104,7 +104,7 @@ def scan_icon_names(trial_key="grass"):
     names_dict = {map_name: [] for map_name in trial.get("map_list", [])}
     try:
         if trial.get("pets_source") == "pokedex":
-            # 开荒期全图鉴自选：不做每图白名单，每张地图都放全图鉴展示名，
+            # 开荒期全图鉴自选：不做每关白名单，每个关卡都放全图鉴展示名，
             # 识别可覆盖所有精灵（等正式图鉴定型后再切回 map_pets，按图限制）。
             from core.services.trials import _load_pokedex_raw
             all_names = []

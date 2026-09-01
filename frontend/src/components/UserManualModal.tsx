@@ -182,7 +182,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                       </div>
                       <h5 className="font-black text-slate-800 text-sm">实时跟随与定位</h5>
                       <p className="text-xs text-slate-500">
-                        开启实时跟随小窗，游戏内移动时智能追踪当前地图点位、刷新位置与目标野怪。
+                        开启实时跟随小窗，游戏内移动时智能追踪当前试炼关卡点位、刷新位置与目标野怪。
                       </p>
                     </div>
                     <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-amber-600 font-semibold flex items-center gap-1">
@@ -202,7 +202,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                   <div className="bg-white p-3 rounded-xl border border-[#D5E3F0] space-y-1">
                     <span className="font-black text-[#2B78C4]">① 顶部导航栏：</span>
                     <p className="text-slate-600">
-                      切换各个徽章试炼地图，查看当前地图点亮进度（如 24/24）、音频开关、群聊反馈及更新。
+                      切换各个徽章试炼关卡，查看当前关卡点亮进度（如 24/24）、音频开关、群聊反馈及更新。
                     </p>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-[#D5E3F0] space-y-1">

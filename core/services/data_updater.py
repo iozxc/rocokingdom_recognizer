@@ -15,8 +15,8 @@ import threading
 import time
 
 import config
-from core.logger import logger
-from core.md5_utils import file_md5
+from core.infra.logger import logger
+from core.infra.md5_utils import file_md5
 
 _PROJECT_ROOT = os.path.dirname(os.path.abspath(config.__file__))
 
@@ -155,7 +155,7 @@ def start_data_update():
 def _run_download_job(files):
     try:
         import requests
-        from core.icon_names import invalidate_map_pets_cache
+        from core.infra.icon_names import invalidate_map_pets_cache
         from core.services.icon_catalog import icon_catalog
 
         total = len(files)

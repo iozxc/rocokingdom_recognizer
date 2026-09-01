@@ -55,7 +55,7 @@ import torchvision.models as models
 import torchvision.transforms as T
 from PIL import Image, ImageFilter
 
-from core.pet_path import split_pet_filename, sort_key
+from core.infra.pet_path import split_pet_filename, sort_key
 
 
 # 默认路径

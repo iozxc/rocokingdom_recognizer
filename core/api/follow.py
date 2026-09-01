@@ -3,7 +3,7 @@ from flask import Blueprint, request
 
 import config
 from core.api.response import error, success
-from core.logger import logger
+from core.infra.logger import logger
 
 bp = Blueprint("follow", __name__)
 
@@ -52,7 +52,7 @@ def map_observation():
     """返回最近一次后台小地图观测(实时监控)；不返回模拟坐标。"""
     try:
         # 延迟加载图像模型，避免普通状态检查触发 ONNX/YOLO 初始化。
-        from core.services.map_observer import observe_map
+        from core.services.world_observer import observe_map
         result = observe_map()
         return success(data=result)
     except Exception as exc:
@@ -64,7 +64,7 @@ def map_observation():
 def map_monitor_start():
     """开始后台实时小地图监测(前台可自行调用)。"""
     try:
-        from core.services.map_observer import observe_map
+        from core.services.world_observer import observe_map
         observe_map()
         return success(monitoring=True)
     except Exception as exc:
@@ -76,7 +76,7 @@ def map_monitor_start():
 def map_monitor_stop():
     """停止后台实时小地图监测，不再抓图、不再影响游戏窗口。"""
     try:
-        from core.services.map_observer import stop_map_monitor
+        from core.services.world_observer import stop_map_monitor
         stop_map_monitor()
         return success(monitoring=False)
     except Exception as exc:

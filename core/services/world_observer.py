@@ -1,4 +1,6 @@
-"""基于 Windows 游戏窗口截图的「实时小地图/玩家」观测。
+"""【地图感知】基于 Windows 游戏窗口截图的「开放世界小地图/玩家」观测。
+
+开放世界大地图识别：与徽章试炼的关卡判定完全无关（不读试炼配置、不写试炼图鉴）。
 
 采用「后台监控线程 + 缓存最近一次观测」的方式：识别(截图+定位)在后台线程进行，
 `/map_observation` 立即返回最近结果，避免 HTTP 请求线程被识别阻塞造成卡顿。
@@ -16,8 +18,8 @@ import pygetwindow as gw
 from PIL import Image
 
 import config
-from core.logger import logger
-from core.tools import capture_window
+from core.infra.logger import logger
+from core.infra.capture import capture_window
 
 
 def _window(title: str):
@@ -113,9 +115,9 @@ class _MapMonitor:
 
     def _loop(self) -> None:
         try:
-            from core.map_localizer import get_localizer
+            from core.vision.world_localizer import get_world_localizer
 
-            get_localizer()
+            get_world_localizer()
         except Exception as exc:  # noqa: BLE001
             logger.warning("map localizer prewarm failed: %s", exc)
 
@@ -176,9 +178,9 @@ class _MapMonitor:
         base["reason"] = "ok"
 
         try:
-            from core.map_localizer import get_localizer
+            from core.vision.world_localizer import get_world_localizer
 
-            loc = get_localizer()
+            loc = get_world_localizer()
             # 参考底图缺失：不进入逐帧定位，直接给出明确提示，避免每帧都报错。
             if getattr(loc, "_ref_error", None):
                 base["reason"] = "reference-missing"
@@ -240,7 +242,7 @@ class _MapMonitor:
 
             frame = np.array(Image.fromarray(np.asarray(image).astype(np.uint8)).convert("RGB")) \
                 if not isinstance(image, Image.Image) else np.array(image.convert("RGB"))
-            from core.map_localizer import capture_minimap, normalize_disc
+            from core.vision.world_localizer import capture_minimap, normalize_disc
             crop, cx, cy, r, found = capture_minimap(frame)
             norm = normalize_disc(frame, cx, cy, r)
 

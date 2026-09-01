@@ -6,12 +6,12 @@ import pygetwindow as gw
 
 import config
 from core.services.icon_catalog import icon_catalog
-from core.utils import get_icon_file_name, get_top_k_matches, strip_id_prefix
-from core.crop import crop_sections_from_pil_by_YOLOv8
-from core.logger import logger
+from core.infra.utils import get_icon_file_name, get_top_k_matches, strip_id_prefix
+from core.vision.crop import crop_sections_from_pil_by_YOLOv8
+from core.infra.logger import logger
 from core.services.trials import get_trial_or_default
 from core.services.trial_filter import filter_candidates_by_trial
-from core.tools import capture_window, clean_debug_folder, match_scene_unique_char
+from core.infra.capture import capture_window, clean_debug_folder, match_scene_unique_char
 
 # OCR 命中这些名称时直接匹配，无需模糊匹配
 SPECIAL_DIRECT_MATCH = ("魔力之源", "远行商人")
@@ -117,7 +117,7 @@ class AppApi:
 
     def capture_and_recognize(self, target_title="计算器", map_num=None, trial_key="grass"):
         # 首次识别时才加载 OCR 与识别模型，避免拖慢启动
-        from core.ocr import ocr
+        from core.vision.ocr import ocr
         from core.services.recognizers import models
         t_total = time.perf_counter()
         logger.info(f"开始截图识别，目标窗口: {target_title}, trial={trial_key}")
@@ -153,13 +153,13 @@ class AppApi:
             img.save(save_path, "JPEG", quality=90)
             logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
 
-            map_classifier = models.get_map_classifier(trial_key)
+            stage_classifier = models.get_stage_classifier(trial_key)
             if map_num is None:
                 ocr_map_name = ocr().recognize_text(title_pil)
                 map_name = match_scene_unique_char(ocr_map_name, trial_key)
                 if map_name is None:
-                    if map_classifier is not None:
-                        map_name = map_classifier.match(
+                    if stage_classifier is not None:
+                        map_name = stage_classifier.match(
                             title_pil, fallback_map=trial.get("map_list", ["map1"])[0]
                         )
                         logger.info(f"map_name : ocr匹配失败，使用分类器")
@@ -201,7 +201,7 @@ class AppApi:
 
     def _process_single_item(self, i, name_img, item_img, map_num, map_name, trial_key="grass"):
         """单个槽位的识别与匹配流程"""
-        from core.ocr import ocr
+        from core.vision.ocr import ocr
         from core.services.recognizers import models
         t_start = time.perf_counter()
         logger.debug(f"[槽位{i}] 开始处理，试炼={trial_key}，地图={map_name}(map{map_num})")

@@ -17,7 +17,7 @@ from PIL import Image
 
 from config import get_resource_path
 import train_config
-from core.pet_path import sort_key
+from core.infra.pet_path import sort_key
 
 class ImageRecognizer:
     def __init__(self, device="cpu"):

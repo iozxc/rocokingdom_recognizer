@@ -3,7 +3,7 @@ import ctypes
 import os
 
 import config
-from core.logger import logger
+from core.infra.logger import logger
 
 
 def _enable_dpi_awareness() -> None:
@@ -44,7 +44,7 @@ def main() -> None:
         return
 
     # 启动后台授权校验：未授权时前端弹窗引导绑定，不阻塞 UI。
-    from core.auth_service import start_auth_check
+    from core.auth.service import start_auth_check
     start_auth_check()
 
     from core import create_app

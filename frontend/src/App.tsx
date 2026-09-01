@@ -366,7 +366,7 @@ export default function App() {
     storage.resetMap(currentMap.id);
     refreshRecords();
     sound.playToggleOff();
-    triggerScanSyncEffect('unencounter', undefined, '已重置当前地图图鉴状态');
+    triggerScanSyncEffect('unencounter', undefined, '已重置当前关卡图鉴状态');
   };
 
   const handleToggleSound = () => {

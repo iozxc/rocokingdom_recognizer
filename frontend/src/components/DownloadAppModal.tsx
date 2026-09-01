@@ -32,7 +32,7 @@ interface DownloadAppModalProps {
 
 const APP_FEATURES = [
   { icon: Cpu, title: '本地 AI 识别', desc: '截图本地推理识别精灵，不出本机、无需上传' },
-  { icon: ScanLine, title: '跟随识别悬浮窗', desc: '游戏画面实时跟随识别当前地图与精灵' },
+  { icon: ScanLine, title: '跟随识别悬浮窗', desc: '游戏画面实时跟随识别当前试炼关卡与精灵' },
   { icon: ImageIcon, title: '批量 / 单张识别', desc: '支持整页截图批量点亮与单张图片识别' },
   { icon: Database, title: '本地图鉴与离线记录', desc: '图鉴/记录存本机，离线可用，数据不对外上传' },
 ];

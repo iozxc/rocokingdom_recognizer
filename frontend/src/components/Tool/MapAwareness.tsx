@@ -687,7 +687,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
 
     const poll = async () => {
       try {
-        const obs = await api.observeMap('map');
+        const obs = await api.observeMap();
         if (active && obs) {
           if (obs.status_message) {
             setStatusMsg(obs.status_message);

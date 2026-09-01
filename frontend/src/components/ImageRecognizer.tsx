@@ -683,7 +683,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                             {currentPetAlreadyEncountered ? (
                                 <>
                                   <CheckCircle2 className="w-4 h-4 text-[#2D6613] shrink-0" />
-                                  <span className="truncate">历史图鉴：该精灵此前<strong>已在当前地图遇见点亮</strong></span>
+                                  <span className="truncate">历史图鉴：该精灵此前<strong>已在当前关卡遇见点亮</strong></span>
                                 </>
                             ) : (
                                 <>

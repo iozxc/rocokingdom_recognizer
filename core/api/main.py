@@ -5,12 +5,12 @@ from flask import Blueprint, Response, current_app, request, send_from_directory
 
 import config
 from core.api.response import error, success
-from core.db import get_db
-from core.icon_names import load_map_pets, sprite_to_file, sprite_to_file_any
-from core.logger import logger
-from core.pet_path import sort_key
+from core.infra.db import get_db
+from core.infra.icon_names import load_map_pets, sprite_to_file, sprite_to_file_any
+from core.infra.logger import logger
+from core.infra.pet_path import sort_key
 from core.services.trials import get_trial_or_default, load_pet_elements
-from core.utils import strip_id_prefix
+from core.infra.utils import strip_id_prefix
 
 bp = Blueprint("main", __name__)
 
@@ -79,7 +79,7 @@ def list_icons():
 
 @bp.route('/icons/<filename>')
 def get_icon_file(filename):
-    """从缓存/datasets.db 返回图片二进制流（不再依赖地图约束）。"""
+    """从缓存/datasets.db 返回图片二进制流（不再依赖试炼关卡约束）。"""
     return _serve_icon(filename)
 
 

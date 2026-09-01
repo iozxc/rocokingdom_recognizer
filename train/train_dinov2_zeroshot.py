@@ -41,7 +41,7 @@ from PIL import Image, ImageDraw
 import timm
 from tqdm import tqdm
 
-from core.pet_path import split_pet_filename
+from core.infra.pet_path import split_pet_filename
 from train_dinov2 import (
     DINO_CKPT, DINO_IMG_SIZE, IMG_DIR, TEST_DIR,
     filter_dir, load_image, build_eval, eval_test,

@@ -1,12 +1,13 @@
 """徽章试炼目录与全图鉴读取服务。
 
-试炼相关的地图、数据文件与模型路径统一放在 config.TRIALS 里；
-草系沿用原来的三张地图与 map_pets1.json，火系等新试炼按各自配置加载。
+试炼相关的关卡（图1-3）、数据文件与模型路径统一放在 config.TRIALS 里；
+草系沿用原来的三个关卡与 map_pets1.json，火系等新试炼按各自配置加载。
+（本模块的"地图"均指试炼关卡，与开放世界地图感知无关。）
 """
 import json
 
 import config
-from core.logger import logger
+from core.infra.logger import logger
 
 
 def available_trials():

@@ -9,21 +9,21 @@ from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
 from core.services.trials import get_trial
 from core.services.trial_filter import filter_candidates_by_trial
-from core.utils import get_top_k_matches, get_icon_file_name
-from core.logger import logger
-from core.auth_service import is_authorized
+from core.infra.utils import get_top_k_matches, get_icon_file_name
+from core.infra.logger import logger
+from core.auth.service import is_authorized
 
 bp = Blueprint("predict", __name__)
 
 
 def f(image):
-    from core.ocr import ocr
+    from core.vision.ocr import ocr
     ocr_names = ocr().recognize_bottom_text(image)
     return ocr_names
 
 
 def ocr_top_k_match(image, map_num, top_k=6, trial_key="grass"):
-    from core.ocr import ocr
+    from core.vision.ocr import ocr
     logger.debug(f"OCR top-k匹配开始: map_num={map_num}, top_k={top_k}")
 
     name = ocr().recognize_single_bottom_text(image)
@@ -170,8 +170,8 @@ def predict_batch():
 
     temp_path = None
     try:
-        from core.ocr import ocr
-        from core.processor import segment_icons
+        from core.vision.ocr import ocr
+        from core.vision.processor import segment_icons
         from core.services.recognizers import models
         with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
             temp_path = tmp.name

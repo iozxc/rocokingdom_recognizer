@@ -10,7 +10,7 @@ import webview
 from desktop.bridge import AppApi
 from desktop.server import create_server, pick_free_port
 from desktop.windows import WindowManager
-from core.logger import logger
+from core.infra.logger import logger
 
 # 窗口关闭后给前端最后一批请求（页面卸载时的 sendBeacon 落盘）留出的处理时间
 _EXIT_GRACE_SECONDS = 0.6
@@ -101,7 +101,7 @@ def _shutdown(server, server_thread) -> None:
     """窗口全部关闭后停止 Flask 服务，并确保进程立即退出。"""
     # 退出前上报 close（若本进程已授权并上报过 open），尽量把使用时长落库
     try:
-        from core.auth_service import report_app_close
+        from core.auth.service import report_app_close
         report_app_close()
     except Exception as e:
         logger.warning(f"上报 close 事件异常: {e}")

@@ -112,7 +112,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                         sound.playClick();
                                         setIsConfirmOpen(true);
                                     }}
-                                    title="清空当前地图遇见记录"
+                                    title="清空当前关卡遇见记录"
                                     className="text-[10px] text-slate-400 hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer hover:underline"
                                 >
                                     <RotateCcw className="w-2.5 h-2.5 text-slate-400" />
@@ -151,7 +151,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
             {/* Reset Confirmation Dialog */}
             <ConfirmDialog
                 isOpen={isConfirmOpen}
-                title="重置当前地图遇见记录"
+                title="重置当前关卡遇见记录"
                 message={`确定要清空【${currentMap.name}】的遇见记录吗？（已遇见 ${encounteredCount} 只）此操作无法撤销。`}
                 confirmText="确认重置"
                 cancelText="取消"

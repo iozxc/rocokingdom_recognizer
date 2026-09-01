@@ -999,7 +999,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                   <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5">
                                     {item.isEncountered ? (
                                         <span className="text-[#2D6613] font-bold flex items-center gap-1">
-                                <Check className="w-3 h-3 text-[#2D6613]" /> 已在当前地图点亮
+                                <Check className="w-3 h-3 text-[#2D6613]" /> 已在当前关卡点亮
                               </span>
                                     ) : (
                                         <span className="text-amber-600 font-bold flex items-center gap-1">

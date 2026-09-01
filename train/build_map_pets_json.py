@@ -41,7 +41,7 @@ from PIL import Image
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-from core.pet_path import split_pet_filename  # noqa: E402
+from core.infra.pet_path import split_pet_filename  # noqa: E402
 
 
 ROOT = os.path.dirname(__file__)

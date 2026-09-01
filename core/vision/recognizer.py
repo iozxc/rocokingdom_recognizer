@@ -4,9 +4,9 @@ import cv2
 import os
 import pickle
 import time
-from core.logger import logger
-from core.utils import strip_id_prefix
-from core.pet_path import split_pet_filename
+from core.infra.logger import logger
+from core.infra.utils import strip_id_prefix
+from core.infra.pet_path import split_pet_filename
 from PIL import Image
 
 

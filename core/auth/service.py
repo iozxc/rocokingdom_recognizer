@@ -13,8 +13,8 @@ import threading
 import time
 import datetime
 
-from core import client_server as auth
-from core.logger import logger
+from core.auth import client as auth
+from core.infra.logger import logger
 from config import meta_reachable
 
 # 快模式轮询间隔（秒）：用户正在“未授权”弹窗中（正在授权）。

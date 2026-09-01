@@ -2,7 +2,7 @@ import requests
 from packaging import version
 
 import config
-from core.logger import logger
+from core.infra.logger import logger
 
 CURRENT_VERSION = config.APP_VERSION
 CHECK_URL = config.UPDATE_CHECK_URL
