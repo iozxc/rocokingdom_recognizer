@@ -64,7 +64,6 @@ build_key.txt
 /build.bat
 /train/onnx_dino/
 /frontend/public/mapdata/
-/docs/
 /roco_user_mapdata.json
 /train/yolo_minimap/
 /frontend/public/mapdata_real/
