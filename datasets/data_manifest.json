@@ -1,5 +1,5 @@
 {
-  "version": "1.4.4",
+  "version": "1.4.5",
   "files": [
     {
       "name": "datasets/datasets.db",
@@ -27,8 +27,8 @@
     },
     {
       "name": "datasets/pet_renames.json",
-      "md5": "ae4f4b2076a2025643b832b3afe17db2",
-      "size": 1052,
+      "md5": "0246816f594b21d3de45feca7b00bdb6",
+      "size": 1008,
       "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/pet_renames.json"
     }
   ]
