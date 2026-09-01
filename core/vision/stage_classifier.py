@@ -164,7 +164,7 @@ class StageClassifier:
             max_sim = similarities[idx]
             elapsed = (time.perf_counter() - t0) * 1000
             logger.info(f"地图分类结果: {result}, 最高相似度={max_sim:.4f}, 耗时={elapsed:.1f}ms")
-            return result
+            return f'map{result}'
 
         logger.warning(f"地图分类无匹配结果，返回默认{fallback_map}")
         return fallback_map

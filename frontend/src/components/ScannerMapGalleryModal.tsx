@@ -33,6 +33,9 @@ interface ScannerMapGalleryModalProps {
         confirmed_by: number;
         confidence: number;
         agree_ratio?: number;
+        vote_ratio?: number;
+        total_users?: number;
+        voter_count?: number;
         my_vote?: 'agree' | 'disagree' | 'none';
     }>;
     /** 对社区图鉴条目投票（agree / disagree）。 */
@@ -412,6 +415,21 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                                     </span>
                                                 )}
                                             </div>
+                                            {/* 置信度（与首页同款）：悬浮在精灵图标顶部居中 */}
+                                            {communityAtlas && onAtlasVote && (() => {
+                                                const pk = petKeyOf(pet.name, pet.id, pet.seq);
+                                                const info = pk ? communityAtlas[`${mapId}:${pk}`] : undefined;
+                                                if (!info) return null;
+                                                const conf = info.confidence ?? 0;
+                                                const tcls = conf >= 0.7 ? 'text-green-700 bg-green-50 border-green-300'
+                                                    : conf >= 0.3 ? 'text-amber-700 bg-amber-50 border-amber-300'
+                                                        : 'text-rose-700 bg-rose-50 border-rose-300';
+                                                return (
+                                                    <div className="absolute -top-0 left-0 right-0 z-[2] flex justify-center">
+                                                        <span className={`text-[8px] font-mono font-black px-1 py-0.5 rounded-full border bg-white/90 ${tcls}`}>置信度：{Math.round(conf * 100)}%</span>
+                                                    </div>
+                                                );
+                                            })()}
                                             {/* 立绘：核心视觉区，占据剩余全部空间 */}
                                             <div className="flex-1 min-h-0 w-full flex items-center justify-center">
                                                 <PetSprite
@@ -420,24 +438,25 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-150"
                                                 />
                                             </div>
-                                            {/* 赞同率进度条：叠在立绘下方（容器内底部），仅已有社区数据时显示 */}
+                                            {/* 票数/总人数进度条（与首页同款）：叠在立绘下方，仅已有社区数据时显示 */}
                                             {communityAtlas && onAtlasVote && (() => {
                                                 const pk = petKeyOf(pet.name, pet.id, pet.seq);
                                                 const info = pk ? communityAtlas[`${mapId}:${pk}`] : undefined;
                                                 if (!info) return null;
-                                                const r = info.agree_ratio ?? 0;
-                                                const barCls = r >= 0.7 ? 'bg-green-500' : r >= 0.3 ? 'bg-amber-400' : 'bg-rose-400';
-                                                const textCls = r >= 0.7 ? 'text-green-600' : r >= 0.3 ? 'text-amber-600' : 'text-rose-600';
+                                                const vc = info.voter_count ?? 0;
+                                                const tc = info.total_users ?? 0;
+                                                const vr = info.vote_ratio ?? 0;
+                                                const barCls = vr >= 0.5 ? 'bg-green-500' : vr >= 0.25 ? 'bg-amber-400' : 'bg-rose-400';
                                                 return (
                                                     <div className="flex items-center gap-1 w-full shrink-0 pt-0.5">
                                                         <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                             <div
                                                                 className={`h-full rounded-full ${barCls}`}
-                                                                style={{ width: `${Math.min(100, Math.round(r * 100))}%` }}
+                                                                style={{ width: `${Math.min(100, Math.round(vr * 100))}%` }}
                                                             />
                                                         </div>
-                                                        <span className={`text-[9px] font-mono font-black leading-none shrink-0 ${textCls}`}>
-                                                            {Math.round(r * 100)}%
+                                                        <span className="text-[9px] font-mono font-black leading-none shrink-0 text-slate-600">
+                                                            {vc}{tc > 0 ? `/${tc}` : ''}
                                                         </span>
                                                     </div>
                                                 );

@@ -2,6 +2,8 @@
 import json
 import os
 import time
+import tempfile
+import threading
 
 import config
 from core.infra.logger import logger
@@ -104,6 +106,7 @@ class UserStorage:
     def __init__(self, data_file=DATA_FILE):
         self._data_file = data_file
         self._cache = None
+        self._lock = threading.Lock()
 
     def load(self) -> dict:
         """返回当前存储数据（内存缓存优先，首次读取磁盘）。"""
@@ -202,15 +205,29 @@ class UserStorage:
         采用“临时文件 + os.replace”的原子写入：即使进程在写入中途被杀，
         也不会留下截断/损坏的 roco_user_data.json。
         """
-        payload["version"] = int(time.time() * 1000)
-        tmp_path = f"{self._data_file}.tmp"
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp_path, self._data_file)
-        self._cache = payload
-        return payload
+        # 加锁 + 唯一临时文件：避免并发写入（如页面关闭 sendBeacon 与 axios 保存）争抢同一
+        # “固定名 .tmp”导致文件被写坏成两个对象拼接。
+        with self._lock:
+            payload["version"] = int(time.time() * 1000)
+            fd, tmp_path = tempfile.mkstemp(
+                dir=os.path.dirname(self._data_file) or ".",
+                prefix=os.path.basename(self._data_file) + ".tmp.",
+                suffix=".json",
+            )
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
+                    json.dump(payload, f, ensure_ascii=False, indent=2)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp_path, self._data_file)
+                self._cache = payload
+                return payload
+            finally:
+                if os.path.exists(tmp_path):
+                    try:
+                        os.remove(tmp_path)
+                    except OSError:
+                        pass
 
 
 # 全局单例

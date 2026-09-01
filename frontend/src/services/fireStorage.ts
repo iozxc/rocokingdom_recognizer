@@ -156,12 +156,7 @@ export class FireStorageService {
     this.hasPendingLocalChanges = true;
     this.saveToLocalStorage();
     this.notifyListeners();
-
-    if (this.saveTimeout) clearTimeout(this.saveTimeout);
-    this.saveTimeout = setTimeout(() => {
-      this.saveTimeout = null;
-      this.saveToRemote();
-    }, 150);
+    void this.saveToRemote();
   }
 
   private async saveToRemote() {
@@ -210,6 +205,7 @@ export class FireStorageService {
       firstSeenAt: existing?.firstSeenAt || now,
       lastSeenAt: now,
       note: note ?? existing?.note,
+      vote: existing?.vote,
     };
     this.records[key] = record;
     this.triggerSave();
@@ -229,6 +225,7 @@ export class FireStorageService {
         count: this.records[key]?.count || 0,
         firstSeenAt: this.records[key]?.firstSeenAt || now,
         lastSeenAt: now,
+        vote: this.records[key]?.vote,
       };
     } else {
       const existing = this.records[key];
@@ -240,10 +237,35 @@ export class FireStorageService {
         count: (existing?.count || 0) + 1,
         firstSeenAt: existing?.firstSeenAt || now,
         lastSeenAt: now,
+        vote: existing?.vote,
       };
     }
     this.triggerSave();
     return !wasEncountered;
+  }
+
+  /** 写入投票（并入 encounteredPets2 记录；未点亮且清票时删除占位记录）。 */
+  public updateVote(mapId: string, filename: string, vote?: 'agree' | 'disagree'): void {
+    const key = `${mapId}_${filename}`;
+    const existing = this.records[key];
+    if (vote) {
+      const now = new Date().toISOString();
+      this.records[key] = {
+        key,
+        mapId,
+        filename,
+        encountered: existing?.encountered ?? false,
+        count: existing?.count || 0,
+        firstSeenAt: existing?.firstSeenAt || now,
+        lastSeenAt: now,
+        note: existing?.note,
+        vote,
+      };
+    } else {
+      // 保留记录（未点亮也保留），仅清 vote：用于区分「本设备操作过但取消」与「从未操作」。
+      if (existing) this.records[key] = { ...existing, vote: undefined };
+    }
+    this.triggerSave();
   }
 
   public resetMap(mapId: string): void {

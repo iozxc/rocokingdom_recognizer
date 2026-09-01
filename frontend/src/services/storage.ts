@@ -42,15 +42,19 @@ export class StorageService {
   private hasPendingLocalChanges = false;
 
   constructor() {
-    this.loadFromLocalStorage();
-    // 纯前端静态版：无后端存储，仅用 localStorage；不做轮询/上报。
-    if (!IS_STATIC) {
-      this.startPoll(); // 启动轮询替代websocket
-      this.flushOnUnload(); // 窗口关闭前把未落盘的改动刷到后端
-      this.fetchRemote().catch(() => {
-        // 降级使用localStorage
-      });
+    if (IS_STATIC) {
+      // 纯前端静态版：无后端，仅本地 localStorage。
+      this.loadFromLocalStorage();
+      return;
     }
+    // 远程优先：先拉 user_data.json 作为多端权威数据，拉到即覆盖本地；失败/无数据才回退本地缓存。
+    void this.fetchRemote()
+        .then((r) => {
+          if (r === null) this.loadFromLocalStorage();
+        })
+        .catch(() => this.loadFromLocalStorage());
+    this.startPoll(); // 启动轮询替代 websocket
+    this.flushOnUnload(); // 窗口关闭前把未落盘的改动刷到后端
   }
 
   /**
@@ -144,6 +148,7 @@ export class StorageService {
           sound.setMuted(this.appSettings.isSoundMuted);
         }
       }
+
     } catch (e) {
       console.error('Failed to load storage from localStorage:', e);
       this.records = {};
@@ -264,24 +269,14 @@ export class StorageService {
     this.hasPendingLocalChanges = true;
     this.saveToLocalStorage();
     this.notifyListeners();
-
-    if (this.saveTimeout) clearTimeout(this.saveTimeout);
-    this.saveTimeout = setTimeout(() => {
-      this.saveTimeout = null;
-      this.saveToRemote();
-    }, 150);
+    void this.saveToRemote();
   }
 
   private triggerSettingsSave() {
     this.hasPendingLocalChanges = true;
     this.saveToLocalStorage();
     this.notifySettingsListeners();
-
-    if (this.saveTimeout) clearTimeout(this.saveTimeout);
-    this.saveTimeout = setTimeout(() => {
-      this.saveTimeout = null;
-      this.saveToRemote();
-    }, 150);
+    void this.saveToRemote();
   }
 
   public subscribe(listener: StorageListener): () => void {

@@ -539,23 +539,6 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               </button>
                           )}
 
-                          {onToggleAtlasMode && (
-                              <button
-                                  id="global-floating-fire-atlas-mode-fab"
-                                  type="button"
-                                  onClick={() => {
-                                    sound.playClick();
-                                    onToggleAtlasMode();
-                                  }}
-                                  className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-                                  title={`切换图鉴（当前 - ${atlasMode === 'pokedex' ? '全图鉴' : '共创图鉴'}）`}
-                              >
-                                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                  <Layers className="w-3.5 h-3.5 text-white" />
-                                </div>
-                                <span className="text-xs sm:text-sm font-black tracking-wide">切换图鉴（当前 - {atlasMode === 'pokedex' ? '全图鉴' : '共创图鉴'}）</span>
-                              </button>
-                          )}
                         </>
                     )}
 
@@ -588,6 +571,25 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         <Command className="w-2.5 h-2.5" /> K
                       </kbd>
                     </button>
+
+                    {/* 切换图鉴：放在全域搜索按钮下方 */}
+                    {onToggleAtlasMode && (
+                        <button
+                            id="global-floating-fire-atlas-mode-fab"
+                            type="button"
+                            onClick={() => {
+                              sound.playClick();
+                              onToggleAtlasMode();
+                            }}
+                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                            title={`切换图鉴（当前 - ${atlasMode === 'pokedex' ? '全图鉴' : '共创图鉴'}）`}
+                        >
+                          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                            <Layers className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <span className="text-xs sm:text-sm font-black tracking-wide">切换图鉴（当前 - {atlasMode === 'pokedex' ? '全图鉴' : '共创图鉴'}）</span>
+                        </button>
+                    )}
 
                   </div>
               )}

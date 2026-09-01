@@ -256,6 +256,18 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                   </span>
                               )}
                             </div>
+                            {/* 置信度（Wilson 下界）：悬浮在精灵图标顶部居中 */}
+                            {(() => {
+                              const conf = communityInfo?.confidence ?? 0;
+                              const tcls = conf >= 0.7 ? 'text-green-600' : conf >= 0.3 ? 'text-amber-600' : 'text-rose-600';
+                              return (
+                                  <div className="absolute -top-[3px] left-0 right-0 z-[2] text-center">
+                                    <span className={`text-[8px] sm:text-[9px] font-mono font-black px-1 py-0.5 rounded-full ${tcls}`} style={{ textShadow: '0 1px 2px rgba(255,255,255,0.8)' }}>
+                                      置信度：{Math.round(conf * 100)}%
+                                    </span>
+                                  </div>
+                              );
+                            })()}
                             {/* 立绘：核心视觉区，占据剩余全部空间 */}
                             <div className="flex-1 min-h-0 w-full flex items-center justify-center">
                               <PetSprite
@@ -268,21 +280,22 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                   }`}
                               />
                             </div>
-                            {/* 赞同率进度条：叠在立绘下方（容器内底部），有共创数据（≥1票）才显示，为 0 不显示 */}
+                            {/* 票数/总人数进度条：叠在立绘下方（投票数占比），有共创数据才显示 */}
                             {communityInfo && onAtlasVote && (() => {
-                              const r = communityInfo.agree_ratio ?? 0;
-                              const barCls = r >= 0.7 ? 'bg-green-500' : r >= 0.3 ? 'bg-amber-400' : 'bg-rose-400';
-                              const textCls = r >= 0.7 ? 'text-green-600' : r >= 0.3 ? 'text-amber-600' : 'text-rose-600';
+                              const vr = communityInfo.vote_ratio ?? 0;
+                              const vc = communityInfo.voter_count ?? 0;
+                              const tc = communityInfo.total_users ?? 0;
+                              const barCls = vr >= 0.5 ? 'bg-green-500' : vr >= 0.25 ? 'bg-amber-400' : 'bg-rose-400';
                               return (
                                   <div className="flex items-center gap-1 w-full shrink-0 pt-0.5">
                                     <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                       <div
                                           className={`h-full rounded-full ${barCls}`}
-                                          style={{ width: `${Math.min(100, Math.round(r * 100))}%` }}
+                                          style={{ width: `${Math.min(100, Math.round(vr * 100))}%` }}
                                       />
                                     </div>
-                                    <span className={`text-[9px] sm:text-[10px] font-mono font-black leading-none shrink-0 ${textCls}`}>
-                                      {Math.round(r * 100)}%
+                                    <span className="text-[9px] sm:text-[10px] font-mono font-black leading-none shrink-0 text-slate-600">
+                                      {vc}/{tc}
                                     </span>
                                   </div>
                               );

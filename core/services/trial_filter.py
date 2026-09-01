@@ -1,14 +1,14 @@
 """按试炼过滤识别候选。
 
 识别统一使用全图鉴特征库（feature_icon.pkl），拿到 topk 后由服务端按试炼过滤：
-- 草系：只保留 map_pets1.json 白名单里的精灵；
-- 火系等无图鉴试炼（pets_source == "pokedex"）：不过滤，直接返回全图鉴候选。
+- 试炼已有本地 map_petsN.json：只保留该图白名单里的精灵（按图限制）；
+- 试炼尚未有 map_petsN.json（如开荒期火系）：不过滤，直接返回全图鉴候选（等同 pokedex）。
 """
 import os
 import re
 
 from core.infra.pet_path import format_display_name
-from core.services.trials import get_trial
+from core.services.trials import get_trial, trial_has_map_pets_file
 
 _ID_PREFIX_RE = re.compile(r"^\d+_(.*)$")
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".svg")
@@ -38,7 +38,7 @@ def allowed_pet_names(trial_key, map_name=None):
     不传时返回整试炼的并集。
     """
     trial = get_trial(trial_key)
-    if trial is None or trial.get("pets_source") == "pokedex":
+    if trial is None or not trial_has_map_pets_file(trial_key):
         return None
 
     from core.infra.icon_names import scan_icon_names

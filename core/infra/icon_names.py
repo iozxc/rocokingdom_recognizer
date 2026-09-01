@@ -5,7 +5,7 @@ import re
 import config
 from core.infra.logger import logger
 from core.infra.pet_path import format_display_name, split_pet_filename, sort_key
-from core.services.trials import get_trial_or_default
+from core.services.trials import get_trial_or_default, trial_has_map_pets_file
 
 
 _map_pets_cache = {}
@@ -103,7 +103,7 @@ def scan_icon_names(trial_key="grass"):
     trial = get_trial_or_default(trial_key)
     names_dict = {map_name: [] for map_name in trial.get("map_list", [])}
     try:
-        if trial.get("pets_source") == "pokedex":
+        if not trial_has_map_pets_file(trial_key):
             # 开荒期全图鉴自选：不做每关白名单，每个关卡都放全图鉴展示名，
             # 识别可覆盖所有精灵（等正式图鉴定型后再切回 map_pets，按图限制）。
             from core.services.trials import _load_pokedex_raw

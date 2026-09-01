@@ -5,6 +5,7 @@
 （本模块的"地图"均指试炼关卡，与开放世界地图感知无关。）
 """
 import json
+import os
 
 import config
 from core.infra.logger import logger
@@ -40,6 +41,19 @@ def get_trial(trial_key):
         if trial.get("key") == trial_key:
             return dict(trial)
     return None
+
+
+def trial_has_map_pets_file(trial_key):
+    """该试炼是否已有本地 map_petsN.json。
+
+    用于平替旧的 pets_source 字段：文件存在 → 走“按图/官方图鉴”流程（map_pets）；
+    文件不存在（如开荒期火系尚未更新到共创图鉴）→ 走全图鉴自选流程（pokedex）。
+    """
+    trial = get_trial(trial_key)
+    if not trial:
+        return False
+    path = trial.get("map_pets_json_list")
+    return bool(path) and os.path.exists(str(path))
 
 
 def get_trial_or_default(trial_key):

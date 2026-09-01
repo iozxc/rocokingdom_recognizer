@@ -32,7 +32,7 @@ import { api } from './services/api';
 import { storage } from './services/storage';
 import { fireStorage } from './services/fireStorage';
 import { getFireTrialPetsCached } from './services/fireTrialData';
-import { collectAtlasObservation, fetchTrialAtlas, syncTrialAtlas, petKeyOf, TrialAtlas } from './services/atlasCollector';
+import { collectAtlasObservation, fetchTrialAtlas, syncTrialAtlas, petKeyOf, TrialAtlas, wilsonLower } from './services/atlasCollector';
 import { PLATFORM } from './services/staticMode';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
 import { EffectLevel } from './types';
@@ -313,19 +313,8 @@ export const ScannerApp: React.FC = () => {
 
   // 火系共创图鉴：社区聚合数据 + 本地投票 + 隐藏投票开关（均与首页共用 localStorage，跨窗口一致）
   const [serverAtlas, setServerAtlas] = useState<TrialAtlas | null>(null);
-  const [fireVotes, setFireVotes] = useState<Record<string, Record<string, 'agree' | 'disagree'>>>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('roco_fire_atlas_votes_v1') || '{}') || {};
-    } catch {
-      return {};
-    }
-  });
   const [showAtlasVote, setShowAtlasVote] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('roco_fire_atlas_show_vote_v1') !== '0';
-    } catch {
-      return true;
-    }
+    return storage.getSetting<{ showVote?: boolean }>('fireSettings', {}).showVote ?? true;
   });
 
   // Active viewing map number (selectedMapNum takes precedence, otherwise detectedMapNum)
@@ -397,6 +386,18 @@ export const ScannerApp: React.FC = () => {
     return m;
   };
 
+  // 火系手动投票并入 encounteredPets2：从 fireStorage 记录里的 vote 派生，避免单独一套存储。
+  const fireVotes = useMemo<Record<string, Record<string, 'agree' | 'disagree'>>>(() => {
+    const votes: Record<string, Record<string, 'agree' | 'disagree'>> = {};
+    (Object.entries(records) as Array<[string, EncounterRecord]>).forEach(([, rec]) => {
+      if (!rec?.vote || !rec.mapId) return;
+      const pet = (mapsPets[rec.mapId]?.items || []).find((p) => p.name === rec.filename);
+      const pk = pet ? petKeyOf(pet.name, pet.id, pet.seq) : petKeyOf(rec.filename || '');
+      if (pk) (votes[rec.mapId] ??= {})[pk] = rec.vote;
+    });
+    return votes;
+  }, [records, mapsPets]);
+
   // 保存最新同步载荷，30s 静默同步/切出兜底用
   const latestSyncRef = useRef<{ maps: Record<string, string[]>; votes: Record<string, Record<string, 'agree' | 'disagree'>> }>({ maps: {}, votes: {} });
   latestSyncRef.current = { maps: isFire ? buildFireMapsSnapshot() : {}, votes: fireVotes };
@@ -421,48 +422,36 @@ export const ScannerApp: React.FC = () => {
   // 初始化：把火系所有“已点亮”精灵默认为赞同（无手动投票时），与首页逻辑一致
   useEffect(() => {
     if (!isFire) return;
-    setFireVotes((prev) => {
-      const next = { ...prev };
-      let changed = false;
-      Object.entries(mapsPets).forEach(([mapId, mapData]) => {
-        const mapVotes = { ...(next[mapId] || {}) };
-        (((mapData as { count: number; items: PetItem[] })?.items) || []).forEach((pet) => {
-          if (isPetEncounteredInRecords(fireStorage.getAll(), mapId, pet.name)) {
-            const pk = petKeyOf(pet.name, pet.id, pet.seq);
-            if (pk && mapVotes[pk] === undefined) {
-              mapVotes[pk] = 'agree';
-              changed = true;
-            }
-          }
-        });
-        next[mapId] = mapVotes;
-      });
-      if (changed) {
-        try { localStorage.setItem('roco_fire_atlas_votes_v1', JSON.stringify(next)); } catch { /* ignore */ }
+    let changed = false;
+    (Object.values(fireStorage.getAll()) as EncounterRecord[]).forEach((rec) => {
+      if (rec?.encountered && !rec.vote) {
+        fireStorage.updateVote(rec.mapId, rec.filename, 'agree');
+        changed = true;
       }
-      return next;
     });
+    if (changed) setRecords(fireStorage.getAll());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFire, mapsPets]);
 
-  // 跨窗口跟随：首页修改投票/隐藏投票开关时同步到本窗口（storage 事件仅在其他窗口触发）
+  // 多端/跨窗口同步：fire 设置（显示投票）变化时刷新本窗口；vote 由 fireStorage.subscribe 的 records 驱动
   useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'roco_fire_atlas_votes_v1') {
-        try {
-          setFireVotes(JSON.parse(e.newValue || '{}') || {});
-        } catch { /* ignore */ }
-      } else if (e.key === 'roco_fire_atlas_show_vote_v1') {
-        setShowAtlasVote(e.newValue !== '0');
-      }
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    const unsub = storage.subscribeSettings((s) => {
+      setShowAtlasVote((s.fireSettings || {}).showVote ?? true);
+    });
+    return unsub;
   }, []);
 
   // 社区图鉴：合并本地投票 + 服务端权重后的展示态（算法与首页一致，本设备权重 app×1 / web×0.5）
   const communityAtlas = useMemo(() => {
-    const map: Record<string, { confirmed_by: number; confidence: number; agree_ratio?: number; my_vote?: 'agree' | 'disagree' | 'none' }> = {};
+    const map: Record<string, {
+      confirmed_by: number;
+      confidence: number;
+      agree_ratio?: number;
+      vote_ratio?: number;
+      total_users?: number;
+      voter_count?: number;
+      my_vote?: 'agree' | 'disagree' | 'none';
+    }> = {};
     const w = PLATFORM === 'web' ? 0.5 : 1;
     if (serverAtlas?.maps) {
       Object.entries(serverAtlas.maps).forEach(([mapId, entries]) => {
@@ -471,21 +460,34 @@ export const ScannerApp: React.FC = () => {
           if (!pk) return;
           const key = `${mapId}:${pk}`;
           const localVote = fireVotes?.[mapId]?.[pk];
-          // 本地乐观赞同率：服务端权重 - 本设备服务端贡献 + 本设备本地贡献
-          let na = e.agree_weight ?? 0;
-          let nt = e.total_weight ?? 0;
           const serverVote = e.my_vote ?? 'none';
-          if (serverVote === 'agree') { na -= w; nt -= w; }
-          else if (serverVote === 'disagree') { nt -= w; }
-          if (localVote === 'agree') { na += w; nt += w; }
-          else if (localVote === 'disagree') { nt += w; }
-          const localRatio = nt > 0 ? na / nt : 0;
+          const pet = (mapsPets[mapId]?.items || []).find((p) => petKeyOf(p.name, p.id, p.seq) === pk);
+          const encName = pet?.name || '';
+          const localRecord = encName ? records[`${mapId}_${encName}`] : undefined;
+          let localRatio = e.agree_ratio ?? 0;
+          let myVote = e.my_vote ?? 'none';
+          let confidence = e.confidence ?? 0;
+          if (localRecord) {
+            let na = e.agree_weight ?? 0;
+            let nt = e.total_weight ?? 0;
+            if (serverVote === 'agree') { na -= w; nt -= w; }
+            else if (serverVote === 'disagree') { nt -= w; }
+            if (localVote === 'agree') { na += w; nt += w; }
+            else if (localVote === 'disagree') { nt += w; }
+            localRatio = nt > 0 ? na / nt : 0;
+            myVote = localVote ?? 'none';
+            confidence = wilsonLower(na, nt);
+          }
+          const voterCount = e.voter_count ?? 0;
+          const totalUsers = e.total_users ?? 0;
           map[key] = {
             confirmed_by: e.confirmed_by,
-            confidence: e.confidence,
+            confidence,
             agree_ratio: localRatio,
-            // 投票为唯一来源：点亮时已把 agree 写入 votes
-            my_vote: localVote ?? (e.my_vote ?? 'none'),
+            vote_ratio: totalUsers > 0 ? voterCount / totalUsers : 0,
+            total_users: totalUsers,
+            voter_count: voterCount,
+            my_vote: myVote,
           };
         });
       });
@@ -496,16 +498,20 @@ export const ScannerApp: React.FC = () => {
       Object.entries(votes).forEach(([pk, v]) => {
         const key = `${mapId}:${pk}`;
         if (map[key]) return;
+        const agreeCount = v === 'agree' ? 1 : 0;
         map[key] = {
           confirmed_by: 0,
-          confidence: 0,
+          confidence: wilsonLower(agreeCount, 1),
           agree_ratio: v === 'agree' ? 1 : 0,
+          vote_ratio: 0,
+          total_users: 0,
+          voter_count: 1,
           my_vote: v,
         };
       });
     });
     return map;
-  }, [serverAtlas, fireVotes]);
+  }, [serverAtlas, fireVotes, records, mapsPets]);
 
   // 上次同步给 Python 的窗口高度，避免重复 resize 造成抖动
   const lastWindowHeightRef = useRef<number | null>(null);
@@ -809,17 +815,8 @@ export const ScannerApp: React.FC = () => {
         sound.playToggleOff();
         fireUnencounterEffect(level);
       }
-      const pet = (mapsPets[mapKey]?.items || []).find((p) => p.name === petName);
-      const pk = pet ? petKeyOf(pet.name, pet.id, pet.seq) : petKeyOf(petName);
-      if (pk) {
-        setFireVotes((prev) => {
-          const mapVotes = { ...(prev[mapKey] || {}) };
-          if (!wasLit) mapVotes[pk] = 'agree'; // 点亮 = 激活赞同；取消点亮 = 保留赞同
-          const next = { ...prev, [mapKey]: mapVotes };
-          try { localStorage.setItem('roco_fire_atlas_votes_v1', JSON.stringify(next)); } catch { /* ignore */ }
-          return next;
-        });
-      }
+      // 点亮 = 默认赞同（写入 vote）；取消点亮保留 vote
+      if (!wasLit) fireStorage.updateVote(mapKey, petName, 'agree');
       return;
     }
 
@@ -875,16 +872,9 @@ export const ScannerApp: React.FC = () => {
     }
     if (newLit !== isLit) {
       fireStorage.toggleEncountered(mapId, encName);
-      setRecords(fireStorage.getAll());
     }
-    setFireVotes((prev) => {
-      const mapVotes = { ...(prev[mapId] || {}) };
-      if (newVote === 'none') delete mapVotes[petKey];
-      else mapVotes[petKey] = newVote;
-      const next = { ...prev, [mapId]: mapVotes };
-      try { localStorage.setItem('roco_fire_atlas_votes_v1', JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
+    fireStorage.updateVote(mapId, encName, newVote === 'none' ? undefined : newVote);
+    setRecords(fireStorage.getAll());
   };
 
   // 识别候选的社区数据（赞同率徽章用）：候选文件名 -> pet_key -> communityAtlas
@@ -1550,53 +1540,6 @@ export const ScannerApp: React.FC = () => {
                                 )}
                               </button>
                             </div>
-
-                            {/* 共创图鉴：社区赞同率 + 赞/踩投票（火系且未隐藏投票时展示） */}
-                            {isFire && showAtlasVote && (() => {
-                              const mapId = `map${slotSourceMap}`;
-                              const pet = (mapsPets[mapId]?.items || []).find((p) => isSamePetName(p.name, slot.selectedPetName));
-                              const pk = pet ? petKeyOf(pet.name, pet.id, pet.seq) : petKeyOf(slot.selectedPetName);
-                              const info = pk ? communityAtlas[`${mapId}:${pk}`] : undefined;
-                              if (!pk || !info) return null;
-                              const r = info.agree_ratio ?? 0;
-                              const ratioCls = r >= 0.7 ? 'text-green-700 bg-green-50 border-green-300'
-                                  : r >= 0.3 ? 'text-amber-700 bg-amber-50 border-amber-300'
-                                      : 'text-rose-700 bg-rose-50 border-rose-300';
-                              return (
-                                  <div className="mb-2.5 flex items-center gap-2 rounded-xl border border-[#EDF2F7] bg-[#F8FBFE] px-2.5 py-1.5">
-                                    <span className={`inline-flex items-center text-[10px] font-mono font-black px-1.5 py-0.5 rounded border ${ratioCls}`}>
-                                      {Math.round(r * 100)}% 赞同
-                                    </span>
-                                    <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
-                                      <div
-                                          className={`h-full rounded-full ${r >= 0.7 ? 'bg-green-500' : r >= 0.3 ? 'bg-amber-400' : 'bg-rose-400'}`}
-                                          style={{ width: `${Math.min(100, Math.round(r * 100))}%` }}
-                                      />
-                                    </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                      {([['agree', '✓'], ['disagree', '✕']] as Array<['agree' | 'disagree', string]>).map(([type, label]) => {
-                                        const myVote = info.my_vote ?? 'none';
-                                        const active = myVote === type;
-                                        return (
-                                            <button
-                                                key={type}
-                                                type="button"
-                                                onClick={() => handleAtlasVote(mapId, pk, slot.selectedPetName, type)}
-                                                className={`text-[10px] font-black w-6 h-6 rounded-md border flex items-center justify-center transition-colors select-none ${
-                                                    active
-                                                        ? type === 'agree' ? 'bg-green-500 border-green-500 text-white' : 'bg-rose-500 border-rose-500 text-white'
-                                                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
-                                                } cursor-pointer`}
-                                                title={type === 'agree' ? '赞同该精灵收录进共创图鉴' : '不赞同该精灵收录进共创图鉴'}
-                                            >
-                                              {label}
-                                            </button>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                              );
-                            })()}
 
                             {/* Candidate Switcher with Horizontal Navigation */}
                             {slot.candidates && slot.candidates.length > 1 && (

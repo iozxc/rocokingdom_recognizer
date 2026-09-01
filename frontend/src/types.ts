@@ -113,6 +113,7 @@ export interface EncounterRecord {
   firstSeenAt: string;
   lastSeenAt: string;
   note?: string;
+  vote?: 'agree' | 'disagree';
 }
 
 export interface Trial {
@@ -123,8 +124,6 @@ export interface Trial {
   dev_only: boolean;
   map_list?: string[];
   scene_features?: unknown[];
-  supports_recognition?: boolean;
-  pets_source?: string;
   maps?: TrialMap[];
 }
 
@@ -216,6 +215,12 @@ export type EffectLevel = 0 | 1 | 2 | 3;
 export type FloatingButtonsMode = 'normal' | 'compact' | 'hidden';
 export type CaptureMode = 'hwnd' | 'grab';
 
+export interface FireSettings {
+  agreeRatio?: number; // 火系赞同率阈值 0~1（默认 0）
+  showVote?: boolean; // 隐藏投票/赞同率（默认显示）
+  atlasMode?: 'community' | 'pokedex'; // 首页图鉴数据源：共创图鉴 / 全图鉴自选
+}
+
 export interface AppSettings {
   isSoundMuted?: boolean;
   isFABCollapsed?: boolean; // 右下角快捷按钮栏是否收起
@@ -231,6 +236,7 @@ export interface AppSettings {
   hideUpdateDot?: boolean; // 是否隐藏更新提示红点（默认不隐藏）
   showHints?: boolean; // 启动/退出提示窗口是否显示（默认关闭，首次启动强制显示一次）
   followTopMost?: boolean; // 跟随识别窗口是否默认置顶（默认开启）
+  fireSettings?: FireSettings; // 火系徽章试炼专属设置
   [key: string]: unknown;
 }
 
@@ -377,4 +383,3 @@ export interface AuthState {
   // offline（服务器故障/断网宽限）时是否显示右上角“未授权”角标：用户断网 True，服务器故障 False
   offline_badge: boolean;
 }
-

@@ -14,7 +14,7 @@ interface BootstrapAtlasModalProps {
   /** 与首页图鉴共用同一份社区图鉴数据（避免两处取值不一致）。 */
   atlas: TrialAtlas | null;
   /** 本地优化赞同率（与首页一致）。*/
-  communityAtlas?: Record<string, { confirmed_by: number; confidence: number; agree_ratio?: number; my_vote?: 'agree' | 'disagree' | 'none' }>;
+  communityAtlas?: Record<string, { confirmed_by: number; confidence: number; agree_ratio?: number; vote_ratio?: number; total_users?: number; voter_count?: number; my_vote?: 'agree' | 'disagree' | 'none' }>;
   onVote: (mapId: string, petKey: string, filename: string, type: 'agree' | 'disagree') => void;
   /** 点击卡片点亮/取消点亮（与首页 PetGrid 同一状态机）。 */
   onToggleEncounter: (mapId: string, filename: string) => void;
@@ -231,6 +231,17 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
                                 title={pet ? (encountered ? `点击取消点亮「${pet.name}」` : `点击点亮「${pet.name}」`) : undefined}
                             >
                               <div className="relative w-14 h-14 rounded-xl bg-white p-0.5 border border-slate-200 flex items-center justify-center">
+                                {showAtlasVote && (() => {
+                                  const conf = (local?.confidence ?? entry.confidence) ?? 0;
+                                  const ccls = conf >= 0.7 ? 'bg-green-100 text-green-700 border-green-300'
+                                      : conf >= 0.3 ? 'bg-amber-100 text-amber-700 border-amber-300'
+                                          : 'bg-rose-100 text-rose-700 border-rose-300';
+                                  return (
+                                      <div className="absolute -top-[3px] left-0 right-0 flex justify-center">
+                                        <span className={`text-[7px] font-mono font-black px-1 py-0.5 rounded-full border ${ccls}`}>置信度：{Math.round(conf * 100)}%</span>
+                                      </div>
+                                  );
+                                })()}
                                 {pet ? (
                                     <PetSprite pet={pet} className="w-full h-full object-contain" />
                                 ) : (
@@ -240,17 +251,19 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
                               </div>
                               <p className="mt-1.5 text-[11px] font-black text-slate-800 truncate w-full">{entry.name}</p>
                               {showAtlasVote && (() => {
-                                      const r = ratio ?? 0;
-                                      const cls = r >= 0.7 ? 'text-green-700 bg-green-50 border-green-300'
-                                          : r >= 0.3 ? 'text-amber-700 bg-amber-50 border-amber-300'
+                                      const vc = local?.voter_count ?? entry.voter_count ?? 0;
+                                      const tc = local?.total_users ?? entry.total_users ?? 0;
+                                      const vr = (local?.vote_ratio ?? entry.vote_ratio) ?? 0;
+                                      const cls = vr >= 0.5 ? 'text-green-700 bg-green-50 border-green-300'
+                                          : vr >= 0.25 ? 'text-amber-700 bg-amber-50 border-amber-300'
                                               : 'text-rose-700 bg-rose-50 border-rose-300';
                                       return (
                                           <>
                                             <span className={`text-[9px] font-mono font-black px-1.5 py-0.5 rounded border ${cls}`}>
-                                              {Math.round(r * 100)}% 赞同 · 投票 {entry.voter_count ?? entry.confirmed_by}
+                                              投票 {vc}{tc > 0 ? `/${tc}` : ''}
                                             </span>
                                             <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden mt-1">
-                                              <div className={`h-full rounded-full ${r >= 0.7 ? 'bg-green-500' : r >= 0.3 ? 'bg-amber-400' : 'bg-rose-400'}`} style={{ width: `${Math.round(Math.min(1, Math.max(0, r)) * 100)}%` }} />
+                                              <div className={`h-full rounded-full ${vr >= 0.5 ? 'bg-green-500' : vr >= 0.25 ? 'bg-amber-400' : 'bg-rose-400'}`} style={{ width: `${Math.round(Math.min(1, Math.max(0, vr)) * 100)}%` }} />
                                             </div>
                                           </>
                                       );

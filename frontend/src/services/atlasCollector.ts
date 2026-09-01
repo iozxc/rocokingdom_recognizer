@@ -61,6 +61,8 @@ export interface AtlasEntry {
   agree_weight?: number;
   total_weight?: number;
   voter_count?: number;
+  vote_ratio?: number;
+  total_users?: number;
   my_vote?: 'agree' | 'disagree' | 'none';
 }
 
@@ -70,6 +72,17 @@ export interface TrialAtlas {
   partial?: boolean;
   meta?: { version?: string; source?: string; generated_at?: string; confirmed_total?: number };
   maps?: Record<string, Record<string, AtlasEntry>>;
+}
+
+/** Wilson 95% 置信下界：兼顾投票人数与比例，避免“1 人 100%”虚高。 */
+export function wilsonLower(agree: number, total: number, z = 1.96): number {
+  const t = Number(total || 0);
+  if (t <= 0) return 0;
+  const p = Number(agree || 0) / t;
+  const denom = 1 + z * z / t;
+  const center = (p + z * z / (2 * t)) / denom;
+  const margin = z * Math.sqrt(Math.max(0, p * (1 - p) / t + z * z / (4 * t * t))) / denom;
+  return Math.max(0, Math.min(1, center - margin));
 }
 
 let queue: Array<{ trial: string } & AtlasObservation> = [];
@@ -238,6 +251,33 @@ export async function syncTrialAtlas(
   } catch {
     return false;
   }
+}
+
+/** 关闭/卸载场景的静默同步：用 fetch keepalive 在页面销毁后仍把最新快照发到远端。 */
+export function syncTrialAtlasKeepalive(
+    trial: string,
+    maps: Record<string, string[]>,
+    votes: Record<string, Record<string, 'agree' | 'disagree'>>,
+    overrideHash?: string
+): void {
+  if (!ATLAS_TRIALS.includes(trial)) return;
+  if (!isAtlasContribEnabled()) return;
+  try {
+    void fetch(`${ATLAS_SERVER}/api/trials/${encodeURIComponent(trial)}/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        device_hash: overrideHash || deviceHash(),
+        platform: PLATFORM,
+        client_version: APP_VERSION,
+        maps,
+        votes,
+      }),
+      mode: 'cors',
+      credentials: 'omit',
+      keepalive: true,
+    }).catch(() => {});
+  } catch { /* ignore */ }
 }
 
 // 页面关闭时尽量 flush（仅 web；桌面端由生命周期收尾）

@@ -141,8 +141,6 @@ TRIALS = [
             # 记忆中的 [普拉塔草原] ：普、拉、塔
             ("map3", {"普", "拉", "塔"}),
         ],
-        "supports_recognition": True,
-        "pets_source": "map_pets",
         "maps": [
             {
                 "id": "map1",
@@ -186,8 +184,6 @@ TRIALS = [
         "dev_only": True,
         "map_list": ['map1', 'map2', 'map3'],
         "scene_features": [],
-        "supports_recognition": False,
-        "pets_source": "pokedex",
         "maps": [
             {
                 "id": "map1",

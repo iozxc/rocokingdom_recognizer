@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode, AdvancedFilterState } from '../../types';
+import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode, AdvancedFilterState, FireSettings } from '../../types';
 import { fireStorage } from '../../services/fireStorage';
 import { getCachedFirePets, getFireTrialPetsCached, getFireMapPets } from '../../services/fireTrialData';
 import { storage } from '../../services/storage';
@@ -20,7 +20,7 @@ import { UpdateModal } from '../UpdateModal';
 import { AppSettingsModal } from '../AppSettingsModal';
 import { BatchRecognizerCard } from '../BatchRecognizerCard';
 import { createSvgPetAvatar } from '../../data/mockPets';
-import { fetchTrialAtlas, syncTrialAtlas, petKeyOf, TrialAtlas, AtlasEntry } from '../../services/atlasCollector';
+import { fetchTrialAtlas, syncTrialAtlas, syncTrialAtlasKeepalive, petKeyOf, TrialAtlas, AtlasEntry, wilsonLower } from '../../services/atlasCollector';
 import { isPetEncounteredInRecords } from '../../utils/petHelper';
 import { PLATFORM, IS_STATIC } from '../../services/staticMode';
 import { updateStore } from '../../services/updateStore';
@@ -52,26 +52,25 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isAtlasOpen, setIsAtlasOpen] = useState<boolean>(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'ok' | 'err'>('idle');
-  const [minAgreeRatio, setMinAgreeRatio] = useState<number>(0.75);
-  // 首页图鉴：隐藏投票/赞同率（还原到最初样式；数据照常计算）
-  const [showAtlasVote, setShowAtlasVote] = useState<boolean>(() => {
-    try { return localStorage.getItem('roco_fire_atlas_show_vote_v1') !== '0'; } catch { return true; }
-  });
+  // 火系专属设置存 appSettings.fireSettings，跨会话/换设备保持一致
+  const [fireSettings, setFireSettings] = useState<FireSettings>(() =>
+      storage.getSetting<FireSettings>('fireSettings', {})
+  );
+  const saveFireSettings = (patch: Partial<FireSettings>) => {
+    const current = storage.getSetting<FireSettings>('fireSettings', {}) || {};
+    const next = { ...current, ...patch };
+    setFireSettings(next);
+    storage.setSetting('fireSettings', next);
+    // 立即同步到后端，避免“改完立刻关窗”时 150ms 防抖未触发导致丢失。
+    void storage.saveToRemote();
+  };
+  // 赞同率阈值：默认 0%（开荒期不做过滤）
+  const [minAgreeRatio, setMinAgreeRatio] = useState<number>(() => fireSettings.agreeRatio ?? 0);
+  // 隐藏投票/赞同率（默认显示）
+  const [showAtlasVote, setShowAtlasVote] = useState<boolean>(() => fireSettings.showVote ?? true);
   // 首页图鉴数据源：community=共创图鉴（按 map_pets2 分组）| pokedex=全图鉴自选（每图全量）
-  const [atlasMode, setAtlasMode] = useState<'community' | 'pokedex'>(() => {
-    try {
-      const v = localStorage.getItem('roco_fire_atlas_mode_v1');
-      return (v === 'pokedex' ? 'pokedex' : 'community');
-    } catch { return 'community'; }
-  });
+  const [atlasMode, setAtlasMode] = useState<'community' | 'pokedex'>(() => fireSettings.atlasMode ?? 'community');
   const [serverAtlas, setServerAtlas] = useState<TrialAtlas | null>(null);
-  const [manualVotes, setManualVotes] = useState<Record<string, Record<string, 'agree' | 'disagree'>>>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('roco_fire_atlas_votes_v1') || '{}') || {};
-    } catch {
-      return {};
-    }
-  });
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState<boolean>(false);
   const [floatingMode, setFloatingMode] = useState<FloatingButtonsMode>(() => {
     return storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal');
@@ -102,6 +101,11 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       if (newSettings.floatingButtonsMode) {
         setFloatingMode(newSettings.floatingButtonsMode);
       }
+      // 多端同步：远端 user_data.json 拉到最新 fire 专属设置时刷新本地展示态
+      const fs = newSettings.fireSettings || {};
+      setMinAgreeRatio(fs.agreeRatio ?? 0);
+      setShowAtlasVote(fs.showVote ?? true);
+      setAtlasMode(fs.atlasMode ?? 'community');
     });
     return unsubscribe;
   }, []);
@@ -174,17 +178,17 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         });
 
     const out: Record<string, { count: number; items: PetItem[] }> = {};
-    // 1) 优先用远端社区图鉴（自动最新，与共创图鉴弹窗数量一致）
-    if (serverAtlas?.maps && Object.keys(serverAtlas.maps).length > 0) {
-      Object.entries(serverAtlas.maps).forEach(([mapId, entries]) => {
-        const items = buildAtlasItems((entries || {}) as Record<string, AtlasEntry>);
+    // 1) 本地 map_pets2.json 已存在（data_manifest 更新 / 官方图鉴）：优先用本地
+    if (Object.keys(fireMapPets).length > 0) {
+      Object.entries(fireMapPets).forEach(([mapId, entries]) => {
+        const items = buildItems((entries || {}) as Record<string, { id?: number; name?: string; seq?: number | null }>);
         out[mapId] = { count: items.length, items };
       });
     }
-    // 2) atlas 未加载/失败：回退本地 map_pets2.json（静态共创图鉴）
-    if (Object.keys(out).length === 0) {
-      Object.entries(fireMapPets).forEach(([mapId, entries]) => {
-        const items = buildItems((entries || {}) as Record<string, { id?: number; name?: string; seq?: number | null }>);
+    // 2) 本地无 map_pets2.json：走远端服务器 atlas（共创图鉴，自动最新）
+    else if (serverAtlas?.maps && Object.keys(serverAtlas.maps).length > 0) {
+      Object.entries(serverAtlas.maps).forEach(([mapId, entries]) => {
+        const items = buildAtlasItems((entries || {}) as Record<string, AtlasEntry>);
         out[mapId] = { count: items.length, items };
       });
     }
@@ -197,6 +201,18 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
 
     return out;
   }, [atlasMode, fireMapPets, pokedex, serverAtlas]);
+
+  // 手动投票并入 encounteredPets2：从 fireStorage 记录里的 vote 派生，避免单独一套存储。
+  const manualVotes = useMemo<Record<string, Record<string, 'agree' | 'disagree'>>>(() => {
+    const votes: Record<string, Record<string, 'agree' | 'disagree'>> = {};
+    (Object.entries(records) as Array<[string, EncounterRecord]>).forEach(([, rec]) => {
+      if (!rec?.vote || !rec.mapId) return;
+      const pet = (fireMapsPets[rec.mapId]?.items || []).find((p) => p.name === rec.filename);
+      const pk = pet ? petKeyOf(pet.name, pet.id, pet.seq) : petKeyOf(rec.filename || '');
+      if (pk) (votes[rec.mapId] ??= {})[pk] = rec.vote;
+    });
+    return votes;
+  }, [records, fireMapsPets]);
 
   const currentMap: MapConfig = useMemo(() => {
     return safeMaps.find((m) => m.num === activeStageNum) || safeMaps[0];
@@ -247,19 +263,10 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const handleToggleEncounter = (mapId: string, filename: string) => {
     const wasLit = fireStorage.isEncountered(mapId, filename);
     fireStorage.toggleEncountered(mapId, filename);
+    // 点亮 = 默认赞同（写入 vote）；取消点亮保留 vote（toggleEncountered 已保留）
+    if (!wasLit) fireStorage.updateVote(mapId, filename, 'agree');
     setRecords(fireStorage.getAll());
     if (wasLit) sound.playToggleOff(); else sound.playEncounter();
-    const pet = (fireMapsPets[mapId]?.items || []).find((p) => p.name === filename);
-    const pk = pet ? petKeyOf(pet.name, pet.id, pet.seq) : petKeyOf(filename);
-    if (pk) {
-      setManualVotes((prev) => {
-        const mapVotes = { ...(prev[mapId] || {}) };
-        if (!wasLit) mapVotes[pk] = 'agree'; // 点亮 = 激活赞同；取消点亮 = 保留赞同
-        const next = { ...prev, [mapId]: mapVotes };
-        try { localStorage.setItem('roco_fire_atlas_votes_v1', JSON.stringify(next)); } catch { /* ignore */ }
-        return next;
-      });
-    }
   };
 
   // 构建“当前已点亮 pet_id 集合”（快照上传用，只传 map->id）
@@ -317,33 +324,28 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
 
   // 初始化：把所有“已点亮”精灵默认为赞同（无手动投票时）
   useEffect(() => {
-    setManualVotes((prev) => {
-      const next = { ...prev };
-      let changed = false;
-      Object.entries(fireMapsPets).forEach(([mapId, { items }]) => {
-        const mapVotes = { ...(next[mapId] || {}) };
-        (items || []).forEach((pet) => {
-          if (isPetEncounteredInRecords(fireStorage.getAll(), mapId, pet.name)) {
-            const pk = petKeyOf(pet.name, pet.id, pet.seq);
-            if (pk && mapVotes[pk] === undefined) {
-              mapVotes[pk] = 'agree';
-              changed = true;
-            }
-          }
-        });
-        next[mapId] = mapVotes;
-      });
-      if (changed) {
-        try { localStorage.setItem('roco_fire_atlas_votes_v1', JSON.stringify(next)); } catch { /* ignore */ }
+    let changed = false;
+    Object.values(fireStorage.getAll()).forEach((rec) => {
+      if (rec?.encountered && !rec.vote) {
+        fireStorage.updateVote(rec.mapId, rec.filename, 'agree');
+        changed = true;
       }
-      return next;
     });
+    if (changed) setRecords(fireStorage.getAll());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 社区图鉴：合并本地手动投票 + 自动赞同(点=亮) 后的展示态
   const communityAtlas = useMemo(() => {
-    const map: Record<string, { confirmed_by: number; confidence: number; agree_ratio?: number; my_vote?: 'agree' | 'disagree' | 'none' }> = {};
+    const map: Record<string, {
+      confirmed_by: number;
+      confidence: number;
+      agree_ratio?: number;
+      vote_ratio?: number;
+      total_users?: number;
+      voter_count?: number;
+      my_vote?: 'agree' | 'disagree' | 'none';
+    }> = {};
     const w = PLATFORM === 'web' ? 0.5 : 1; // 本设备权重（web×0.5 / 客户端×1）
     if (serverAtlas?.maps) {
       Object.entries(serverAtlas.maps).forEach(([mapId, entries]) => {
@@ -352,21 +354,37 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
           if (!pk) return;
           const key = `${mapId}:${pk}`;
           const localVote = manualVotes?.[mapId]?.[pk];
-          // 本地乐观赞同率：服务端权重 - 本设备服务端贡献 + 本设备本地贡献
-          let na = e.agree_weight ?? 0;
-          let nt = e.total_weight ?? 0;
           const serverVote = e.my_vote ?? 'none';
-          if (serverVote === 'agree') { na -= w; nt -= w; }
-          else if (serverVote === 'disagree') { nt -= w; }
-          if (localVote === 'agree') { na += w; nt += w; }
-          else if (localVote === 'disagree') { nt += w; }
-          const localRatio = nt > 0 ? na / nt : 0;
+          const pet = (fireMapsPets[mapId]?.items || []).find((p) => petKeyOf(p.name, p.id, p.seq) === pk);
+          const encName = pet?.name || '';
+          // 本地是否已「操作过」该精灵（有点亮/投票记录，即使已取消 vote）：
+          // - 有记录：说明本设备投过/取消过，用本地姿态替换服务端贡献；
+          // - 无记录：从未操作，直接采用服务端 agree_ratio（权威），避免“服务端 100% 却显示 0%”。
+          const localRecord = encName ? records[`${mapId}_${encName}`] : undefined;
+          let localRatio = e.agree_ratio ?? 0;
+          let myVote = e.my_vote ?? 'none';
+          let confidence = e.confidence ?? 0;
+          if (localRecord) {
+            let na = e.agree_weight ?? 0;
+            let nt = e.total_weight ?? 0;
+            if (serverVote === 'agree') { na -= w; nt -= w; }
+            else if (serverVote === 'disagree') { nt -= w; }
+            if (localVote === 'agree') { na += w; nt += w; }
+            else if (localVote === 'disagree') { nt += w; }
+            localRatio = nt > 0 ? na / nt : 0;
+            myVote = localVote ?? 'none';
+            confidence = wilsonLower(na, nt);
+          }
+          const voterCount = e.voter_count ?? 0;
+          const totalUsers = e.total_users ?? 0;
           map[key] = {
-          confirmed_by: e.confirmed_by,
-          confidence: e.confidence,
+            confirmed_by: e.confirmed_by,
+            confidence,
             agree_ratio: localRatio,
-            // 投票为唯一来源：点亮时已把 agree 写入 votes
-            my_vote: localVote ?? (e.my_vote ?? 'none'),
+            vote_ratio: totalUsers > 0 ? voterCount / totalUsers : 0,
+            total_users: totalUsers,
+            voter_count: voterCount,
+            my_vote: myVote,
           };
         });
       });
@@ -377,10 +395,14 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       Object.entries(votes).forEach(([pk, v]) => {
         const key = `${mapId}:${pk}`;
         if (map[key]) return;
+        const agreeCount = v === 'agree' ? 1 : 0;
         map[key] = {
           confirmed_by: 0,
-          confidence: 0,
+          confidence: wilsonLower(agreeCount, 1),
           agree_ratio: v === 'agree' ? 1 : 0,
+          vote_ratio: 0,
+          total_users: 0,
+          voter_count: 1,
           my_vote: v,
         };
       });
@@ -390,7 +412,16 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
 
   // 卸载/关闭火系时用最新数据刷一次（不做 30s 轮询）
   useEffect(() => {
-    return () => void syncTrialAtlas('fire', latestSyncRef.current.maps, latestSyncRef.current.votes);
+    const flush = () =>
+        syncTrialAtlasKeepalive('fire', latestSyncRef.current.maps, latestSyncRef.current.votes);
+    // 窗口/页面关闭：用 keepalive 在销毁后仍把最新快照发到远端，避免“关闭窗口没上传”。
+    window.addEventListener('beforeunload', flush);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      window.removeEventListener('beforeunload', flush);
+      window.removeEventListener('pagehide', flush);
+      void syncTrialAtlas('fire', latestSyncRef.current.maps, latestSyncRef.current.votes);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -430,44 +461,20 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
     }
     if (newLit !== isLit) {
       fireStorage.toggleEncountered(mapId, encName);
-      setRecords(fireStorage.getAll());
     }
-    setManualVotes((prev) => {
-      const mapVotes = { ...(prev[mapId] || {}) };
-      if (newVote === 'none') delete mapVotes[petKey];
-      else mapVotes[petKey] = newVote;
-      const next = { ...prev, [mapId]: mapVotes };
-      try { localStorage.setItem('roco_fire_atlas_votes_v1', JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
+    fireStorage.updateVote(mapId, encName, newVote === 'none' ? undefined : newVote);
+    setRecords(fireStorage.getAll());
   };
 
   // 火系批量识图成功：点亮 + 默认赞同（与「点亮=同意」一致），并保持本地点亮集合
   const handleFireBatchEncounterSuccess = (
       items: Array<{ mapId: string; filename: string; note?: string }>
   ) => {
-    let changed = false;
-    setManualVotes((prev) => {
-      const next = { ...prev };
-      for (const { mapId, filename } of items) {
-        const pet = (fireMapsPets[mapId]?.items || []).find((p) => p.name === filename);
-        const pk = pet ? petKeyOf(pet.name, pet.id, pet.seq) : petKeyOf(filename);
-        if (pk) {
-          const mapVotes = { ...(next[mapId] || {}) };
-          mapVotes[pk] = 'agree';
-          next[mapId] = mapVotes;
-        }
-      }
-      try { localStorage.setItem('roco_fire_atlas_votes_v1', JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
     for (const { mapId, filename, note } of items) {
-      if (!fireStorage.isEncountered(mapId, filename)) {
-        fireStorage.markEncountered(mapId, filename, note);
-        changed = true;
-      }
+      fireStorage.markEncountered(mapId, filename, note);
+      fireStorage.updateVote(mapId, filename, 'agree'); // 批量点亮 = 默认赞同
     }
-    if (changed) setRecords(fireStorage.getAll());
+    setRecords(fireStorage.getAll());
   };
 
   // dev：生成随机“模拟设备”写入点亮/赞同/不赞同，模拟社区环境
@@ -695,7 +702,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             onToggleAtlasMode={() => {
               const next = atlasMode === 'community' ? 'pokedex' : 'community';
               setAtlasMode(next);
-              try { localStorage.setItem('roco_fire_atlas_mode_v1', next); } catch { /* ignore */ }
+              saveFireSettings({ atlasMode: next });
             }}
             followTrialKey="fire"
         />
@@ -746,12 +753,15 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             manualVotes={manualVotes}
             onRefresh={handleRefreshAtlas}
             minAgreeRatio={minAgreeRatio}
-            onMinAgreeRatioChange={(v) => setMinAgreeRatio(v)}
+            onMinAgreeRatioChange={(v) => {
+              setMinAgreeRatio(v);
+              saveFireSettings({ agreeRatio: v });
+            }}
             showAtlasVote={showAtlasVote}
             onToggleShowVote={() => {
               const next = !showAtlasVote;
               setShowAtlasVote(next);
-              try { localStorage.setItem('roco_fire_atlas_show_vote_v1', next ? '1' : '0'); } catch { /* ignore */ }
+              saveFireSettings({ showVote: next });
             }}
         />
       </div>
