@@ -6,6 +6,7 @@ import { IS_STATIC } from '../services/staticMode';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
+import { petKeyOf } from '../services/atlasCollector';
 
 interface PetGridProps {
   currentMap: MapConfig;
@@ -18,6 +19,17 @@ interface PetGridProps {
   onOpenPetDetail?: (pet: PetItem) => void;
   onOpenFeedback?: (type: string, pet: PetItem) => void;
   advancedFilters: AdvancedFilterState;
+  /** 开荒图鉴：按展示名 -> 社区数据（含赞同率 / 我是否已投）。 */
+  communityAtlas?: Record<string, {
+    confirmed_by: number;
+    confidence: number;
+    agree_ratio?: number;
+    my_vote?: 'agree' | 'disagree' | 'none';
+  }>;
+  /** 只显示社区赞同率 >= 该值的精灵（0 表示不过滤）。 */
+  minAgreeRatio?: number;
+  /** 对社区图鉴条目投票（agree / disagree）。 */
+  onAtlasVote?: (mapId: string, petKey: string, petName: string, type: 'agree' | 'disagree') => void;
 }
 
 export const PetGrid: React.FC<PetGridProps> = ({
@@ -31,6 +43,9 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                                   onOpenPetDetail,
                                                   onOpenFeedback,
                                                   advancedFilters,
+                                                  communityAtlas,
+                                                  minAgreeRatio = 0,
+                                                  onAtlasVote,
                                                 }) => {
   // Track keys of pets that were just toggled to encountered / unencountered
   const [animatingKeys, setAnimatingKeys] = useState<Record<string, boolean>>({});
@@ -96,6 +111,13 @@ export const PetGrid: React.FC<PetGridProps> = ({
       if (filterMode === 'encountered' && !isEnc) return false;
       if (filterMode === 'unencountered' && isEnc) return false;
 
+      // 社区赞同率过滤（minAgreeRatio>0 时仅显示达到阈值的社区精灵）
+      if (minAgreeRatio && minAgreeRatio > 0) {
+        const pk = petKeyOf(pet.name, pet.id, pet.seq);
+        const ci = pk ? communityAtlas?.[`${currentMap.id}:${pk}`] : undefined;
+        if (!ci || (ci.agree_ratio ?? 0) < minAgreeRatio) return false;
+      }
+
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const cleanName = formatPetName(pet.name).toLowerCase();
@@ -135,7 +157,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
 
       return true;
     });
-  }, [pets, records, currentMap.id, filterMode, searchQuery, advancedFilters]);
+  }, [pets, records, currentMap.id, filterMode, searchQuery, advancedFilters, minAgreeRatio, communityAtlas]);
 
 
   return (
@@ -182,6 +204,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
                 const key = `${currentMap.id}_${pet.name}`;
                 const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);
                 const isJustEncountered = !!animatingKeys[key];
+                const petKey = petKeyOf(pet.name, pet.id, pet.seq);
+                const communityInfo = petKey ? communityAtlas?.[`${currentMap.id}:${petKey}`] : undefined;
 
                 return (
                     <div
@@ -248,18 +272,66 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         </p>
                       </div>
 
-                      {/* Status indicator pill */}
-                      <div className="mt-1 sm:mt-2 flex items-center justify-center w-full">
-                        {isEnc ? (
-                            <span className="text-[10px] sm:text-[11px] font-black text-[#2D6613] bg-[#E1F7DB] px-1.5 sm:px-2.5 py-0.5 rounded-md w-full text-center border border-[#95D151]/40 truncate">
-                      已遇见
-                    </span>
-                        ) : (
-                            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 bg-white px-1.5 sm:px-2 py-0.5 rounded-md w-full text-center border border-slate-200 group-hover:border-[#BCD7F2] group-hover:text-slate-600 transition-colors truncate">
-                      未探索
-                    </span>
-                        )}
-                      </div>
+                      {/* 社区图鉴：只显示赞同率 + 赞/踩，不显示“已遇见/未探索”文本（卡片边框颜色已表状态） */}
+                      {communityInfo && onAtlasVote ? (
+                          <div className="mt-1 flex flex-col items-center gap-1 w-full">
+                            <div className="flex items-center justify-center gap-1 w-full">
+                              {(() => {
+                                const r = communityInfo.agree_ratio ?? 0;
+                                const cls = r >= 0.7 ? 'text-green-700 bg-green-50 border-green-300'
+                                    : r >= 0.3 ? 'text-amber-700 bg-amber-50 border-amber-300'
+                                        : 'text-rose-700 bg-rose-50 border-rose-300';
+                                return (
+                                    <span className={`h-6 inline-flex items-center text-[9px] font-mono font-black px-1.5 py-0.5 rounded border ${cls}`}>
+                                      {Math.round(r * 100)}% 赞同
+                                    </span>
+                                );
+                              })()}
+                              {([['agree', '✓'], ['disagree', '✕']] as Array<['agree' | 'disagree', string]>).map(([type, label]) => {
+                                const myVote = communityInfo.my_vote ?? 'none';
+                                const active = type === 'agree' ? myVote === 'agree' : myVote === 'disagree';
+                                return (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onAtlasVote(currentMap.id, petKey, pet.name, type);
+                                        }}
+                                        className={`text-[10px] font-black w-6 h-6 rounded-md border flex items-center justify-center transition-colors select-none ${
+                                            active
+                                                ? type === 'agree' ? 'bg-green-500 border-green-500 text-white' : 'bg-rose-500 border-rose-500 text-white'
+                                                : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
+                                        } cursor-pointer`}
+                                        title={type === 'agree' ? '赞同' : '不赞同'}
+                                    >
+                                      {label}
+                                    </button>
+                                );
+                              })}
+                            </div>
+                            {/* 赞同率迷你进度条 */}
+                            <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                              <div
+                                  className={`h-full rounded-full ${(communityInfo.agree_ratio ?? 0) >= 0.7 ? 'bg-green-500' : (communityInfo.agree_ratio ?? 0) >= 0.3 ? 'bg-amber-400' : 'bg-rose-400'}`}
+                                  style={{ width: `${Math.min(100, Math.round((communityInfo.agree_ratio ?? 0) * 100))}%` }}
+                              />
+                            </div>
+                          </div>
+                      ) : (
+                          /* Status indicator pill（非社区宠保留） */
+                          <div className="mt-1 sm:mt-2 flex items-center justify-center w-full">
+                            {isEnc ? (
+                                <span className="text-[10px] sm:text-[11px] font-black text-[#2D6613] bg-[#E1F7DB] px-1.5 sm:px-2.5 py-0.5 rounded-md w-full text-center border border-[#95D151]/40 truncate">
+                          已遇见
+                        </span>
+                            ) : (
+                                <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 bg-white px-1.5 sm:px-2 py-0.5 rounded-md w-full text-center border border-slate-200 group-hover:border-[#BCD7F2] group-hover:text-slate-600 transition-colors truncate">
+                          未探索
+                        </span>
+                            )}
+                          </div>
+                      )}
                     </div>
                 );
               })}

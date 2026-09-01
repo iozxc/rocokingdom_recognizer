@@ -18,6 +18,11 @@ import {
   ListFilter,
   Minimize2,
   Maximize2,
+  Flame,
+  Percent,
+  RefreshCw,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, FloatingButtonsMode } from '../types';
 import { MAP_CONFIGS } from '../data/mockPets';
@@ -47,6 +52,17 @@ interface GlobalFloatingSearchProps {
   onOpenChange?: (open: boolean) => void;
   mapsConfig?: MapConfig[];
   searchOnly?: boolean;
+  // 火系开荒图鉴相关（FireBadgeTrial 传入时，在本悬浮按钮组内追加对应按钮）
+  onOpenFireAtlas?: () => void;
+  onRefreshFireAtlas?: () => void;
+  minAgreeRatio?: number;
+  onMinAgreeRatioChange?: (v: number) => void;
+  // 首页图鉴：隐藏投票/赞同率开关
+  showAtlasVote?: boolean;
+  onToggleShowVote?: () => void;
+  // 首页图鉴数据源切换：community=开荒图鉴(按图) | pokedex=全图鉴自选(每图全量)
+  atlasMode?: 'community' | 'pokedex';
+  onToggleAtlasMode?: () => void;
 }
 
 export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
@@ -58,10 +74,18 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                                                             onOpenSingleRecognizer,
                                                                             onOpenDataManage,
                                                                             isOpen: controlledIsOpen,
-                                                                            onOpenChange,
-                                                                            mapsConfig,
-                                                                            searchOnly,
-                                                                          }) => {
+            onOpenChange,
+            mapsConfig,
+            searchOnly,
+            onOpenFireAtlas,
+            onRefreshFireAtlas,
+            minAgreeRatio,
+            onMinAgreeRatioChange,
+            showAtlasVote,
+            onToggleShowVote,
+            atlasMode,
+            onToggleAtlasMode,
+          }) => {
   const maps = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
   const [internalIsOpen, setInternalIsOpen] = useState<boolean>(false);
   const isSearchOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
@@ -82,6 +106,12 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
   const [isSimplified, setIsSimplified] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSimplifiedFABs', true);
   });
+  // 赞同率按钮：点击后展开滑杆，滑动结束（拖动完成/失焦）再收起
+  const [isAgreeRatioOpen, setIsAgreeRatioOpen] = useState<boolean>(false);
+
+  // 火系开荒相关按钮（任一个回调存在即启用）
+  const hasFireAtlas = !!onOpenFireAtlas || !!onRefreshFireAtlas || onMinAgreeRatioChange != null;
+  const agreePct = Math.round((minAgreeRatio ?? 0.75) * 100);
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedMapFilter, setSelectedMapFilter] = useState<number | 'all'>('all');
@@ -336,6 +366,102 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 <Search className="w-5 h-5" />
               </button>
 
+              {/* 火系开荒相关按钮 */}
+              {hasFireAtlas && (
+                  <>
+                    {onOpenFireAtlas && (
+                        <button
+                            type="button"
+                            id="global-compact-fire-atlas-fab"
+                            onClick={() => {
+                              sound.playClick();
+                              onOpenFireAtlas();
+                            }}
+                            className="w-11 h-11 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] text-white flex items-center justify-center shadow-xl shadow-orange-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                            title="开荒图鉴"
+                        >
+                          <Flame className="w-5 h-5 text-white" />
+                        </button>
+                    )}
+                    {onRefreshFireAtlas && (
+                        <button
+                            type="button"
+                            id="global-compact-fire-refresh-fab"
+                            onClick={() => {
+                              sound.playClick();
+                              onRefreshFireAtlas();
+                            }}
+                            className="w-11 h-11 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white flex items-center justify-center shadow-xl shadow-sky-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                            title="刷新图鉴（拉取最新社区图鉴/赞同率）"
+                        >
+                          <RefreshCw className="w-5 h-5 text-white" />
+                        </button>
+                    )}
+                    {onMinAgreeRatioChange && (
+                        <div className="relative">
+                          <button
+                              type="button"
+                              id="global-compact-fire-agree-fab"
+                              onClick={() => {
+                                sound.playClick();
+                                setIsAgreeRatioOpen(true);
+                              }}
+                              className="w-11 h-11 rounded-full bg-gradient-to-r from-[#34D399] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-white flex items-center justify-center shadow-xl shadow-emerald-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                              title={`赞同率筛选 ≥ ${agreePct}%`}
+                          >
+                            <Percent className="w-5 h-5 text-white" />
+                          </button>
+                          {isAgreeRatioOpen && (
+                              <div className="absolute right-full top-1/2 -translate-y-1/2 mr-2 flex items-center gap-2 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-xl shadow-slate-900/10 px-3 py-2">
+                                <span className="text-[10px] font-black text-slate-600">赞同率</span>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                    value={agreePct}
+                                    onChange={(e) => onMinAgreeRatioChange(parseInt(e.target.value, 10) / 100)}
+                                    onPointerUp={() => setIsAgreeRatioOpen(false)}
+                                    onTouchEnd={() => setIsAgreeRatioOpen(false)}
+                                    onBlur={() => setIsAgreeRatioOpen(false)}
+                                    className="w-20 accent-[#2B78C4] cursor-pointer"
+                                />
+                                <span className="text-[10px] font-black text-[#2B78C4] w-7 text-right tabular-nums">{agreePct}%</span>
+                              </div>
+                          )}
+                        </div>
+                    )}
+                    {onToggleShowVote && (
+                        <button
+                            type="button"
+                            id="global-compact-fire-vote-toggle-fab"
+                            onClick={() => {
+                              sound.playClick();
+                              onToggleShowVote();
+                            }}
+                            className="w-11 h-11 rounded-full bg-gradient-to-r from-[#94A3B8] to-[#64748B] hover:from-[#64748B] hover:to-[#475569] text-white flex items-center justify-center shadow-xl shadow-slate-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                            title={showAtlasVote ? '隐藏投票/赞同率（数据仍会计算）' : '显示投票/赞同率'}
+                        >
+                          {showAtlasVote ? <EyeOff className="w-5 h-5 text-white" /> : <Eye className="w-5 h-5 text-white" />}
+                        </button>
+                    )}
+                    {onToggleAtlasMode && (
+                        <button
+                            type="button"
+                            id="global-compact-fire-atlas-mode-fab"
+                            onClick={() => {
+                              sound.playClick();
+                              onToggleAtlasMode();
+                            }}
+                            className="w-11 h-11 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white flex items-center justify-center shadow-xl shadow-purple-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                            title={`首页图鉴：当前${atlasMode === 'pokedex' ? '全图鉴(每图全量)' : '开荒图鉴(按图划分)'}，点击切换`}
+                        >
+                          <Layers className="w-5 h-5 text-white" />
+                        </button>
+                    )}
+                  </>
+              )}
+
             </div>
         ) : (
             <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end select-none">
@@ -470,6 +596,124 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         </button>
                     )}
 
+                    {/* 火系开荒相关按钮 */}
+                    {hasFireAtlas && (
+                        <>
+                          {onOpenFireAtlas && (
+                              <button
+                                  id="global-floating-fire-atlas-fab"
+                                  type="button"
+                                  onClick={() => {
+                                    sound.playClick();
+                                    onOpenFireAtlas();
+                                  }}
+                                  className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                                  title="开荒图鉴"
+                              >
+                                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                                  <Flame className="w-3.5 h-3.5 text-white" />
+                                </div>
+                                <span className="text-xs sm:text-sm font-black tracking-wide">开荒图鉴</span>
+                              </button>
+                          )}
+
+                          {onRefreshFireAtlas && (
+                              <button
+                                  id="global-floating-fire-refresh-fab"
+                                  type="button"
+                                  onClick={() => {
+                                    sound.playClick();
+                                    onRefreshFireAtlas();
+                                  }}
+                                  className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                                  title="刷新图鉴（拉取最新社区图鉴/赞同率）"
+                              >
+                                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                                  <RefreshCw className="w-3.5 h-3.5 text-white" />
+                                </div>
+                                <span className="text-xs sm:text-sm font-black tracking-wide">刷新图鉴</span>
+                              </button>
+                          )}
+
+                          {onMinAgreeRatioChange && (
+                              isAgreeRatioOpen ? (
+                                  <div
+                                      id="global-floating-fire-agree-slider"
+                                      className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#34D399] to-[#059669] text-white font-black rounded-full shadow-lg border-2 border-white transition-all duration-200"
+                                  >
+                                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                                      <Percent className="w-3.5 h-3.5 text-white" />
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-black">赞同率</span>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        value={agreePct}
+                                        onChange={(e) => onMinAgreeRatioChange(parseInt(e.target.value, 10) / 100)}
+                                        onPointerUp={() => setIsAgreeRatioOpen(false)}
+                                        onTouchEnd={() => setIsAgreeRatioOpen(false)}
+                                        onBlur={() => setIsAgreeRatioOpen(false)}
+                                        className="w-24 accent-white cursor-pointer"
+                                    />
+                                    <span className="text-xs sm:text-sm font-black w-10 sm:w-11 text-right tabular-nums">{agreePct}%</span>
+                                  </div>
+                              ) : (
+                                  <button
+                                      id="global-floating-fire-agree-fab"
+                                      type="button"
+                                      onClick={() => {
+                                        sound.playClick();
+                                        setIsAgreeRatioOpen(true);
+                                      }}
+                                      className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#34D399] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                                      title={`赞同率筛选 ≥ ${agreePct}%`}
+                                  >
+                                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                                      <Percent className="w-3.5 h-3.5 text-white" />
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-black tracking-wide w-[82px] sm:w-[94px] text-center tabular-nums">赞同率 {agreePct}%</span>
+                                  </button>
+                              )
+                          )}
+                          {onToggleShowVote && (
+                              <button
+                                  id="global-floating-fire-vote-toggle-fab"
+                                  type="button"
+                                  onClick={() => {
+                                    sound.playClick();
+                                    onToggleShowVote();
+                                  }}
+                                  className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#94A3B8] to-[#64748B] hover:from-[#64748B] hover:to-[#475569] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                                  title={showAtlasVote ? '隐藏投票/赞同率（数据仍会计算）' : '显示投票/赞同率'}
+                              >
+                                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                                  {showAtlasVote ? <EyeOff className="w-3.5 h-3.5 text-white" /> : <Eye className="w-3.5 h-3.5 text-white" />}
+                                </div>
+                                <span className="text-xs sm:text-sm font-black tracking-wide">{showAtlasVote ? '隐藏投票' : '显示投票'}</span>
+                              </button>
+                          )}
+                          {onToggleAtlasMode && (
+                              <button
+                                  id="global-floating-fire-atlas-mode-fab"
+                                  type="button"
+                                  onClick={() => {
+                                    sound.playClick();
+                                    onToggleAtlasMode();
+                                  }}
+                                  className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                                  title={`首页图鉴：当前${atlasMode === 'pokedex' ? '全图鉴(每图全量)' : '开荒图鉴(按图划分)'}，点击切换`}
+                              >
+                                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                                  <Layers className="w-3.5 h-3.5 text-white" />
+                                </div>
+                                <span className="text-xs sm:text-sm font-black tracking-wide">{atlasMode === 'pokedex' ? '全图鉴' : '开荒图鉴'}</span>
+                              </button>
+                          )}
+                        </>
+                    )}
+
                     {/* 5. 全域图鉴搜索 */}
                     <button
                         id="global-floating-search-fab"
@@ -508,7 +752,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
         {/* 2. Global Floating Search Modal Palette */}
         {isSearchOpen && (
             <div
-                className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-12 sm:pt-20 bg-slate-900/65 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
+                className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-12 sm:pt-20 bg-slate-900/65 backdrop-blur-xs overflow-y-auto overscroll-contain animate-in fade-in duration-150"
                 onClick={() => setIsOpen(false)}
             >
               <div

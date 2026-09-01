@@ -29,6 +29,14 @@
     -webkit-touch-callout: none;
   }
 
+  /* 所有可点按钮在 hover 时显示手型 */
+  button:not(:disabled),
+  [role="button"],
+  a,
+  summary {
+    cursor: pointer;
+  }
+
   /* 输入框与文本域允许正常交互与选中输入 */
   input, textarea {
     user-select: text !important;

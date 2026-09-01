@@ -59,7 +59,10 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+        onWheel={(e) => e.stopPropagation()}
+    >
       <div
         className="relative w-full max-w-sm bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-6 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}

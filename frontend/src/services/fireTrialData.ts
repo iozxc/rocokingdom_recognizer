@@ -8,6 +8,8 @@ import { IS_STATIC } from './staticMode';
  */
 let cachedFirePets: FirePokedexEntry[] | null = null;
 let pendingPromise: Promise<FirePokedexEntry[]> | null = null;
+let cachedFireMapPets: Record<string, Record<string, { id?: number; name?: string; seq?: number | null }>> | null = null;
+let pendingMapPets: Promise<Record<string, Record<string, { id?: number; name?: string; seq?: number | null }>>> | null = null;
 
 export function getCachedFirePets(): FirePokedexEntry[] | null {
   return cachedFirePets;
@@ -34,7 +36,31 @@ export function getFireTrialPetsCached(): Promise<FirePokedexEntry[]> {
   return pendingPromise;
 }
 
+/** 火系每张地图的精灵名单（来自后端 load_map_pets -> datasets/map_pets2.json）。 */
+export function getFireMapPets(): Promise<Record<string, Record<string, { id?: number; name?: string; seq?: number | null }>>> {
+  if (IS_STATIC) {
+    return Promise.resolve({});
+  }
+  if (cachedFireMapPets) {
+    return Promise.resolve(cachedFireMapPets);
+  }
+  if (!pendingMapPets) {
+    pendingMapPets = api
+        .getTrialMapPets('fire')
+        .then((res) => {
+          cachedFireMapPets = res.map_pets || {};
+          return cachedFireMapPets;
+        })
+        .finally(() => {
+          pendingMapPets = null;
+        });
+  }
+  return pendingMapPets;
+}
+
 export function invalidateFireTrialData(): void {
   cachedFirePets = null;
   pendingPromise = null;
+  cachedFireMapPets = null;
+  pendingMapPets = null;
 }

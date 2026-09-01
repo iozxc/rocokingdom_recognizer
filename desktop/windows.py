@@ -148,6 +148,13 @@ class WindowManager:
 
                 if self.scanner_window is not None:
                     try:
+                        # 重新打开(show)：恢复“跟随识别开启”标志，恢复本地存储轮询
+                        try:
+                            self.scanner_window.evaluate_js(
+                                "try{localStorage.setItem('roco_follow_active','1')}catch(e){}"
+                            )
+                        except Exception as e:
+                            logger.warning(f"设置 roco_follow_active 异常: {e}")
                         self.scanner_window.show()
                         # 复用窗口时也按最新设置重新置顶，避免与系统设置不一致
                         self.set_scanner_topmost_native(topmost)
@@ -191,6 +198,13 @@ class WindowManager:
         """关闭跟随识别窗口：隐藏复用，避免反复创建/销毁导致卡死。"""
         if self.scanner_window is not None:
             try:
+                # 关闭=隐藏：通知前端清除“跟随识别开启”标志，停止本地存储轮询
+                try:
+                    self.scanner_window.evaluate_js(
+                        "try{localStorage.removeItem('roco_follow_active')}catch(e){}"
+                    )
+                except Exception as e:
+                    logger.warning(f"清除 roco_follow_active 异常: {e}")
                 self.scanner_window.hide()
                 logger.info("跟随识别窗口已隐藏（复用，不销毁）")
             except Exception as e:

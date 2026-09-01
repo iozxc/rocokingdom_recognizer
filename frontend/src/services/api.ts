@@ -189,6 +189,31 @@ export class ApiService {
   }
 
   /**
+   * 火系试炼：读取每张地图的精灵名单（load_map_pets，来自 datasets/map_petsN.json）。
+   * 返回 { map1: { "258_02_乌达_极夜.png": { id, name, seq }, ... }, ... }。
+   */
+  public async getTrialMapPets(trialKey: string = 'fire'): Promise<{ map_pets: Record<string, Record<string, { id?: number; name?: string; seq?: number | null }>>; isOfflineMock: boolean }> {
+    if (IS_STATIC) {
+      return { map_pets: {}, isOfflineMock: true };
+    }
+    try {
+      const response = await axios.get<{ status?: string; data?: { map_pets?: Record<string, Record<string, { id?: number; name?: string; seq?: number | null }>> } }>(
+          `${this.apiBase}/api/trials/${encodeURIComponent(trialKey)}/map_pets`,
+          { timeout: 6000 }
+      );
+      const mp = response.data?.data?.map_pets;
+      if (response.data?.status === 'success' && mp) {
+        return { map_pets: mp, isOfflineMock: false };
+      }
+      throw new Error('试炼 map_pets 接口返回数据格式不符合规范');
+    } catch (err: unknown) {
+      const error = err as AxiosError;
+      console.warn('API getTrialMapPets failed:', error.message);
+      return { map_pets: {}, isOfflineMock: true };
+    }
+  }
+
+  /**
    * 检测图鉴数据是否需要更新（md5 对比）。
    */
   public async checkDataUpdates(): Promise<DataUpdateCheckData> {
@@ -372,7 +397,8 @@ export class ApiService {
       imageFile: File | Blob,
       mapNum: number,
       threshold: number = 0.25,
-      topK: number = 3
+      topK: number = 3,
+      trialKey: string = 'grass'
   ): Promise<{ result: PredictResult; isOfflineMock: boolean }> {
     if (this._authLocked()) {
       throw new Error('请授权，解锁更多功能');
@@ -385,6 +411,7 @@ export class ApiService {
     formData.append('top_k', String(clampedK));
     formData.append('k', String(clampedK));
     formData.append('max_results', String(clampedK));
+    formData.append('trial', trialKey);
 
     const mapKey = `map${mapNum}`;
     const fallbackList = FALLBACK_MAPS_DATA[mapKey]?.items || [];
@@ -496,7 +523,8 @@ export class ApiService {
       imageFile: File | Blob,
       mapNum: number,
       threshold: number = 0.25,
-      topK: number = 3
+      topK: number = 3,
+      trialKey: string = 'grass'
   ): Promise<{ data: BatchInitApiResponse; isOfflineMock: boolean }> {
     if (this._authLocked()) {
       throw new Error('请授权，解锁更多功能');
@@ -510,6 +538,7 @@ export class ApiService {
     formData.append('top_k', String(clampedK));
     formData.append('topk', String(clampedK));
     formData.append('k', String(clampedK));
+    formData.append('trial', trialKey);
 
     try {
       const response = await axios.post<any>(
@@ -724,24 +753,12 @@ export class ApiService {
       targetMapNum = Number(mapNumOrParams.map_num);
     }
 
-    const url = targetMapNum
-        ? `${this.apiBase}/api/recognize/${targetMapNum}`
-        : `${this.apiBase}/api/recognize`;
-
-    try {
-      let rawResponseData: any = null;
-
-      // Check if params were directly passed as an existing response object
-      if (mapNumOrParams && typeof mapNumOrParams === 'object' && (mapNumOrParams.results || mapNumOrParams.status === 'success')) {
-        rawResponseData = mapNumOrParams;
-      } else {
-        const response = await axios.get<any>(url, {
-          timeout: 15000,
-        });
-        rawResponseData = response.data;
-      }
-
-      const body = rawResponseData?.data || rawResponseData;
+    // /api/recognize 后端已废弃；识别结果由 bridge.py 的 capture_and_recognize 直接产出，
+    // 这里不再发起任何 HTTP 请求，只把传入的识别结果对象规整为 FollowRecognizeApiResponse。
+    const rawResponseData: any = mapNumOrParams && typeof mapNumOrParams === 'object'
+        ? ((mapNumOrParams as any).data || mapNumOrParams)
+        : null;
+    const body = rawResponseData?.data || rawResponseData;
 
       if (body && (body.status === 'success' || Array.isArray(body.results) || Array.isArray(body.data))) {
         const rawResults = Array.isArray(body.results)
@@ -807,55 +824,18 @@ export class ApiService {
         };
       }
 
-      throw new Error(body?.message || '返回数据格式不符合规范');
-    } catch (err: unknown) {
-      const error = err as AxiosError;
-      console.warn(`API GET ${url} failed, using simulated fallback:`, error.message);
-
-      // Offline simulation fallback
-      const mapNum = targetMapNum || 1;
-      const mapKey = `map${mapNum}`;
-      const pets = FALLBACK_MAPS_DATA[mapKey]?.items || [];
-      const sampleCount = Math.floor(Math.random() * 2) + 2; // 2 to 3
-      const shuffled = [...pets].sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, sampleCount);
-
-      const simResults: any[] = selected.map((p, idx) => {
-        const score = Number((0.92 + Math.random() * 0.07).toFixed(3));
-        const otherPets = pets.filter((op) => op.name !== p.name);
-        const candidates = [
-          { filename: p.name, score, view_url: p.url },
-          ...otherPets.slice(0, 5).map((op, opIdx) => ({
-            filename: op.name,
-            score: Number(Math.max(0.1, score - (opIdx + 1) * 0.12 - Math.random() * 0.05).toFixed(3)),
-            view_url: op.url,
-          })),
-        ];
-
-        return {
-          index: idx,
-          status: 'matched',
-          filename: p.name,
-          score,
-          view_url: p.url,
-          candidates,
-        };
-      });
-
       return {
         data: {
           status: 'success',
-          map_num: mapNum,
-          map_name: `地图 ${mapNum}`,
-          total_detected: simResults.length,
-          is_game_running: true,
-          timestamp: new Date().toLocaleTimeString(),
-          results: simResults,
+          map_num: targetMapNum || 1,
+          map_name: `地图 ${targetMapNum || 1}`,
+          total_detected: 0,
+          is_game_running: false,
+          results: [],
         },
-        isOfflineMock: true,
-        errorMsg: `无法连接 Flask 后端 (${url})，已启用本地模拟`,
+        isOfflineMock: false,
+        errorMsg: 'unused /api/recognize 已废弃，请通过 bridge.py capture_and_recognize 传入结果',
       };
-    }
   }
 
   // Simulated local download state for development / preview mode

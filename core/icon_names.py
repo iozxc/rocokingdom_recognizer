@@ -103,12 +103,28 @@ def scan_icon_names(trial_key="grass"):
     trial = get_trial_or_default(trial_key)
     names_dict = {map_name: [] for map_name in trial.get("map_list", [])}
     try:
-        data = load_map_pets(trial_key)
-        for map_name in trial.get("map_list", []):
-            # 按原始文件名排序（sort_key 能解析 id+形态序号），再取展示名，
-            # 保证多形态顺序稳定（普通在前、首领在后）。
-            for fname in sorted(data.get(map_name, {}), key=sort_key):
-                names_dict[map_name].append(format_display_name(fname))
+        if trial.get("pets_source") == "pokedex":
+            # 开荒期全图鉴自选：不做每图白名单，每张地图都放全图鉴展示名，
+            # 识别可覆盖所有精灵（等正式图鉴定型后再切回 map_pets，按图限制）。
+            from core.services.trials import _load_pokedex_raw
+            all_names = []
+            seen_names = set()
+            for _pet in _load_pokedex_raw():
+                if not isinstance(_pet, dict):
+                    continue
+                _name = str(_pet.get("form_name") or _pet.get("name") or "").strip()
+                if _name and _name not in seen_names:
+                    seen_names.add(_name)
+                    all_names.append(_name)
+            for map_name in trial.get("map_list", []):
+                names_dict[map_name].extend(all_names)
+        else:
+            data = load_map_pets(trial_key)
+            for map_name in trial.get("map_list", []):
+                # 按原始文件名排序（sort_key 能解析 id+形态序号），再取展示名，
+                # 保证多形态顺序稳定（普通在前、首领在后）。
+                for fname in sorted(data.get(map_name, {}), key=sort_key):
+                    names_dict[map_name].append(format_display_name(fname))
 
         total = sum(len(v) for v in names_dict.values())
         logger.info(f"图标名扫描完成，共 {total} 个图标: " +

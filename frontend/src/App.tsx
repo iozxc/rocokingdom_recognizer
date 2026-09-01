@@ -68,6 +68,15 @@ export default function App() {
   const [activeTrialKey, setActiveTrialKey] = useState<'grass' | 'fire' | 'map'>('grass');
   const activeTrialMaps = useMemo(() => resolveTrialMaps(trials, activeTrialKey), [trials, activeTrialKey]);
 
+  // 同步当前试炼到 localStorage，供独立扫描窗口（跟随识别 ScannerApp）做开荒采集判断
+  useEffect(() => {
+    try {
+      localStorage.setItem('roco_active_trial', activeTrialKey);
+    } catch {
+      // ignore
+    }
+  }, [activeTrialKey]);
+
   const [effectLevel, setEffectLevel] = useState<EffectLevel>(() => {
     return storage.getSetting<EffectLevel>('effectLevel', 0);
   });
@@ -551,6 +560,7 @@ export default function App() {
                     <BatchRecognizerCard
                         key={`${currentMap.id}_${recognizerKey}`}
                         currentMap={currentMap}
+                        trialKey={activeTrialKey}
                         allMapsPets={mapsData}
                         records={records}
                         isEncountered={isPetEncountered}

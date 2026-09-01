@@ -110,7 +110,15 @@ export class FireStorageService {
   private startPoll() {
     const poll = async () => {
       try {
-        if (!this.hasPendingLocalChanges && !this.saveTimeout) {
+        // 仅当“跟随识别”开启时才轮询本地存储，避免无谓请求/冲突
+        const followActive = (() => {
+          try {
+            return localStorage.getItem('roco_follow_active') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        if (followActive && !this.hasPendingLocalChanges && !this.saveTimeout) {
           const res = await axios.get<FireStoragePayload | { status: string }>(
               `${api.getApiBase()}/api/storage/${this.localVersion}`,
               { timeout: 4000 }

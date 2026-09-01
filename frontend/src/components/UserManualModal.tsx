@@ -45,6 +45,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
+      onWheel={(e) => e.stopPropagation()}
     >
       <div
         className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-4xl w-full h-[88vh] max-h-[820px] overflow-hidden flex flex-col"

@@ -233,6 +233,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
           id="app-settings-modal-backdrop"
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
           onClick={onClose}
+          onWheel={(e) => e.stopPropagation()}
       >
         <div
             id="app-settings-modal-dialog"

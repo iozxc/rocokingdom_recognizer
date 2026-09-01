@@ -26,6 +26,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { ImageZoom } from './ImageZoom';
+import { collectAtlasObservation } from '../services/atlasCollector';
 import confetti from 'canvas-confetti';
 import {
   MapConfig,
@@ -44,6 +45,8 @@ import { ElementBadges } from './ElementBadges';
 
 interface BatchRecognizerCardProps {
   currentMap: MapConfig;
+  /** 当前试炼 key（如 'grass' / 'fire'）；用于开荒采集判断。 */
+  trialKey?: string;
   allMapsPets: Record<string, { count: number; items: PetItem[] }>;
   records?: Record<string, EncounterRecord>;
   isEncountered?: (mapId: string, filename: string) => boolean;
@@ -55,6 +58,7 @@ interface BatchRecognizerCardProps {
 
 export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                                                           currentMap,
+                                                                          trialKey = 'grass',
                                                                           allMapsPets,
                                                                           records,
                                                                           isEncountered,
@@ -250,7 +254,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         throw new Error('请先导入或选择图片');
       }
 
-      const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, topK);
+      const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, topK, trialKey);
 
       setTotalDetected(data.total_detected || data.results.length);
 
@@ -337,6 +341,18 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
       setReviewItems(processed);
       sound.playClick();
+
+      // 开荒采集：无完整图鉴的试炼（如火系），把识别到的 (图, 精灵id, 置信度) 上报用于聚合
+      processed.forEach((item) => {
+        if (item.status === 'matched' && (item.score ?? 1) >= threshold && item.matchedPet?.id != null) {
+          collectAtlasObservation(trialKey, {
+            map_id: targetMap.id,
+            pet_id: item.matchedPet.id,
+            filename: item.filename,
+            confidence: item.score,
+          });
+        }
+      });
 
       // 识别完成后平滑往下滚到候选/结果区，方便直接核对候选
       setTimeout(() => {

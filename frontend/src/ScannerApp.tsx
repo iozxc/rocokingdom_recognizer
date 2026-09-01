@@ -29,6 +29,7 @@ import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from './data/mockPets';
 import { sound } from './services/sound';
 import { api } from './services/api';
 import { storage } from './services/storage';
+import { collectAtlasObservation } from './services/atlasCollector';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
 import { EffectLevel } from './types';
 import { ScannerMapGalleryModal } from './components/ScannerMapGalleryModal';
@@ -199,6 +200,26 @@ const CandidateCarousel: React.FC<{
 
 
 export const ScannerApp: React.FC = () => {
+  // 跟随识别窗口“可见”标记：关闭=隐藏时文档变 hidden，据此停/开存储轮询
+  useEffect(() => {
+    const setFlag = () => {
+      try {
+        if (document.visibilityState === 'visible') {
+          localStorage.setItem('roco_follow_active', '1');
+        } else {
+          localStorage.removeItem('roco_follow_active');
+        }
+      } catch { /* ignore */ }
+    };
+    setFlag();
+    document.addEventListener('visibilitychange', setFlag);
+    window.addEventListener('pagehide', () => { try { localStorage.removeItem('roco_follow_active'); } catch { /* ignore */ } });
+    return () => {
+      document.removeEventListener('visibilitychange', setFlag);
+      try { localStorage.removeItem('roco_follow_active'); } catch { /* ignore */ }
+    };
+  }, []);
+
   // Map num confirmed from last backend recognition (null on initial load, or 1, 2, 3)
   const [detectedMapNum, setDetectedMapNum] = useState<number | null>(null);
   // Map num currently selected by user in UI (can be switched freely before re-recognizing)
@@ -663,6 +684,21 @@ export const ScannerApp: React.FC = () => {
         slot.score <= 0 || slot.candidates.every((c) => c.score <= 0.1);
     const allSlotsEmpty = formattedSlots.length > 0 && formattedSlots.every(isEmptySlot);
     setDetectedPets(allSlotsEmpty ? [] : formattedSlots);
+
+    // 开荒采集：无完整图鉴的试炼（如火系），把跟随识别到的 (图, 精灵id, 置信度) 上报用于聚合
+    const trialKey = typeof localStorage !== 'undefined'
+        ? (localStorage.getItem('roco_active_trial') || 'grass')
+        : 'grass';
+    formattedSlots.forEach((slot) => {
+      if (slot.matchedPet?.id != null && slot.score > 0.1) {
+        collectAtlasObservation(trialKey, {
+          map_id: `map${targetMap}`,
+          pet_id: slot.matchedPet.id,
+          filename: slot.name,
+          confidence: slot.score,
+        });
+      }
+    });
 
     markScanTime();
   };
