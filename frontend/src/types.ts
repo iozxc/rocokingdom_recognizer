@@ -44,7 +44,7 @@ export interface PredictResult {
   matchedPet?: PetItem;
   candidates?: PredictCandidateItem[];
   selectedCandidateIndex?: number;
-  mapNum: number;
+  stageNum: number;
   timestamp: string;
 }
 
@@ -202,7 +202,7 @@ export interface FollowRecognizeApiRawItem {
 
 export interface FollowRecognizeApiResponse {
   status: 'success' | 'error';
-  map_num: number;
+  stage_num: number;
   map_name?: string;
   total_detected: number;
   is_game_running: boolean;
@@ -220,8 +220,8 @@ export interface AppSettings {
   isSoundMuted?: boolean;
   isFABCollapsed?: boolean; // 右下角快捷按钮栏是否收起
   isFilterSwitchCollapsed?: boolean; // 左下角筛选悬浮按钮栏是否收起
-  activeMapNum?: number; // 当前选中的试炼关卡编号（图1-3，用于主页面与ScannerApp识别时自动联动）
-  scannerPinnedMapNum?: number | null; // ScannerApp 钉住的试炼关卡编号（非 null 时识别后视图不跳回）
+  activeStageNum?: number; // 当前选中的试炼关卡编号（图1-3，用于主页面与ScannerApp识别时自动联动）
+  scannerPinnedStageNum?: number | null; // ScannerApp 钉住的试炼关卡编号（非 null 时识别后视图不跳回）
   showRecognitionSamples?: boolean; // 首页识别示例截图提示（test1~5）是否显示
   effectLevel?: EffectLevel; // 0: 关闭, 1: 轻微 (默认), 2: 标准, 3: 丰富
   floatingButtonsMode?: FloatingButtonsMode; // 'normal' 正常完整 | 'compact' 紧凑缩小 | 'hidden' 彻底隐藏

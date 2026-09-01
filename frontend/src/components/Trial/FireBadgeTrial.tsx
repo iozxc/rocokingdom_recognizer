@@ -34,7 +34,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   // 兜底：即使后端未下发地图配置，也使用本地火系地图，避免空数组导致渲染崩溃
   const safeMaps = maps && maps.length > 0 ? maps : FIRE_MAP_CONFIGS;
   const initialPets = getCachedFirePets();
-  const [activeMapNum, setActiveMapNum] = useState<number>(1);
+  const [activeStageNum, setActiveStageNum] = useState<number>(1);
   const [pokedex, setPokedex] = useState<FirePokedexEntry[]>(initialPets ?? []);
   const [fireMapPets, setFireMapPets] = useState<Record<string, Record<string, { id?: number; name?: string; seq?: number | null }>>>({});
   const [records, setRecords] = useState<Record<string, EncounterRecord>>(() => fireStorage.getAll());
@@ -199,12 +199,12 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   }, [atlasMode, fireMapPets, pokedex, serverAtlas]);
 
   const currentMap: MapConfig = useMemo(() => {
-    return safeMaps.find((m) => m.num === activeMapNum) || safeMaps[0];
-  }, [activeMapNum, safeMaps]);
+    return safeMaps.find((m) => m.num === activeStageNum) || safeMaps[0];
+  }, [activeStageNum, safeMaps]);
 
   const currentMapPets: PetItem[] = useMemo(() => {
-    return fireMapsPets[`map${activeMapNum}`]?.items || [];
-  }, [activeMapNum, fireMapsPets]);
+    return fireMapsPets[`map${activeStageNum}`]?.items || [];
+  }, [activeStageNum, fireMapsPets]);
 
   const allMapsStats = useMemo(() => {
     return safeMaps.map((map) => {
@@ -520,7 +520,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   };
 
   const handleNavigateToPet = (mapNum: number, petName: string) => {
-    setActiveMapNum(mapNum);
+    setActiveStageNum(mapNum);
     setTimeout(() => {
       const targetMap = safeMaps.find((m) => m.num === mapNum);
       if (!targetMap) return;
@@ -550,8 +550,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       <div className="min-h-screen flex flex-col selection:bg-orange-200 selection:text-orange-900 pb-12 relative">
         {/* 顶部：复用草系一致的 Header（三张火系地图切换 + 声音开关） */}
         <Header
-            activeMapNum={activeMapNum}
-            onSelectMap={(num) => setActiveMapNum(num)}
+            activeStageNum={activeStageNum}
+            onSelectMap={(num) => setActiveStageNum(num)}
             mapsStats={allMapsStats}
             totalEncountered={totalEncounteredCount}
             totalPetsCount={totalPetsCount}
@@ -620,7 +620,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
                     records={records}
                     isEncountered={(mapId, filename) => isPetEncounteredInRecords(fireStorage.getAll(), mapId, filename)}
                     onBatchEncounterSuccess={handleFireBatchEncounterSuccess}
-                    onSelectMap={(num) => setActiveMapNum(num)}
+                    onSelectMap={(num) => setActiveStageNum(num)}
                 />
               </div>
           )}
@@ -657,7 +657,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             filterMode={filterMode}
             onFilterChange={(mode) => setFilterMode(mode)}
             onCycleMap={() => {
-              setActiveMapNum((prev) => (prev % safeMaps.length) + 1);
+              setActiveStageNum((prev) => (prev % safeMaps.length) + 1);
             }}
             mapsConfig={safeMaps}
             advancedFilters={advancedFilters}

@@ -1349,7 +1349,7 @@ export const MapAwareness: React.FC<MapAwarenessProps> = ({
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col selection:bg-sky-200 selection:text-sky-900 bg-[#EAF4FB]">
       <Header
-        activeMapNum={maps[0]?.num ?? 1}
+        activeStageNum={maps[0]?.num ?? 1}
         onSelectMap={() => undefined}
         mapsStats={[]}
         totalEncountered={0}

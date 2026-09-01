@@ -115,7 +115,7 @@ class AppApi:
 
     # ---------------- 截图识别 ----------------
 
-    def capture_and_recognize(self, target_title="计算器", map_num=None, trial_key="grass"):
+    def capture_and_recognize(self, target_title="计算器", stage_num=None, trial_key="grass"):
         # 首次识别时才加载 OCR 与识别模型，避免拖慢启动
         from core.vision.ocr import ocr
         from core.services.recognizers import models
@@ -154,7 +154,7 @@ class AppApi:
             logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
 
             stage_classifier = models.get_stage_classifier(trial_key)
-            if map_num is None:
+            if stage_num is None:
                 ocr_map_name = ocr().recognize_text(title_pil)
                 map_name = match_scene_unique_char(ocr_map_name, trial_key)
                 if map_name is None:
@@ -168,10 +168,10 @@ class AppApi:
                         logger.warning(f"map_name : 地图分类器不可用，使用默认 {map_name}")
                 else:
                     logger.info(f"map_name : ocr匹配{map_name}")
-                map_num = int(map_name[3])
+                stage_num = int(map_name[3])
                 logger.debug(f"mapname : {map_name}")
             else:
-                map_name = f"map{map_num}"
+                map_name = f"map{stage_num}"
 
             all_results = []
             for i in range(0, 3):
@@ -181,7 +181,7 @@ class AppApi:
                     _items_pil = items_pil[i]
                 if len(names_pil) > i:
                     _names_pil = names_pil[i]
-                result = self._process_single_item(i, _names_pil, _items_pil, map_num, map_name, trial_key)
+                result = self._process_single_item(i, _names_pil, _items_pil, stage_num, map_name, trial_key)
                 all_results.append(result)
 
             elapsed_total = (time.perf_counter() - t_total) * 1000
@@ -190,21 +190,21 @@ class AppApi:
             )
             logger.info(f"识别完成 [{map_name}] 总耗时={elapsed_total:.1f}ms -> {summary}")
 
-            return {"code": 200, "map_num": map_num, "results": all_results}
+            return {"code": 200, "stage_num": stage_num, "results": all_results}
 
         except Exception as e:
             logger.error(f"截图识别异常: {e}", exc_info=True)
             return {"status": "error", "message": str(e)}
 
-    def capture_and_recognize_by_map(self, map_num, trial_key="grass"):
-        return self.capture_and_recognize(config.GAME_WINDOW_TITLE, map_num, trial_key)
+    def capture_and_recognize_by_map(self, stage_num, trial_key="grass"):
+        return self.capture_and_recognize(config.GAME_WINDOW_TITLE, stage_num, trial_key)
 
-    def _process_single_item(self, i, name_img, item_img, map_num, map_name, trial_key="grass"):
+    def _process_single_item(self, i, name_img, item_img, stage_num, map_name, trial_key="grass"):
         """单个槽位的识别与匹配流程"""
         from core.vision.ocr import ocr
         from core.services.recognizers import models
         t_start = time.perf_counter()
-        logger.debug(f"[槽位{i}] 开始处理，试炼={trial_key}，地图={map_name}(map{map_num})")
+        logger.debug(f"[槽位{i}] 开始处理，试炼={trial_key}，地图={map_name}(map{stage_num})")
 
         # 1. OCR 识别 (使用单例且跳过检测)
         engine = ocr()

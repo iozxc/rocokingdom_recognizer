@@ -16,7 +16,7 @@ export interface HeaderMapStat {
 }
 
 interface HeaderProps {
-    activeMapNum: number;
+    activeStageNum: number;
     onSelectMap: (num: number) => void;
     mapsStats?: HeaderMapStat[];
     totalEncountered: number;
@@ -38,7 +38,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-                                                  activeMapNum,
+                                                  activeStageNum,
                                                   onSelectMap,
                                                   mapsStats = [],
                                                   totalEncountered,
@@ -134,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
                     {showMapNav && (
                         <div className="hidden min-[870px]:flex items-center gap-1 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 shrink min-w-0 overflow-hidden">
                             {(mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS).map((map) => {
-                                const isActive = activeMapNum === map.num;
+                                const isActive = activeStageNum === map.num;
                                 const mapStat = mapsStats.find((s) => s.num === map.num);
                                 const mapEnc = mapStat?.encountered ?? 0;
                                 const mapTot = mapStat?.total ?? 8;

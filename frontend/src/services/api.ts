@@ -395,7 +395,7 @@ export class ApiService {
   // Predict Pet Image (Supports Top-K selection: 1 to 6 candidates)
   public async predictPet(
       imageFile: File | Blob,
-      mapNum: number,
+      stageNum: number,
       threshold: number = 0.25,
       topK: number = 3,
       trialKey: string = 'grass'
@@ -406,14 +406,14 @@ export class ApiService {
     const clampedK = Math.max(1, Math.min(6, Math.round(topK || 3)));
     const formData = new FormData();
     formData.append('image', imageFile);
-    formData.append('map_num', String(mapNum));
+    formData.append('stage_num', String(stageNum));
     formData.append('threshold', String(threshold));
     formData.append('top_k', String(clampedK));
     formData.append('k', String(clampedK));
     formData.append('max_results', String(clampedK));
     formData.append('trial', trialKey);
 
-    const mapKey = `map${mapNum}`;
+    const mapKey = `map${stageNum}`;
     const fallbackList = FALLBACK_MAPS_DATA[mapKey]?.items || [];
 
     try {
@@ -471,7 +471,7 @@ export class ApiService {
             matchedPet: primary.matchedPet,
             candidates,
             selectedCandidateIndex: 0,
-            mapNum,
+            stageNum,
             timestamp: new Date().toISOString(),
           },
           isOfflineMock: false,
@@ -510,7 +510,7 @@ export class ApiService {
           matchedPet: primary.matchedPet,
           candidates,
           selectedCandidateIndex: 0,
-          mapNum,
+          stageNum,
           timestamp: new Date().toISOString(),
         },
         isOfflineMock: true,
@@ -521,7 +521,7 @@ export class ApiService {
   // Batch Initialization: Send one full image, backend returns an array of detected pets with candidates and top_k
   public async initBatch(
       imageFile: File | Blob,
-      mapNum: number,
+      stageNum: number,
       threshold: number = 0.25,
       topK: number = 3,
       trialKey: string = 'grass'
@@ -532,8 +532,8 @@ export class ApiService {
     const clampedK = Math.max(1, Math.min(6, Math.round(topK || 3)));
     const formData = new FormData();
     formData.append('image', imageFile);
-    formData.append('map', String(mapNum));
-    formData.append('map_num', String(mapNum));
+    formData.append('map', String(stageNum));
+    formData.append('stage_num', String(stageNum));
     formData.append('threshold', String(threshold));
     formData.append('top_k', String(clampedK));
     formData.append('topk', String(clampedK));
@@ -638,7 +638,7 @@ export class ApiService {
       console.warn('API initBatch failed, generating offline simulated detection:', error.message);
 
       // Simulated batch detection for testing/offline mode
-      const mapKey = `map${mapNum}`;
+      const mapKey = `map${stageNum}`;
       const pets = FALLBACK_MAPS_DATA[mapKey]?.items || [];
       const totalDetected = Math.max(pets.length, 6);
 
@@ -737,9 +737,9 @@ export class ApiService {
   }
 
   /**
-   * 2. 跟随识别接口 (HTTP GET /api/recognize/<map_num> 或 /api/recognize)
+   * 2. 跟随识别接口 (HTTP GET /api/recognize/<stage_num> 或 /api/recognize)
    * 由 Flask 后端自动捕获当前游戏窗口画面进行定域地图 + 精灵裁剪识别 (0-3个)
-   * GET /api/recognize/<map_num> 或 GET /api/recognize
+   * GET /api/recognize/<stage_num> 或 GET /api/recognize
    */
   public async followRecognize(mapNumOrParams?: number | any): Promise<{
     data: FollowRecognizeApiResponse;
@@ -749,8 +749,8 @@ export class ApiService {
     let targetMapNum: number | undefined = undefined;
     if (typeof mapNumOrParams === 'number' && mapNumOrParams > 0) {
       targetMapNum = mapNumOrParams;
-    } else if (mapNumOrParams && typeof mapNumOrParams === 'object' && mapNumOrParams.map_num) {
-      targetMapNum = Number(mapNumOrParams.map_num);
+    } else if (mapNumOrParams && typeof mapNumOrParams === 'object' && mapNumOrParams.stage_num) {
+      targetMapNum = Number(mapNumOrParams.stage_num);
     }
 
     // /api/recognize 后端已废弃；识别结果由 bridge.py 的 capture_and_recognize 直接产出，
@@ -805,14 +805,14 @@ export class ApiService {
         });
 
         const effectiveMapNum =
-            body.map_num !== undefined && body.map_num !== null
-                ? Number(body.map_num)
+            body.stage_num !== undefined && body.stage_num !== null
+                ? Number(body.stage_num)
                 : (targetMapNum || 1);
 
         return {
           data: {
             status: 'success',
-            map_num: effectiveMapNum,
+            stage_num: effectiveMapNum,
             map_name: body.map_name || `地图 ${effectiveMapNum}`,
             total_detected: normalizedResults.length,
             is_game_running: body.is_game_running ?? true,
@@ -827,7 +827,7 @@ export class ApiService {
       return {
         data: {
           status: 'success',
-          map_num: targetMapNum || 1,
+          stage_num: targetMapNum || 1,
           map_name: `地图 ${targetMapNum || 1}`,
           total_detected: 0,
           is_game_running: false,

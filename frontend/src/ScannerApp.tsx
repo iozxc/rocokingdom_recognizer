@@ -225,12 +225,12 @@ export const ScannerApp: React.FC = () => {
   // Map num currently selected by user in UI (can be switched freely before re-recognizing)
   const [selectedMapNum, setSelectedMapNum] = useState<number | null>(() => {
     // 上次钉住过地图时，打开窗口直接恢复钉住的地图视图
-    const savedPin = storage.getSetting<number | null>('scannerPinnedMapNum', null);
+    const savedPin = storage.getSetting<number | null>('scannerPinnedStageNum', null);
     return savedPin !== null ? savedPin : null;
   });
   // 钉住地图：非 null 时锁定该地图，识别完成后视图不再跳回识别结果对应的地图
   const [pinnedMapNum, setPinnedMapNum] = useState<number | null>(() =>
-      storage.getSetting<number | null>('scannerPinnedMapNum', null)
+      storage.getSetting<number | null>('scannerPinnedStageNum', null)
   );
 
   // Storage and records
@@ -255,7 +255,7 @@ export const ScannerApp: React.FC = () => {
   const [topmost, setTopmost] = useState<boolean>(true);
 
   // Active viewing map number (selectedMapNum takes precedence, otherwise detectedMapNum)
-  const activeMapNum = selectedMapNum !== null ? selectedMapNum : detectedMapNum;
+  const activeStageNum = selectedMapNum !== null ? selectedMapNum : detectedMapNum;
 
   // Whether user manually switched to a different map from what was previously detected
   const hasPendingMapChange = detectedMapNum !== null && selectedMapNum !== null && selectedMapNum !== detectedMapNum;
@@ -455,7 +455,7 @@ export const ScannerApp: React.FC = () => {
 
   // Fast map reference lookup
   const currentDetectedMap: MapConfig = useMemo(() => {
-    if (activeMapNum === null) {
+    if (activeStageNum === null) {
       return {
         id: 'map_all',
         num: 0,
@@ -467,19 +467,19 @@ export const ScannerApp: React.FC = () => {
         iconName: 'Compass',
       };
     }
-    const found = MAP_CONFIGS.find((m) => m.num === activeMapNum);
+    const found = MAP_CONFIGS.find((m) => m.num === activeStageNum);
     if (found) return found;
     return {
-      id: `map${activeMapNum}`,
-      num: activeMapNum,
-      name: `地图 ${activeMapNum}`,
+      id: `map${activeStageNum}`,
+      num: activeStageNum,
+      name: `地图 ${activeStageNum}`,
       description: '王国区域',
       themeColor: '#7ABCF4',
       bgGradient: 'from-blue-500/20 to-sky-500/20',
       badgeBg: 'bg-blue-500/15 text-blue-800 border-blue-400',
       iconName: 'Compass',
     };
-  }, [activeMapNum]);
+  }, [activeStageNum]);
 
   // Get readable map name
   const getMapDisplayName = (mapNum: number | null | undefined): string => {
@@ -490,7 +490,7 @@ export const ScannerApp: React.FC = () => {
 
   // Check if a pet is encountered in records (prioritizes pet's original source map)
   const checkEncountered = (petName: string, sourceMapNum?: number): boolean => {
-    const targetMapNum = sourceMapNum ?? detectedMapNum ?? activeMapNum ?? 1;
+    const targetMapNum = sourceMapNum ?? detectedMapNum ?? activeStageNum ?? 1;
     const mapKey = `map${targetMapNum}`;
     return isPetEncounteredInRecords(records, mapKey, petName);
   };
@@ -508,7 +508,7 @@ export const ScannerApp: React.FC = () => {
 
   // Map progress calculation for the active detected map
   const mapCollectionStats = useMemo(() => {
-    const mapKey = `map${activeMapNum || 1}`;
+    const mapKey = `map${activeStageNum || 1}`;
     const activePetsMap = mapsPets || FALLBACK_MAPS_DATA;
     const petsOnMap: PetItem[] = activePetsMap[mapKey]?.items || FALLBACK_MAPS_DATA[mapKey]?.items || [];
     const total = petsOnMap.length;
@@ -523,7 +523,7 @@ export const ScannerApp: React.FC = () => {
     const percent = (encounteredCount / total) * 100;
     const remaining = total - encounteredCount;
     return { total, encountered: encounteredCount, percent, remaining };
-  }, [activeMapNum, records, mapsPets]);
+  }, [activeStageNum, records, mapsPets]);
 
   // Handle manual map selection (does NOT trigger recognition, only changes view/pending target)
   const handleSelectMap = (mapNum: number | null) => {
@@ -532,10 +532,10 @@ export const ScannerApp: React.FC = () => {
     // 钉住模式下切换地图 = 钉随当前选择移动；切回“全图”则取消钉住
     if (mapNum !== null) {
       setPinnedMapNum(mapNum);
-      storage.setSetting('scannerPinnedMapNum', mapNum);
+      storage.setSetting('scannerPinnedStageNum', mapNum);
     } else {
       setPinnedMapNum(null);
-      storage.setSetting('scannerPinnedMapNum', null);
+      storage.setSetting('scannerPinnedStageNum', null);
     }
   };
 
@@ -544,11 +544,11 @@ export const ScannerApp: React.FC = () => {
     sound.playClick();
     if (pinnedMapNum !== null) {
       setPinnedMapNum(null);
-      storage.setSetting('scannerPinnedMapNum', null);
-    } else if (activeMapNum !== null) {
-      setPinnedMapNum(activeMapNum);
-      storage.setSetting('scannerPinnedMapNum', activeMapNum);
-      setSelectedMapNum(activeMapNum);
+      storage.setSetting('scannerPinnedStageNum', null);
+    } else if (activeStageNum !== null) {
+      setPinnedMapNum(activeStageNum);
+      storage.setSetting('scannerPinnedStageNum', activeStageNum);
+      setSelectedMapNum(activeStageNum);
     }
   };
 
@@ -575,7 +575,7 @@ export const ScannerApp: React.FC = () => {
 
   // Mark/unmark single pet (routes to sourceMapNum to avoid corrupting switched map book)
   const handleTogglePetEncounter = (petName: string, sourceMapNum?: number) => {
-    const targetMapNum = sourceMapNum ?? detectedMapNum ?? activeMapNum ?? 1;
+    const targetMapNum = sourceMapNum ?? detectedMapNum ?? activeStageNum ?? 1;
     const mapKey = `map${targetMapNum}`;
     const wasEncountered = storage.isEncountered(mapKey, petName);
     storage.toggleEncountered(mapKey, petName);
@@ -620,22 +620,22 @@ export const ScannerApp: React.FC = () => {
   };
 
   const applyApiResults = (data: FollowRecognizeApiResponse) => {
-    // Always use the real map_num returned by the backend recognition
-    const targetMap = (data.map_num !== undefined && data.map_num !== null) ? Number(data.map_num) : 1;
+    // Always use the real stage_num returned by the backend recognition
+    const targetMap = (data.stage_num !== undefined && data.stage_num !== null) ? Number(data.stage_num) : 1;
     setDetectedMapNum(targetMap);
     if (pinnedMapNum !== null) {
       // 钉住地图：只更新识别数据，视图保持在钉住的地图，不跳回识别结果地图
       setSelectedMapNum(pinnedMapNum);
     } else {
-      setSelectedMapNum(targetMap); // 原逻辑：Reset manual selection so activeMapNum follows the recognized map
+      setSelectedMapNum(targetMap); // 原逻辑：Reset manual selection so activeStageNum follows the recognized map
     }
 
     // 同步给左侧主界面（通过 storage settings 以及跨窗口消息；钉住时同步钉住的地图）
     const syncMapNum = pinnedMapNum !== null ? pinnedMapNum : targetMap;
-    storage.setSetting('activeMapNum', syncMapNum);
+    storage.setSetting('activeStageNum', syncMapNum);
     try {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('roco_active_map_num', String(syncMapNum));
+        localStorage.setItem('roco_active_stage_num', String(syncMapNum));
         if ('BroadcastChannel' in window) {
           const bc = new BroadcastChannel('roco_channel');
           bc.postMessage({ type: 'SWITCH_MAP', mapNum: syncMapNum });
@@ -831,12 +831,12 @@ export const ScannerApp: React.FC = () => {
             </div>
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-xs sm:text-sm font-black text-white truncate tracking-tight">
-                {activeMapNum === null ? '跟随识别' : currentDetectedMap.name}
+                {activeStageNum === null ? '跟随识别' : currentDetectedMap.name}
               </span>
               <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FEE061] text-[#854D0E] border-2 border-[#E5C43B] shrink-0 font-mono">
-                {activeMapNum === null
+                {activeStageNum === null
                     ? `全图 ${allMapsStats.grandEncountered}/${allMapsStats.grandTotal}`
-                    : `地图 ${activeMapNum}`}
+                    : `地图 ${activeStageNum}`}
               </span>
             </div>
           </div>
@@ -902,7 +902,7 @@ export const ScannerApp: React.FC = () => {
           {!isCollapsedContent ? (
               <div className="space-y-2.5">
                 {/* 2.1 Collection Progress Card */}
-                {activeMapNum === null ? (
+                {activeStageNum === null ? (
                     /* Initial State: Show all maps overview */
                     <div className="p-3 bg-white roco-card border-2 border-[#E6EEF8] rounded-2xl space-y-2.5">
                       <div className="flex items-center justify-between text-xs">
@@ -1014,7 +1014,7 @@ export const ScannerApp: React.FC = () => {
                               type="button"
                               onClick={() => handleSelectMap(null)}
                               className={`py-1 px-1 rounded-lg text-[10px] font-black border transition-all cursor-pointer truncate ${
-                                  activeMapNum === null
+                                  activeStageNum === null
                                       ? 'bg-[#7ABCF4] text-white border-[#5DA8E8]'
                                       : 'bg-[#F8FBFE] hover:bg-[#EBF5FE] text-slate-700 border-[#D5E3F0]'
                               }`}
@@ -1023,7 +1023,7 @@ export const ScannerApp: React.FC = () => {
                             全图
                           </button>
                           {MAP_CONFIGS.map((m) => {
-                            const isSelected = activeMapNum === m.num;
+                            const isSelected = activeStageNum === m.num;
                             const mapShort = m.num === 1 ? '图1 索米亚' : m.num === 2 ? '图2 巨石阵' : m.num === 3 ? '图3 普拉塔' : `图${m.num}`;
                             return (
                                 <button
@@ -1048,14 +1048,14 @@ export const ScannerApp: React.FC = () => {
 
                 {/* 2.2 Detected Pets List */}
                 {/* Notice banner when user switched viewing map but has not re-recognized yet */}
-                {detectedPets.length > 0 && detectedMapNum !== null && activeMapNum !== detectedMapNum && (
+                {detectedPets.length > 0 && detectedMapNum !== null && activeStageNum !== detectedMapNum && (
                     <div className="p-2.5 rounded-2xl bg-[#FEF9E6] border-2 border-[#E5C43B] text-[#854D0E] flex items-center justify-between gap-2 shadow-2xs">
                       <div className="flex items-center gap-2 min-w-0">
                       <span className="w-5 h-5 rounded-full bg-[#FEE061] text-[#854D0E] flex items-center justify-center font-black text-xs shrink-0 border border-[#E5C43B]">
                         !
                       </span>
                         <div className="text-[11px] leading-tight min-w-0">
-                          <span className="font-black">已切换至【{getMapDisplayName(activeMapNum)}】</span>
+                          <span className="font-black">已切换至【{getMapDisplayName(activeStageNum)}】</span>
                           <p className="text-[10px] text-[#A16207] truncate font-medium mt-0.5">
                             【{getMapDisplayName(detectedMapNum)}】识别结果，点亮仍计入原地图
                           </p>
@@ -1063,7 +1063,7 @@ export const ScannerApp: React.FC = () => {
                       </div>
                       <button
                           type="button"
-                          onClick={() => executeSingleRecognition(activeMapNum || undefined)}
+                          onClick={() => executeSingleRecognition(activeStageNum || undefined)}
                           disabled={isRecognizingNow}
                           className="shrink-0 text-[10px] font-black bg-[#E5C43B] hover:bg-[#D4B32A] text-slate-900 px-2.5 py-1 rounded-xl border border-[#CA9B1B] cursor-pointer transition-all active:scale-95 flex items-center gap-1"
                           title="立即对当前切换的地图进行识别"
@@ -1120,7 +1120,7 @@ export const ScannerApp: React.FC = () => {
                       }
 
                       const slotSourceMap = slot.sourceMapNum ?? detectedMapNum ?? 1;
-                      const isSlotFromDifferentMap = activeMapNum !== slotSourceMap;
+                      const isSlotFromDifferentMap = activeStageNum !== slotSourceMap;
                       const isEncountered = checkEncountered(slot.selectedPetName, slotSourceMap);
                       const topScorePercent = (slot.score * 100).toFixed(1);
 
@@ -1193,7 +1193,7 @@ export const ScannerApp: React.FC = () => {
                                   title={
                                     isEncountered
                                         ? `已在【${getMapDisplayName(slotSourceMap)}】图鉴中（点击取消）`
-                                        : `点亮【${getMapDisplayName(slotSourceMap)}】图鉴${isSlotFromDifferentMap ? `（注意：当前切换至${getMapDisplayName(activeMapNum)}但未重新识别）` : ''}`
+                                        : `点亮【${getMapDisplayName(slotSourceMap)}】图鉴${isSlotFromDifferentMap ? `（注意：当前切换至${getMapDisplayName(activeStageNum)}但未重新识别）` : ''}`
                                   }
                               >
                                 {isEncountered ? (
@@ -1245,7 +1245,7 @@ export const ScannerApp: React.FC = () => {
               <button
                   type="button"
                   id="scanner-single-recognize-btn"
-                  onClick={() => executeSingleRecognition(activeMapNum || undefined)}
+                  onClick={() => executeSingleRecognition(activeStageNum || undefined)}
                   disabled={isRecognizingNow}
                   className={`py-2.5 px-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       hasPendingMapChange
@@ -1261,7 +1261,7 @@ export const ScannerApp: React.FC = () => {
                 ) : hasPendingMapChange ? (
                     <>
                       <RefreshCw className="w-4 h-4" />
-                      <span>重新识别 (指定地图{activeMapNum})</span>
+                      <span>重新识别 (指定地图{activeStageNum})</span>
                     </>
                 ) : pinnedMapNum !== null ? (
                     <>
@@ -1296,7 +1296,7 @@ export const ScannerApp: React.FC = () => {
         <ScannerMapGalleryModal
             isOpen={isGalleryOpen}
             onClose={() => setIsGalleryOpen(false)}
-            initialMapNum={activeMapNum || 1}
+            initialMapNum={activeStageNum || 1}
             mapsPets={mapsPets}
             records={records}
         />

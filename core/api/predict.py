@@ -22,9 +22,9 @@ def f(image):
     return ocr_names
 
 
-def ocr_top_k_match(image, map_num, top_k=6, trial_key="grass"):
+def ocr_top_k_match(image, stage_num, top_k=6, trial_key="grass"):
     from core.vision.ocr import ocr
-    logger.debug(f"OCR top-k匹配开始: map_num={map_num}, top_k={top_k}")
+    logger.debug(f"OCR top-k匹配开始: stage_num={stage_num}, top_k={top_k}")
 
     name = ocr().recognize_single_bottom_text(image)
 
@@ -34,7 +34,7 @@ def ocr_top_k_match(image, map_num, top_k=6, trial_key="grass"):
 
     logger.debug(f"OCR识别文字: '{name}'")
 
-    map_key = f"map{map_num}"
+    map_key = f"map{stage_num}"
     raw_result_list = get_top_k_matches(name, map_key, icon_catalog.get_names(trial_key), top_k)
 
     final_ocr_results = []
@@ -58,7 +58,7 @@ def ocr_top_k_match(image, map_num, top_k=6, trial_key="grass"):
 def predict():
     if not is_authorized():
         return error("请授权，解锁更多功能", 200)
-    logger.info(f"[/predict] 请求开始, map_num={request.form.get('map_num')}, "
+    logger.info(f"[/predict] 请求开始, stage_num={request.form.get('stage_num')}, "
                 f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
                 f"trial={request.form.get('trial', 'grass')}")
 
@@ -67,7 +67,7 @@ def predict():
         return error("No image", 400)
 
     file = request.files.get('image')
-    map_num = request.form.get('map_num', 1)
+    stage_num = request.form.get('stage_num', 1)
     trial_key = request.form.get('trial', 'grass')
     threshold = float(request.form.get('threshold', config.DEFAULT_THRESHOLD))
     top_k = int(request.form.get('top_k', config.DEFAULT_TOPK))
@@ -100,7 +100,7 @@ def predict():
             logger.warning(f"[/predict] 特征匹配返回错误: {err}")
             return error(err, 500)
 
-        ocr_results = ocr_top_k_match(temp_path, map_num, top_k, trial_key)
+        ocr_results = ocr_top_k_match(temp_path, stage_num, top_k, trial_key)
         logger.debug(f"[/predict] OCR匹配结果数: {len(ocr_results)}")
 
         combined_results = feat_results + ocr_results
@@ -113,7 +113,7 @@ def predict():
                 unique_results[path] = res
 
         final_list = filter_candidates_by_trial(
-            list(unique_results.values()), trial_key, map_name=f"map{map_num}"
+            list(unique_results.values()), trial_key, map_name=f"map{stage_num}"
         )
 
         final_list.sort(key=lambda x: x['score'], reverse=True)
@@ -124,7 +124,7 @@ def predict():
             os.remove(temp_path)
 
         if final_list:
-            map_name = f"map{map_num}"
+            map_name = f"map{stage_num}"
             for res in final_list:
                 icon_kwargs = {
                     "filename": res['filename'],
@@ -150,7 +150,7 @@ def predict():
 def predict_batch():
     if not is_authorized():
         return error("请授权，解锁更多功能", 200)
-    logger.info(f"[/init_batch] 请求开始, map_num={request.form.get('map_num')}, "
+    logger.info(f"[/init_batch] 请求开始, stage_num={request.form.get('stage_num')}, "
                 f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
                 f"total_count={request.form.get('total_count')}, trial={request.form.get('trial', 'grass')}")
 
@@ -159,7 +159,7 @@ def predict_batch():
         return error("No image uploaded", 400)
 
     file = request.files['image']
-    map_num = int(request.form.get('map_num', 1))
+    stage_num = int(request.form.get('stage_num', 1))
     trial_key = request.form.get('trial', 'grass')
     threshold = float(request.form.get('threshold', config.DEFAULT_THRESHOLD))
     top_k = int(request.form.get('top_k', 6))
@@ -201,7 +201,7 @@ def predict_batch():
             return error("No icons or text detected", 404)
 
         batch_results = []
-        map_name = f"map{map_num}"
+        map_name = f"map{stage_num}"
 
         for i in range(total_detected):
             # A. 获取图像块进行特征匹配（如果 i 超过了分割块数量，则不进行图像匹配）

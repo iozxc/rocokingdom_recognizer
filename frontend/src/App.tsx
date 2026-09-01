@@ -38,7 +38,7 @@ import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, Floati
 import { isPetEncounteredInRecords } from './utils/petHelper';
 
 export default function App() {
-  const [activeMapNum, setActiveMapNum] = useState<number>(1);
+  const [activeStageNum, setActiveStageNum] = useState<number>(1);
   const [mapsData, setMapsData] = useState<Record<string, { count: number; items: PetItem[] }>>({});
   const [records, setRecords] = useState<Record<string, EncounterRecord>>({});
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
@@ -205,9 +205,9 @@ export default function App() {
       if (newSettings.floatingButtonsMode) {
         setFloatingMode(newSettings.floatingButtonsMode);
       }
-      if (typeof newSettings.activeMapNum === 'number' && [1, 2, 3].includes(newSettings.activeMapNum)) {
-        setActiveMapNum(newSettings.activeMapNum);
-        // activeMapNum 变化不再触发特效，避免扫描识别后弹出特效
+      if (typeof newSettings.activeStageNum === 'number' && [1, 2, 3].includes(newSettings.activeStageNum)) {
+        setActiveStageNum(newSettings.activeStageNum);
+        // activeStageNum 变化不再触发特效，避免扫描识别后弹出特效
       }
     });
 
@@ -216,7 +216,7 @@ export default function App() {
       if (event.data?.type === 'SWITCH_MAP' && event.data?.mapNum) {
         const num = Number(event.data.mapNum);
         if ([1, 2, 3].includes(num)) {
-          setActiveMapNum(num);
+          setActiveStageNum(num);
           // SWITCH_MAP 不再触发特效，避免扫描识别后弹出特效
         }
       }
@@ -227,10 +227,11 @@ export default function App() {
     window.addEventListener('message', handleMessage);
 
     const handleStorageEvent = (event: StorageEvent) => {
-      if (event.key === 'roco_active_map_num' && event.newValue) {
+      // 兼容旧版本写入的 localStorage 键 roco_active_map_num（新键为 roco_active_stage_num）
+      if ((event.key === 'roco_active_stage_num' || event.key === 'roco_active_map_num') && event.newValue) {
         const num = Number(event.newValue);
         if ([1, 2, 3].includes(num)) {
-          setActiveMapNum(num);
+          setActiveStageNum(num);
           // SWITCH_MAP 不再触发特效，避免扫描识别后弹出特效
         }
       }
@@ -247,7 +248,7 @@ export default function App() {
         if (event.data?.type === 'SWITCH_MAP' && event.data?.mapNum) {
           const num = Number(event.data.mapNum);
           if ([1, 2, 3].includes(num)) {
-            setActiveMapNum(num);
+            setActiveStageNum(num);
             // SWITCH_MAP 不再触发特效，避免扫描识别后弹出特效
           }
         }
@@ -270,14 +271,14 @@ export default function App() {
 
   // Current Map configuration
   const currentMap: MapConfig = useMemo(() => {
-    return MAP_CONFIGS.find((m) => m.num === activeMapNum) || MAP_CONFIGS[0];
-  }, [activeMapNum]);
+    return MAP_CONFIGS.find((m) => m.num === activeStageNum) || MAP_CONFIGS[0];
+  }, [activeStageNum]);
 
   // Current Map pets
   const currentMapPets: PetItem[] = useMemo(() => {
-    const mapKey = `map${activeMapNum}`;
+    const mapKey = `map${activeStageNum}`;
     return mapsData[mapKey]?.items || [];
-  }, [activeMapNum, mapsData]);
+  }, [activeStageNum, mapsData]);
 
   // Total count of pets across all 3 maps
   const totalAllPetsCount = useMemo(() => {
@@ -392,7 +393,7 @@ export default function App() {
 
   // Handle Global Search Navigate & Scroll to pet
   const handleNavigateToPet = (mapNum: number, petName: string) => {
-    setActiveMapNum(mapNum);
+    setActiveStageNum(mapNum);
     setIsGlobalSearchOpen(false);
 
     // Allow DOM update after switching active map, then scroll and highlight
@@ -485,8 +486,8 @@ export default function App() {
 
         {/* Top Header with Settings Button */}
         <Header
-            activeMapNum={activeMapNum}
-            onSelectMap={(num) => setActiveMapNum(num)}
+            activeStageNum={activeStageNum}
+            onSelectMap={(num) => setActiveStageNum(num)}
             mapsStats={allMapsStats}
             totalEncountered={totalEncounteredCount}
             totalPetsCount={totalAllPetsCount}
@@ -565,7 +566,7 @@ export default function App() {
                         records={records}
                         isEncountered={isPetEncountered}
                         onBatchEncounterSuccess={handleBatchEncounterSuccess}
-                        onSelectMap={(num) => setActiveMapNum(num)}
+                        onSelectMap={(num) => setActiveStageNum(num)}
                     />
                 )}
 
@@ -660,7 +661,7 @@ export default function App() {
                 filterMode={filterMode}
                 onFilterChange={(mode) => setFilterMode(mode)}
                 onCycleMap={() => {
-                  setActiveMapNum((prev) => (prev % MAP_CONFIGS.length) + 1);
+                  setActiveStageNum((prev) => (prev % MAP_CONFIGS.length) + 1);
                 }}
                 mapsConfig={activeTrialMaps}
                 advancedFilters={advancedFilters}

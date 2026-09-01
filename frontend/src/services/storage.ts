@@ -139,7 +139,7 @@ export class StorageService {
 
       const settingsData = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (settingsData) {
-        this.appSettings = JSON.parse(settingsData);
+        this.appSettings = this.migrateLegacySettings(JSON.parse(settingsData));
         if (typeof this.appSettings.isSoundMuted === 'boolean') {
           sound.setMuted(this.appSettings.isSoundMuted);
         }
@@ -194,7 +194,7 @@ export class StorageService {
       this.thresholds = remote.thresholds;
     }
     if (remote.appSettings) {
-      this.appSettings = remote.appSettings;
+      this.appSettings = this.migrateLegacySettings(remote.appSettings);
       if (typeof this.appSettings.isSoundMuted === 'boolean') {
         sound.setMuted(this.appSettings.isSoundMuted);
       }
@@ -300,6 +300,26 @@ export class StorageService {
 
   public getSettings(): AppSettings {
     return { ...this.appSettings };
+  }
+
+  /**
+   * 兼容层：旧版本持久化的试炼关卡字段（activeMapNum / scannerPinnedMapNum）
+   * 迁移为新字段名（activeStageNum / scannerPinnedStageNum）。
+   * 读取时若新字段缺失则回退旧字段值，迁移完成后旧字段即从内存移除——
+   * 之后所有写入（localStorage 与 roco_user_data.json）只包含新字段名。
+   * 注意 scannerPinned* 的 null 是有意义的取值（未钉住），故用 !== undefined 判断。
+   */
+  private migrateLegacySettings(settings: AppSettings): AppSettings {
+    const raw = settings as Record<string, unknown>;
+    if (raw.activeStageNum === undefined && raw.activeMapNum !== undefined) {
+      raw.activeStageNum = raw.activeMapNum;
+    }
+    if (raw.scannerPinnedStageNum === undefined && raw.scannerPinnedMapNum !== undefined) {
+      raw.scannerPinnedStageNum = raw.scannerPinnedMapNum;
+    }
+    delete raw.activeMapNum;
+    delete raw.scannerPinnedMapNum;
+    return settings;
   }
 
   public getSetting<T>(key: keyof AppSettings, defaultValue: T): T {
@@ -582,7 +602,7 @@ export class StorageService {
         if (parsed.encounteredPets) {
           this.records = parsed.encounteredPets;
           this.thresholds = parsed.thresholds || {};
-          this.appSettings = parsed.appSettings || {};
+          this.appSettings = this.migrateLegacySettings(parsed.appSettings || {});
         } else {
           this.records = parsed;
         }
