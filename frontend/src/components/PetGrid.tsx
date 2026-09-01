@@ -30,6 +30,8 @@ interface PetGridProps {
   minAgreeRatio?: number;
   /** 对社区图鉴条目投票（agree / disagree）。 */
   onAtlasVote?: (mapId: string, petKey: string, petName: string, type: 'agree' | 'disagree') => void;
+  /** 共创图鉴卡片布局（火系专用）：头部行（系别图标+#编号）吃进立绘容器；默认 false 保持草系经典叠加布局。 */
+  communityCard?: boolean;
 }
 
 export const PetGrid: React.FC<PetGridProps> = ({
@@ -46,6 +48,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                                   communityAtlas,
                                                   minAgreeRatio = 0,
                                                   onAtlasVote,
+                                                  communityCard = false,
                                                 }) => {
   // Track keys of pets that were just toggled to encountered / unencountered
   const [animatingKeys, setAnimatingKeys] = useState<Record<string, boolean>>({});
@@ -238,27 +241,77 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       )}
 
                       {/* Fixed Uniform Image Container - 1:1 Aspect Ratio with object-contain */}
-                      <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-white p-1 sm:p-1.5 flex items-center justify-center overflow-hidden border border-[#E6EEF8]">
-                        {pet.id != null && (
-                            <span className="absolute top-1 right-1 z-[1] text-[8px] sm:text-[9px] font-mono font-black px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md bg-slate-800/70 text-white/90">
-                              #{pet.id}
-                            </span>
-                        )}
-                        <ElementBadges
-                            elements={pet?.elements}
-                            className="absolute top-1 left-1 z-10 scale-90 sm:scale-100 origin-top-left"
-                            size="xs"
-                        />
-                        <PetSprite
-                            pet={pet}
-                            alt={pet.name}
-                            className={`w-full h-full object-contain pointer-events-none transition-transform duration-200 ${
-                                isJustEncountered
-                                    ? 'scale-105'
-                                    : 'group-hover:scale-105'
-                            }`}
-                        />
-                      </div>
+                      {communityCard ? (
+                          /* 共创图鉴（火系）：头部行吃进立绘容器顶部（aspect-square 不变，卡片高度与草系一致） */
+                          <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-white p-1 sm:p-1.5 flex flex-col overflow-hidden border border-[#E6EEF8]">
+                            {/* 头部行：左系别图标、右图鉴编号（轻量小元素） */}
+                            <div className="flex items-start justify-between w-full shrink-0">
+                              <ElementBadges
+                                  elements={pet?.elements}
+                                  size="xs"
+                              />
+                              {pet.id != null && (
+                                  <span className="text-[8px] sm:text-[9px] font-mono font-black text-slate-400 leading-none">
+                                    #{pet.id}
+                                  </span>
+                              )}
+                            </div>
+                            {/* 立绘：核心视觉区，占据剩余全部空间 */}
+                            <div className="flex-1 min-h-0 w-full flex items-center justify-center">
+                              <PetSprite
+                                  pet={pet}
+                                  alt={pet.name}
+                                  className={`w-full h-full object-contain pointer-events-none transition-transform duration-200 ${
+                                      isJustEncountered
+                                          ? 'scale-105'
+                                          : 'group-hover:scale-105'
+                                  }`}
+                              />
+                            </div>
+                            {/* 赞同率进度条：叠在立绘下方（容器内底部），有共创数据（≥1票）才显示，为 0 不显示 */}
+                            {communityInfo && onAtlasVote && (() => {
+                              const r = communityInfo.agree_ratio ?? 0;
+                              const barCls = r >= 0.7 ? 'bg-green-500' : r >= 0.3 ? 'bg-amber-400' : 'bg-rose-400';
+                              const textCls = r >= 0.7 ? 'text-green-600' : r >= 0.3 ? 'text-amber-600' : 'text-rose-600';
+                              return (
+                                  <div className="flex items-center gap-1 w-full shrink-0 pt-0.5">
+                                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                      <div
+                                          className={`h-full rounded-full ${barCls}`}
+                                          style={{ width: `${Math.min(100, Math.round(r * 100))}%` }}
+                                      />
+                                    </div>
+                                    <span className={`text-[9px] sm:text-[10px] font-mono font-black leading-none shrink-0 ${textCls}`}>
+                                      {Math.round(r * 100)}%
+                                    </span>
+                                  </div>
+                              );
+                            })()}
+                          </div>
+                      ) : (
+                          /* 草系经典：编号/系别图标叠加在立绘上 */
+                          <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-white p-1 sm:p-1.5 flex items-center justify-center overflow-hidden border border-[#E6EEF8]">
+                            {pet.id != null && (
+                                <span className="absolute top-1 right-1 z-[1] text-[8px] sm:text-[9px] font-mono font-black px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md bg-slate-800/70 text-white/90">
+                                  #{pet.id}
+                                </span>
+                            )}
+                            <ElementBadges
+                                elements={pet?.elements}
+                                className="absolute top-1 left-1 z-10 scale-90 sm:scale-100 origin-top-left"
+                                size="xs"
+                            />
+                            <PetSprite
+                                pet={pet}
+                                alt={pet.name}
+                                className={`w-full h-full object-contain pointer-events-none transition-transform duration-200 ${
+                                    isJustEncountered
+                                        ? 'scale-105'
+                                        : 'group-hover:scale-105'
+                                }`}
+                            />
+                          </div>
+                      )}
 
                       {/* Pet Name Label */}
                       <div className="mt-1 sm:mt-2 w-full text-center">
@@ -272,23 +325,13 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         </p>
                       </div>
 
-                      {/* 社区图鉴：只显示赞同率 + 赞/踩，不显示“已遇见/未探索”文本（卡片边框颜色已表状态） */}
-                      {communityInfo && onAtlasVote ? (
-                          <div className="mt-1 flex flex-col items-center gap-1 w-full">
-                            <div className="flex items-center justify-center gap-1 w-full">
-                              {(() => {
-                                const r = communityInfo.agree_ratio ?? 0;
-                                const cls = r >= 0.7 ? 'text-green-700 bg-green-50 border-green-300'
-                                    : r >= 0.3 ? 'text-amber-700 bg-amber-50 border-amber-300'
-                                        : 'text-rose-700 bg-rose-50 border-rose-300';
-                                return (
-                                    <span className={`h-6 inline-flex items-center text-[9px] font-mono font-black px-1.5 py-0.5 rounded border ${cls}`}>
-                                      {Math.round(r * 100)}% 赞同
-                                    </span>
-                                );
-                              })()}
-                              {([['agree', '✓'], ['disagree', '✕']] as Array<['agree' | 'disagree', string]>).map(([type, label]) => {
-                                const myVote = communityInfo.my_vote ?? 'none';
+                      {/* 社区图鉴：✓左 状态文本 ✕右一行（进度条已叠入立绘容器底部），按钮默认浅灰线框。
+                          共创图鉴卡（communityCard）全部可投票——无社区数据时按未投票/0% 处理 */}
+                      {communityCard && onAtlasVote ? (
+                          <div className="mt-1 flex items-center justify-between w-full">
+                            {(() => {
+                              const myVote = communityInfo?.my_vote ?? 'none';
+                              const renderBtn = (type: 'agree' | 'disagree', label: string) => {
                                 const active = type === 'agree' ? myVote === 'agree' : myVote === 'disagree';
                                 return (
                                     <button
@@ -298,25 +341,29 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                           e.stopPropagation();
                                           onAtlasVote(currentMap.id, petKey, pet.name, type);
                                         }}
-                                        className={`text-[10px] font-black w-6 h-6 rounded-md border flex items-center justify-center transition-colors select-none ${
+                                        className={`text-[10px] font-black w-5 h-5 sm:w-6 sm:h-6 rounded-md border flex items-center justify-center transition-colors select-none ${
                                             active
                                                 ? type === 'agree' ? 'bg-green-500 border-green-500 text-white' : 'bg-rose-500 border-rose-500 text-white'
-                                                : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
+                                                : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-500'
                                         } cursor-pointer`}
                                         title={type === 'agree' ? '赞同' : '不赞同'}
                                     >
                                       {label}
                                     </button>
                                 );
-                              })}
-                            </div>
-                            {/* 赞同率迷你进度条 */}
-                            <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                              <div
-                                  className={`h-full rounded-full ${(communityInfo.agree_ratio ?? 0) >= 0.7 ? 'bg-green-500' : (communityInfo.agree_ratio ?? 0) >= 0.3 ? 'bg-amber-400' : 'bg-rose-400'}`}
-                                  style={{ width: `${Math.min(100, Math.round((communityInfo.agree_ratio ?? 0) * 100))}%` }}
-                              />
-                            </div>
+                              };
+                              return (
+                                  <>
+                                    {renderBtn('agree', '✓')}
+                                    <span className={`text-[10px] sm:text-[11px] font-black leading-none truncate ${
+                                        isEnc ? 'text-[#2D6613]' : 'text-slate-400'
+                                    }`}>
+                                      {isEnc ? '已遇见' : '未探索'}
+                                    </span>
+                                    {renderBtn('disagree', '✕')}
+                                  </>
+                              );
+                            })()}
                           </div>
                       ) : (
                           /* Status indicator pill（非社区宠保留） */

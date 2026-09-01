@@ -9,7 +9,7 @@ import {
     Filter,
     ArrowRight,
 } from 'lucide-react';
-import { PetItem, EncounterRecord, AdvancedFilterState } from '../types';
+import { PetItem, EncounterRecord, AdvancedFilterState, MapConfig } from '../types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
@@ -17,6 +17,7 @@ import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../uti
 import { ElementBadges } from './ElementBadges';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
 import { PetSprite } from './PetSprite';
+import { petKeyOf } from '../services/atlasCollector';
 
 interface ScannerMapGalleryModalProps {
     isOpen: boolean;
@@ -25,6 +26,19 @@ interface ScannerMapGalleryModalProps {
     mapsPets: Record<string, { count: number; items: PetItem[] }>;
     records: Record<string, EncounterRecord>;
     onToggleEncounter?: (mapId: string, filename: string) => void;
+    /** 试炼地图配置（默认草系 MAP_CONFIGS；火系传 FIRE_MAP_CONFIGS）。 */
+    mapsConfig?: MapConfig[];
+    /** 共创图鉴：社区数据（含赞同率 / 我是否已投），传入后卡片展示投票 UI。 */
+    communityAtlas?: Record<string, {
+        confirmed_by: number;
+        confidence: number;
+        agree_ratio?: number;
+        my_vote?: 'agree' | 'disagree' | 'none';
+    }>;
+    /** 对社区图鉴条目投票（agree / disagree）。 */
+    onAtlasVote?: (mapId: string, petKey: string, petName: string, type: 'agree' | 'disagree') => void;
+    /** 共创图鉴卡片布局（火系专用）：头部行（系别图标+#编号）+ 进度条/投票区；默认 false 保持草系经典叠加布局。 */
+    communityCard?: boolean;
 }
 
 export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
@@ -34,6 +48,10 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                                                                   mapsPets,
                                                                                   records,
                                                                                   onToggleEncounter,
+                                                                                  mapsConfig,
+                                                                                  communityAtlas,
+                                                                                  onAtlasVote,
+                                                                                  communityCard = false,
                                                                               }) => {
     // 'all' for full gallery, or 1, 2, 3...
     const [selectedTab, setSelectedTab] = useState<'all' | number>(initialMapNum);
@@ -44,6 +62,9 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
         specialTypes: [],
     });
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
+    // 试炼地图配置：默认草系；火系等试炼由调用方传入
+    const galleryMaps = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
 
     const activeAdvancedCount = advancedFilters.elements.length + advancedFilters.specialTypes.length;
 
@@ -61,7 +82,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     };
 
     // Calculate stats for all maps
-    const allMapsStats = MAP_CONFIGS.map((map) => {
+    const allMapsStats = galleryMaps.map((map) => {
         const activePets = mapsPets[map.id]?.items || FALLBACK_MAPS_DATA[map.id]?.items || [];
         const total = activePets.length;
         const encounteredCount = activePets.filter((p) => isEncountered(map.id, p.name)).length;
@@ -86,7 +107,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
         let list: Array<{ pet: PetItem; mapId: string; mapName: string; mapNum: number; themeColor: string }> = [];
 
         if (selectedTab === 'all') {
-            MAP_CONFIGS.forEach((map) => {
+            galleryMaps.forEach((map) => {
                 const pets = mapsPets[map.id]?.items || FALLBACK_MAPS_DATA[map.id]?.items || [];
                 pets.forEach((pet) => {
                     list.push({
@@ -99,7 +120,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                 });
             });
         } else {
-            const map = MAP_CONFIGS.find((m) => m.num === selectedTab) || MAP_CONFIGS[0];
+            const map = galleryMaps.find((m) => m.num === selectedTab) || galleryMaps[0];
             const pets = mapsPets[map.id]?.items || FALLBACK_MAPS_DATA[map.id]?.items || [];
             pets.forEach((pet) => {
                 list.push({
@@ -356,8 +377,8 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                             : 'bg-white border-[#E6EEF8] hover:border-[#7ABCF4]'
                                     }`}
                                 >
-                                    {/* Map badge on multi-map mode */}
-                                    {selectedTab === 'all' && (
+                                    {/* Map badge on multi-map mode（草系：叠加卡片左上角；火系：吃进立绘容器头部行） */}
+                                    {!communityCard && selectedTab === 'all' && (
                                         <span
                                             className="absolute top-1 left-1 text-[8px] font-black px-1.5 py-0.2 rounded-md text-white z-10 opacity-90"
                                             style={{ backgroundColor: themeColor }}
@@ -366,29 +387,88 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                     </span>
                                     )}
                                     {/* Pet Avatar Container */}
-                                    <div className="relative w-full aspect-square rounded-xl bg-white p-1 flex items-center justify-center border-2 border-[#E9F2FA] overflow-hidden">
-                                        <PetSprite
-                                            pet={pet}
-                                            alt={displayName}
-                                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-150"
-                                        />
-                                        {pet.id != null && (
-                                            <span className="absolute top-0.5 right-0.5 z-[1] text-[9px] font-mono font-black leading-none px-1.5 py-0.5 rounded bg-slate-800/70 text-white/90">
-                                              #{pet.id}
-                                            </span>
-                                        )}
-                                        <ElementBadges
-                                            elements={pet.elements}
-                                            className="absolute top-0.5 left-0.5 z-10"
-                                            size="md"
-                                        />
-                                        {/* Check icon if encountered */}
-                                        {isEnc && (
-                                            <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-[#95D151] flex items-center justify-center text-white z-10 border border-white">
-                                                <Check className="w-2.5 h-2.5 stroke-[3.5]" />
+                                    {communityCard ? (
+                                        /* 共创图鉴（火系）：头部行吃进立绘容器顶部（aspect-square 不变，卡片高度与草系一致） */
+                                        <div className="relative w-full aspect-square rounded-xl bg-white p-1 flex flex-col border-2 border-[#E9F2FA] overflow-hidden">
+                                            {/* 头部行：左图N徽章+系别图标、右图鉴编号（轻量小元素） */}
+                                            <div className="flex items-start justify-between w-full shrink-0">
+                                                <div className="flex items-center gap-1">
+                                                    {selectedTab === 'all' && (
+                                                        <span
+                                                            className="text-[8px] font-black px-1.5 py-0.2 rounded-md text-white opacity-90"
+                                                            style={{ backgroundColor: themeColor }}
+                                                        >
+                                                            图{mapNum}
+                                                        </span>
+                                                    )}
+                                                    <ElementBadges
+                                                        elements={pet.elements}
+                                                        size="xs"
+                                                    />
+                                                </div>
+                                                {pet.id != null && (
+                                                    <span className="text-[9px] font-mono font-black text-slate-400 leading-none">
+                                                        #{pet.id}
+                                                    </span>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
+                                            {/* 立绘：核心视觉区，占据剩余全部空间 */}
+                                            <div className="flex-1 min-h-0 w-full flex items-center justify-center">
+                                                <PetSprite
+                                                    pet={pet}
+                                                    alt={displayName}
+                                                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-150"
+                                                />
+                                            </div>
+                                            {/* 赞同率进度条：叠在立绘下方（容器内底部），仅已有社区数据时显示 */}
+                                            {communityAtlas && onAtlasVote && (() => {
+                                                const pk = petKeyOf(pet.name, pet.id, pet.seq);
+                                                const info = pk ? communityAtlas[`${mapId}:${pk}`] : undefined;
+                                                if (!info) return null;
+                                                const r = info.agree_ratio ?? 0;
+                                                const barCls = r >= 0.7 ? 'bg-green-500' : r >= 0.3 ? 'bg-amber-400' : 'bg-rose-400';
+                                                const textCls = r >= 0.7 ? 'text-green-600' : r >= 0.3 ? 'text-amber-600' : 'text-rose-600';
+                                                return (
+                                                    <div className="flex items-center gap-1 w-full shrink-0 pt-0.5">
+                                                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full rounded-full ${barCls}`}
+                                                                style={{ width: `${Math.min(100, Math.round(r * 100))}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className={`text-[9px] font-mono font-black leading-none shrink-0 ${textCls}`}>
+                                                            {Math.round(r * 100)}%
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    ) : (
+                                        /* 草系经典：编号/系别图标叠加在立绘上 */
+                                        <div className="relative w-full aspect-square rounded-xl bg-white p-1 flex items-center justify-center border-2 border-[#E9F2FA] overflow-hidden">
+                                            <PetSprite
+                                                pet={pet}
+                                                alt={displayName}
+                                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-150"
+                                            />
+                                            {pet.id != null && (
+                                                <span className="absolute top-0.5 right-0.5 z-[1] text-[9px] font-mono font-black leading-none px-1.5 py-0.5 rounded bg-slate-800/70 text-white/90">
+                                                  #{pet.id}
+                                                </span>
+                                            )}
+                                            <ElementBadges
+                                                elements={pet.elements}
+                                                className="absolute top-0.5 left-0.5 z-10"
+                                                size="md"
+                                            />
+                                            {/* Check icon if encountered */}
+                                            {isEnc && (
+                                                <div className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-[#95D151] flex items-center justify-center text-white z-10 border border-white">
+                                                    <Check className="w-2.5 h-2.5 stroke-[3.5]" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Pet Name */}
                                     <div className="mt-1.5 w-full text-center">
@@ -402,18 +482,56 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                         </p>
                                     </div>
 
-                                    {/* Status Tag */}
-                                    <div className="mt-1 w-full text-center">
-                    <span
-                        className={`text-[9px] font-black px-2 py-0.5 rounded-full block truncate ${
-                            isEnc
-                                ? 'bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/40'
-                                : 'bg-slate-100 text-slate-500 border border-slate-200 group-hover:bg-[#EBF5FE] group-hover:text-[#1E5B99] group-hover:border-[#7ABCF4]'
-                        }`}
-                    >
-                      {isEnc ? '已遇见' : '未探索'}
-                    </span>
-                                    </div>
+                                    {/* Status Tag / 共创图鉴投票区：✓左 状态文本 ✕右（进度条已叠入立绘容器底部） */}
+                                    {communityAtlas && onAtlasVote ? (() => {
+                                        const pk = petKeyOf(pet.name, pet.id, pet.seq);
+                                        const info = pk ? communityAtlas[`${mapId}:${pk}`] : undefined;
+                                        const myVote = info?.my_vote ?? 'none';
+                                        const renderBtn = (type: 'agree' | 'disagree', label: string) => {
+                                            const active = type === 'agree' ? myVote === 'agree' : myVote === 'disagree';
+                                            return (
+                                                <button
+                                                    key={type}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (pk) onAtlasVote(mapId, pk, pet.name, type);
+                                                    }}
+                                                    className={`text-[10px] font-black w-5 h-5 rounded-md border flex items-center justify-center transition-colors select-none cursor-pointer ${
+                                                        active
+                                                            ? type === 'agree' ? 'bg-green-500 border-green-500 text-white' : 'bg-rose-500 border-rose-500 text-white'
+                                                            : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-500'
+                                                    }`}
+                                                    title={type === 'agree' ? '赞同（上报社区图鉴）' : '不赞同（上报社区图鉴）'}
+                                                >
+                                                    {label}
+                                                </button>
+                                            );
+                                        };
+                                        return (
+                                            <div className="mt-1 w-full flex items-center justify-between">
+                                                {renderBtn('agree', '✓')}
+                                                <span className={`text-[10px] font-black leading-none truncate ${
+                                                    isEnc ? 'text-[#2D6613]' : 'text-slate-400'
+                                                }`}>
+                                                    {isEnc ? '已遇见' : '未探索'}
+                                                </span>
+                                                {renderBtn('disagree', '✕')}
+                                            </div>
+                                        );
+                                    })() : (
+                                        <div className="mt-1 w-full text-center">
+                                            <span
+                                                className={`text-[9px] font-black px-2 py-0.5 rounded-full block truncate ${
+                                                    isEnc
+                                                        ? 'bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/40'
+                                                        : 'bg-slate-100 text-slate-500 border border-slate-200 group-hover:bg-[#EBF5FE] group-hover:text-[#1E5B99] group-hover:border-[#7ABCF4]'
+                                                }`}
+                                            >
+                                                {isEnc ? '已遇见' : '未探索'}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}

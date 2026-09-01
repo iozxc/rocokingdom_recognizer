@@ -683,6 +683,7 @@ export default function App() {
                 onOpenSingleRecognizer={IS_STATIC ? undefined : () => guardRecognition(() => setIsSingleRecognizerOpen(true))}
                 onOpenBatchInit={IS_STATIC ? undefined : () => guardRecognition(() => setIsBatchInitOpen(true))}
                 mapsConfig={activeTrialMaps}
+                followTrialKey={activeTrialKey === 'fire' ? 'fire' : 'grass'}
             />
         )}
 

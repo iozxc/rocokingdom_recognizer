@@ -23,7 +23,7 @@ class StageClassifier:
         :param onnx_model_path: 特征提取 ONNX 模型路径（如 dino_backbone.onnx）
         :param database_path: 关卡标题特征库 pkl 路径
         """
-        logger.info(f"初始化MapClassifier: 模型={onnx_model_path}, 特征库={database_path}")
+        logger.info(f"初始化StageClassifier: 模型={onnx_model_path}, 特征库={database_path}")
 
         # 1. 加载 ONNX 模型
         if not os.path.exists(onnx_model_path):
@@ -32,7 +32,7 @@ class StageClassifier:
 
         # 优化选项：仅使用 CPU 运行
         self.session = ort.InferenceSession(onnx_model_path, providers=['CPUExecutionProvider'])
-        logger.info("MapClassifier ONNX模型加载成功 (CPU)")
+        logger.info("StageClassifier ONNX模型加载成功 (CPU)")
 
         # 从 ONNX 输入推断输入尺寸（resnet=224, dino=518 自动适配）
         self.input_size = 224
@@ -42,7 +42,7 @@ class StageClassifier:
                 self.input_size = int(in_shape[2])
         except Exception:
             pass
-        logger.info(f"MapClassifier 输入尺寸: {self.input_size}")
+        logger.info(f"StageClassifier 输入尺寸: {self.input_size}")
 
         # 2. 预处理参数 (必须与 Torchvision 的 Normalize 一致)
         self.mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape((1, 1, 3))
@@ -52,7 +52,7 @@ class StageClassifier:
         if database_path:
             self.load_db(database_path)
         else:
-            logger.warning("MapClassifier初始化时未提供特征库路径，需后续调用load_db")
+            logger.warning("StageClassifier初始化时未提供特征库路径，需后续调用load_db")
 
     def load_db(self, path):
         """加载经过转换后的 pkl 特征库"""
@@ -146,7 +146,7 @@ class StageClassifier:
         try:
             query_feat = self.get_feature(img_pil)
         except Exception as e:
-            logger.error(f"MapClassifier.match 输入图片处理失败: {e}", exc_info=True)
+            logger.error(f"StageClassifier.match 输入图片处理失败: {e}", exc_info=True)
             return fallback_map
 
         db = self.databases

@@ -109,8 +109,8 @@ UPDATE_CHECK_URL = _env(
     "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
 )
 FEISHU_WEBHOOK_URL = (
-    _env("ROCO_FEISHU_WEBHOOK_URL", _meta("feishu_webhook"))
-    or "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab"
+        _env("ROCO_FEISHU_WEBHOOK_URL", _meta("feishu_webhook"))
+        or "https://open.feishu.cn/open-apis/bot/v2/hook/921e10c3-1b75-4759-9897-4c974bc20aab"
 )
 # 图鉴/关键数据更新清单：远程地址为空表示不启用；
 # 本地清单（datasets/data_manifest.json）由 tools/pack_update.py 生成，用于 md5 对比
@@ -226,6 +226,29 @@ TRIALS = [
     }
 ]
 
+TRIALS_META = {
+    "element": {
+        "light": {"cn": "光", "color": "#FFE870"},
+        "ice": {"cn": "冰", "color": "#86E1FF"},
+        "ground": {"cn": "地", "color": "#C29461"},
+        "illusion": {"cn": "幻", "color": "#C88FFF"},
+        "shadow": {"cn": "幽", "color": "#6B4E99"},
+        "dark": {"cn": "恶", "color": "#5C5266"},
+        "normal": {"cn": "普通", "color": "#C9C0A8"},
+        "mechanical": {"cn": "机械", "color": "#94A3B8"},
+        "fighting": {"cn": "武", "color": "#D65745"},
+        "poison": {"cn": "毒", "color": "#A855C7"},
+        "water": {"cn": "水", "color": "#47A8E8"},
+        "fire": {"cn": "火", "color": "#F26430"},
+        "electric": {"cn": "电", "color": "#F7D338"},
+        "flying": {"cn": "翼", "color": "#94B8F0"},
+        "grass": {"cn": "草", "color": "#62BC58"},
+        "fairy": {"cn": "萌", "color": "#F898C8"},
+        "bug": {"cn": "虫", "color": "#92BC2C"},
+        "dragon": {"cn": "龙", "color": "#7050D8"}
+    }
+}
+
 # 全局信息
 # 全图鉴唯一数据源（含 id/seq/name/form_name/elements）
 POKEDEX_JSON = get_resource_path(os.path.join('datasets', 'roco_all_pets_info.json'))
@@ -236,7 +259,6 @@ DATA_MANIFEST_JSON = get_resource_path(os.path.join("datasets", "data_manifest.j
 DATA_JSON = get_external_path('roco_user_data.json')
 MAP_DATA_JSON = get_external_path('roco_user_mapdata.json')
 MANIFEST_JSON = get_resource_path('file_manifest.json')
-
 
 # 全局模型
 # 全图鉴图标特征库：识别统一用它，具体试炼的 topk 过滤由服务端按白名单完成

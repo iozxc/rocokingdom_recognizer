@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, Check, Sparkles } from 'lucide-react';
+import { X, Check, Sparkles, RefreshCw, Eye, EyeOff, Percent } from 'lucide-react';
 import { PetItem, EncounterRecord } from '../types';
 import { PetSprite } from './PetSprite';
 import { TrialAtlas, AtlasEntry, petKeyOf } from '../services/atlasCollector';
@@ -19,11 +19,19 @@ interface BootstrapAtlasModalProps {
   /** 点击卡片点亮/取消点亮（与首页 PetGrid 同一状态机）。 */
   onToggleEncounter: (mapId: string, filename: string) => void;
   manualVotes: Record<string, Record<string, 'agree' | 'disagree'>>;
+  /** 刷新图鉴（从服务器拉取最新社区图鉴/赞同率）。 */
+  onRefresh?: () => void;
+  /** 首页图鉴赞同率筛选阈值（0~1）。 */
+  minAgreeRatio?: number;
+  onMinAgreeRatioChange?: (v: number) => void;
+  /** 隐藏投票/赞同率开关（关闭时本弹窗也不展示投票 UI，数据照常计算）。 */
+  showAtlasVote?: boolean;
+  onToggleShowVote?: () => void;
 }
 
 type Tab = 'all' | 'community' | 'mine';
 
-/** 开荒期「社区(部分)图鉴 × 我的图鉴」双视图 + 纠错/投票。 */
+/** 共创期「社区(部分)图鉴 × 我的图鉴」双视图 + 纠错/投票。 */
 export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
   isOpen,
   onClose,
@@ -35,6 +43,11 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
   onVote,
   onToggleEncounter,
   manualVotes,
+  onRefresh,
+  minAgreeRatio,
+  onMinAgreeRatioChange,
+  showAtlasVote = true,
+  onToggleShowVote,
 }) => {
   const [tab, setTab] = useState<Tab>('all');
   const [selectedMap, setSelectedMap] = useState<string>('');
@@ -89,7 +102,7 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
             <div>
               <h3 className="text-base font-black text-orange-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-orange-500" />
-                火系 · 开荒图鉴
+                火系 · 共创图鉴
                 {atlas?.partial && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
                       社区版(部分)
@@ -106,6 +119,55 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
               </button>
             </div>
           </div>
+
+          {/* 图鉴控制条：刷新图鉴 / 隐藏投票 / 赞同率筛选（自悬浮按钮组迁入） */}
+          {(onRefresh || onToggleShowVote || onMinAgreeRatioChange) && (
+              <div className="px-5 py-2.5 bg-white border-b border-orange-100 flex flex-wrap items-center gap-2 shrink-0">
+                {onRefresh && (
+                    <button
+                        type="button"
+                        onClick={onRefresh}
+                        className="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2 bg-white text-slate-600 border-slate-200 hover:border-sky-300 hover:text-[#2B78C4] transition-colors flex items-center gap-1.5"
+                        title="刷新图鉴（拉取最新社区图鉴/赞同率）"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      刷新图鉴
+                    </button>
+                )}
+                {onToggleShowVote && (
+                    <button
+                        type="button"
+                        onClick={onToggleShowVote}
+                        className="px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer border-2 bg-white text-slate-600 border-slate-200 hover:border-slate-300 transition-colors flex items-center gap-1.5"
+                        title={showAtlasVote ? '隐藏投票/赞同率（数据仍会计算）' : '显示投票/赞同率'}
+                    >
+                      {showAtlasVote ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showAtlasVote ? '隐藏投票' : '显示投票'}
+                    </button>
+                )}
+                {onMinAgreeRatioChange && (
+                    <div
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 bg-white border-slate-200"
+                        title={`赞同率筛选 ≥ ${Math.round((minAgreeRatio ?? 0.75) * 100)}%（仅展示达到阈值的社区精灵）`}
+                    >
+                      <Percent className="w-3.5 h-3.5 text-slate-500" />
+                      <span className="text-xs font-black text-slate-600">赞同率</span>
+                      <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={Math.round((minAgreeRatio ?? 0.75) * 100)}
+                          onChange={(e) => onMinAgreeRatioChange(parseInt(e.target.value, 10) / 100)}
+                          className="w-24 accent-orange-500 cursor-pointer"
+                      />
+                      <span className="text-xs font-black text-orange-600 w-9 text-right tabular-nums">
+                        {Math.round((minAgreeRatio ?? 0.75) * 100)}%
+                      </span>
+                    </div>
+                )}
+              </div>
+          )}
 
           {/* Tabs */}
           <div className="px-5 pt-3 flex flex-wrap items-center gap-2 shrink-0">
@@ -145,7 +207,7 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
             {!atlas && (
                 <div className="py-16 text-center text-slate-400">
                   <p className="text-sm font-black text-slate-600">暂无社区图鉴数据</p>
-                  <p className="text-xs mt-1">请在火系跟随/首页识别，或点右上角「手动上传」</p>
+                  <p className="text-xs mt-1">在火系跟随识别或首页识别后会自动上报，稍后点「刷新图鉴」查看</p>
                 </div>
             )}
             {atlas && filtered.filter((m) => m.mapId === selectedMap).map((m) => (
@@ -177,7 +239,7 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
                                 {encountered && <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center text-white border border-white"><Check className="w-2.5 h-2.5 stroke-[3]" /></div>}
                               </div>
                               <p className="mt-1.5 text-[11px] font-black text-slate-800 truncate w-full">{entry.name}</p>
-                              {(() => {
+                              {showAtlasVote && (() => {
                                       const r = ratio ?? 0;
                                       const cls = r >= 0.7 ? 'text-green-700 bg-green-50 border-green-300'
                                           : r >= 0.3 ? 'text-amber-700 bg-amber-50 border-amber-300'
@@ -193,6 +255,7 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
                                           </>
                                       );
                                     })()}
+                                    {showAtlasVote && (
                                     <div className="mt-1.5 flex items-center gap-1 w-full justify-center">
                                       {([['agree', '✓'], ['disagree', '✕']] as Array<['agree' | 'disagree', string]>).map(([type, label]) => {
                                         const active = type === 'agree' ? effVote === 'agree' : effVote === 'disagree';
@@ -208,6 +271,7 @@ export const BootstrapAtlasModal: React.FC<BootstrapAtlasModalProps> = ({
                                         );
                                       })}
                                     </div>
+                                    )}
                             </div>
                               );
                             })()

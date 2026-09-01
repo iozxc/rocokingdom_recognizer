@@ -57,7 +57,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const [showAtlasVote, setShowAtlasVote] = useState<boolean>(() => {
     try { return localStorage.getItem('roco_fire_atlas_show_vote_v1') !== '0'; } catch { return true; }
   });
-  // 首页图鉴数据源：community=开荒图鉴（按 map_pets2 分组）| pokedex=全图鉴自选（每图全量）
+  // 首页图鉴数据源：community=共创图鉴（按 map_pets2 分组）| pokedex=全图鉴自选（每图全量）
   const [atlasMode, setAtlasMode] = useState<'community' | 'pokedex'>(() => {
     try {
       const v = localStorage.getItem('roco_fire_atlas_mode_v1');
@@ -106,7 +106,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
     return unsubscribe;
   }, []);
 
-  // 按 map_pets2.json（社区开荒图鉴）分组：每张地图只含该图精灵，PetItem.name 用完整数据集文件名，
+  // 按 map_pets2.json（社区共创图鉴）分组：每张地图只含该图精灵，PetItem.name 用完整数据集文件名，
   // 与识别结果返回的 filename 一致，避免识别/点亮对不上；name=filename => 记录 key 也统一。
   const fireMapsPets: Record<string, { count: number; items: PetItem[] }> = useMemo(() => {
     const buildFullItems = (): PetItem[] =>
@@ -144,7 +144,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       return m ? parseInt(m[1], 10) : undefined;
     };
 
-    // 社区开荒图鉴：以远端服务器实时聚合的 atlas（与开荒图鉴弹窗同一份）为准，自动反映最新
+    // 社区共创图鉴：以远端服务器实时聚合的 atlas（与共创图鉴弹窗同一份）为准，自动反映最新
     const buildAtlasItems = (entries: Record<string, AtlasEntry>): PetItem[] =>
         Object.entries(entries || {}).map(([pet_key, entry]) => {
           const pid = entry.id ?? parseInt(String(pet_key).split('_')[0], 10);
@@ -174,14 +174,14 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         });
 
     const out: Record<string, { count: number; items: PetItem[] }> = {};
-    // 1) 优先用远端社区图鉴（自动最新，与开荒图鉴弹窗数量一致）
+    // 1) 优先用远端社区图鉴（自动最新，与共创图鉴弹窗数量一致）
     if (serverAtlas?.maps && Object.keys(serverAtlas.maps).length > 0) {
       Object.entries(serverAtlas.maps).forEach(([mapId, entries]) => {
         const items = buildAtlasItems((entries || {}) as Record<string, AtlasEntry>);
         out[mapId] = { count: items.length, items };
       });
     }
-    // 2) atlas 未加载/失败：回退本地 map_pets2.json（静态开荒图鉴）
+    // 2) atlas 未加载/失败：回退本地 map_pets2.json（静态共创图鉴）
     if (Object.keys(out).length === 0) {
       Object.entries(fireMapPets).forEach(([mapId, entries]) => {
         const items = buildItems((entries || {}) as Record<string, { id?: number; name?: string; seq?: number | null }>);
@@ -371,6 +371,20 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         });
       });
     }
+    // 无服务端数据但有本地投票：按本设备权重合成展示态（agree → 100%/1票，disagree → 0%/1票），
+    // 否则无共创数据的卡投票后无条目，按钮不激活、进度条不出现（“点了没反应”）
+    Object.entries(manualVotes || {}).forEach(([mapId, votes]) => {
+      Object.entries(votes).forEach(([pk, v]) => {
+        const key = `${mapId}:${pk}`;
+        if (map[key]) return;
+        map[key] = {
+          confirmed_by: 0,
+          confidence: 0,
+          agree_ratio: v === 'agree' ? 1 : 0,
+          my_vote: v,
+        };
+      });
+    });
     return map;
   }, [serverAtlas, manualVotes, records, fireMapsPets]);
 
@@ -570,11 +584,13 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             rightStatus={<AuthBadge />}
         />
 
-        {/* 右上角：dev/调试按钮 */}
-        <div className="fixed z-40 right-6 top-32 flex flex-col items-end gap-2">
-          <button onClick={doSync} className="px-4 py-2 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-black shadow-lg select-none" title="手动同步本地点亮/投票到服务器">手动上传</button>
-          <button onClick={handleMockCommunity} className="px-4 py-2 rounded-2xl bg-purple-500 hover:bg-purple-600 text-white text-sm font-black shadow-lg select-none" title="生成模拟社区假数据">生成社区假数据</button>
-        </div>
+        {/* 右上角：dev/调试按钮（仅前端开发模式显示，生产构建隐藏） */}
+        {import.meta.env.DEV && (
+            <div className="fixed z-40 right-6 top-32 flex flex-col items-end gap-2">
+              <button onClick={doSync} className="px-4 py-2 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-black shadow-lg select-none" title="手动同步本地点亮/投票到服务器">手动上传</button>
+              <button onClick={handleMockCommunity} className="px-4 py-2 rounded-2xl bg-purple-500 hover:bg-purple-600 text-white text-sm font-black shadow-lg select-none" title="生成模拟社区假数据">生成社区假数据</button>
+            </div>
+        )}
 
         {/* 上传反馈 toast */}
         {uploadStatus !== 'idle' && (
@@ -637,6 +653,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               communityAtlas={showAtlasVote ? (communityAtlas ?? undefined) : undefined}
               minAgreeRatio={showAtlasVote ? minAgreeRatio : 0}
               onAtlasVote={showAtlasVote ? handleAtlasVote : undefined}
+              communityCard
               onOpenPetDetail={(pet) => setDetailPet(pet)}
               onOpenFeedback={(type) => {
                 setFeedbackInitialType(type);
@@ -674,21 +691,13 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             isOpen={isGlobalSearchOpen}
             onOpenChange={setIsGlobalSearchOpen}
             onOpenFireAtlas={() => setIsAtlasOpen(true)}
-            onRefreshFireAtlas={handleRefreshAtlas}
-            minAgreeRatio={minAgreeRatio}
-            onMinAgreeRatioChange={(v) => setMinAgreeRatio(v)}
-            showAtlasVote={showAtlasVote}
-            onToggleShowVote={() => {
-              const next = !showAtlasVote;
-              setShowAtlasVote(next);
-              try { localStorage.setItem('roco_fire_atlas_show_vote_v1', next ? '1' : '0'); } catch { /* ignore */ }
-            }}
             atlasMode={atlasMode}
             onToggleAtlasMode={() => {
               const next = atlasMode === 'community' ? 'pokedex' : 'community';
               setAtlasMode(next);
               try { localStorage.setItem('roco_fire_atlas_mode_v1', next); } catch { /* ignore */ }
             }}
+            followTrialKey="fire"
         />
 
         {/* 反馈 / 更新 / 设置弹窗（与草系一致） */}
@@ -723,7 +732,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             }}
         />
 
-        {/* 开荒图鉴弹窗 */}
+        {/* 共创图鉴弹窗（含刷新图鉴/隐藏投票/赞同率筛选控制） */}
         <BootstrapAtlasModal
             isOpen={isAtlasOpen}
             onClose={() => setIsAtlasOpen(false)}
@@ -735,6 +744,15 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             onVote={(mapId, petKey, filename, type) => handleAtlasVote(mapId, petKey, filename, type)}
             onToggleEncounter={handleToggleEncounter}
             manualVotes={manualVotes}
+            onRefresh={handleRefreshAtlas}
+            minAgreeRatio={minAgreeRatio}
+            onMinAgreeRatioChange={(v) => setMinAgreeRatio(v)}
+            showAtlasVote={showAtlasVote}
+            onToggleShowVote={() => {
+              const next = !showAtlasVote;
+              setShowAtlasVote(next);
+              try { localStorage.setItem('roco_fire_atlas_show_vote_v1', next ? '1' : '0'); } catch { /* ignore */ }
+            }}
         />
       </div>
   );

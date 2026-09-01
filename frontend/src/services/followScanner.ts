@@ -9,7 +9,7 @@ import { showFeatureLockNotice } from './featureLock';
 
 let openingScanner = false;
 
-export async function openFollowScanner(): Promise<void> {
+export async function openFollowScanner(trialKey?: string): Promise<void> {
   const st = authStore.getState().status;
   // 授权服务器故障（offline 宽限）也放行；其余（含用户断网时的 error）仍锁定
   if (st !== 'authorized' && st !== 'offline') {
@@ -22,6 +22,14 @@ export async function openFollowScanner(): Promise<void> {
   }
   openingScanner = true;
   try {
+    // 打开前刷新当前试炼标记：扫描窗口以此作为初始试炼（之后可在窗口内自行切换）
+    if (trialKey) {
+      try {
+        localStorage.setItem('roco_active_trial', trialKey);
+      } catch {
+        // ignore
+      }
+    }
     let openedViaPywebview = false;
     try {
       const pyApi = (window as any).pywebview?.api;
