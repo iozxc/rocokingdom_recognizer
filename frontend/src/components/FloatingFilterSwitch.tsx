@@ -194,7 +194,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
     return (
         <div
             id="floating-filter-switch-container"
-            className="fixed bottom-6 left-6 z-40 flex flex-col items-start select-none"
+            className="fixed bottom-6 left-6 z-40 flex flex-col items-start select-none pointer-events-none"
         >
             {isCollapsed ? (
                 /* Collapsed 小圆球 */
@@ -202,7 +202,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                     type="button"
                     id="floating-filter-expand-btn"
                     onClick={() => handleToggleCollapse(false)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white relative"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white relative pointer-events-auto"
                     style={{ backgroundColor: currentMap.themeColor }}
                     title={`当前: ${currentMap.name} (${encounteredCount}/${totalCount}) - 点击展开左侧筛选栏`}
                 >
@@ -217,7 +217,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                 /* Expanded Stack (Arranged vertically from bottom to top) */
                 <div className="flex flex-col-reverse items-start gap-2 relative">
                     {/* Bottom-most Bar: Map Switcher Button + Collapse Toggle */}
-                    <div className="flex items-center gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-xl shadow-slate-900/10">
+                    <div className="flex items-center gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-xl shadow-slate-900/10 pointer-events-auto">
                         {/* 1. Map Switcher (First Button) - Clicking cycles through maps */}
                         <button
                             type="button"
@@ -253,7 +253,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                     </div>
 
                     {/* Above the map switcher: Vertical Filter Modes Stack (From bottom to top: 全部 -> 已遇见 -> 未遇见 -> 高级筛选) */}
-                    <div className="flex flex-col gap-1.5 p-1.5 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-lg shadow-slate-900/10 relative">
+                    <div className="flex flex-col gap-1.5 p-1.5 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-lg shadow-slate-900/10 relative pointer-events-auto">
                         {/* Filter 1: 全部 */}
                         <button
                             type="button"
