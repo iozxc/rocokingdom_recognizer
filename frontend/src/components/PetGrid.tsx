@@ -164,29 +164,29 @@ export const PetGrid: React.FC<PetGridProps> = ({
 
 
   return (
-      <div className="bg-white roco-card p-5 sm:p-6">
+      <div className="bg-white dark:bg-slate-800 roco-card p-5 sm:p-6 border-2 border-transparent dark:border-slate-700/80 transition-colors">
         {/* Section Header */}
-        <div className="flex items-center justify-between gap-3 pb-4 border-b-2 border-[#F1F5F9] mb-5">
+        <div className="flex items-center justify-between gap-3 pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
           <div className="flex items-center gap-2.5">
             <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0"
+                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0 shadow-xs"
                 style={{ backgroundColor: currentMap.themeColor }}
             >
               {currentMap.num}
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2 flex-wrap">
+              <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 flex-wrap">
                 <span>{currentMap.name}</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] text-[#2B78C4] font-mono font-black border border-[#E6EEF8] flex items-center gap-1">
-                <span>已遇见 <strong className="text-[#2D6613] font-black">{encounteredCount}</strong> / {totalCount}</span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] dark:bg-slate-800 text-[#2B78C4] dark:text-sky-300 font-mono font-black border border-[#E6EEF8] dark:border-slate-700 flex items-center gap-1">
+                <span>已遇见 <strong className="text-[#2D6613] dark:text-emerald-400 font-black">{encounteredCount}</strong> / {totalCount}</span>
                   {filterMode !== 'all' && (
-                      <span className="text-[10px] text-slate-400 font-normal">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-400 font-normal">
                     (当前显示 {filteredPets.length})
                   </span>
                   )}
               </span>
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 点击卡片即可直接切换【已遇见 / 未遇见】状态
               </p>
             </div>
@@ -198,7 +198,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
             <div className="py-16 text-center text-slate-400 flex flex-col items-center">
               <Sparkles className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-2" />
               <p className="text-sm font-black text-slate-600 dark:text-slate-300">未找到符合条件的精灵</p>
-              <p className="text-xs text-slate-400 mt-1">请尝试调整搜索关键词或切换筛选条件</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">请尝试调整搜索关键词或切换筛选条件</p>
             </div>
         ) : (
             /* Uniform Grid of Scaled Pet Icons - Responsive density on mobile phones & desktop */
@@ -229,7 +229,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                 ? 'encounter-pop-active bg-[#F2FBF0] dark:bg-emerald-950/40 border-2 border-[#95D151] ring-2 ring-[#95D151]/40'
                                 : isEnc
                                     ? 'bg-[#F2FBF0] dark:bg-emerald-950/30 border-2 border-[#95D151] dark:border-emerald-600 hover:border-[#76B032]'
-                                    : 'bg-[#F5F9FF] dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:bg-white dark:hover:bg-slate-750'
+                                    : 'bg-[#F5F9FF] dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:bg-white dark:hover:bg-slate-700'
                         }`}
                     >
                       {/* Floating sparkle badge during encounter activation */}
@@ -248,7 +248,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                             <div className="flex items-start justify-between w-full shrink-0">
                               <ElementBadges
                                   elements={pet?.elements}
-                                  size="xs"
+                                  size="sm"
                               />
                               {pet.id != null && (
                                   <span className="text-[8px] sm:text-[9px] font-mono font-black text-slate-400 leading-none">
@@ -311,8 +311,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
                             )}
                             <ElementBadges
                                 elements={pet?.elements}
-                                className="absolute top-1 left-1 z-10 scale-90 sm:scale-100 origin-top-left"
-                                size="xs"
+                                className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 z-10 drop-shadow-xs"
+                                size="sm"
                             />
                             <PetSprite
                                 pet={pet}

@@ -143,7 +143,7 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                     {/* QQ 群列表（支持多个群） */}
                     <div className="space-y-3">
                         {groups.length === 0 ? (
-                            <div className="p-4 bg-[#F0F6FC] rounded-2xl border-2 border-[#D5E3F0] text-center text-xs text-slate-400">
+                            <div className="p-4 bg-[#F0F6FC] dark:bg-slate-800/80 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 text-center text-xs text-slate-400 dark:text-slate-500">
                                 暂无群信息，请稍后重试或从官网获取。
                             </div>
                         ) : groups.map((g: any, idx: number) => {
@@ -153,23 +153,23 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                             return (
                                 <div
                                     key={gid || idx}
-                                    className="p-4 bg-[#F0F6FC] rounded-2xl border-2 border-[#D5E3F0] flex flex-col gap-3"
+                                    className="p-4 bg-[#F0F6FC] dark:bg-slate-800/90 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 flex flex-col gap-3"
                                 >
                                     <div className="flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-11 h-11 rounded-2xl bg-[#7ABCF4] text-white flex items-center justify-center shrink-0 shadow-xs border-2 border-[#5DA8E8]">
+                                            <div className="w-11 h-11 rounded-2xl bg-[#7ABCF4] dark:bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-xs border-2 border-[#5DA8E8] dark:border-sky-500">
                                                 <MessageCircle className="w-6 h-6" />
                                             </div>
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-xs font-black text-slate-800 truncate">{gname}</span>
+                                                    <span className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">{gname}</span>
                                                     <span className="text-[10px] font-black px-1.5 py-0.2 bg-[#FEE061] text-[#854D0E] rounded-md shrink-0">官方群</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     {gid && (
-                                                        <span className="text-xs font-mono font-black text-[#1E5B99] bg-white px-2 py-0.5 rounded-lg border border-[#BCD7F2]">{gid}</span>
+                                                        <span className="text-xs font-mono font-black text-[#1E5B99] dark:text-sky-300 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-[#BCD7F2] dark:border-slate-700">{gid}</span>
                                                     )}
-                                                    <span className="text-[11px] text-slate-500 font-medium">随时交流/汇报Bug</span>
+                                                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">随时交流/汇报Bug</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -181,8 +181,8 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                                 title={qrOpenIndex === idx ? '收起二维码' : '扫码进群'}
                                                 className={`p-2 rounded-xl text-xs font-black flex items-center justify-center transition-all cursor-pointer border-2 ${
                                                     qrOpenIndex === idx
-                                                        ? 'bg-[#7ABCF4] text-white border-[#5DA8E8] shadow-xs'
-                                                        : 'bg-white hover:bg-[#EBF4FE] text-[#1E5B99] border-[#BCD7F2] hover:border-[#7ABCF4] shadow-xs'
+                                                        ? 'bg-[#7ABCF4] dark:bg-sky-600 text-white border-[#5DA8E8] dark:border-sky-500 shadow-xs'
+                                                        : 'bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 text-[#1E5B99] dark:text-sky-300 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 shadow-xs'
                                                 }`}
                                             >
                                                 <QrCode className="w-4 h-4" />
@@ -192,8 +192,8 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                                 onClick={() => handleCopyQQGroup(gid)}
                                                 className={`px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1 transition-all cursor-pointer border-2 ${
                                                     copiedGroupId === gid
-                                                        ? 'bg-[#95D151] text-white border-[#76B032]'
-                                                        : 'bg-white hover:bg-[#EBF4FE] text-[#1E5B99] border-[#BCD7F2] hover:border-[#7ABCF4] shadow-xs'
+                                                        ? 'bg-[#95D151] dark:bg-emerald-600 text-white border-[#76B032] dark:border-emerald-500'
+                                                        : 'bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 text-[#1E5B99] dark:text-sky-300 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 shadow-xs'
                                                 }`}
                                             >
                                                 {copiedGroupId === gid ? (
@@ -212,8 +212,8 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                     </div>
 
                                     {qrOpenIndex === idx && (
-                                        <div className="pt-3 border-t border-[#D5E3F0] flex flex-col sm:flex-row items-center justify-center gap-4 bg-white/80 p-3.5 rounded-xl border border-white shadow-inner animate-in fade-in zoom-in-95 duration-200">
-                                            <div className="p-2 bg-white rounded-2xl border-2 border-[#BCD7F2] shadow-sm flex items-center justify-center">
+                                        <div className="pt-3 border-t border-[#D5E3F0] dark:border-slate-700 flex flex-col sm:flex-row items-center justify-center gap-4 bg-white/80 dark:bg-slate-900/80 p-3.5 rounded-xl border border-white dark:border-slate-700 shadow-inner animate-in fade-in zoom-in-95 duration-200">
+                                            <div className="p-2 bg-white dark:bg-slate-800 rounded-2xl border-2 border-[#BCD7F2] dark:border-slate-700 shadow-sm flex items-center justify-center">
                                                 <img
                                                     src={qrSrc}
                                                     alt="QQ群二维码"
@@ -224,13 +224,13 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                                 />
                                             </div>
                                             <div className="text-center sm:text-left space-y-1">
-                                                <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-black text-slate-800">
-                                                    <QrCode className="w-4 h-4 text-[#2B78C4]" />
+                                                <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-black text-slate-800 dark:text-slate-100">
+                                                    <QrCode className="w-4 h-4 text-[#2B78C4] dark:text-sky-400" />
                                                     <span>扫一扫加入交流群</span>
                                                 </div>
-                                                <p className="text-[11px] text-slate-500">使用手机 QQ 扫描上方二维码即可一键加入</p>
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">使用手机 QQ 扫描上方二维码即可一键加入</p>
                                                 {gid && (
-                                                    <p className="text-[10px] text-[#2B78C4] font-mono font-bold bg-[#EBF4FE] px-2 py-0.5 rounded-md inline-block">
+                                                    <p className="text-[10px] text-[#2B78C4] dark:text-sky-300 font-mono font-bold bg-[#EBF4FE] dark:bg-sky-950/70 px-2 py-0.5 rounded-md inline-block border border-transparent dark:border-sky-900/50">
                                                         群号: {gid}
                                                     </p>
                                                 )}
@@ -246,11 +246,11 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                     {!IS_STATIC && (
                     <form onSubmit={handleSubmitFeedback} className="space-y-3 pt-1">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-slate-700 flex items-center gap-1.5">
-                                <Bug className="w-3.5 h-3.5 text-rose-500" />
+                            <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                <Bug className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
                                 在线 Bug 反馈 / 优化建议
                             </span>
-                            <span className="text-[10px] text-slate-400">匿名快速提交</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500">匿名快速提交</span>
                         </div>
 
                         {/* Type selector */}
@@ -260,8 +260,8 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                 onClick={() => setFeedbackType('识别异常Bug')}
                                 className={`py-1.5 px-2 rounded-xl text-xs font-black border-2 transition-all cursor-pointer ${
                                     feedbackType === '识别异常Bug'
-                                        ? 'bg-rose-50 border-rose-400 text-rose-700 shadow-xs'
-                                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                                        ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 dark:border-rose-500 text-rose-700 dark:text-rose-300 shadow-xs'
+                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                             >
                                 🐞 识别异常Bug
@@ -271,8 +271,8 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                 onClick={() => setFeedbackType('精灵图鉴纠错')}
                                 className={`py-1.5 px-2 rounded-xl text-xs font-black border-2 transition-all cursor-pointer ${
                                     feedbackType === '精灵图鉴纠错'
-                                        ? 'bg-amber-50 border-amber-400 text-amber-800 shadow-xs'
-                                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                                        ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-400 dark:border-amber-500 text-amber-800 dark:text-amber-300 shadow-xs'
+                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                             >
                                 📝 精灵图鉴纠错
@@ -282,8 +282,8 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                 onClick={() => setFeedbackType('功能体验建议')}
                                 className={`py-1.5 px-2 rounded-xl text-xs font-black border-2 transition-all cursor-pointer ${
                                     feedbackType === '功能体验建议'
-                                        ? 'bg-[#EBF4FE] border-[#7ABCF4] text-[#1E5B99] shadow-xs'
-                                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                                        ? 'bg-[#EBF4FE] dark:bg-sky-950/50 border-[#7ABCF4] dark:border-sky-500 text-[#1E5B99] dark:text-sky-300 shadow-xs'
+                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                             >
                                 💡 功能体验建议
@@ -297,7 +297,7 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                 onChange={(e) => setFeedbackContent(e.target.value)}
                                 placeholder="请详细描述您遇到的问题（如：识别哪只精灵不准、按钮点击异常、期望新增的功能等）..."
                                 rows={3}
-                                className="w-full text-xs p-3 rounded-2xl border-2 border-slate-200 focus:border-[#7ABCF4] focus:outline-hidden bg-slate-50/70 focus:bg-white resize-none text-slate-800 placeholder:text-slate-400 font-medium"
+                                className="w-full text-xs p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-500 focus:outline-hidden bg-slate-50/70 dark:bg-slate-800/80 focus:bg-white dark:focus:bg-slate-800 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium"
                             />
                         </div>
 
@@ -308,7 +308,7 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                                 value={contactInfo}
                                 onChange={(e) => setContactInfo(e.target.value)}
                                 placeholder="您的 QQ号 / 邮箱（选填，方便核实与答复）"
-                                className="w-full text-xs px-3 py-2 rounded-xl border-2 border-slate-200 focus:border-[#7ABCF4] focus:outline-hidden bg-slate-50/70 focus:bg-white text-slate-800 placeholder:text-slate-400 font-medium"
+                                className="w-full text-xs px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-500 focus:outline-hidden bg-slate-50/70 dark:bg-slate-800/80 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium"
                             />
                         </div>
 
@@ -318,10 +318,10 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                             disabled={!feedbackContent.trim() || isSubmitting || isSubmitted}
                             className={`w-full py-2.5 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all border-2 cursor-pointer ${
                                 isSubmitted
-                                    ? 'bg-[#95D151] text-white border-[#76B032]'
+                                    ? 'bg-[#95D151] dark:bg-emerald-600 text-white border-[#76B032] dark:border-emerald-500'
                                     : isSubmitting
-                                        ? 'bg-[#7ABCF4]/70 text-white border-[#5DA8E8]'
-                                        : 'bg-[#7ABCF4] hover:bg-[#68AEEB] text-white border-[#5DA8E8] shadow-xs disabled:opacity-50 disabled:cursor-not-allowed'
+                                        ? 'bg-[#7ABCF4]/70 dark:bg-sky-600/70 text-white border-[#5DA8E8] dark:border-sky-500'
+                                        : 'bg-[#7ABCF4] hover:bg-[#68AEEB] dark:bg-sky-600 dark:hover:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-500 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed'
                             }`}
                         >
                             {isSubmitted ? (

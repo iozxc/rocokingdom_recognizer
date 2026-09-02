@@ -170,7 +170,7 @@ const CandidateCarousel: React.FC<{
                     className={`p-1.5 rounded-xl text-left transition-all cursor-pointer border-2 ${
                         isSelected
                             ? 'bg-[#EBF5FE] dark:bg-sky-950/70 border-[#7ABCF4] dark:border-sky-500 text-[#1E5B99] dark:text-sky-300 font-black shadow-xs ring-1 ring-[#7ABCF4]'
-                            : 'bg-[#F8FBFE] dark:bg-slate-800 border-[#E2E8F0] dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#BCD7F2] dark:hover:border-slate-600 hover:bg-[#E9F2FA] dark:hover:bg-slate-750'
+                            : 'bg-[#F8FBFE] dark:bg-slate-800 border-[#E2E8F0] dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#BCD7F2] dark:hover:border-slate-600 hover:bg-[#E9F2FA] dark:hover:bg-slate-700'
                     }`}
                 >
                   {/* 一行布局：左图 + 右文本（紧凑，避免撑成两行） */}
@@ -195,7 +195,7 @@ const CandidateCarousel: React.FC<{
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1 text-[9px] font-mono">
-                        <span className="text-slate-400 font-bold">
+                        <span className="text-slate-400 dark:text-slate-500 font-bold">
                           {checkEncountered(candName, sourceMapNum) ? (
                               <span className="inline-flex items-center gap-0.5 text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-1 py-0.2 rounded-full border border-[#95D151]/40">
                                 <Check className="w-2 h-2 text-emerald-600 stroke-[3]" />
@@ -220,10 +220,10 @@ const CandidateCarousel: React.FC<{
                             <span
                                 className={`text-[8px] font-mono font-black px-1 py-0.2 rounded border ${
                                     (communityInfo.agree_ratio ?? 0) >= 0.7
-                                        ? 'text-green-700 bg-green-50 border-green-300'
+                                        ? 'text-green-700 dark:text-emerald-300 bg-green-50 dark:bg-emerald-950/60 border-green-300 dark:border-emerald-800'
                                         : (communityInfo.agree_ratio ?? 0) >= 0.3
-                                            ? 'text-amber-700 bg-amber-50 border-amber-300'
-                                            : 'text-rose-700 bg-rose-50 border-rose-300'
+                                            ? 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800'
+                                            : 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800'
                                 }`}
                                 title="社区共创图鉴赞同率"
                             >
@@ -1111,7 +1111,7 @@ export const ScannerApp: React.FC = () => {
   };
 
   return (
-      <div className="w-screen h-screen bg-[#FDF9F3] text-slate-800 flex flex-col justify-between select-none overflow-hidden font-sans border-0 m-0 p-0 relative rounded-none">
+      <div className="w-screen h-screen bg-[#FDF9F3] dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col justify-between select-none overflow-hidden font-sans border-0 m-0 p-0 relative rounded-none">
         {/* Subtle Scan Shimmer Radar Effect */}
         {showRadarAnimation && <div className="scanner-radar-active" />}
 
@@ -1120,7 +1120,7 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         <div
             id="scanner-titlebar"
-            className="h-11 px-3 bg-[#7ABCF4] border-b border-[#5DA8E8] flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 text-white rounded-none"
+            className="h-11 px-3 bg-[#7ABCF4] dark:bg-slate-800 border-b border-[#5DA8E8] dark:border-slate-700 flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 text-white rounded-none"
         >
           <div className="flex items-center gap-2 min-w-0 pointer-events-none">
             {/* 系别 logo 按钮：展示当前试炼，点击切换试炼（火/草） */}
@@ -1140,7 +1140,7 @@ export const ScannerApp: React.FC = () => {
                   <>
                     {/* 外罩：点击任意处关闭 */}
                     <div className="fixed inset-0 z-40 cursor-default" onClick={() => setIsTrialSwitcherOpen(false)} />
-                    <div className="absolute left-0 top-9 z-50 w-44 bg-white rounded-xl border-2 border-[#D5E3F0] shadow-xl overflow-hidden">
+                    <div className="absolute left-0 top-9 z-50 w-44 bg-white dark:bg-slate-800 rounded-xl border-2 border-[#D5E3F0] dark:border-slate-700 shadow-xl overflow-hidden">
                       {(['grass', 'fire'] as const).map((k) => (
                           <button
                               key={k}
@@ -1148,13 +1148,13 @@ export const ScannerApp: React.FC = () => {
                               onClick={() => switchTrial(k)}
                               className={`w-full px-3 py-2 flex items-center gap-2 text-xs font-black transition-colors cursor-pointer ${
                                   k === trialKey
-                                      ? 'bg-[#EBF5FE] text-[#1E5B99]'
-                                      : 'text-slate-700 hover:bg-[#F8FBFE]'
+                                      ? 'bg-[#EBF5FE] dark:bg-sky-950/70 text-[#1E5B99] dark:text-sky-300'
+                                      : 'text-slate-700 dark:text-slate-200 hover:bg-[#F8FBFE] dark:hover:bg-slate-700'
                               }`}
                           >
                             <ElementBadges elements={[ELEMENT_EN_TO_CN[k]]} size="sm" />
                             <span>{k === 'fire' ? '火系徽章试炼' : '草系徽章试炼'}</span>
-                            {k === trialKey && <Check className="w-3.5 h-3.5 ml-auto text-[#1E5B99] stroke-[3]" />}
+                            {k === trialKey && <Check className="w-3.5 h-3.5 ml-auto text-[#1E5B99] dark:text-sky-300 stroke-[3]" />}
                           </button>
                       ))}
                     </div>
@@ -1221,7 +1221,7 @@ export const ScannerApp: React.FC = () => {
                 title={topmost ? '取消置顶' : '置顶到所有窗口前面'}
                 className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all cursor-pointer active:opacity-80 ${
                     topmost
-                        ? 'bg-white text-[#2B78C4] border-white/80 shadow-xs'
+                        ? 'bg-white dark:bg-slate-700 text-[#2B78C4] dark:text-sky-300 border-white/80 dark:border-slate-600 shadow-xs'
                         : 'bg-white/20 text-white border-white/40 hover:bg-white/30'
                 }`}
             >
@@ -1251,19 +1251,19 @@ export const ScannerApp: React.FC = () => {
                 {/* 2.1 Collection Progress Card */}
                 {activeStageNum === null ? (
                     /* Initial State: Show all maps overview */
-                    <div className="p-3 bg-white roco-card border-2 border-[#E6EEF8] rounded-2xl space-y-2.5">
+                    <div className="p-3 bg-white dark:bg-slate-800 roco-card border-2 border-[#E6EEF8] dark:border-slate-700 rounded-2xl space-y-2.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-800 font-black flex items-center gap-1.5">
+                        <span className="text-slate-800 dark:text-slate-100 font-black flex items-center gap-1.5">
                           <Layers className="w-4 h-4 text-[#7ABCF4]" />
                           王国各区域图鉴总览
                         </span>
-                        <span className="text-xs font-mono font-black text-[#2D6613] bg-[#E1F7DB] px-2 py-0.5 rounded-full border border-[#95D151]/50">
+                        <span className="text-xs font-mono font-black text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-[#95D151]/50 dark:border-emerald-700/50">
                           {allMapsStats.grandEncountered}/{allMapsStats.grandTotal} ({allMapsStats.grandPercent.toFixed(0)}%)
                         </span>
                       </div>
 
                       {/* Total progress bar */}
-                      <div className="w-full h-2.5 bg-[#E9F2FA] rounded-full overflow-hidden border-2 border-[#D5E3F0] p-0.5">
+                      <div className="w-full h-2.5 bg-[#E9F2FA] dark:bg-slate-700/80 rounded-full overflow-hidden border-2 border-[#D5E3F0] dark:border-slate-600 p-0.5">
                         <div
                             className="h-full rounded-full bg-gradient-to-r from-[#7ABCF4] via-[#95D151] to-[#76B032] transition-all duration-300"
                             style={{ width: `${allMapsStats.grandPercent}%` }}
@@ -1277,15 +1277,15 @@ export const ScannerApp: React.FC = () => {
                                 key={m.config.id}
                                 type="button"
                                 onClick={() => handleSelectMap(m.config.num)}
-                                className="p-2 rounded-xl bg-[#F8FBFE] hover:bg-[#EBF5FE] border-2 border-[#D5E3F0] hover:border-[#7ABCF4] text-left transition-all cursor-pointer group"
+                                className="p-2 rounded-xl bg-[#F8FBFE] dark:bg-slate-800/90 hover:bg-[#EBF5FE] dark:hover:bg-slate-700 border-2 border-[#D5E3F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 text-left transition-all cursor-pointer group"
                                 title={`点击切换查看 ${m.config.name}`}
                             >
-                              <div className="text-[11px] font-black text-slate-800 truncate group-hover:text-[#1E5B99]">
+                              <div className="text-[11px] font-black text-slate-800 dark:text-slate-200 truncate group-hover:text-[#1E5B99] dark:group-hover:text-sky-300">
                                 {m.config.name}
                               </div>
                               <div className="flex items-center justify-between mt-1 text-[10px] font-mono">
-                                <span className="font-bold text-[#2D6613]">{m.encountered}/{m.total}</span>
-                                <span className="text-slate-400 font-sans">{m.percent.toFixed(0)}%</span>
+                                <span className="font-bold text-[#2D6613] dark:text-emerald-400">{m.encountered}/{m.total}</span>
+                                <span className="text-slate-400 dark:text-slate-400 font-sans">{m.percent.toFixed(0)}%</span>
                               </div>
                             </button>
                         ))}
@@ -1293,9 +1293,9 @@ export const ScannerApp: React.FC = () => {
                     </div>
                 ) : (
                     /* Active Selected/Detected Map Progress Card */
-                    <div className="p-3 bg-white roco-card border-2 border-[#E6EEF8] rounded-2xl space-y-2">
+                    <div className="p-3 bg-white dark:bg-slate-800 roco-card border-2 border-[#E6EEF8] dark:border-slate-700 rounded-2xl space-y-2">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-800 font-black flex items-center gap-1.5">
+                        <span className="text-slate-800 dark:text-slate-100 font-black flex items-center gap-1.5">
                           <Layers className="w-4 h-4 text-[#7ABCF4]" />
                           {currentDetectedMap.name}
                         </span>
@@ -1307,7 +1307,7 @@ export const ScannerApp: React.FC = () => {
                               className={`px-2 py-1 rounded-lg text-[10px] font-black border flex items-center gap-1 transition-all cursor-pointer active:scale-95 ${
                                   pinnedMapNum !== null
                                       ? 'bg-[#FEE061] text-[#854D0E] border-[#E5C43B] shadow-xs'
-                                      : 'bg-[#F8FBFE] text-slate-600 border-[#D5E3F0] hover:border-[#7ABCF4] hover:bg-[#EBF5FE]'
+                                      : 'bg-[#F8FBFE] dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#D5E3F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:bg-[#EBF5FE] dark:hover:bg-slate-700'
                               }`}
                               title={
                                 pinnedMapNum !== null
@@ -1318,15 +1318,15 @@ export const ScannerApp: React.FC = () => {
                             <MapPin className={`w-3 h-3 ${pinnedMapNum !== null ? 'fill-[#E5C43B]' : ''}`} />
                             {pinnedMapNum !== null ? '已钉住' : '钉住'}
                           </button>
-                          <span className="text-xs font-mono font-black text-[#2D6613] bg-[#E1F7DB] px-2 py-0.5 rounded-full border border-[#95D151]/50">
+                          <span className="text-xs font-mono font-black text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-[#95D151]/50 dark:border-emerald-700/50">
                             {mapCollectionStats.encountered}/{mapCollectionStats.total}
                           </span>
                           {mapCollectionStats.remaining > 0 ? (
-                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
                                 余 {mapCollectionStats.remaining}
                               </span>
                           ) : (
-                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
                                 全收录 🎉
                               </span>
                           )}
@@ -1334,7 +1334,7 @@ export const ScannerApp: React.FC = () => {
                       </div>
 
                       {/* High Contrast Progress Bar */}
-                      <div className="w-full h-2.5 bg-[#E9F2FA] rounded-full overflow-hidden border-2 border-[#D5E3F0] p-0.5">
+                      <div className="w-full h-2.5 bg-[#E9F2FA] dark:bg-slate-700/80 rounded-full overflow-hidden border-2 border-[#D5E3F0] dark:border-slate-600 p-0.5">
                         <div
                             className="h-full rounded-full bg-gradient-to-r from-[#95D151] to-[#76B032] transition-all duration-300"
                             style={{ width: `${mapCollectionStats.percent}%` }}
@@ -1343,7 +1343,7 @@ export const ScannerApp: React.FC = () => {
 
                       {/* Pending re-recognition banner if user manually switched map */}
                       {hasPendingMapChange && (
-                          <div className="text-[11px] font-bold text-[#854D0E] bg-[#FEF9E6] border border-[#E5C43B] rounded-xl px-2.5 py-1.5 flex items-center justify-between">
+                          <div className="text-[11px] font-bold text-[#854D0E] dark:text-amber-200 bg-[#FEF9E6] dark:bg-amber-950/60 border border-[#E5C43B] dark:border-amber-700 rounded-xl px-2.5 py-1.5 flex items-center justify-between">
                             <span>已指定为【{currentDetectedMap.name}】</span>
                             <span className="text-[10px] bg-[#FEE061] text-[#854D0E] font-black px-2 py-0.5 rounded-full border border-[#E5C43B]">
                               待重新识别
@@ -1352,8 +1352,8 @@ export const ScannerApp: React.FC = () => {
                       )}
 
                       {/* Map Switcher Bar */}
-                      <div className="pt-1.5 border-t border-[#EDF2F7] flex items-center justify-between gap-1.5">
-                        <span className="text-[10px] font-black text-slate-500 shrink-0">
+                      <div className="pt-1.5 border-t border-[#EDF2F7] dark:border-slate-700/80 flex items-center justify-between gap-1.5">
+                        <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 shrink-0">
                           切换地图:
                         </span>
                         <div className="grid grid-cols-4 gap-1 flex-1">
@@ -1362,8 +1362,8 @@ export const ScannerApp: React.FC = () => {
                               onClick={() => handleSelectMap(null)}
                               className={`py-1 px-1 rounded-lg text-[10px] font-black border transition-all cursor-pointer truncate ${
                                   activeStageNum === null
-                                      ? 'bg-[#7ABCF4] text-white border-[#5DA8E8]'
-                                      : 'bg-[#F8FBFE] hover:bg-[#EBF5FE] text-slate-700 border-[#D5E3F0]'
+                                      ? 'bg-[#7ABCF4] dark:bg-sky-600 text-white border-[#5DA8E8] dark:border-sky-500'
+                                      : 'bg-[#F8FBFE] dark:bg-slate-800 hover:bg-[#EBF5FE] dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-[#D5E3F0] dark:border-slate-700'
                               }`}
                               title="查看王国各区域总览"
                           >
@@ -1381,8 +1381,8 @@ export const ScannerApp: React.FC = () => {
                                     onClick={() => handleSelectMap(m.num)}
                                     className={`py-1 px-1 rounded-lg text-[10px] font-black border transition-all cursor-pointer truncate ${
                                         isSelected
-                                            ? 'bg-[#7ABCF4] text-white border-[#5DA8E8] shadow-xs'
-                                            : 'bg-[#F8FBFE] hover:bg-[#EBF5FE] text-slate-700 border-[#D5E3F0] hover:border-[#7ABCF4]'
+                                            ? 'bg-[#7ABCF4] dark:bg-sky-600 text-white border-[#5DA8E8] dark:border-sky-500 shadow-xs'
+                                            : 'bg-[#F8FBFE] dark:bg-slate-800 hover:bg-[#EBF5FE] dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-[#D5E3F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500'
                                     }`}
                                     title={`切换为 ${m.name}`}
                                 >
@@ -1398,14 +1398,14 @@ export const ScannerApp: React.FC = () => {
                 {/* 2.2 Detected Pets List */}
                 {/* Notice banner when user switched viewing map but has not re-recognized yet */}
                 {detectedPets.length > 0 && detectedMapNum !== null && activeStageNum !== detectedMapNum && (
-                    <div className="p-2.5 rounded-2xl bg-[#FEF9E6] border-2 border-[#E5C43B] text-[#854D0E] flex items-center justify-between gap-2 shadow-2xs">
+                    <div className="p-2.5 rounded-2xl bg-[#FEF9E6] dark:bg-amber-950/60 border-2 border-[#E5C43B] dark:border-amber-700 text-[#854D0E] dark:text-amber-200 flex items-center justify-between gap-2 shadow-2xs">
                       <div className="flex items-center gap-2 min-w-0">
                       <span className="w-5 h-5 rounded-full bg-[#FEE061] text-[#854D0E] flex items-center justify-center font-black text-xs shrink-0 border border-[#E5C43B]">
                         !
                       </span>
                         <div className="text-[11px] leading-tight min-w-0">
                           <span className="font-black">已切换至【{getMapDisplayName(activeStageNum)}】</span>
-                          <p className="text-[10px] text-[#A16207] truncate font-medium mt-0.5">
+                          <p className="text-[10px] text-[#A16207] dark:text-amber-300/80 truncate font-medium mt-0.5">
                             【{getMapDisplayName(detectedMapNum)}】识别结果，点亮仍计入原地图
                           </p>
                         </div>
@@ -1424,11 +1424,11 @@ export const ScannerApp: React.FC = () => {
                 )}
 
                 {detectedPets.length === 0 ? (
-                    <div className="p-5 bg-white roco-card border-2 border-[#E6EEF8] rounded-2xl text-center space-y-2">
-                      <div className="w-10 h-10 rounded-2xl bg-[#EBF5FE] text-[#7ABCF4] flex items-center justify-center mx-auto border-2 border-[#D5E3F0]">
+                    <div className="p-5 bg-white dark:bg-slate-800 roco-card border-2 border-[#E6EEF8] dark:border-slate-700 rounded-2xl text-center space-y-2">
+                      <div className="w-10 h-10 rounded-2xl bg-[#EBF5FE] dark:bg-slate-700 text-[#7ABCF4] dark:text-sky-400 flex items-center justify-center mx-auto border-2 border-[#D5E3F0] dark:border-slate-600">
                         <Eye className="w-5 h-5" />
                       </div>
-                      <p className="text-xs font-black text-slate-800">当前未检测到精灵</p>
+                      <p className="text-xs font-black text-slate-800 dark:text-slate-100">当前未检测到精灵</p>
                     </div>
                 ) : (
                     detectedPets.map((slot) => {
@@ -1447,19 +1447,19 @@ export const ScannerApp: React.FC = () => {
                         return (
                             <div
                                 key={slot.id}
-                                className="rounded-2xl border-2 border-dashed border-[#BCD7F2] bg-[#F4F9FF] p-3 text-center flex items-center justify-between gap-2.5"
+                                className="rounded-2xl border-2 border-dashed border-[#BCD7F2] dark:border-sky-900/60 bg-[#F4F9FF] dark:bg-slate-800/90 p-3 text-center flex items-center justify-between gap-2.5"
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="w-10 h-10 rounded-2xl bg-white border-2 border-[#D5E3F0] flex items-center justify-center text-amber-500 font-bold text-base shrink-0">
+                                <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-900 border-2 border-[#D5E3F0] dark:border-slate-700 flex items-center justify-center text-amber-500 font-bold text-base shrink-0">
                                   {cleanName.includes('魔力之源') ? '❤️' : '🎒'}
                                 </div>
                                 <div className="text-left min-w-0">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-xs font-black text-slate-800 truncate">
+                                    <span className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">
                                       【特殊点位】{cleanName}
                                     </span>
                                   </div>
-                                  <p className="text-[11px] text-slate-500 mt-0.5 truncate font-medium">
+                                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate font-medium">
                                     场景特殊交互点，无需点亮图鉴
                                   </p>
                                 </div>
@@ -1478,8 +1478,8 @@ export const ScannerApp: React.FC = () => {
                               key={slot.id}
                               className={`roco-card rounded-2xl border-2 p-3 transition-all ${
                                   isEncountered
-                                      ? 'bg-[#F8FBFE] border-[#D5E3F0] text-slate-600'
-                                      : 'bg-white border-[#7ABCF4] text-slate-800'
+                                      ? 'bg-[#F8FBFE] dark:bg-slate-800/90 border-[#D5E3F0] dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                                      : 'bg-white dark:bg-slate-800 border-[#7ABCF4] dark:border-sky-500 text-slate-800 dark:text-slate-100'
                               }`}
                           >
 
@@ -1491,7 +1491,7 @@ export const ScannerApp: React.FC = () => {
                                   <ImageZoom
                                       src={slot.matchedPet?.url || `${api.getApiBase()}/icons/${displayName}.png`}
                                       alt={displayName}
-                                      className="w-12 h-12 rounded-2xl bg-white border-2 border-[#D5E3F0] p-1 flex items-center justify-center overflow-hidden"
+                                      className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border-2 border-[#D5E3F0] dark:border-slate-700 p-1 flex items-center justify-center overflow-hidden"
                                       imgClassName="w-full h-full object-contain"
                                       zoomWidth={360}
                                       zoomHeight={360}
@@ -1506,23 +1506,23 @@ export const ScannerApp: React.FC = () => {
 
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-xs sm:text-sm font-black text-slate-800 truncate" title={displayName}>
+                                    <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 truncate" title={displayName}>
                                       {displayName}
                                     </span>
-                                    <span className="text-[10px] font-mono font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                                    <span className="text-[10px] font-mono font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800">
                                       {topScorePercent}%
                                     </span>
                                   </div>
 
                                   <div className="flex items-center gap-1 mt-1">
                                     {isEncountered ? (
-                                        <span className="text-[10px] font-bold text-[#2D6613] bg-[#E1F7DB] px-2 py-0.5 rounded-full border border-[#95D151]/50 flex items-center gap-1">
-                                          <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
+                                        <span className="text-[10px] font-bold text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-[#95D151]/50 dark:border-emerald-700/50 flex items-center gap-1">
+                                          <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 stroke-[3]" />
                                           已在图鉴
                                         </span>
                                     ) : (
-                                        <span className="text-[10px] font-black text-amber-800 bg-[#FEF9E6] px-2 py-0.5 rounded-full border border-[#E5C43B] flex items-center gap-1">
-                                          <Sparkle className="w-3 h-3 text-amber-600 fill-amber-500" />
+                                        <span className="text-[10px] font-black text-amber-800 dark:text-amber-300 bg-[#FEF9E6] dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-[#E5C43B] dark:border-amber-700/60 flex items-center gap-1">
+                                          <Sparkle className="w-3 h-3 text-amber-600 dark:text-amber-400 fill-amber-500" />
                                           未遇新宠 (可点亮)
                                         </span>
                                     )}
@@ -1536,7 +1536,7 @@ export const ScannerApp: React.FC = () => {
                                   onClick={() => handleTogglePetEncounter(slot.selectedPetName, slotSourceMap)}
                                   className={`px-3 py-1.5 text-xs font-black rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border-2 ${
                                       isEncountered
-                                          ? 'roco-btn-secondary bg-[#E1F7DB]/80 hover:bg-[#D3F3CA] text-[#2D6613] border-[#86EFAC]'
+                                          ? 'roco-btn-secondary bg-[#E1F7DB]/80 dark:bg-emerald-950/60 hover:bg-[#D3F3CA] dark:hover:bg-emerald-900/60 text-[#2D6613] dark:text-emerald-300 border-[#86EFAC] dark:border-emerald-700'
                                           : 'roco-btn-success text-white'
                                   }`}
                                   title={
@@ -1547,7 +1547,7 @@ export const ScannerApp: React.FC = () => {
                               >
                                 {isEncountered ? (
                                     <>
-                                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                                       <span>已遇见</span>
                                     </>
                                 ) : (
@@ -1577,12 +1577,12 @@ export const ScannerApp: React.FC = () => {
                 )}
               </div>
           ) : (
-              <div className="p-3 bg-white roco-card border-2 border-[#DCE8F5] rounded-2xl flex items-center justify-between">
-                <span className="text-xs text-slate-500 font-bold">识别信息已收起</span>
+              <div className="p-3 bg-white dark:bg-slate-800 roco-card border-2 border-[#DCE8F5] dark:border-slate-700 rounded-2xl flex items-center justify-between">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">识别信息已收起</span>
                 <button
                     type="button"
                     onClick={() => setIsCollapsedContent(false)}
-                    className="text-xs font-black text-[#1E5B99] hover:underline"
+                    className="text-xs font-black text-[#1E5B99] dark:text-sky-400 hover:underline"
                 >
                   展开完整视图
                 </button>
@@ -1590,7 +1590,7 @@ export const ScannerApp: React.FC = () => {
           )}
 
           {/* 2.3 Bottom Action Buttons (Main app matched buttons) */}
-          <div className="pt-2 border-t-2 border-[#D5E3F0] space-y-2 shrink-0">
+          <div className="pt-2 border-t-2 border-[#D5E3F0] dark:border-slate-700 space-y-2 shrink-0">
             <div className="grid grid-cols-1 gap-2">
               <button
                   type="button"
@@ -1634,10 +1634,10 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         <div
             id="scanner-statusbar"
-            className="h-7 px-3 bg-[#E9F2FA] border-t-2 border-[#D5E3F0] text-[11px] font-mono text-slate-600 flex items-center justify-between shrink-0 font-bold rounded-none"
+            className="h-7 px-3 bg-[#E9F2FA] dark:bg-slate-800 border-t-2 border-[#D5E3F0] dark:border-slate-700 text-[11px] font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between shrink-0 font-bold rounded-none"
         >
           <span>上次捕获: {lastScanTime}</span>
-          <span className="text-[10px] text-slate-400 font-sans">洛克王国徽章试炼助手</span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans">洛克王国徽章试炼助手</span>
         </div>
 
         {/* ------------------------------------------------------------- */}

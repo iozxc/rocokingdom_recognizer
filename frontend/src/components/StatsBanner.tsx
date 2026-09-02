@@ -81,7 +81,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                 </div>
 
                 {/* Right: Map Dex Completion Progress Card */}
-                <div className="shrink-0 w-full sm:w-72 md:w-80">
+                <div className="shrink-0 w-full md:w-72 lg:w-80">
                     <div className="p-2.5 sm:p-3 bg-gradient-to-b from-[#F5F9FF] to-[#EFF6FF] dark:from-slate-800/90 dark:to-slate-800/50 rounded-2xl border border-[#D5E2F0] dark:border-slate-700 shadow-xs space-y-1.5">
                         <div className="flex items-center justify-between text-xs font-black text-slate-700 dark:text-slate-200">
                             <span className="flex items-center gap-1.5 text-[#2B78C4] dark:text-sky-400">
@@ -167,9 +167,9 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
             <div className="border-t border-[#E6EEF8] dark:border-slate-800 relative z-10" />
 
             {/* Bottom Row: Filter Tabs & Search Controls */}
-            <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 pt-0.5">
+            <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 sm:gap-3 pt-0.5">
                 {/* Filter Mode Buttons */}
-                <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#F5F9FF] dark:bg-slate-800 rounded-xl border border-[#E2E8F0] dark:border-slate-700 w-full sm:w-auto overflow-x-auto">
+                <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#F5F9FF] dark:bg-slate-800 rounded-xl border border-[#E2E8F0] dark:border-slate-700 w-full md:w-auto overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0">
                     <button
                         type="button"
                         id="filter-all-btn"
@@ -177,7 +177,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('all');
                         }}
-                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
+                        className={`flex-1 md:flex-initial px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'all'
                                 ? 'bg-white dark:bg-slate-700 text-[#2B78C4] dark:text-sky-300 border-[#7ABCF4] dark:border-sky-500 shadow-2xs'
                                 : 'bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
@@ -192,7 +192,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('encountered');
                         }}
-                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
+                        className={`flex-1 md:flex-initial px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'encountered'
                                 ? 'bg-[#95D151] text-white border-[#76B032] shadow-2xs'
                                 : 'bg-transparent text-[#2D6613] dark:text-emerald-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
@@ -208,7 +208,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             sound.playClick();
                             onFilterChange('unencountered');
                         }}
-                        className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
+                        className={`flex-1 md:flex-initial px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'unencountered'
                                 ? 'bg-[#FEE061] text-[#854D0E] border-[#E5C43B] shadow-2xs'
                                 : 'bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
@@ -220,8 +220,8 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                 </div>
 
                 {/* Search Input and Advanced Filter with Popover */}
-                <div className="flex items-center gap-2 w-full sm:w-auto relative">
-                    <div className="relative w-full sm:w-72 md:w-80">
+                <div className="flex items-center gap-2 w-full md:w-auto relative">
+                    <div className="relative flex-1 md:w-72 lg:w-80">
                         <Search className="w-4 h-4 text-[#7ABCF4] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                             type="text"
@@ -247,7 +247,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                         )}
                     </div>
 
-                    <div className="relative">
+                    <div className="relative shrink-0">
                         <button
                             type="button"
                             onClick={() => {

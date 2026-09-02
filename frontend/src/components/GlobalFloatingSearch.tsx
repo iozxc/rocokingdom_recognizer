@@ -281,7 +281,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         sound.playClick();
                         openFollowScanner(followTrialKey);
                       }}
-                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white flex items-center justify-center shadow-xl shadow-purple-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white flex items-center justify-center shadow-xl shadow-purple-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                       title="游戏窗口跟随识别 (AI 智能实时识别)"
                   >
                     <Sparkles className="w-5 h-5 text-white" />
@@ -297,7 +297,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         sound.playClick();
                         onOpenSingleRecognizer();
                       }}
-                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#95D151] to-[#689F38] hover:from-[#84C242] hover:to-[#558B2F] text-white flex items-center justify-center shadow-xl shadow-emerald-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#95D151] to-[#689F38] hover:from-[#84C242] hover:to-[#558B2F] text-white flex items-center justify-center shadow-xl shadow-emerald-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                       title="单个精灵智能识别"
                   >
                     <Sparkles className="w-5 h-5 text-white" />
@@ -313,7 +313,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         sound.playClick();
                         onOpenBatchInit();
                       }}
-                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#FEE061] to-[#F59E0B] hover:from-[#FDD835] hover:to-[#D97706] text-[#854D0E] flex items-center justify-center shadow-xl shadow-amber-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#FEE061] to-[#F59E0B] hover:from-[#FDD835] hover:to-[#D97706] text-[#854D0E] flex items-center justify-center shadow-xl shadow-amber-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                       title="整页图鉴智能批量初始化导入"
                   >
                     <Layers className="w-5 h-5" />
@@ -329,7 +329,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         sound.playClick();
                         onOpenDataManage();
                       }}
-                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#34D399] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-white flex items-center justify-center shadow-xl shadow-emerald-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#34D399] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-white flex items-center justify-center shadow-xl shadow-emerald-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                       title="数据管理 (导入/导出)"
                   >
                     <Database className="w-5 h-5 text-white" />
@@ -344,7 +344,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                     sound.playClick();
                     setIsOpen(true);
                   }}
-                  className="w-11 h-11 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white flex items-center justify-center shadow-xl shadow-sky-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                  className="w-11 h-11 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white flex items-center justify-center shadow-xl shadow-sky-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                   title="全域图鉴搜索 (Ctrl+K)"
               >
                 <Search className="w-5 h-5" />
@@ -361,7 +361,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               sound.playClick();
                               onOpenFireAtlas();
                             }}
-                            className="w-11 h-11 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] text-white flex items-center justify-center shadow-xl shadow-orange-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                            className="w-11 h-11 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] text-white flex items-center justify-center shadow-xl shadow-orange-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                             title="共创图鉴"
                         >
                           <Flame className="w-5 h-5 text-white" />
@@ -375,7 +375,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               sound.playClick();
                               onToggleAtlasMode();
                             }}
-                            className="w-11 h-11 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white flex items-center justify-center shadow-xl shadow-purple-500/20 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                            className="w-11 h-11 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white flex items-center justify-center shadow-xl shadow-purple-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                             title={`切换图鉴（当前 - ${atlasMode === 'pokedex' ? '全图鉴' : '共创图鉴'}）`}
                         >
                           <Layers className="w-5 h-5 text-white" />
@@ -393,7 +393,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                       type="button"
                       id="global-floating-expand-fab"
                       onClick={() => handleToggleCollapse(false)}
-                      className="w-10 h-10 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white flex items-center justify-center shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white"
+                      className="w-10 h-10 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white flex items-center justify-center shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white dark:border-slate-700"
                       title="展开右侧快捷功能悬浮栏 (搜索与批量初始化)"
                   >
                     <Search className="w-5 h-5" />
@@ -581,7 +581,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               sound.playClick();
                               onToggleAtlasMode();
                             }}
-                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] hover:from-[#7C3AED] hover:to-[#4F46E5] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                             title={`切换图鉴（当前 - ${atlasMode === 'pokedex' ? '全图鉴' : '共创图鉴'}）`}
                         >
                           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
@@ -792,7 +792,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                         ? 'border-[#7ABCF4] dark:border-sky-400 bg-[#F0F7FF] dark:bg-slate-800 shadow-md ring-2 ring-[#7ABCF4]/40'
                                         : item.isEncountered
                                             ? 'border-[#95D151]/50 dark:border-emerald-600/50 bg-[#F9FEF8] dark:bg-emerald-950/20 hover:border-[#95D151] hover:shadow-sm'
-                                            : 'border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#7ABCF4] dark:hover:border-sky-400 hover:bg-[#F8FAFC] dark:hover:bg-slate-750 hover:shadow-sm'
+                                            : 'border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#7ABCF4] dark:hover:border-sky-400 hover:bg-[#F8FAFC] dark:hover:bg-slate-700 hover:shadow-sm'
                                 }`}
                             >
                               {/* Left: Avatar + Details */}

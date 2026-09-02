@@ -117,7 +117,7 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
               className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 border-2 cursor-pointer ${
                 filters.specialTypes.includes('boss')
                   ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 dark:border-rose-700 text-rose-700 dark:text-rose-300 font-black'
-                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 hover:text-slate-800'
+                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-800'
               }`}
             >
               {filters.specialTypes.includes('boss') && <Check className="w-3 h-3 stroke-[3]" />}
@@ -129,7 +129,7 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
               className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 border-2 cursor-pointer ${
                 filters.specialTypes.includes('multiform')
                   ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-400 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-black'
-                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 hover:text-slate-800'
+                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-800'
               }`}
             >
               {filters.specialTypes.includes('multiform') && <Check className="w-3 h-3 stroke-[3]" />}
@@ -158,7 +158,7 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
                   className={`flex items-center gap-1 px-1.5 py-1 rounded-xl text-[10px] font-black border transition-all cursor-pointer justify-center hover:scale-105 active:scale-95 select-none ${
                     isActive
                       ? ''
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
                 >
                   <img

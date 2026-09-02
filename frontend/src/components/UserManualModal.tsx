@@ -134,58 +134,58 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                   {/* Step 1 */}
-                  <div className="p-4 rounded-2xl border-2 border-[#D5E3F0] bg-white shadow-xs flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800/80 shadow-xs flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="w-6 h-6 rounded-lg bg-sky-100 text-[#2B78C4] font-black text-xs flex items-center justify-center">
+                        <span className="w-6 h-6 rounded-lg bg-sky-100 dark:bg-sky-950 text-[#2B78C4] dark:text-sky-300 font-black text-xs flex items-center justify-center">
                           1
                         </span>
                         <Layers className="w-4 h-4 text-sky-400" />
                       </div>
-                      <h5 className="font-black text-slate-800 text-sm">批量初筛（推荐）</h5>
-                      <p className="text-xs text-slate-500">
+                      <h5 className="font-black text-slate-800 dark:text-slate-100 text-sm">批量初筛（推荐）</h5>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         首次打开时，在游戏内打开“冒险日志”，直接截图粘贴，一次性点亮所有已遇精灵！
                       </p>
                     </div>
-                    <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-[#2B78C4] font-semibold flex items-center gap-1">
+                    <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] text-[#2B78C4] dark:text-sky-400 font-semibold flex items-center gap-1">
                       <span>节省 90% 录入时间</span>
                     </div>
                   </div>
 
                   {/* Step 2 */}
-                  <div className="p-4 rounded-2xl border-2 border-[#D5E3F0] bg-white shadow-xs flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800/80 shadow-xs flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 font-black text-xs flex items-center justify-center">
+                        <span className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-300 font-black text-xs flex items-center justify-center">
                           2
                         </span>
                         <Camera className="w-4 h-4 text-emerald-400" />
                       </div>
-                      <h5 className="font-black text-slate-800 text-sm">单精灵截屏比对</h5>
-                      <p className="text-xs text-slate-500">
+                      <h5 className="font-black text-slate-800 dark:text-slate-100 text-sm">单精灵截屏比对</h5>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         日常探索时，使用快捷键截图精灵头像或野怪画面，本地神经网络 0.1 秒高精度精准识别。
                       </p>
                     </div>
-                    <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                    <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                       <span>支持剪贴板快速粘贴</span>
                     </div>
                   </div>
 
                   {/* Step 3 */}
-                  <div className="p-4 rounded-2xl border-2 border-[#D5E3F0] bg-white shadow-xs flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800/80 shadow-xs flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-600 font-black text-xs flex items-center justify-center">
+                        <span className="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-300 font-black text-xs flex items-center justify-center">
                           3
                         </span>
                         <Compass className="w-4 h-4 text-amber-400" />
                       </div>
-                      <h5 className="font-black text-slate-800 text-sm">实时跟随与定位</h5>
-                      <p className="text-xs text-slate-500">
+                      <h5 className="font-black text-slate-800 dark:text-slate-100 text-sm">实时跟随与定位</h5>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         开启实时跟随小窗，游戏内移动时智能追踪当前试炼关卡点位、刷新位置与目标野怪。
                       </p>
                     </div>
-                    <div className="mt-3 pt-2 border-t border-slate-100 text-[11px] text-amber-600 font-semibold flex items-center gap-1">
+                    <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
                       <span>悬浮窗透明置顶</span>
                     </div>
                   </div>
@@ -193,33 +193,33 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
               </div>
 
               {/* Illustrated Interface Breakdown */}
-              <div className="p-4 rounded-2xl bg-[#F0F6FC] border-2 border-[#D5E3F0] space-y-3">
-                <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <MousePointerClick className="w-4 h-4 text-[#2B78C4]" />
+              <div className="p-4 rounded-2xl bg-[#F0F6FC] dark:bg-slate-800/60 border-2 border-[#D5E3F0] dark:border-slate-700 space-y-3">
+                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <MousePointerClick className="w-4 h-4 text-[#2B78C4] dark:text-sky-400" />
                   核心界面区域说明
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="bg-white p-3 rounded-xl border border-[#D5E3F0] space-y-1">
-                    <span className="font-black text-[#2B78C4]">① 顶部导航栏：</span>
-                    <p className="text-slate-600">
+                  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-[#D5E3F0] dark:border-slate-700 space-y-1">
+                    <span className="font-black text-[#2B78C4] dark:text-sky-400">① 顶部导航栏：</span>
+                    <p className="text-slate-600 dark:text-slate-300">
                       切换各个徽章试炼关卡，查看当前关卡点亮进度（如 24/24）、音频开关、群聊反馈及更新。
                     </p>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-[#D5E3F0] space-y-1">
-                    <span className="font-black text-[#2B78C4]">② 识别工作区：</span>
-                    <p className="text-slate-600">
+                  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-[#D5E3F0] dark:border-slate-700 space-y-1">
+                    <span className="font-black text-[#2B78C4] dark:text-sky-400">② 识别工作区：</span>
+                    <p className="text-slate-600 dark:text-slate-300">
                       支持将图片拖拽、粘贴或直接截屏至识别框，AI 将输出 Top1 ~ Top5 预测概率结果。
                     </p>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-[#D5E3F0] space-y-1">
-                    <span className="font-black text-[#2B78C4]">③ 精灵图鉴网格：</span>
-                    <p className="text-slate-600">
+                  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-[#D5E3F0] dark:border-slate-700 space-y-1">
+                    <span className="font-black text-[#2B78C4] dark:text-sky-400">③ 精灵图鉴网格：</span>
+                    <p className="text-slate-600 dark:text-slate-300">
                       直观展示该地图所有精灵卡片，高亮代表已遇，灰度代表未遇。左键点击切换点亮状态。
                     </p>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-[#D5E3F0] space-y-1">
-                    <span className="font-black text-[#2B78C4]">④ 全局浮动搜索：</span>
-                    <p className="text-slate-600">
+                  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-[#D5E3F0] dark:border-slate-700 space-y-1">
+                    <span className="font-black text-[#2B78C4] dark:text-sky-400">④ 全局浮动搜索：</span>
+                    <p className="text-slate-600 dark:text-slate-300">
                       右下角支持快捷搜索精灵名称、系别筛选、遇怪状态筛选（已点亮/未点亮）。
                     </p>
                   </div>
@@ -374,23 +374,23 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
 
               {/* Feature Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
-                <div className="p-3.5 rounded-2xl border-2 border-[#D5E3F0] bg-white space-y-1.5">
-                  <div className="flex items-center gap-2 font-black text-slate-800">
+                <div className="p-3.5 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800/80 space-y-1.5">
+                  <div className="flex items-center gap-2 font-black text-slate-800 dark:text-slate-100">
                     <MousePointerClick className="w-4 h-4 text-sky-500" />
                     <span>卡片交互操作</span>
                   </div>
-                  <ul className="text-slate-600 space-y-1 list-disc list-inside text-[11px]">
+                  <ul className="text-slate-600 dark:text-slate-300 space-y-1 list-disc list-inside text-[11px]">
                     <li><strong>左键单击：</strong> 切换当前精灵点亮 / 未遇状态。</li>
                     <li><strong>右键菜单：</strong> 查看精灵大图、属性系别、获取方式及纠错提交。</li>
                   </ul>
                 </div>
 
-                <div className="p-3.5 rounded-2xl border-2 border-[#D5E3F0] bg-white space-y-1.5">
-                  <div className="flex items-center gap-2 font-black text-slate-800">
+                <div className="p-3.5 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800/80 space-y-1.5">
+                  <div className="flex items-center gap-2 font-black text-slate-800 dark:text-slate-100">
                     <Search className="w-4 h-4 text-emerald-500" />
                     <span>全局检索与高级过滤</span>
                   </div>
-                  <ul className="text-slate-600 space-y-1 list-disc list-inside text-[11px]">
+                  <ul className="text-slate-600 dark:text-slate-300 space-y-1 list-disc list-inside text-[11px]">
                     <li>支持输入中文名或拼音首字母模糊搜索（如“hk”搜索“火花”）。</li>
                     <li>支持按主系别（草/火/水/电/幽灵等）与遇怪状态复合筛选。</li>
                   </ul>
@@ -398,22 +398,22 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
               </div>
 
               {/* Shortcuts Table */}
-              <div className="rounded-2xl border-2 border-[#D5E3F0] overflow-hidden">
-                <div className="bg-[#F0F6FC] px-4 py-2 border-b border-[#D5E3F0] text-xs font-black text-slate-700">
+              <div className="rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 overflow-hidden">
+                <div className="bg-[#F0F6FC] dark:bg-slate-800 px-4 py-2 border-b border-[#D5E3F0] dark:border-slate-700 text-xs font-black text-slate-700 dark:text-slate-200">
                   ⌨️ 实用快捷键列表
                 </div>
-                <div className="divide-y divide-slate-100 text-xs">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-800/80 text-xs">
                   <div className="p-2.5 px-4 flex items-center justify-between">
-                    <span className="text-slate-600">粘贴截图至识别区</span>
-                    <kbd className="px-2 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono font-bold text-slate-700">Ctrl + V</kbd>
+                    <span className="text-slate-600 dark:text-slate-300">粘贴截图至识别区</span>
+                    <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded font-mono font-bold text-slate-700 dark:text-slate-200">Ctrl + V</kbd>
                   </div>
                   <div className="p-2.5 px-4 flex items-center justify-between">
-                    <span className="text-slate-600">快速打开全局搜索</span>
-                    <kbd className="px-2 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono font-bold text-slate-700">Ctrl + F</kbd>
+                    <span className="text-slate-600 dark:text-slate-300">快速打开全局搜索</span>
+                    <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded font-mono font-bold text-slate-700 dark:text-slate-200">Ctrl + F</kbd>
                   </div>
                   <div className="p-2.5 px-4 flex items-center justify-between">
-                    <span className="text-slate-600">关闭当前弹窗 / 返回</span>
-                    <kbd className="px-2 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono font-bold text-slate-700">Esc</kbd>
+                    <span className="text-slate-600 dark:text-slate-300">关闭当前弹窗 / 返回</span>
+                    <kbd className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded font-mono font-bold text-slate-700 dark:text-slate-200">Esc</kbd>
                   </div>
                 </div>
               </div>
@@ -424,45 +424,45 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
           {activeTab === 'faq' && (
             <div className="space-y-4 animate-in fade-in duration-200 text-xs">
               <div className="space-y-2">
-                <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4 text-[#2B78C4]" />
+                <h4 className="text-sm font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4 text-[#2B78C4] dark:text-sky-400" />
                   常见疑问与解答 (FAQ)
                 </h4>
               </div>
 
               <div className="space-y-3">
-                <div className="p-3.5 rounded-2xl bg-white border-2 border-[#D5E3F0] space-y-1.5">
-                  <h5 className="font-black text-slate-800 text-xs flex items-center gap-1.5">
-                    <span className="text-[#2B78C4]">Q：</span> 软件会影响游戏账号安全吗？
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-[#D5E3F0] dark:border-slate-700 space-y-1.5">
+                  <h5 className="font-black text-slate-800 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                    <span className="text-[#2B78C4] dark:text-sky-400">Q：</span> 软件会影响游戏账号安全吗？
                   </h5>
-                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
                     <strong>A：绝对安全。</strong> 助手完全采用外置图像识别技术（YOLO + OCR），运行在本地沙盒环境中，不注入任何游戏进程、不读取或修改游戏内存数据，相当于为玩家提供一个智能记事本。
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white border-2 border-[#D5E3F0] space-y-1.5">
-                  <h5 className="font-black text-slate-800 text-xs flex items-center gap-1.5">
-                    <span className="text-[#2B78C4]">Q：</span> 某些稀有精灵或新形态识别不准确怎么办？
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-[#D5E3F0] dark:border-slate-700 space-y-1.5">
+                  <h5 className="font-black text-slate-800 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                    <span className="text-[#2B78C4] dark:text-sky-400">Q：</span> 某些稀有精灵或新形态识别不准确怎么办？
                   </h5>
-                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
                     <strong>A：</strong> 您可以直接在卡片上点击 <strong>手动纠错</strong>，或者在图鉴卡片上 <strong>右键点击 &gt; 反馈错误</strong>。我们的图鉴库支持热更新，后台收到纠错样本后会快速迭代模型。
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white border-2 border-[#D5E3F0] space-y-1.5">
-                  <h5 className="font-black text-slate-800 text-xs flex items-center gap-1.5">
-                    <span className="text-[#2B78C4]">Q：</span> 换电脑或重装后，已点亮的进度会丢失吗？
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-[#D5E3F0] dark:border-slate-700 space-y-1.5">
+                  <h5 className="font-black text-slate-800 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                    <span className="text-[#2B78C4] dark:text-sky-400">Q：</span> 换电脑或重装后，已点亮的进度会丢失吗？
                   </h5>
-                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
                     <strong>A：</strong> 进度默认保存在本地 SQLite 数据库中。如果您登录了账号，数据会自动与云端双向同步，换机登录即可无缝恢复。
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white border-2 border-[#D5E3F0] space-y-1.5">
-                  <h5 className="font-black text-slate-800 text-xs flex items-center gap-1.5">
-                    <span className="text-[#2B78C4]">Q：</span> 遇到 Bug 或有好的建议如何反馈？
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-[#D5E3F0] dark:border-slate-700 space-y-1.5">
+                  <h5 className="font-black text-slate-800 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                    <span className="text-[#2B78C4] dark:text-sky-400">Q：</span> 遇到 Bug 或有好的建议如何反馈？
                   </h5>
-                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
                     <strong>A：</strong> 点击右上角的 <strong>“群聊反馈”</strong> 按钮，可以直接提交在线反馈工单，也可以扫码加入我们的玩家交流 QQ 群一起交流！
                   </p>
                 </div>
@@ -472,8 +472,8 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Footer */}
-        <div className="bg-[#F0F6FC] px-5 py-3 border-t-2 border-[#D5E3F0] flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
-          <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+        <div className="bg-[#F0F6FC] dark:bg-slate-800 px-5 py-3 border-t-2 border-[#D5E3F0] dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
             <span>使用手册可根据版本持续补充更新</span>
           </div>
           <button
@@ -482,7 +482,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
               sound.playClick();
               onClose();
             }}
-            className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[#2B78C4] hover:bg-[#2063A5] text-white text-xs font-black transition-colors cursor-pointer shadow-xs text-center"
+            className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[#2B78C4] dark:bg-sky-600 hover:bg-[#2063A5] dark:hover:bg-sky-500 text-white text-xs font-black transition-colors cursor-pointer shadow-xs text-center"
           >
             我知道了
           </button>

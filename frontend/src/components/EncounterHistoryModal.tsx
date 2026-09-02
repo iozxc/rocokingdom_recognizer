@@ -161,6 +161,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 select-none"
+      onWheel={(e) => e.stopPropagation()}
       onClick={onClose}
     >
       <div
@@ -264,7 +265,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
                   statusFilter === 'unencountered'
                     ? 'bg-amber-500 text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-amber-700 hover:bg-amber-50'
+                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40'
                 }`}
               >
                 <EyeOff className="w-3 h-3" />
@@ -283,8 +284,8 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                 }}
                 className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
                   selectedMapFilter === 'all'
-                    ? 'bg-slate-700 text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    ? 'bg-slate-700 dark:bg-sky-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 全部地图
@@ -299,8 +300,8 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                   }}
                   className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
                     selectedMapFilter === m.id
-                      ? 'bg-slate-700 text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                      ? 'bg-slate-700 dark:bg-sky-600 text-white shadow-xs'
+                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
                   <span>{m.num}、{m.name.replace('记忆中的', '')}</span>
@@ -314,11 +315,11 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-2.5 max-h-[55vh]">
           {filteredList.length === 0 ? (
             <div className="py-16 text-center text-slate-400 flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-2">
                 <History className="w-6 h-6" />
               </div>
-              <p className="text-sm font-black text-slate-700">暂无相关历史记录</p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-sm font-black text-slate-700 dark:text-slate-200">暂无相关历史记录</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                 进行精灵识别或在图鉴中点击点亮/取消后，此处将按时间倒序展示操作流
               </p>
             </div>

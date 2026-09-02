@@ -512,10 +512,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
   return (
       <div
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-5 bg-slate-900/65 backdrop-blur-xs overflow-y-auto"
+          onWheel={(e) => e.stopPropagation()}
           onClick={onClose}
       >
         <div
-            className={`relative w-full bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ease-in-out ${
+            className={`relative w-full bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col transition-all duration-300 ease-in-out ${
                 hasResults
                     ? 'max-w-[97vw] 2xl:max-w-[1880px] h-[95vh] max-h-[96vh]'
                     : 'max-w-5xl lg:max-w-6xl max-h-[92vh]'
@@ -523,7 +524,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] px-6 py-4 text-white flex items-center justify-between shadow-sm shrink-0">
+          <div className="bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] dark:from-sky-700 dark:to-indigo-800 px-6 py-4 text-white flex items-center justify-between shadow-sm shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-[#FEE061] text-[#854D0E] flex items-center justify-center shadow-xs border-2 border-white">
                 <Layers className="w-5 h-5 text-[#854D0E]" />
@@ -571,22 +572,23 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
           {/* Scrollable Body */}
           <div
               ref={scrollBodyRef}
-              className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5"
+              className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 bg-slate-50/50 dark:bg-slate-900/90"
           >
             {/* Step 1: Upload & Map Selection Toolbar */}
-            <div className="p-4 sm:p-5 bg-[#F5F9FF] rounded-2xl border-2 border-[#E6EEF8]">
+            <div className="p-4 sm:p-5 bg-[#F5F9FF] dark:bg-slate-800/80 rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 {/* Target Map Selector */}
-                <div className="flex items-center gap-3">
-                <span className="text-xs font-black text-slate-700 whitespace-nowrap">
+                <div className="flex items-center gap-2 sm:gap-3 flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-full">
+                <span className="text-xs font-black text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0">
                   目标地图:
                 </span>
-                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0">
                     {MAP_CONFIGS.map((map) => {
                       const isSelected = selectedMapNum === map.num;
                       const mapPets = allMapsPets[`map${map.num}`]?.items || [];
                       const totalPets = mapPets.length || 0;
                       const encCount = mapPets.filter((p) => checkAlreadyEncountered(map.id, p.name)).length;
+                      const shortName = map.name.replace('记忆中的', '').replace('草原', '');
 
                       return (
                           <button
@@ -595,14 +597,14 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                 sound.playClick();
                                 setSelectedMapNum(map.num);
                               }}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border-2 whitespace-nowrap ${
+                              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1 sm:gap-1.5 border-2 whitespace-nowrap shrink-0 cursor-pointer ${
                                   isSelected
-                                      ? 'bg-[#7ABCF4] text-white border-[#5DA8E8] shadow-xs'
-                                      : 'bg-white text-slate-600 border-[#E2E8F0] hover:border-[#7ABCF4]'
+                                      ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs'
+                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#E2E8F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500'
                               }`}
                           >
-                            <span>{map.num}、{map.name.replace('记忆中的', '')}</span>
-                            <span className={`text-[10px] font-mono ${isSelected ? 'text-white/90' : 'text-slate-400'}`}>
+                            <span>{map.num}、{shortName}</span>
+                            <span className={`text-[10px] font-mono ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-500'}`}>
                           ({encCount}/{totalPets})
                         </span>
                           </button>
@@ -612,8 +614,8 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                 </div>
 
                 {/* Threshold Setting */}
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <Sliders className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                  <Sliders className="w-3.5 h-3.5 text-[#7ABCF4] dark:text-sky-400" />
                   <span className="font-bold">识别门槛:</span>
                   <input
                       type="range"
@@ -622,9 +624,9 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                       step="0.05"
                       value={threshold}
                       onChange={(e) => handleThresholdChange(parseFloat(e.target.value))}
-                      className="w-24 h-1.5 bg-slate-200 rounded-lg accent-[#7ABCF4] cursor-pointer"
+                      className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg accent-[#7ABCF4] cursor-pointer"
                   />
-                  <span className="font-mono font-black text-[#2B78C4]">{Math.round(threshold * 100)}%</span>
+                  <span className="font-mono font-black text-[#2B78C4] dark:text-sky-400">{Math.round(threshold * 100)}%</span>
                 </div>
               </div>
 
@@ -639,10 +641,10 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                           onDragOver={handleDragOver}
                           onDragLeave={handleDragLeave}
                           onDrop={handleDrop}
-                          className={`lg:col-span-7 border-2 border-dashed rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[160px] bg-white group ${
+                          className={`lg:col-span-7 border-2 border-dashed rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[160px] bg-white dark:bg-slate-800/90 group ${
                               isDragOver
-                                  ? 'border-[#95D151] bg-[#F4FDF0] scale-[1.01]'
-                                  : 'border-[#BCD7F2] hover:border-[#2B78C4] hover:bg-[#F5F9FF]'
+                                  ? 'border-[#95D151] bg-[#F4FDF0] dark:bg-emerald-950/40 scale-[1.01]'
+                                  : 'border-[#BCD7F2] dark:border-slate-700 hover:border-[#2B78C4] dark:hover:border-sky-400 hover:bg-[#F5F9FF] dark:hover:bg-slate-700'
                           }`}
                       >
                         <input
@@ -657,38 +659,38 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                             }}
                         />
 
-                        <div className="w-12 h-12 rounded-2xl bg-[#EBF4FE] text-[#2B78C4] group-hover:bg-[#2B78C4] group-hover:text-white transition-all flex items-center justify-center shadow-2xs mb-2.5">
+                        <div className="w-12 h-12 rounded-2xl bg-[#EBF4FE] dark:bg-sky-950/60 text-[#2B78C4] dark:text-sky-400 group-hover:bg-[#2B78C4] dark:group-hover:bg-sky-600 group-hover:text-white transition-all flex items-center justify-center shadow-2xs mb-2.5">
                           <UploadCloud className="w-6 h-6" />
                         </div>
 
-                        <p className="text-xs sm:text-sm font-black text-slate-700 group-hover:text-[#1E5B99] transition-colors">
+                        <p className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 group-hover:text-[#1E5B99] dark:group-hover:text-sky-300 transition-colors">
                           点击选择图片 或 拖拽截图至此
                         </p>
-                        <p className="text-[11px] text-slate-400 mt-1">
-                          也可在页面任意位置直接按 <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-[10px] text-slate-600 font-bold">Ctrl + V</kbd> 粘贴
+                        <p className="text-[11px] text-slate-400 dark:text-slate-400 mt-1">
+                          也可在页面任意位置直接按 <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 font-mono text-[10px] text-slate-600 dark:text-slate-300 font-bold">Ctrl + V</kbd> 粘贴
                         </p>
                       </div>
 
                       {/* Right: Ready Status & Disabled Button (5 Cols) */}
-                      <div className="lg:col-span-5 bg-white rounded-2xl border border-[#E6EEF8] p-4 sm:p-5 flex flex-col justify-between shadow-2xs">
+                      <div className="lg:col-span-5 bg-white dark:bg-slate-800/90 rounded-2xl border border-[#E6EEF8] dark:border-slate-700 p-4 sm:p-5 flex flex-col justify-between shadow-2xs">
                         <div>
-                          <div className="flex items-center justify-between pb-2.5 border-b border-[#F1F5F9]">
-                            <span className="text-xs font-black text-slate-700">识别状态</span>
-                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black">
+                          <div className="flex items-center justify-between pb-2.5 border-b border-[#F1F5F9] dark:border-slate-700">
+                            <span className="text-xs font-black text-slate-700 dark:text-slate-200">识别状态</span>
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-[10px] font-black">
                               等待导入截图
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500 mt-3 leading-relaxed">
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">
                             请先选择或粘贴游戏全景截图，本地视觉模型将自动分割识别图中的所有精灵（纯本地离线运算）。
                           </p>
                         </div>
 
-                        <div className="pt-3 border-t border-[#F1F5F9]">
+                        <div className="pt-3 border-t border-[#F1F5F9] dark:border-slate-700">
                           <button
                               disabled
-                              className="w-full py-3 px-4 rounded-xl bg-slate-100 text-slate-400 font-black text-xs sm:text-sm cursor-not-allowed flex items-center justify-center gap-1.5"
+                              className="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 font-black text-xs sm:text-sm cursor-not-allowed flex items-center justify-center gap-1.5"
                           >
-                            <Sparkles className="w-4 h-4 text-slate-300" />
+                            <Sparkles className="w-4 h-4 text-slate-300 dark:text-slate-600" />
                             <span>请先导入游戏截图</span>
                           </button>
                         </div>
@@ -698,13 +700,13 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                     /* Post-upload: Balanced Split View (Left: Clear Preview Viewport, Right: Control Station) */
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
                       {/* Left: Clear Screenshot Preview Viewport (7-8 Cols) */}
-                      <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl border-2 border-[#BCD7F2] p-3 sm:p-4 shadow-xs flex flex-col">
-                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#E6EEF8]">
+                      <div className="lg:col-span-7 xl:col-span-8 bg-white dark:bg-slate-800/90 rounded-2xl border-2 border-[#BCD7F2] dark:border-slate-700 p-3 sm:p-4 shadow-xs flex flex-col">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#E6EEF8] dark:border-slate-700">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="px-2 py-0.5 rounded-md bg-[#2B78C4] text-white text-[10px] font-black shrink-0">
                               已选截图
                             </span>
-                            <span className="text-xs font-bold text-slate-700 truncate" title={selectedFile ? selectedFile.name : '游戏截图'}>
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate" title={selectedFile ? selectedFile.name : '游戏截图'}>
                               {selectedFile ? selectedFile.name : '已选择样本截图'}
                             </span>
                           </div>
@@ -713,17 +715,17 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                             <button
                                 type="button"
                                 onClick={() => setShowOriginalImageLightbox(true)}
-                                className="px-2.5 py-1 rounded-lg bg-[#F0F7FF] hover:bg-[#E0EFFF] border border-[#BCD7F2] text-[#2B78C4] text-[11px] font-black flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                                className="px-2.5 py-1 rounded-lg bg-[#F0F7FF] hover:bg-[#E0EFFF] dark:bg-slate-700 dark:hover:bg-slate-600 border border-[#BCD7F2] dark:border-slate-600 text-[#2B78C4] dark:text-sky-300 text-[11px] font-black flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
                                 title="点击放大查看原图"
                             >
-                              <ZoomIn className="w-3.5 h-3.5 text-[#2B78C4]" />
+                              <ZoomIn className="w-3.5 h-3.5 text-[#2B78C4] dark:text-sky-300" />
                               <span>放大原图</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="px-2 py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                                className="px-2 py-1 rounded-lg bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-200 text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
                                 title="更换其他截图"
                             >
                               <span>更换</span>
@@ -732,7 +734,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                             <button
                                 type="button"
                                 onClick={handleClearUpload}
-                                className="p-1 rounded-lg bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-400 hover:text-rose-600 shadow-2xs transition-colors cursor-pointer"
+                                className="p-1 rounded-lg bg-white dark:bg-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-600 hover:border-rose-200 dark:hover:border-rose-800 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 shadow-2xs transition-colors cursor-pointer"
                                 title="移除图片"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -743,7 +745,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                         {/* Image Viewport */}
                         <div
                             onClick={() => setShowOriginalImageLightbox(true)}
-                            className="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden bg-white border border-[#E6EEF8] flex items-center justify-center cursor-zoom-in group/img shadow-inner"
+                            className="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-[#E6EEF8] dark:border-slate-700 flex items-center justify-center cursor-zoom-in group/img shadow-inner"
                         >
                           <img
                               src={previewUrl}
@@ -760,45 +762,45 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                           </div>
                         </div>
 
-                        <div className="mt-2 px-1 flex items-center justify-between text-[11px] text-slate-400">
+                        <div className="mt-2 px-1 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-400">
                           <span>💡 提示：点击图片可随时放大全屏比对</span>
                           <span>支持粘贴 Ctrl+V 覆盖</span>
                         </div>
                       </div>
 
                       {/* Right: Control Station with Well-Proportioned Start Button */}
-                      <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border-2 border-[#E6EEF8] p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                      <div className="lg:col-span-5 xl:col-span-4 bg-white dark:bg-slate-800/90 rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 p-4 sm:p-5 flex flex-col justify-between shadow-xs">
                         <div>
-                          <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
-                            <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                              <Sparkle className="w-3.5 h-3.5 text-[#2B78C4]" />
+                          <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9] dark:border-slate-700">
+                            <span className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                              <Sparkle className="w-3.5 h-3.5 text-[#2B78C4] dark:text-sky-400" />
                               识别参数与控制
                             </span>
-                            <span className="px-2 py-0.5 rounded-full bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/50 text-[10px] font-black">
+                            <span className="px-2 py-0.5 rounded-full bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border border-[#95D151]/50 dark:border-emerald-700 text-[10px] font-black">
                               画面已就绪
                             </span>
                           </div>
 
                           <div className="mt-3 space-y-2.5">
-                            <div className="p-2.5 rounded-xl bg-[#F8FBFE] border border-[#E6EEF8] text-xs">
-                              <div className="flex items-center justify-between text-slate-600 mb-1">
+                            <div className="p-2.5 rounded-xl bg-[#F8FBFE] dark:bg-slate-700/60 border border-[#E6EEF8] dark:border-slate-600 text-xs">
+                              <div className="flex items-center justify-between text-slate-600 dark:text-slate-300 mb-1">
                                 <span className="font-bold">识别目标地图:</span>
-                                <span className="font-black text-[#1E5B99]">{targetMap.num}、{targetMap.name.replace('记忆中的', '')}</span>
+                                <span className="font-black text-[#1E5B99] dark:text-sky-300">{targetMap.num}、{targetMap.name.replace('记忆中的', '')}</span>
                               </div>
-                              <div className="flex items-center justify-between text-slate-600">
+                              <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
                                 <span className="font-bold">识别门槛:</span>
-                                <span className="font-mono font-black text-[#2B78C4]">{Math.round(threshold * 100)}%</span>
+                                <span className="font-mono font-black text-[#2B78C4] dark:text-sky-300">{Math.round(threshold * 100)}%</span>
                               </div>
                             </div>
 
-                            <div className="text-[11px] text-slate-500 leading-relaxed bg-[#FFFDF5] border border-[#FEE061]/50 rounded-xl p-2.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-300 leading-relaxed bg-[#FFFDF5] dark:bg-amber-950/30 border border-[#FEE061]/50 dark:border-amber-700/50 rounded-xl p-2.5">
                               ✨ 识别完成后，系统将自动定位精灵候选并标出未遇状态，您可以勾选需要点亮的精灵。
                             </div>
                           </div>
                         </div>
 
                         {/* Start Button: Well-proportioned, bold, attractive */}
-                        <div className="mt-4 pt-3 border-t border-[#F1F5F9] space-y-2">
+                        <div className="mt-4 pt-3 border-t border-[#F1F5F9] dark:border-slate-700 space-y-2">
                           <button
                               id="start-batch-scan-btn"
                               disabled={!previewUrl || isScanning}
@@ -821,7 +823,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                           <button
                               type="button"
                               onClick={handleClearUpload}
-                              className="w-full py-1.5 px-3 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                              className="w-full py-1.5 px-3 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer"
                           >
                             <Trash2 className="w-3 h-3 text-rose-400" />
                             <span>放弃当前截图</span>
@@ -834,7 +836,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
               {/* Error Message */}
               {scanError && (
-                  <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+                  <div className="mt-3 p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 rounded-xl text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{scanError}</span>
                   </div>
@@ -848,29 +850,29 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                     onClick={() => setShowOriginalImageLightbox(false)}
                 >
                   <div
-                      className="relative max-w-[94vw] max-h-[92vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-3 sm:p-4 flex flex-col"
+                      className="relative max-w-[94vw] max-h-[92vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl p-3 sm:p-4 flex flex-col"
                       onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="px-2 py-0.5 rounded-md bg-[#7ABCF4] text-white text-xs font-black">
                           高清全景原图
                         </span>
-                        <span className="text-xs font-bold text-slate-700 truncate">
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
                           {selectedFile ? selectedFile.name : '游戏画面截图'}
                         </span>
                       </div>
                       <button
                           type="button"
                           onClick={() => setShowOriginalImageLightbox(false)}
-                          className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-black transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-black transition-colors cursor-pointer"
                           title="关闭 (Esc)"
                       >
                         <X className="w-5 h-5" />
                       </button>
                     </div>
 
-                    <div className="flex-1 overflow-auto flex items-center justify-center max-h-[82vh] rounded-2xl bg-slate-950/5 p-2">
+                    <div className="flex-1 overflow-auto flex items-center justify-center max-h-[82vh] rounded-2xl bg-slate-950/5 dark:bg-slate-950/40 p-2">
                       <img
                           src={previewUrl}
                           alt="高清原图"
@@ -885,16 +887,16 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
             {reviewItems.length > 0 && (
                 <div ref={reviewSectionRef} className="space-y-4 animate-in fade-in duration-300 scroll-mt-6">
                   {/* Integrated Control & Filter Strip (Tabs + Search Bar + Batch Actions) */}
-                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/90 p-2 sm:p-2.5 rounded-2xl border border-slate-200 shadow-xs">
+                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/90 dark:bg-slate-800/80 p-2 sm:p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
                     {/* 1. Left: Filter Tabs */}
-                    <div className="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200 overflow-x-auto shrink-0 custom-scrollbar shadow-2xs">
+                    <div className="flex items-center gap-1 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto shrink-0 custom-scrollbar shadow-2xs">
                       <button
                           type="button"
                           onClick={() => setFilterTab('all')}
                           className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
                               filterTab === 'all'
                                   ? 'bg-[#2B78C4] text-white shadow-xs'
-                                  : 'text-slate-600 hover:text-slate-900'
+                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                           }`}
                       >
                         全部 ({reviewItems.length})
@@ -905,7 +907,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                           className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1 whitespace-nowrap cursor-pointer ${
                               filterTab === 'unencountered'
                                   ? 'bg-[#95D151] text-white shadow-xs'
-                                  : 'text-[#2D6613] hover:text-slate-900'
+                                  : 'text-[#2D6613] dark:text-emerald-400 hover:text-slate-900 dark:hover:text-emerald-300'
                           }`}
                       >
                         <span>✨ 未遇见 ({unencounteredNewCount})</span>
@@ -916,8 +918,8 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                               onClick={() => setFilterTab('alreadyEncountered')}
                               className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1 whitespace-nowrap cursor-pointer ${
                                   filterTab === 'alreadyEncountered'
-                                      ? 'bg-slate-600 text-white shadow-xs'
-                                      : 'text-slate-600 hover:text-slate-900'
+                                      ? 'bg-slate-600 dark:bg-slate-700 text-white shadow-xs'
+                                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                               }`}
                           >
                             <span>已在图鉴 ({alreadyEncounteredCount})</span>
@@ -929,7 +931,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                           className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
                               filterTab === 'checked'
                                   ? 'bg-[#7ABCF4] text-white shadow-xs'
-                                  : 'text-slate-600 hover:text-slate-900'
+                                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                           }`}
                       >
                         已勾选 ({checkedCount})
@@ -941,7 +943,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                               className={`px-2.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
                                   filterTab === 'unmatched'
                                       ? 'bg-rose-500 text-white shadow-xs'
-                                      : 'text-rose-600 hover:text-rose-900'
+                                      : 'text-rose-600 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-200'
                               }`}
                           >
                             未匹配 ({unmatchedCount})
@@ -951,19 +953,19 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
                     {/* 2. Middle: Large Search Input */}
                     <div className="relative flex-1 min-w-[200px]">
-                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                           type="text"
                           value={searchFilter}
                           onChange={(e) => setSearchFilter(e.target.value)}
                           placeholder="搜索精灵名称、编号..."
-                          className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl outline-hidden focus:border-[#2B78C4] focus:ring-2 focus:ring-[#2B78C4]/15 text-slate-800 font-medium transition-all shadow-2xs"
+                          className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-hidden focus:border-[#2B78C4] focus:ring-2 focus:ring-[#2B78C4]/15 text-slate-800 dark:text-slate-100 font-medium transition-all shadow-2xs placeholder:text-slate-400 dark:placeholder:text-slate-500"
                       />
                       {searchFilter && (
                           <button
                               type="button"
                               onClick={() => setSearchFilter('')}
-                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-lg text-xs font-bold cursor-pointer"
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg text-xs font-bold cursor-pointer"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -975,16 +977,16 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                       <button
                           type="button"
                           onClick={handleSelectOnlyUnencountered}
-                          className="px-3 py-1.5 rounded-xl bg-[#E1F7DB] hover:bg-[#D3F3CA] border border-[#95D151] text-xs font-black text-[#2D6613] flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                          className="px-3 py-1.5 rounded-xl bg-[#E1F7DB] dark:bg-emerald-950/60 hover:bg-[#D3F3CA] dark:hover:bg-emerald-900/60 border border-[#95D151] dark:border-emerald-700 text-xs font-black text-[#2D6613] dark:text-emerald-300 flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
                           title="仅勾选之前未遇见的全新精灵，避免重复遇见"
                       >
-                        <Sparkle className="w-3.5 h-3.5 text-[#2D6613]" />
+                        <Sparkle className="w-3.5 h-3.5 text-[#2D6613] dark:text-emerald-300" />
                         <span>选【未遇见】</span>
                       </button>
                       <button
                           type="button"
                           onClick={() => handleSelectAll(true)}
-                          className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-black text-slate-700 flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
+                          className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
                       >
                         <CheckSquare className="w-3.5 h-3.5 text-[#95D151]" />
                         <span>全选</span>
@@ -992,9 +994,9 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                       <button
                           type="button"
                           onClick={() => handleSelectAll(false)}
-                          className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-black text-slate-700 flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
+                          className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1 cursor-pointer shadow-2xs transition-colors"
                       >
-                        <Square className="w-3.5 h-3.5 text-slate-400" />
+                        <Square className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                         <span>全不选</span>
                       </button>
                       <button
@@ -1024,12 +1026,12 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                               key={item.index}
                               className={`relative rounded-2xl border-3 p-3 transition-colors duration-150 flex flex-col justify-between ${
                                   item.isChecked
-                                      ? 'border-[#95D151] bg-[#F9FEF8] shadow-xs'
+                                      ? 'border-[#95D151] dark:border-emerald-600 bg-[#F9FEF8] dark:bg-emerald-950/20 shadow-xs'
                                       : item.status === 'unmatched'
-                                          ? 'border-rose-300 bg-rose-50/50'
+                                          ? 'border-rose-300 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/20'
                                           : isAlready
-                                              ? 'border-slate-300 bg-slate-50/70 opacity-90'
-                                              : 'border-[#E6EEF8] bg-white opacity-80'
+                                              ? 'border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 opacity-90'
+                                              : 'border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800/90 opacity-80'
                               }`}
                           >
                             {/* Top Row: Checkbox + Index */}
@@ -1041,7 +1043,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                     onChange={() => handleToggleCheck(item.index)}
                                     className="w-4 h-4 rounded text-[#95D151] accent-[#95D151] cursor-pointer"
                                 />
-                                <span className="text-[10px] font-mono font-black text-slate-500">
+                                <span className="text-[10px] font-mono font-black text-slate-500 dark:text-slate-400">
                             检测图位 #{item.index + 1}
                           </span>
                               </label>
@@ -1051,16 +1053,16 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                   <span
                                       className={`text-[9px] font-mono font-black px-1.5 py-0.2 rounded-md ${
                                           item.isManuallyEdited
-                                              ? 'bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2]'
+                                              ? 'bg-[#EBF4FE] dark:bg-sky-950/60 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800'
                                               : isHighScore
-                                                  ? 'bg-[#E1F7DB] text-[#2D6613]'
-                                                  : 'bg-[#FEF9E6] text-[#854D0E]'
+                                                  ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300'
+                                                  : 'bg-[#FEF9E6] dark:bg-amber-950/60 text-[#854D0E] dark:text-amber-300'
                                       }`}
                                   >
                             {item.isManuallyEdited ? '已选定' : `Top 1: ${scorePercent}%`}
                           </span>
                               ) : (
-                                  <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-rose-100 text-rose-700">
+                                  <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300">
                             未匹配
                           </span>
                               )}
@@ -1068,7 +1070,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
                             {/* Main Selected Pet Display */}
                             <div className="flex flex-col items-center text-center my-1">
-                              <div className="relative w-16 h-16 rounded-xl bg-white p-1 border border-[#E6EEF8] shadow-inner flex items-center justify-center">
+                              <div className="relative w-16 h-16 rounded-xl bg-white dark:bg-slate-900 p-1 border border-[#E6EEF8] dark:border-slate-700 shadow-inner flex items-center justify-center">
                                 {isMatched && item.matchedPet ? (
                                     <img
                                         src={item.view_url || item.matchedPet.url}
@@ -1081,12 +1083,13 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                         }}
                                     />
                                 ) : (
-                                    <HelpCircle className="w-8 h-8 text-rose-300" />
+                                    <HelpCircle className="w-8 h-8 text-rose-300 dark:text-rose-500" />
                                 )}
                                 <ElementBadges
                                     elements={item.matchedPet?.elements}
                                     className="absolute top-0.5 left-0.5 z-10"
                                     size="sm"
+                                    align="left"
                                 />
                                 {item.matchedPet?.id != null && (
                                     <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
@@ -1095,7 +1098,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                 )}
 
                                 {item.isChecked && isMatched && (
-                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white">
+                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white dark:border-slate-800">
                                       <Check className="w-3.5 h-3.5 stroke-[3]" />
                                     </div>
                                 )}
@@ -1104,11 +1107,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                               {/* Current Chosen Pet Name */}
                               <div className="mt-1.5 w-full">
                                 {isMatched && item.matchedPet ? (
-                                    <p className="text-xs font-black text-slate-800 truncate" title={displayName}>
+                                    <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate" title={displayName}>
                                       {displayName}
                                     </p>
                                 ) : (
-                                    <p className="text-[10px] text-rose-600 font-bold truncate" title={item.reason || '特征不匹配'}>
+                                    <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold truncate" title={item.reason || '特征不匹配'}>
                                       {item.reason || '未匹配到精灵'}
                                     </p>
                                 )}
@@ -1117,11 +1120,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                               {/* Match Confidence Progress Bar */}
                               {isMatched && (
                                   <div className="w-full mt-1.5 px-0.5">
-                                    <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 mb-0.5">
+                                    <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 dark:text-slate-400 mb-0.5">
                                       <span>当前匹配度</span>
-                                      <span className="font-black text-slate-600">{scorePercent}%</span>
+                                      <span className="font-black text-slate-600 dark:text-slate-300">{scorePercent}%</span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden p-[1px]">
+                                    <div className="w-full h-1.5 bg-slate-200/80 dark:bg-slate-700 rounded-full overflow-hidden p-[1px]">
                                       <div
                                           className={`h-full rounded-full transition-all duration-300 ${
                                               isHighScore
@@ -1140,12 +1143,12 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                               {isMatched && (
                                   <div className="mt-1.5 w-full">
                                     {isAlready ? (
-                                        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-black text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md border border-slate-300 w-full">
+                                        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-black text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/80 px-1.5 py-0.5 rounded-md border border-slate-300 dark:border-slate-600 w-full">
                                 已在图鉴中
                               </span>
                                     ) : (
-                                        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-black text-[#2D6613] bg-[#E1F7DB] px-1.5 py-0.5 rounded-md border border-[#95D151] w-full">
-                                <Sparkles className="w-2.5 h-2.5 text-[#2D6613]" />
+                                        <span className="inline-flex items-center justify-center gap-0.5 text-[10px] font-black text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-[#95D151] dark:border-emerald-700 w-full">
+                                <Sparkles className="w-2.5 h-2.5 text-[#2D6613] dark:text-emerald-300" />
                                 未遇见新宠
                               </span>
                                     )}
@@ -1155,10 +1158,10 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
                             {/* Candidates Prediction List (Top 1~5) */}
                             {item.candidates && item.candidates.length > 0 && (
-                                <div className="mt-2 pt-2 border-t border-slate-100/90 w-full space-y-1">
-                                  <div className="flex items-center justify-between text-[10px] font-black text-slate-500 mb-1 px-0.5">
+                                <div className="mt-2 pt-2 border-t border-slate-100/90 dark:border-slate-700/80 w-full space-y-1">
+                                  <div className="flex items-center justify-between text-[10px] font-black text-slate-500 dark:text-slate-400 mb-1 px-0.5">
                                     <span>所有预测候选 ({item.candidates.length})</span>
-                                    <span className="text-[9px] text-slate-400 font-normal">点击直接切换</span>
+                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-normal">点击直接切换</span>
                                   </div>
 
                                   <div className="space-y-1 max-h-64 overflow-y-auto pr-0.5 custom-scrollbar">
@@ -1175,9 +1178,9 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
                                       // Low-saturation, ultra-subtle color tint for progress bar according to confidence score
                                       const getProgressBarColor = (score: number) => {
-                                        if (score >= 0.8) return 'from-emerald-200/20 to-teal-200/25';
-                                        if (score >= 0.5) return 'from-amber-200/20 to-yellow-200/25';
-                                        return 'from-rose-200/20 to-orange-200/25';
+                                        if (score >= 0.8) return 'from-emerald-200/20 to-teal-200/25 dark:from-emerald-900/30 dark:to-teal-900/30';
+                                        if (score >= 0.5) return 'from-amber-200/20 to-yellow-200/25 dark:from-amber-900/30 dark:to-yellow-900/30';
+                                        return 'from-rose-200/20 to-orange-200/25 dark:from-rose-900/30 dark:to-orange-900/30';
                                       };
 
                                       return (
@@ -1190,8 +1193,8 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                               }}
                                               className={`relative overflow-hidden w-full p-1.5 rounded-xl border-2 text-left flex items-center justify-between gap-1.5 transition-colors duration-150 cursor-pointer group/cand ${
                                                   isSelectedCand
-                                                      ? 'bg-[#EEF6FF] border-[#7ABCF4] shadow-xs font-black'
-                                                      : 'bg-white/90 border-slate-200/80 hover:bg-[#F5F9FF] hover:border-[#BCD7F2] text-slate-700'
+                                                      ? 'bg-[#EEF6FF] dark:bg-slate-700 border-[#7ABCF4] dark:border-sky-500 shadow-xs font-black'
+                                                      : 'bg-white/90 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700 hover:bg-[#F5F9FF] dark:hover:bg-slate-700/60 hover:border-[#BCD7F2] dark:hover:border-slate-600 text-slate-700 dark:text-slate-200'
                                               }`}
                                               title={`点击切换为: ${candDisplayName} (置信度 ${candScorePercent}% · ${isCandAlready ? '已在图鉴中' : '未遇见新宠'})`}
                                           >
@@ -1205,12 +1208,12 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                     <span className={`text-[8px] font-mono font-black px-1 py-0.2 rounded shrink-0 ${
                                         candIdx === 0
                                             ? 'bg-[#FEE061] text-[#854D0E]'
-                                            : 'bg-slate-200 text-slate-600'
+                                            : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                                     }`}>
                                       #{candIdx + 1}
                                     </span>
 
-                                              <div className="w-5 h-5 rounded-md bg-white border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                                              <div className="w-5 h-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
                                                 <img
                                                     src={cand.view_url || cand.matchedPet?.url}
                                                     alt={candDisplayName}
@@ -1219,29 +1222,29 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                               </div>
 
                                               <span className="text-[11px] truncate flex-1 font-bold">
-                                      {candDisplayName}
-                                    </span>
+                                       {candDisplayName}
+                                     </span>
                                             </div>
 
                                             <div className="relative z-10 flex items-center gap-1 shrink-0">
                                               {/* In-Dex Encountered Status Pill */}
                                               {isCandAlready ? (
-                                                  <span className="text-[8px] font-black px-1 py-0.2 rounded bg-slate-100/90 text-slate-500 border border-slate-200/80 shadow-2xs backdrop-blur-2xs">
-                                        已在图鉴
-                                      </span>
+                                                  <span className="text-[8px] font-black px-1 py-0.2 rounded bg-slate-100/90 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200/80 dark:border-slate-600 shadow-2xs backdrop-blur-2xs">
+                                         已在图鉴
+                                       </span>
                                               ) : (
-                                                  <span className="text-[8px] font-black px-1 py-0.2 rounded bg-[#E1F7DB]/95 text-[#2D6613] border border-[#95D151] shadow-2xs backdrop-blur-2xs">
-                                        未遇见
-                                      </span>
+                                                  <span className="text-[8px] font-black px-1 py-0.2 rounded bg-[#E1F7DB]/95 dark:bg-emerald-950/80 text-[#2D6613] dark:text-emerald-300 border border-[#95D151] dark:border-emerald-700 shadow-2xs backdrop-blur-2xs">
+                                         未遇见
+                                       </span>
                                               )}
 
-                                              <span className="text-[9px] font-mono font-black text-slate-600">
-                                      {candScorePercent}%
-                                    </span>
+                                              <span className="text-[9px] font-mono font-black text-slate-600 dark:text-slate-300">
+                                       {candScorePercent}%
+                                     </span>
                                               {isSelectedCand && (
                                                   <span className="text-[8px] px-1 py-0.2 bg-[#7ABCF4] text-white rounded font-black shadow-2xs">
-                                        当前
-                                      </span>
+                                         当前
+                                       </span>
                                               )}
                                             </div>
                                           </button>
@@ -1252,11 +1255,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                             )}
 
                             {/* Bottom Quick Modify Button */}
-                            <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                            <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-1">
                               <button
                                   type="button"
                                   onClick={() => handleOpenPicker(item.index)}
-                                  className="w-full py-1 px-2 rounded-lg bg-[#F5F9FF] hover:bg-[#EBF4FE] border border-[#D5E2F0] text-[10px] font-black text-[#2B78C4] hover:text-[#1D5E9E] flex items-center justify-center gap-1 transition-all cursor-pointer"
+                                  className="w-full py-1 px-2 rounded-lg bg-[#F5F9FF] dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 border border-[#D5E2F0] dark:border-slate-700 text-[10px] font-black text-[#2B78C4] dark:text-sky-300 hover:text-[#1D5E9E] dark:hover:text-sky-200 flex items-center justify-center gap-1 transition-all cursor-pointer"
                               >
                                 <Edit3 className="w-3 h-3" />
                                 <span>手动搜索指定其他精灵</span>
@@ -1271,11 +1274,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
           </div>
 
           {/* Sticky Bottom Action Bar */}
-          <div className="bg-slate-50 border-t-2 border-[#E6EEF8] p-4 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-            <div className="text-xs sm:text-sm text-slate-600 flex items-center gap-2">
+          <div className="bg-slate-50 dark:bg-slate-900 border-t-2 border-[#E6EEF8] dark:border-slate-800 p-4 px-6 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-[#95D151]" />
               <span>
-              已选入 <strong className="text-[#2D6613] text-sm sm:text-base font-black">{checkedCount}</strong> 只精灵
+              已选入 <strong className="text-[#2D6613] dark:text-emerald-400 text-sm sm:text-base font-black">{checkedCount}</strong> 只精灵
               （将点亮写入【{targetMap.name}】的图鉴中）
             </span>
             </div>
@@ -1284,16 +1287,16 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
               <button
                   type="button"
                   onClick={handleSelectOnlyUnencountered}
-                  className="px-3 py-2 rounded-xl bg-[#E1F7DB] hover:bg-[#D3F3CA] border border-[#95D151] text-xs font-black text-[#2D6613] flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="px-3 py-2 rounded-xl bg-[#E1F7DB] dark:bg-emerald-950/60 hover:bg-[#D3F3CA] dark:hover:bg-emerald-900/60 border border-[#95D151] dark:border-emerald-700 text-xs font-black text-[#2D6613] dark:text-emerald-300 flex items-center gap-1.5 cursor-pointer shadow-2xs"
                   title="仅勾选之前未遇见的全新精灵"
               >
-                <Sparkle className="w-3.5 h-3.5 text-[#2D6613]" />
+                <Sparkle className="w-3.5 h-3.5 text-[#2D6613] dark:text-emerald-300" />
                 <span>选【未遇见】</span>
               </button>
               <button
                   type="button"
                   onClick={() => handleSelectAll(true)}
-                  className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-[#D5E2F0] text-xs font-black text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-[#D5E2F0] dark:border-slate-700 text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <CheckSquare className="w-3.5 h-3.5 text-[#95D151]" />
                 <span>全选</span>
@@ -1301,9 +1304,9 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
               <button
                   type="button"
                   onClick={() => handleSelectAll(false)}
-                  className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-[#D5E2F0] text-xs font-black text-slate-700 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-[#D5E2F0] dark:border-slate-700 text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
-                <Square className="w-3.5 h-3.5 text-slate-400" />
+                <Square className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                 <span>全不选</span>
               </button>
 
@@ -1312,7 +1315,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                     sound.playClick();
                     onClose();
                   }}
-                  className="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-600 text-xs font-black hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-black hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 取消
               </button>
@@ -1377,20 +1380,20 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                   onClick={() => setEditingItemIndex(null)}
               >
                 <div
-                    className="relative w-full max-w-lg bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-5 max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-150"
+                    className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl p-5 max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-150"
                     onClick={(e) => e.stopPropagation()}
                 >
                   {/* Header */}
-                  <div className="flex items-center justify-between pb-3 border-b-2 border-[#E6EEF8]">
+                  <div className="flex items-center justify-between pb-3 border-b-2 border-[#E6EEF8] dark:border-slate-800">
                     <div className="flex items-center gap-2">
-                      <Edit3 className="w-5 h-5 text-[#7ABCF4]" />
-                      <h4 className="text-base font-black text-slate-800">
+                      <Edit3 className="w-5 h-5 text-[#7ABCF4] dark:text-sky-400" />
+                      <h4 className="text-base font-black text-slate-800 dark:text-slate-100">
                         手动纠错：为 #{editingItemIndex + 1} 选择正确精灵
                       </h4>
                     </div>
                     <button
                         onClick={() => setEditingItemIndex(null)}
-                        className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
+                        className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -1398,13 +1401,13 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
                   {/* Search */}
                   <div className="mt-3 relative">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                         type="text"
                         value={pickerSearch}
                         onChange={(e) => setPickerSearch(e.target.value)}
                         placeholder="搜索精灵名、图鉴id..."
-                        className="w-full pl-9 pr-4 py-2 text-xs bg-[#F5F9FF] border-2 border-[#E6EEF8] rounded-xl outline-hidden focus:border-[#7ABCF4] focus:bg-white text-slate-800 font-medium"
+                        className="w-full pl-9 pr-4 py-2 text-xs bg-[#F5F9FF] dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 rounded-xl outline-hidden focus:border-[#7ABCF4] focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium"
                     />
                   </div>
 
@@ -1428,11 +1431,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                   onClick={() => handleApplyPetCorrection(pet)}
                                   className={`p-2 rounded-2xl border-2 hover:shadow-xs flex flex-col items-center text-center transition-all group cursor-pointer ${
                                       isAlready
-                                          ? 'border-slate-300 bg-slate-50 hover:bg-white hover:border-[#7ABCF4]'
-                                          : 'border-[#E6EEF8] bg-[#F5F9FF] hover:bg-white hover:border-[#7ABCF4]'
+                                          ? 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 hover:border-[#7ABCF4]'
+                                          : 'border-[#E6EEF8] dark:border-slate-700 bg-[#F5F9FF] dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-700 hover:border-[#7ABCF4]'
                                   }`}
                               >
-                                <div className="relative w-14 h-14 rounded-xl bg-white p-1 flex items-center justify-center border border-[#E6EEF8] shadow-inner group-hover:scale-105 transition-transform">
+                                <div className="relative w-14 h-14 rounded-xl bg-white dark:bg-slate-900 p-1 flex items-center justify-center border border-[#E6EEF8] dark:border-slate-700 shadow-inner group-hover:scale-105 transition-transform">
                                   <img
                                       src={pet.url}
                                       alt={cleanPetName}
@@ -1444,11 +1447,11 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                       </span>
                                   )}
                                 </div>
-                                <p className="mt-1.5 text-xs font-black text-slate-800 truncate w-full" title={cleanPetName}>
+                                <p className="mt-1.5 text-xs font-black text-slate-800 dark:text-slate-100 truncate w-full" title={cleanPetName}>
                                   {cleanPetName}
                                 </p>
                                 {isAlready && (
-                                    <span className="mt-1 text-[9px] text-slate-500 font-bold bg-white px-1.5 py-0.2 rounded border border-slate-200">
+                                    <span className="mt-1 text-[9px] text-slate-500 dark:text-slate-400 font-bold bg-white dark:bg-slate-700 px-1.5 py-0.2 rounded border border-slate-200 dark:border-slate-600">
                             已在图鉴中
                           </span>
                                 )}
@@ -1466,31 +1469,31 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                   onClick={() => setIsHelpOpen(false)}
               >
                 <div
-                    className="relative w-full max-w-xl bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-6 space-y-4"
+                    className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl p-6 space-y-4"
                     onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between pb-3 border-b-2 border-[#E6EEF8]">
+                  <div className="flex items-center justify-between pb-3 border-b-2 border-[#E6EEF8] dark:border-slate-800">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-xl bg-[#FEE061] text-[#854D0E] flex items-center justify-center font-black">
                         <Layers className="w-4 h-4 text-[#854D0E]" />
                       </div>
-                      <h3 className="text-base font-black text-slate-800">
+                      <h3 className="text-base font-black text-slate-800 dark:text-slate-100">
                         图鉴批量初始化 · 使用帮助与截图示范
                       </h3>
                     </div>
                     <button
                         onClick={() => setIsHelpOpen(false)}
-                        className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer"
+                        className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="space-y-3 text-xs text-slate-600 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
+                  <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
                     {/* 推荐用图与截图示范 (整页图鉴) */}
-                    <div className="p-3.5 bg-gradient-to-br from-[#FEF9E6] to-[#FFF7D6] rounded-2xl border-2 border-[#FEE061] space-y-2.5">
+                    <div className="p-3.5 bg-gradient-to-br from-[#FEF9E6] to-[#FFF7D6] dark:from-amber-950/40 dark:to-amber-900/30 rounded-2xl border-2 border-[#FEE061] dark:border-amber-700/60 space-y-2.5">
                       <div className="flex items-center justify-between">
-                        <p className="font-black text-[#854D0E] flex items-center gap-1.5 text-xs">
+                        <p className="font-black text-[#854D0E] dark:text-amber-300 flex items-center gap-1.5 text-xs">
                           <span>🎯 推荐截图示范（整页图鉴批量初始化）</span>
                         </p>
                         <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#F59E0B] text-white shadow-2xs">
@@ -1498,13 +1501,13 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                     </span>
                       </div>
 
-                      <p className="text-[11px] text-[#78350F]">
+                      <p className="text-[11px] text-[#78350F] dark:text-amber-200">
                         直接截取游戏内精灵图鉴多只精灵网格区域（包含<strong>圆框精灵头像</strong>），如下方图示：
                       </p>
 
                       {/* 模拟游戏图鉴整页截图示范 (与用户提供的 init_batch.png 高度一致的网格展示) */}
-                      <div className="relative rounded-xl overflow-hidden border-2 border-dashed border-[#D97706] bg-[#ECE5D8] p-3 shadow-inner">
-                        <div className="absolute top-1.5 right-2 text-[9px] font-black text-amber-900 bg-amber-200/90 px-2 py-0.5 rounded-md border border-amber-400 shadow-2xs">
+                      <div className="relative rounded-xl overflow-hidden border-2 border-dashed border-[#D97706] dark:border-amber-600 bg-[#ECE5D8] dark:bg-stone-900 p-3 shadow-inner">
+                        <div className="absolute top-1.5 right-2 text-[9px] font-black text-amber-900 dark:text-amber-200 bg-amber-200/90 dark:bg-amber-950/90 px-2 py-0.5 rounded-md border border-amber-400 dark:border-amber-700 shadow-2xs">
                           ✂️ 推荐截取整页网格区域（单张识别 10~20+ 只）
                         </div>
 
@@ -1555,22 +1558,22 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                         </div>
                       </div>
 
-                      <p className="text-[10px] text-[#92400E] font-medium leading-normal">
+                      <p className="text-[10px] text-[#92400E] dark:text-amber-400 font-medium leading-normal">
                         💡 提示：无需单只裁切，一次性截取包含整页或多排精灵的图鉴画面，系统即可全景分割并批量录入！
                       </p>
                     </div>
 
-                    <div className="p-3 bg-[#F5F9FF] rounded-2xl border border-[#D5E2F0] space-y-1.5">
-                      <p className="font-black text-[#2B78C4] flex items-center gap-1">
+                    <div className="p-3 bg-[#F5F9FF] dark:bg-slate-800/80 rounded-2xl border border-[#D5E2F0] dark:border-slate-700 space-y-1.5">
+                      <p className="font-black text-[#2B78C4] dark:text-sky-400 flex items-center gap-1">
                         <span>📸 1. 快捷截图与秒速粘贴</span>
                       </p>
                       <p>
-                        在游戏图鉴界面按快捷键截取整页网格后，<strong>无需保存文件</strong>，直接在此弹窗按 <strong className="text-slate-800 font-mono">Ctrl + V</strong> (或 Cmd+V) 即可秒速载入并触发本地全景识别！
+                        在游戏图鉴界面按快捷键截取整页网格后，<strong>无需保存文件</strong>，直接在此弹窗按 <strong className="text-slate-800 dark:text-slate-200 font-mono">Ctrl + V</strong> (或 Cmd+V) 即可秒速载入并触发本地全景识别！
                       </p>
                     </div>
 
-                    <div className="p-3 bg-[#F4FDF0] rounded-2xl border border-[#95D151]/40 space-y-1.5">
-                      <p className="font-black text-[#2D6613] flex items-center gap-1">
+                    <div className="p-3 bg-[#F4FDF0] dark:bg-emerald-950/40 rounded-2xl border border-[#95D151]/40 dark:border-emerald-800/50 space-y-1.5">
+                      <p className="font-black text-[#2D6613] dark:text-emerald-400 flex items-center gap-1">
                         <span>✨ 2. 自动标记已点亮图鉴</span>
                       </p>
                       <p>
@@ -1580,8 +1583,8 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                       </p>
                     </div>
 
-                    <div className="p-3 bg-[#FEF9E6] rounded-2xl border border-[#FEE061] space-y-1.5">
-                      <p className="font-black text-[#854D0E] flex items-center gap-1">
+                    <div className="p-3 bg-[#FEF9E6] dark:bg-amber-950/40 rounded-2xl border border-[#FEE061] dark:border-amber-800/50 space-y-1.5">
+                      <p className="font-black text-[#854D0E] dark:text-amber-400 flex items-center gap-1">
                         <span>🔍 3. 智能纠错与一键保存</span>
                       </p>
                       <p>

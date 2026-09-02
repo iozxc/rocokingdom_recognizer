@@ -227,10 +227,11 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
   return (
       <div
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/65 backdrop-blur-xs overflow-y-auto"
+          onWheel={(e) => e.stopPropagation()}
           onClick={onClose}
       >
         <div
-            className="relative w-full max-w-4xl lg:max-w-5xl bg-white rounded-3xl border-4 border-[#95D151] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+            className="relative w-full max-w-4xl lg:max-w-5xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#95D151] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -264,13 +265,14 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
           </div>
 
           {/* Scrollable Body */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 bg-slate-50/50 dark:bg-slate-900/90">
             {/* Target Map Selector & Settings Toolbar */}
-            <div className="p-3.5 bg-[#F5F9FF] rounded-2xl border-2 border-[#E6EEF8] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-black text-slate-700">目标地图:</span>
+            <div className="p-3.5 bg-[#F5F9FF] dark:bg-slate-800 rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-full">
+                <span className="text-xs font-black text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0">目标地图:</span>
                 {MAP_CONFIGS.map((map) => {
                   const isSelected = selectedMapNum === map.num;
+                  const shortName = map.name.replace('记忆中的', '').replace('草原', '');
                   return (
                       <button
                           key={map.id}
@@ -278,21 +280,21 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                             sound.playClick();
                             setSelectedMapNum(map.num);
                           }}
-                          className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer border ${
+                          className={`px-2.5 sm:px-3 py-1 rounded-xl text-[11px] sm:text-xs font-black transition-all cursor-pointer border whitespace-nowrap shrink-0 ${
                               isSelected
                                   ? 'bg-[#95D151] text-white border-[#76B032] shadow-xs'
-                                  : 'bg-white text-slate-600 border-slate-200 hover:border-[#95D151]'
+                                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#95D151]'
                           }`}
                       >
-                        {map.num}、{map.name.replace('记忆中的', '')}
+                        {map.num}、{shortName}
                       </button>
                   );
                 })}
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 bg-white border border-[#D5E2F0] p-0.5 rounded-xl">
-                <span className="text-[11px] font-black text-slate-500 px-1.5 hidden sm:inline">
+                <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-[#D5E2F0] dark:border-slate-700 p-0.5 rounded-xl">
+                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 px-1.5 hidden sm:inline">
                   候选数:
                 </span>
                   {[1, 2, 3, 4, 5, 6].map((k) => (
@@ -303,7 +305,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                           className={`px-2 py-0.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
                               topK === k
                                   ? 'bg-[#95D151] text-white shadow-2xs'
-                                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700'
                           }`}
                       >
                         Top-{k}
@@ -314,7 +316,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                 <button
                     type="button"
                     onClick={() => setShowThresholdSettings(!showThresholdSettings)}
-                    className="text-xs font-black text-[#2D6613] bg-white border border-[#D5E2F0] px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-black text-[#2D6613] dark:text-emerald-300 bg-white dark:bg-slate-800 border border-[#D5E2F0] dark:border-slate-700 px-2.5 py-1 rounded-xl transition-all flex items-center gap-1 cursor-pointer"
                 >
                   <Sliders className="w-3.5 h-3.5 text-[#95D151]" />
                   <span>门槛 ({Math.round(threshold * 100)}%)</span>
@@ -324,11 +326,11 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
 
             {/* Collapsible Threshold Panel */}
             {showThresholdSettings && (
-                <div className="p-3 bg-[#F9FEF8] rounded-2xl border border-[#95D151]/40 flex items-center justify-between gap-3 text-xs">
+                <div className="p-3 bg-[#F9FEF8] dark:bg-slate-800 rounded-2xl border border-[#95D151]/40 dark:border-emerald-700/40 flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2">
                     <Sliders className="w-4 h-4 text-[#95D151]" />
-                    <span className="font-black text-slate-700">识别门槛:</span>
-                    <span className="font-mono font-black text-[#2D6613]">{Math.round(threshold * 100)}%</span>
+                    <span className="font-black text-slate-700 dark:text-slate-200">识别门槛:</span>
+                    <span className="font-mono font-black text-[#2D6613] dark:text-emerald-300">{Math.round(threshold * 100)}%</span>
                   </div>
                   <input
                       type="range"
@@ -341,7 +343,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                         setThreshold(val);
                         storage.setThreshold('predict_threshold', val);
                       }}
-                      className="w-40 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#95D151]"
+                      className="w-40 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#95D151]"
                   />
                 </div>
             )}
@@ -350,14 +352,14 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
               {/* Left Col: Upload */}
               <div className="lg:col-span-5 flex flex-col gap-3">
-                <div className="rounded-3xl border-2 border-[#E6EEF8] bg-[#F8FAFC] p-4 flex flex-col gap-3 shadow-xs">
+                <div className="rounded-3xl border-2 border-[#E6EEF8] dark:border-slate-700 bg-[#F8FAFC] dark:bg-slate-800/90 p-4 flex flex-col gap-3 shadow-xs">
                   <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                  <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                     <UploadCloud className="w-4 h-4 text-[#95D151]" />
                     待识别精灵图片
                   </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-slate-400 font-medium">支持 Ctrl+V 直接粘贴</span>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium">支持 Ctrl+V 直接粘贴</span>
                       <RecognitionSamplesHint onLoadSample={handleFileSelected} count={3} />
                     </div>
                   </div>
@@ -372,10 +374,10 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                       onClick={() => fileInputRef.current?.click()}
                       className={`relative border-3 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[170px] ${
                           isDragOver
-                              ? 'border-[#95D151] bg-[#F4FDF0] scale-[1.01]'
+                              ? 'border-[#95D151] bg-[#F4FDF0] dark:bg-emerald-950/40 scale-[1.01]'
                               : previewUrl
-                                  ? 'border-[#95D151] bg-white'
-                                  : 'border-[#BCD7F2] bg-white hover:bg-[#F5F9FF] hover:border-[#95D151]'
+                                  ? 'border-[#95D151] bg-white dark:bg-slate-800'
+                                  : 'border-[#BCD7F2] dark:border-slate-600 bg-white dark:bg-slate-900 hover:bg-[#F5F9FF] dark:hover:bg-slate-800 hover:border-[#95D151]'
                       }`}
                   >
                     <input
@@ -398,12 +400,12 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                                 e.stopPropagation();
                                 handleClear();
                               }}
-                              className="absolute -top-2 -right-2 z-10 w-7 h-7 rounded-full bg-white hover:bg-rose-500 hover:text-white text-slate-500 border-2 border-slate-200 hover:border-rose-600 flex items-center justify-center transition-all shadow-md cursor-pointer"
+                              className="absolute -top-2 -right-2 z-10 w-7 h-7 rounded-full bg-white dark:bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-500 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-700 hover:border-rose-600 flex items-center justify-center transition-all shadow-md cursor-pointer"
                               title="移除当前图片"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                          <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-white shadow-sm border-2 border-[#95D151] p-1.5 flex items-center justify-center">
+                          <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm border-2 border-[#95D151] p-1.5 flex items-center justify-center">
                             <img
                                 src={previewUrl}
                                 alt="待识别精灵"
@@ -412,24 +414,24 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                             {isPredicting && <div className="magic-scan-line" />}
                           </div>
                           <div className="text-center w-full px-2">
-                            <p className="text-xs font-black text-slate-800 truncate">
+                            <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">
                               {selectedFile ? selectedFile.name : '已载入精灵图片'}
                             </p>
-                            <p className="text-[11px] text-[#2D6613] font-bold hover:underline mt-0.5">
+                            <p className="text-[11px] text-[#2D6613] dark:text-emerald-400 font-bold hover:underline mt-0.5">
                               点击重新导入或更换图片
                             </p>
                           </div>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center gap-2 py-4">
-                          <div className="w-12 h-12 rounded-2xl bg-[#F0F7FF] text-[#95D151] flex items-center justify-center shadow-xs border border-[#E6EEF8]">
+                          <div className="w-12 h-12 rounded-2xl bg-[#F0F7FF] dark:bg-slate-800 text-[#95D151] flex items-center justify-center shadow-xs border border-[#E6EEF8] dark:border-slate-700">
                             <UploadCloud className="w-6 h-6" />
                           </div>
                           <div>
-                            <p className="text-xs sm:text-sm font-black text-slate-700">
+                            <p className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">
                               点击或拖拽载入精灵截图
                             </p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">
+                            <p className="text-[11px] text-slate-400 dark:text-slate-400 mt-0.5">
                               本地 AI 离线推理 · 支持截图后 Ctrl+V 快速粘贴
                             </p>
                           </div>
@@ -442,7 +444,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                         <button
                             type="button"
                             onClick={handleClear}
-                            className="py-2.5 px-3 rounded-xl border-2 border-[#CBD5E1] bg-white hover:bg-slate-50 text-slate-600 hover:text-rose-600 text-xs font-black transition-all flex items-center justify-center gap-1 shadow-2xs shrink-0 cursor-pointer"
+                            className="py-2.5 px-3 rounded-xl border-2 border-[#CBD5E1] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-rose-600 text-xs font-black transition-all flex items-center justify-center gap-1 shadow-2xs shrink-0 cursor-pointer"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
                           <span>清空</span>
@@ -474,10 +476,10 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
 
               {/* Right Col: Prediction Result */}
               <div className="lg:col-span-7 flex flex-col">
-                <div className="rounded-3xl border-3 border-[#E6EEF8] bg-[#FDF9F3] p-5 flex flex-col justify-between shadow-xs">
+                <div className="rounded-3xl border-3 border-[#E6EEF8] dark:border-slate-700 bg-[#FDF9F3] dark:bg-slate-800/90 p-5 flex flex-col justify-between shadow-xs">
                   <div>
-                    <div className="flex items-center justify-between pb-3 border-b-2 border-[#E6EEF8] gap-2 flex-wrap">
-                    <span className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                    <div className="flex items-center justify-between pb-3 border-b-2 border-[#E6EEF8] dark:border-slate-700 gap-2 flex-wrap">
+                    <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                       <Compass className="w-4 h-4 text-[#95D151]" />
                       匹配结果 {candidatesList.length > 0 && `(前 ${candidatesList.length} 个候选)`}
                     </span>
@@ -485,12 +487,12 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                       {activeCandidate && (
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {currentPetAlreadyEncountered ? (
-                                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-lg border-2 bg-[#E1F7DB] text-[#2D6613] border-[#95D151] flex items-center gap-1">
+                                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-lg border-2 bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#95D151] flex items-center gap-1">
                             <Check className="w-3 h-3 stroke-[3]" />
                             此前已遇过
                           </span>
                             ) : (
-                                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-lg border-2 bg-amber-100 text-amber-900 border-amber-300 flex items-center gap-1">
+                                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-lg border-2 bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 border-amber-300 flex items-center gap-1">
                             <Sparkle className="w-3 h-3 text-amber-600" />
                             未遇见 (新)
                           </span>
@@ -518,20 +520,20 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                     {isPredicting ? (
                         <div className="py-14 flex flex-col items-center justify-center text-center">
                           <div className="relative w-14 h-14 rounded-full border-4 border-slate-200 border-t-[#95D151] animate-spin mb-3" />
-                          <p className="text-sm font-black text-slate-700">正在智能分析精灵特征...</p>
-                          <p className="text-xs text-slate-400 mt-1">
+                          <p className="text-sm font-black text-slate-700 dark:text-slate-200">正在智能分析精灵特征...</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-400 mt-1">
                             正在比对【{targetMap.name}】并计算前 {topK} 个高置信度候选
                           </p>
                         </div>
                     ) : activeCandidate ? (
                         <div className="mt-3.5 space-y-3.5">
-                          <div className={`p-4 bg-white rounded-2xl border-2 shadow-xs transition-all ${
+                          <div className={`p-4 bg-white dark:bg-slate-800 rounded-2xl border-2 dark:border-slate-700 shadow-xs transition-all ${
                               currentPetAlreadyEncountered
-                                  ? 'border-[#95D151]/50 bg-gradient-to-r from-white to-[#F9FEF8]'
-                                  : 'border-[#BCD7F2] bg-gradient-to-r from-white to-[#FFFDF5]'
+                                  ? 'border-[#95D151]/50 bg-gradient-to-r from-white dark:from-slate-800 to-[#F9FEF8] dark:to-slate-800'
+                                  : 'border-[#BCD7F2] dark:border-slate-700 bg-gradient-to-r from-white dark:from-slate-800 to-[#FFFDF5] dark:to-slate-800'
                           }`}>
                             <div className="flex items-center gap-4">
-                              <div className="relative w-20 h-20 rounded-2xl bg-[#F5F9FF] border-2 border-[#E6EEF8] p-1.5 flex items-center justify-center shrink-0">
+                              <div className="relative w-20 h-20 rounded-2xl bg-[#F5F9FF] dark:bg-slate-900 border-2 border-[#E6EEF8] dark:border-slate-700 p-1.5 flex items-center justify-center shrink-0">
                                 <img
                                     src={activeCandidate.view_url || activeCandidate.matchedPet?.url}
                                     alt={activeCandidate.filename}
@@ -564,25 +566,25 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                               <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                                   selectedCandidateIndex === 0
                                       ? 'bg-amber-400 text-amber-950 border border-amber-500'
-                                      : 'bg-slate-100 text-slate-700 border border-slate-300'
+                                      : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600'
                               }`}>
                                 #{selectedCandidateIndex + 1} {selectedCandidateIndex === 0 ? '最佳推荐' : '备选候选'}
                               </span>
-                                  <h4 className="text-base font-black text-slate-800 truncate">
+                                  <h4 className="text-base font-black text-slate-800 dark:text-slate-100 truncate">
                                     {formatPetName(activeCandidate.matchedPet?.name || activeCandidate.filename)}
                                   </h4>
                                 </div>
 
                                 <div className="mt-2">
                                   <div className="flex items-center justify-between text-xs font-black mb-1">
-                                    <span className="text-slate-500">匹配置信度:</span>
+                                    <span className="text-slate-500 dark:text-slate-400">匹配置信度:</span>
                                     <span className={`font-mono text-sm font-black ${
-                                        isHighConfidence ? 'text-[#2D6613]' : isMediumConfidence ? 'text-[#854D0E]' : 'text-rose-600'
+                                        isHighConfidence ? 'text-[#2D6613] dark:text-emerald-400' : isMediumConfidence ? 'text-[#854D0E] dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
                                     }`}>
                                   {confidencePercentage}%
                                 </span>
                                   </div>
-                                  <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden p-0.5">
+                                  <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden p-0.5">
                                     <div
                                         className={`h-full rounded-full transition-all duration-500 ${
                                             isHighConfidence ? 'bg-[#95D151]' : isMediumConfidence ? 'bg-[#FEE061]' : 'bg-rose-500'
@@ -599,7 +601,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                           {candidatesList.length > 1 && (
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                            <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                               <Award className="w-3.5 h-3.5 text-amber-500" />
                               <span>Top-{candidatesList.length} 候选比对 (点击切换)</span>
                             </span>
@@ -620,13 +622,13 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                                             }}
                                             className={`p-2 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
                                                 isCandSelected
-                                                    ? 'bg-[#F4FDF0] border-[#95D151] shadow-xs'
-                                                    : 'bg-white border-[#E2E8F0] hover:border-[#95D151]'
+                                                    ? 'bg-[#F4FDF0] dark:bg-emerald-950/40 border-[#95D151] shadow-xs'
+                                                    : 'bg-white dark:bg-slate-800 border-[#E2E8F0] dark:border-slate-700 hover:border-[#95D151]'
                                             }`}
                                         >
                                           <div className="flex items-center justify-between gap-1 mb-1">
-                                            <span className="text-[10px] font-black text-slate-600">#{idx + 1}</span>
-                                            <span className="font-mono text-[11px] font-black text-slate-700">
+                                            <span className="text-[10px] font-black text-slate-600 dark:text-slate-300">#{idx + 1}</span>
+                                            <span className="font-mono text-[11px] font-black text-slate-700 dark:text-slate-200">
                                       {(cand.score * 100).toFixed(1)}%
                                     </span>
                                           </div>
@@ -634,13 +636,13 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                                             <img
                                                 src={cand.view_url || cand.matchedPet?.url}
                                                 alt={cand.filename}
-                                                className="w-8 h-8 rounded-lg object-contain bg-[#F5F9FF] border border-[#E2E8F0] p-0.5 shrink-0"
+                                                className="w-8 h-8 rounded-lg object-contain bg-[#F5F9FF] dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-700 p-0.5 shrink-0"
                                             />
                                             <div className="min-w-0 flex-1">
-                                              <p className="text-xs font-black text-slate-800 truncate">
+                                              <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">
                                                 {formatPetName(cand.matchedPet?.name || cand.filename)}
                                               </p>
-                                              <p className="text-[10px] text-slate-400 truncate">
+                                              <p className="text-[10px] text-slate-400 dark:text-slate-400 truncate">
                                                 {candEncountered ? '已在图鉴' : '未遇见'}
                                               </p>
                                             </div>
@@ -653,24 +655,24 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                           )}
                         </div>
                     ) : predictError ? (
-                        <div className="py-10 text-center text-rose-600 flex flex-col items-center">
+                        <div className="py-10 text-center text-rose-600 dark:text-rose-400 flex flex-col items-center">
                           <AlertCircle className="w-10 h-10 mb-2 text-rose-500" />
                           <p className="text-sm font-black">{predictError}</p>
                         </div>
                     ) : (
                         <div className="py-14 text-center text-slate-400 flex flex-col items-center">
-                          <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#E6EEF8] flex items-center justify-center text-slate-300 mb-2 shadow-2xs">
+                          <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-500 mb-2 shadow-2xs">
                             <Sparkles className="w-6 h-6 text-[#95D151]" />
                           </div>
-                          <p className="text-xs font-black text-slate-600">等待载入精灵截图</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">
+                          <p className="text-xs font-black text-slate-600 dark:text-slate-300">等待载入精灵截图</p>
+                          <p className="text-[11px] text-slate-400 dark:text-slate-400 mt-0.5">
                             本地 AI 离线推理 · 支持截图后在任意位置 Ctrl+V 直接粘贴识别
                           </p>
                         </div>
                     )}
                   </div>
 
-                  <div className="mt-5 pt-3.5 border-t-2 border-[#E6EEF8] grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="mt-5 pt-3.5 border-t-2 border-[#E6EEF8] dark:border-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                         disabled={!activeCandidate}
                         onClick={() => handleConfirmEncounter()}

@@ -12,11 +12,31 @@ interface UserAgreementModalProps {
 
 /** 设置里的“用户协议”查看弹窗（复用协议正文，仅供阅读）。 */
 export const UserAgreementModal: React.FC<UserAgreementModalProps> = ({ isOpen, onClose }) => {
+  React.useEffect(() => {
+    if (isOpen) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-      <div className="fixed inset-0 z-[4000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-        <div className="relative w-full max-w-lg max-h-[85vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col transition-colors">
+      <div
+          className="fixed inset-0 z-[4000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+          onWheel={(e) => e.stopPropagation()}
+          onClick={onClose}
+      >
+        <div
+            className="relative w-full max-w-lg max-h-[85vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col transition-colors"
+            onClick={(e) => e.stopPropagation()}
+        >
 
           {/* 顶部标题栏 */}
           <div className="px-5 py-3.5 bg-[#7ABCF4] dark:bg-slate-800 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">

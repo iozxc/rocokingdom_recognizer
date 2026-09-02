@@ -595,13 +595,14 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         <div className="mt-4 p-4 sm:p-5 bg-[#F5F9FF] dark:bg-slate-800/80 rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pb-3.5 border-b border-[#E2EAF4] dark:border-slate-700">
             {/* Target Map Selector */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-black text-slate-700 dark:text-slate-200 whitespace-nowrap">目标地图:</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-full">
+              <span className="text-xs font-black text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0">目标地图:</span>
               {MAP_CONFIGS.map((map) => {
                 const isSelected = selectedMapNum === map.num;
                 const mapPets = allMapsPets[`map${map.num}`]?.items || [];
                 const totalPets = mapPets.length || 0;
                 const encCount = mapPets.filter((p) => checkAlreadyEncountered(map.id, p.name)).length;
+                const shortName = map.name.replace('记忆中的', '').replace('草原', '');
 
                 return (
                     <button
@@ -611,13 +612,13 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           setSelectedMapNum(map.num);
                           if (onSelectMap) onSelectMap(map.num);
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border-2 cursor-pointer ${
+                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1 sm:gap-1.5 border-2 whitespace-nowrap shrink-0 cursor-pointer ${
                             isSelected
                                 ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs'
-                                : 'bg-white dark:bg-slate-750 text-slate-600 dark:text-slate-300 border-[#E2E8F0] dark:border-slate-700 hover:border-[#7ABCF4]'
+                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#E2E8F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500'
                         }`}
                     >
-                      <span>{map.num}、{map.name.replace('记忆中的', '')}</span>
+                      <span>{map.num}、{shortName}</span>
                       <span className={`text-[10px] font-mono ${isSelected ? 'text-white/90' : 'text-slate-400'}`}>
                         ({encCount}/{totalPets})
                       </span>
@@ -690,7 +691,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       className={`md:col-span-8 border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col sm:flex-row items-center justify-center gap-4 min-h-[140px] bg-white dark:bg-slate-800 ${
                           isDragOver
                               ? 'border-[#95D151] bg-[#F4FDF0] dark:bg-emerald-950/30 scale-[1.01]'
-                              : 'border-[#BCD7F2] dark:border-slate-700 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500'
+                              : 'border-[#BCD7F2] dark:border-slate-700 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500'
                       }`}
                   >
                     <div className="w-12 h-12 rounded-2xl bg-[#EBF4FE] dark:bg-slate-700 text-[#2B78C4] dark:text-sky-300 flex items-center justify-center border border-[#BCD7F2] dark:border-slate-600 shrink-0 shadow-2xs">
@@ -889,29 +890,29 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 onClick={() => setShowOriginalImageLightbox(false)}
             >
               <div
-                  className="relative max-w-[94vw] max-h-[92vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-3 sm:p-4 flex flex-col"
+                  className="relative max-w-[94vw] max-h-[92vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-sky-500 shadow-2xl p-3 sm:p-4 flex flex-col"
                   onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="px-2 py-0.5 rounded-md bg-[#7ABCF4] text-white text-xs font-black">
+                    <span className="px-2 py-0.5 rounded-md bg-[#7ABCF4] dark:bg-sky-600 text-white text-xs font-black">
                       高清全景原图
                     </span>
-                    <span className="text-xs font-bold text-slate-700 truncate">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
                       {selectedFile ? selectedFile.name : '游戏画面截图'}
                     </span>
                   </div>
                   <button
                       type="button"
                       onClick={() => setShowOriginalImageLightbox(false)}
-                      className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-black transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-black transition-colors cursor-pointer"
                       title="关闭 (Esc)"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="flex-1 overflow-auto flex items-center justify-center max-h-[82vh] rounded-2xl bg-slate-950/5 p-2">
+                <div className="flex-1 overflow-auto flex items-center justify-center max-h-[82vh] rounded-2xl bg-slate-950/5 dark:bg-slate-950/40 p-2">
                   <img
                       src={previewUrl}
                       alt="高清原图"
@@ -1226,8 +1227,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                             }}
                                             className={`relative overflow-hidden w-full p-1.5 rounded-xl border-2 text-left flex items-center justify-between gap-1.5 transition-colors duration-150 cursor-pointer group/cand ${
                                                 isSelectedCand
-                                                    ? 'bg-[#EEF6FF] dark:bg-slate-750 border-[#7ABCF4] dark:border-sky-500 shadow-xs font-black'
-                                                    : 'bg-white/90 dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700 hover:bg-[#F5F9FF] dark:hover:bg-slate-750 hover:border-[#BCD7F2] text-slate-700 dark:text-slate-200'
+                                                    ? 'bg-[#EEF6FF] dark:bg-slate-700 border-[#7ABCF4] dark:border-sky-500 shadow-xs font-black'
+                                                    : 'bg-white/90 dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700 hover:bg-[#F5F9FF] dark:hover:bg-slate-700 hover:border-[#BCD7F2] text-slate-700 dark:text-slate-200'
                                             }`}
                                             title={`点击切换为: ${candDisplayName} (置信度 ${candScorePercent}% · ${isCandAlready ? '已在图鉴中' : '未遇见新宠'})`}
                                         >

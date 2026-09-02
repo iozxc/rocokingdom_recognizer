@@ -96,7 +96,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                         sound.playClick();
                         if (onCycleMap) onCycleMap();
                     }}
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-white text-xs font-black shadow-xl shadow-slate-900/15 border-2 border-white transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-white text-xs font-black shadow-xl shadow-slate-900/15 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                     style={{ backgroundColor: currentMap.themeColor }}
                     title={`当前: ${currentMap.name} (${encounteredCount}/${totalCount}) - 点击切换到【${nextMap.name}】`}
                 >
@@ -265,7 +265,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                             className={`w-full min-w-[130px] px-3 py-1.5 rounded-xl text-xs font-black transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer ${
                                 filterMode === 'all'
                                     ? 'bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] text-white shadow-md shadow-sky-500/20'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-700/80'
                             }`}
                             title="显示所有精灵"
                         >
@@ -277,7 +277,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                 className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${
                                     filterMode === 'all'
                                         ? 'bg-white/25 text-white'
-                                        : 'bg-slate-100 text-slate-500'
+                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
                                 }`}
                             >
                 {totalCount}
@@ -295,7 +295,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                             className={`w-full min-w-[130px] px-3 py-1.5 rounded-xl text-xs font-black transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer ${
                                 filterMode === 'encountered'
                                     ? 'bg-gradient-to-r from-[#95D151] to-[#7CB342] text-white shadow-md shadow-emerald-500/20'
-                                    : 'text-[#2D6613] hover:bg-[#E1F7DB]/60'
+                                    : 'text-[#2D6613] dark:text-emerald-400 hover:bg-[#E1F7DB]/60 dark:hover:bg-emerald-950/40'
                             }`}
                             title="只查看已遇见的精灵"
                         >
@@ -307,7 +307,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                 className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${
                                     filterMode === 'encountered'
                                         ? 'bg-white/25 text-white font-black'
-                                        : 'bg-[#E1F7DB] text-[#2D6613]'
+                                        : 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300'
                                 }`}
                             >
                 {encounteredCount}
@@ -325,7 +325,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                             className={`w-full min-w-[130px] px-3 py-1.5 rounded-xl text-xs font-black transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer ${
                                 filterMode === 'unencountered'
                                     ? 'bg-gradient-to-r from-[#FEE061] to-[#F59E0B] text-[#854D0E] shadow-md shadow-amber-500/20'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-amber-50/70'
+                                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-amber-50/70 dark:hover:bg-amber-950/30'
                             }`}
                             title="只查看未遇见的精灵"
                         >
@@ -337,7 +337,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                 className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${
                                     filterMode === 'unencountered'
                                         ? 'bg-[#854D0E]/20 text-[#673B08] font-black'
-                                        : 'bg-amber-100 text-amber-800'
+                                        : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'
                                 }`}
                             >
                 {unencounteredCount}
@@ -357,7 +357,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                     className={`w-full min-w-[130px] px-3 py-1.5 rounded-xl text-xs font-black transition-all duration-200 flex items-center justify-between gap-2 cursor-pointer ${
                                         activeAdvancedCount > 0
                                             ? 'bg-gradient-to-r from-[#2B78C4] to-[#1D5E9E] text-white shadow-md shadow-blue-600/20'
-                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-700/80'
                                     }`}
                                     title="高级筛选 (属性系别与首领化/多形态)"
                                 >

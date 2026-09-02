@@ -82,6 +82,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   return (
       <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onWheel={(e) => e.stopPropagation()}
           onClick={onClose}
       >
         <div
@@ -122,7 +123,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                   type="button"
                   onClick={handleExport}
                   disabled={isExporting}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors cursor-pointer disabled:opacity-50"
               >
                 <div className="w-11 h-11 rounded-xl bg-[#95D151]/20 dark:bg-emerald-950/60 text-[#689F38] dark:text-emerald-400 flex items-center justify-center">
                   <Download className="w-5 h-5" />
@@ -138,7 +139,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
               <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors cursor-pointer"
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors cursor-pointer"
               >
                 <div className="w-11 h-11 rounded-xl bg-[#7ABCF4]/20 dark:bg-sky-950/60 text-[#2B78C4] dark:text-sky-400 flex items-center justify-center">
                   <Upload className="w-5 h-5" />

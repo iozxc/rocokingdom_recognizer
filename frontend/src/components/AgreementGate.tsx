@@ -76,14 +76,40 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const showOverlay = required === true && !accepted;
 
+  useEffect(() => {
+    if (showOverlay) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      const originalPaddingRight = document.body.style.paddingRight;
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+        document.body.style.paddingRight = originalPaddingRight;
+      };
+    }
+  }, [showOverlay]);
+
   return (
       <>
         {/* 应用本体始终渲染，协议以弹窗形式浮在其上（仅首次启动） */}
         {children}
 
         {showOverlay && (
-            <div className="fixed inset-0 z-[3000] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-[2px] select-none">
-              <div className="relative w-full max-w-lg max-h-[88vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col transition-colors">
+            <div
+                className="fixed inset-0 z-[3000] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-[2px] select-none"
+                onWheel={(e) => e.stopPropagation()}
+            >
+              <div
+                  className="relative w-full max-w-lg max-h-[88vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+              >
 
                 {/* 顶部标题栏 */}
                 <div className="px-4 py-3 bg-[#7ABCF4] dark:bg-slate-800 text-white flex items-center gap-2.5 border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">

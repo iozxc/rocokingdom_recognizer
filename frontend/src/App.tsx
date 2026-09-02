@@ -104,6 +104,43 @@ export default function App() {
   });
   const syncPopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const isAnyModalOpen = Boolean(
+    isSingleRecognizerOpen ||
+    isBatchInitOpen ||
+    isManualSelectOpen ||
+    isGlobalSearchOpen ||
+    isHistoryOpen ||
+    isManualOpen ||
+    isFeedbackOpen ||
+    isUpdateOpen ||
+    isDownloadOpen ||
+    isDataManageOpen ||
+    isDataUpdateOpen ||
+    isSettingsOpen ||
+    detailPet !== null
+  );
+
+  // 任意弹窗打开时，锁住底层页面滚动（防止在弹窗外滚动滚轮时背景首页错误滚动）
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      const originalPaddingRight = document.body.style.paddingRight;
+
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+      return () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+        document.body.style.paddingRight = originalPaddingRight;
+      };
+    }
+  }, [isAnyModalOpen]);
+
   // 未授权时锁定“识别”相关功能：点击弹“请授权，解锁更多功能”，不执行。
   const { locked } = useFeatureLock();
   const guardRecognition = useCallback((action: () => void) => {

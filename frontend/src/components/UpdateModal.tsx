@@ -263,20 +263,20 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                 {/* Content */}
                 <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
                     {isLoading ? (
-                        <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
-                            <RefreshCw className="w-8 h-8 animate-spin text-[#2B78C4]" />
+                        <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400">
+                            <RefreshCw className="w-8 h-8 animate-spin text-[#2B78C4] dark:text-sky-400" />
                             <p className="text-xs font-black">正在连接服务器检查更新中...</p>
                         </div>
                     ) : errorMsg ? (
-                        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                             <div className="text-xs">
-                                <p className="font-black text-rose-800">检查更新出错</p>
-                                <p className="text-rose-600 mt-1">{errorMsg}</p>
+                                <p className="font-black text-rose-800 dark:text-rose-200">检查更新出错</p>
+                                <p className="text-rose-600 dark:text-rose-300 mt-1">{errorMsg}</p>
                                 <button
                                     type="button"
                                     onClick={fetchUpdate}
-                                    className="mt-2 px-3 py-1 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 transition-colors cursor-pointer"
+                                    className="mt-2 px-3 py-1 bg-rose-600 dark:bg-rose-500 text-white font-bold rounded-lg hover:bg-rose-700 dark:hover:bg-rose-600 transition-colors cursor-pointer"
                                 >
                                     重新检查
                                 </button>
@@ -285,27 +285,27 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                     ) : hasChecked && updateData?.has_update ? (
                         <div className="space-y-4">
                             {/* Has update banner */}
-                            <div className="p-4 bg-gradient-to-r from-[#F0FDF4] to-[#ECFCCB] rounded-2xl border-2 border-[#86EFAC] flex items-center justify-between">
+                            <div className="p-4 bg-gradient-to-r from-[#F0FDF4] to-[#ECFCCB] dark:from-emerald-950/40 dark:to-lime-950/30 rounded-2xl border-2 border-[#86EFAC] dark:border-emerald-700 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-[#22C55E] text-white flex items-center justify-center shadow-xs">
+                                    <div className="w-10 h-10 rounded-2xl bg-[#22C55E] dark:bg-emerald-600 text-white flex items-center justify-center shadow-xs">
                                         <Sparkles className="w-5 h-5" />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-black text-slate-900">发现新版本</span>
+                                            <span className="text-sm font-black text-slate-900 dark:text-slate-100">发现新版本</span>
                                             <span className="text-xs font-black px-2 py-0.5 rounded-full bg-[#15803D] text-white font-mono shadow-2xs">
                         v{updateData.latest_version || '1.0.0'}
                       </span>
-                                            <span className="text-[11px] font-medium text-slate-500">
+                                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                                 当前 v{updateData.current_version || '未知'}
                                             </span>
                                             {(updateData.delta?.url || (updateData.deltas?.length ?? 0) > 0) && (
-                                                <span className="text-[11px] font-black px-1.5 py-0.5 rounded-md bg-[#E1F0FE] text-[#1E5B99] border border-[#BCD7F2]">
+                                                <span className="text-[11px] font-black px-1.5 py-0.5 rounded-md bg-[#E1F0FE] dark:bg-sky-950/70 text-[#1E5B99] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
                                                     增量更新
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-xs text-slate-600 mt-0.5">建议更新以获得最新图鉴识别支持与功能修复</p>
+                                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">建议更新以获得最新图鉴识别支持与功能修复</p>
                                     </div>
                                 </div>
                             </div>
@@ -337,13 +337,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 href={url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="p-3 bg-[#F0F6FC] dark:bg-slate-800 hover:bg-[#E1F0FE] dark:hover:bg-slate-750 border-2 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] dark:text-sky-300 transition-all group shadow-2xs cursor-pointer"
+                                                className="p-3 bg-[#F0F6FC] dark:bg-slate-800 hover:bg-[#E1F0FE] dark:hover:bg-slate-700 border-2 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] dark:text-sky-300 transition-all group shadow-2xs cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <Download className="w-4 h-4 text-[#2B78C4] dark:text-sky-400 group-hover:translate-y-0.5 transition-transform" />
                                                     <span>{name}</span>
                                                 </div>
-                                                <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#2B78C4] dark:group-hover:text-sky-400" />
+                                                <ExternalLink className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-[#2B78C4] dark:group-hover:text-sky-400" />
                                             </a>
                                         ))}
                                     </div>
@@ -354,7 +354,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                             <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border-2 border-[#BCD7F2] dark:border-slate-700 space-y-3.5 shadow-xs">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-lg bg-[#7ABCF4] text-white flex items-center justify-center">
+                                        <div className="w-6 h-6 rounded-lg bg-[#7ABCF4] dark:bg-sky-500 text-white flex items-center justify-center">
                                             <Download className="w-3.5 h-3.5" />
                                         </div>
                                         <span className="text-xs font-black text-slate-800 dark:text-slate-100">一键自动下载更新</span>
@@ -400,7 +400,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                             <span className="text-emerald-600 dark:text-emerald-400 font-semibold">· 实测 {formatSpeed(measuredSpeedBps)}</span>
                                         )}
                                         {speedTestSeconds && (
-                                            <span className="text-slate-400">· 测速用时 {speedTestSeconds.toFixed(1)} 秒</span>
+                                            <span className="text-slate-400 dark:text-slate-500">· 测速用时 {speedTestSeconds.toFixed(1)} 秒</span>
                                         )}
                                         <button
                                             type="button"
@@ -412,7 +412,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 downloadStatus === 'merging' ||
                                                 downloadStatus.startsWith('verifying')
                                             }
-                                            className="ml-auto text-[11px] font-bold text-[#2B78C4] dark:text-sky-300 hover:text-[#1E5B99] bg-[#E1F0FE] dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 rounded-md px-2 py-0.5 cursor-pointer disabled:opacity-50 transition-colors"
+                                            className="ml-auto text-[11px] font-bold text-[#2B78C4] dark:text-sky-300 hover:text-[#1E5B99] dark:hover:text-sky-200 bg-[#E1F0FE] dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 rounded-md px-2 py-0.5 cursor-pointer disabled:opacity-50 transition-colors"
                                         >
                                             {speedTesting ? '测速中…' : measuredSpeedBps ? '重新测速' : '测速'}
                                         </button>
@@ -426,16 +426,16 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                     downloadStatus.startsWith('verifying') ||
                                     downloadStatus === 'ready') && (
                                     <div className="space-y-2 animate-in fade-in duration-150">
-                                        <div className="w-full h-3.5 bg-[#E9F2FA] rounded-full overflow-hidden border border-[#BCD7F2] p-0.5">
+                                        <div className="w-full h-3.5 bg-[#E9F2FA] dark:bg-slate-800 rounded-full overflow-hidden border border-[#BCD7F2] dark:border-slate-700 p-0.5">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-300 ${
                                                     downloadStatus === 'ready'
-                                                        ? 'bg-[#22C55E] w-full'
+                                                        ? 'bg-[#22C55E] dark:bg-emerald-500 w-full'
                                                         : downloadStatus === 'stopped'
                                                             ? 'bg-amber-500'
                                                             : downloadStatus.startsWith('verifying') || downloadStatus === 'merging'
                                                                 ? 'bg-gradient-to-r from-amber-500 to-indigo-600 w-full animate-pulse'
-                                                                : 'bg-gradient-to-r from-[#7ABCF4] to-[#2B78C4]'
+                                                                : 'bg-gradient-to-r from-[#7ABCF4] to-[#2B78C4] dark:from-sky-400 dark:to-blue-600'
                                                 }`}
                                                 style={{
                                                     width:
@@ -449,20 +449,20 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                         </div>
 
                                         {/* Progress details: Status on left, Byte counts and percentage on right */}
-                                        <div className="flex items-center justify-between text-[11px] text-slate-600 font-medium">
+                                        <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300 font-medium">
                       <span className="flex items-center gap-1.5 truncate max-w-[55%]">
-                        {isBusyProcessing && <Loader2 className="w-3 h-3 animate-spin text-[#2B78C4] shrink-0" />}
+                        {isBusyProcessing && <Loader2 className="w-3 h-3 animate-spin text-[#2B78C4] dark:text-sky-400 shrink-0" />}
                           <span className="truncate">{getStatusText(downloadStatus, percentage, speedBps)}</span>
                       </span>
 
                                             <div className="flex items-center gap-1.5 font-mono shrink-0">
-                                                <HardDrive className="w-3 h-3 text-slate-400" />
+                                                <HardDrive className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                                                 {totalBytes ? (
-                                                    <span className="font-bold text-slate-700">
+                                                    <span className="font-bold text-slate-700 dark:text-slate-200">
                             {formatBytes(downloadProgress)} / {formatBytes(totalBytes)} ({percentage}%)
                           </span>
                                                 ) : (
-                                                    <span className="font-bold text-slate-700">
+                                                    <span className="font-bold text-slate-700 dark:text-slate-200">
                             {downloadProgress > 100 ? formatBytes(downloadProgress) : `${percentage}%`}
                           </span>
                                                 )}
@@ -473,12 +473,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
                                 {/* Status: Ready - Download completed and prepared for installation */}
                                 {downloadStatus === 'ready' && (
-                                    <div className="p-3 bg-[#F0FDF4] border border-[#86EFAC] rounded-xl flex items-center justify-between gap-2 text-xs font-black text-[#15803D] animate-in fade-in duration-150">
+                                    <div className="p-3 bg-[#F0FDF4] dark:bg-emerald-950/40 border border-[#86EFAC] dark:border-emerald-700 rounded-xl flex items-center justify-between gap-2 text-xs font-black text-[#15803D] dark:text-emerald-300 animate-in fade-in duration-150">
                                         <div className="flex items-center gap-2">
-                                            <CheckCircle2 className="w-4 h-4 text-[#22C55E] shrink-0" />
+                                            <CheckCircle2 className="w-4 h-4 text-[#22C55E] dark:text-emerald-400 shrink-0" />
                                             <span>所有分包已下载校验完毕！点击下方按钮确认安装</span>
                                         </div>
-                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#166534] border border-[#86EFAC]">
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#DCFCE7] dark:bg-emerald-900/60 text-[#166534] dark:text-emerald-300 border border-[#86EFAC] dark:border-emerald-700">
                       已就绪
                     </span>
                                     </div>
@@ -486,12 +486,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
                                 {/* Local Error status */}
                                 {downloadStatus === 'error' && (
-                                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-1 text-xs">
-                                        <div className="flex items-center gap-1.5 text-rose-700 font-black">
-                                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                                    <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl space-y-1 text-xs">
+                                        <div className="flex items-center gap-1.5 text-rose-700 dark:text-rose-300 font-black">
+                                            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                                             <span>更新出错</span>
                                         </div>
-                                        <p className="text-[11px] text-rose-600 font-medium leading-relaxed">
+                                        <p className="text-[11px] text-rose-600 dark:text-rose-300 font-medium leading-relaxed">
                                             {downloadError || '未能完成下载，请重试或通过上方发布渠道手动下载'}
                                         </p>
                                     </div>
@@ -505,7 +505,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                             type="button"
                                             onClick={handleStartDownload}
                                             disabled={isActionLoading}
-                                            className="w-full py-2.5 px-4 bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#68AEEB] hover:to-[#4A9CE3] text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                                            className="w-full py-2.5 px-4 bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] dark:from-sky-500 dark:to-blue-600 hover:from-[#68AEEB] hover:to-[#4A9CE3] text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
                                         >
                                             {isActionLoading ? (
                                                 <>
@@ -538,7 +538,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 type="button"
                                                 onClick={handleDeleteDownload}
                                                 disabled={isActionLoading}
-                                                className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                                                className="py-2.5 px-4 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                                 <span>删除下载</span>
@@ -553,7 +553,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 type="button"
                                                 onClick={handleStartDownload}
                                                 disabled={isActionLoading}
-                                                className="py-2.5 px-4 bg-[#2B78C4] hover:bg-[#1E5B99] text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                                                className="py-2.5 px-4 bg-[#2B78C4] hover:bg-[#1E5B99] dark:bg-sky-600 dark:hover:bg-sky-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                                             >
                                                 <Play className="w-3.5 h-3.5 fill-current" />
                                                 <span>继续下载</span>
@@ -563,7 +563,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 type="button"
                                                 onClick={handleDeleteDownload}
                                                 disabled={isActionLoading}
-                                                className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                                                className="py-2.5 px-4 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                                 <span>删除下载</span>
@@ -573,8 +573,8 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
                                     {/* 4. VERIFYING / MERGING STATE: Processing */}
                                     {(downloadStatus.startsWith('verifying') || downloadStatus === 'merging') && (
-                                        <div className="py-2.5 px-4 bg-slate-100 text-slate-600 rounded-xl text-xs font-black flex items-center justify-center gap-2">
-                                            <Loader2 className="w-4 h-4 animate-spin text-[#2B78C4]" />
+                                        <div className="py-2.5 px-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-black flex items-center justify-center gap-2">
+                                            <Loader2 className="w-4 h-4 animate-spin text-[#2B78C4] dark:text-sky-400" />
                                             <span>正在处理安装包，请稍候...</span>
                                         </div>
                                     )}
@@ -605,9 +605,9 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 type="button"
                                                 onClick={handleDeleteDownload}
                                                 disabled={isActionLoading || isInstalling}
-                                                className="w-full py-2 px-3 text-slate-500 hover:text-rose-600 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                                className="w-full py-2 px-3 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                                             >
-                                                <Trash2 className="w-3 h-3" />
+                                                <Trash2 className="w-3.5 h-3.5" />
                                                 <span>清除已下载文件重新下载</span>
                                             </button>
                                         </div>
@@ -620,7 +620,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 type="button"
                                                 onClick={handleStartDownload}
                                                 disabled={isActionLoading}
-                                                className="py-2.5 px-4 bg-[#7ABCF4] hover:bg-[#5DA8E8] text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                                                className="py-2.5 px-4 bg-[#7ABCF4] dark:bg-sky-500 hover:bg-[#5DA8E8] text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                                             >
                                                 <RefreshCw className="w-3.5 h-3.5" />
                                                 <span>重新下载</span>
@@ -630,7 +630,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 type="button"
                                                 onClick={handleDeleteDownload}
                                                 disabled={isActionLoading}
-                                                className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                                                className="py-2.5 px-4 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                                 <span>删除并重置</span>
@@ -642,52 +642,52 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                         </div>
                     ) : hasChecked ? (
                         <div className="py-8 flex flex-col items-center justify-center text-center gap-2">
-                            <div className="w-12 h-12 rounded-2xl bg-[#E1F7DB] text-[#2D6613] flex items-center justify-center border-2 border-[#95D151] mb-1">
+                            <div className="w-12 h-12 rounded-2xl bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 flex items-center justify-center border-2 border-[#95D151] dark:border-emerald-600 mb-1">
                                 <CheckCircle2 className="w-6 h-6" />
                             </div>
-                            <h4 className="text-sm font-black text-slate-800">
+                            <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">
                                 当前已是最新版本 {updateData.current_version ? `v${updateData.current_version}` : ''}
                             </h4>
-                            <p className="text-xs text-slate-500 max-w-xs">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">
                                 您的助手已经搭载最新的识别算法与图鉴库，暂无更新。
                             </p>
                         </div>
                     ) : null}
 
                     {/* 网页版与源码链接：始终可见，不依赖是否检测到更新 */}
-                    <div className="pt-3 border-t border-slate-100 space-y-2.5">
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
                         {/* 网页版入口（仅 App 桌面端展示） */}
                         {!IS_STATIC && webPath && (
                             <div>
-                                <span className="text-xs font-black text-slate-700 flex items-center gap-1 mb-1.5">
-                                    <Globe className="w-3.5 h-3.5 text-[#2B78C4]" />
+                                <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1 mb-1.5">
+                                    <Globe className="w-3.5 h-3.5 text-[#2B78C4] dark:text-sky-400" />
                                     网页在线版
                                 </span>
                                 <a
                                     href={webPath}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="p-3 bg-gradient-to-r from-[#EBF4FE] to-[#F5F9FF] hover:from-[#DFEEFD] hover:to-[#EBF4FE] border-2 border-[#BCD7F2] hover:border-[#7ABCF4] rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] transition-all group shadow-2xs cursor-pointer"
+                                    className="p-3 bg-gradient-to-r from-[#EBF4FE] to-[#F5F9FF] dark:from-slate-800 dark:to-slate-800/80 hover:from-[#DFEEFD] hover:to-[#EBF4FE] dark:hover:from-slate-700 dark:hover:to-slate-700 border-2 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] dark:text-sky-300 transition-all group shadow-2xs cursor-pointer"
                                 >
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                        <div className="w-7 h-7 rounded-xl bg-[#7ABCF4] text-white flex items-center justify-center shrink-0 shadow-xs">
+                                        <div className="w-7 h-7 rounded-xl bg-[#7ABCF4] dark:bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                                             <Globe className="w-4 h-4" />
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                                            <div className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                                                 <span>洛克王国徽章试炼图鉴·网页版</span>
-                                                <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 font-bold">免安装·多端通用</span>
+                                                <span className="text-[10px] text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800 font-bold">免安装·多端通用</span>
                                             </div>
-                                            <p className="text-[11px] text-slate-500 font-normal truncate mt-0.5">{webPath}</p>
+                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal truncate mt-0.5">{webPath}</p>
                                         </div>
                                     </div>
-                                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#2B78C4] shrink-0 ml-2" />
+                                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-[#2B78C4] dark:group-hover:text-sky-400 shrink-0 ml-2" />
                                 </a>
                             </div>
                         )}
 
-                        <span className="text-xs font-black text-slate-700 flex items-center gap-1">
-                            <ExternalLink className="w-3.5 h-3.5 text-[#2B78C4]" />
+                        <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                            <ExternalLink className="w-3.5 h-3.5 text-[#2B78C4] dark:text-sky-400" />
                             开源项目地址
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -697,13 +697,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                     href={item.url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="p-3 bg-[#F0F6FC] hover:bg-[#E1F0FE] border-2 border-[#BCD7F2] hover:border-[#7ABCF4] rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] transition-all group shadow-2xs cursor-pointer"
+                                    className="p-3 bg-[#F0F6FC] dark:bg-slate-800 hover:bg-[#E1F0FE] dark:hover:bg-slate-700 border-2 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] dark:text-sky-300 transition-all group shadow-2xs cursor-pointer"
                                 >
                                     <div className="flex items-center gap-2">
-                                        <ExternalLink className="w-4 h-4 text-[#2B78C4]" />
+                                        <ExternalLink className="w-4 h-4 text-[#2B78C4] dark:text-sky-400" />
                                         <span>{item.name}</span>
                                     </div>
-                                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#2B78C4]" />
+                                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-[#2B78C4] dark:group-hover:text-sky-400" />
                                 </a>
                             ))}
                         </div>
@@ -711,12 +711,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                 </div>
 
                 {/* Footer */}
-                <div className="px-5 py-3 bg-[#F0F6FC] border-t border-[#D5E3F0] flex items-center justify-between">
+                <div className="px-5 py-3 bg-[#F0F6FC] dark:bg-slate-800/80 border-t border-[#D5E3F0] dark:border-slate-800 flex items-center justify-between">
                     <button
                         type="button"
                         onClick={fetchUpdate}
                         disabled={isLoading || isBusyProcessing}
-                        className="flex items-center gap-1.5 text-xs text-[#2B78C4] hover:text-[#1E5B99] font-black cursor-pointer disabled:opacity-50"
+                        className="flex items-center gap-1.5 text-xs text-[#2B78C4] dark:text-sky-400 hover:text-[#1E5B99] dark:hover:text-sky-300 font-black cursor-pointer disabled:opacity-50"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                         <span>重新检测</span>
@@ -728,7 +728,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                             sound.playClick();
                             onClose();
                         }}
-                        className="px-4 py-2 rounded-xl bg-[#7ABCF4] hover:bg-[#5DA8E8] text-white font-black text-xs shadow-xs transition-colors cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-[#7ABCF4] dark:bg-sky-500 hover:bg-[#5DA8E8] dark:hover:bg-sky-600 text-white font-black text-xs shadow-xs transition-colors cursor-pointer"
                     >
                         关闭
                     </button>
@@ -737,13 +737,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                 {/* Install Triggered Success Alert Modal */}
                 {installSuccessMessage && (
                     <div className="absolute inset-0 z-20 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-                        <div className="bg-white rounded-2xl border-2 border-[#22C55E] p-5 max-w-xs w-full shadow-2xl text-center space-y-3">
-                            <div className="w-12 h-12 rounded-full bg-[#E1F7DB] text-[#2D6613] flex items-center justify-center mx-auto border border-[#95D151]">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-[#22C55E] dark:border-emerald-500 p-5 max-w-xs w-full shadow-2xl text-center space-y-3">
+                            <div className="w-12 h-12 rounded-full bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 flex items-center justify-center mx-auto border border-[#95D151] dark:border-emerald-600">
                                 <Check className="w-6 h-6 stroke-[3]" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-black text-slate-800">安装更新已就绪</h4>
-                                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">安装更新已就绪</h4>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                                     {installSuccessMessage}
                                 </p>
                             </div>
@@ -754,7 +754,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                     setInstallSuccessMessage(null);
                                     onClose();
                                 }}
-                                className="w-full py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white text-xs font-black rounded-xl transition-colors cursor-pointer"
+                                className="w-full py-2 bg-[#22C55E] dark:bg-emerald-600 hover:bg-[#16A34A] dark:hover:bg-emerald-500 text-white text-xs font-black rounded-xl transition-colors cursor-pointer"
                             >
                                 好的
                             </button>

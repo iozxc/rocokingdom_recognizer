@@ -74,6 +74,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
   return (
       <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onWheel={(e) => e.stopPropagation()}
           onClick={onClose}
       >
         <div
@@ -151,7 +152,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                         href={mirrors.GitHub}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors"
+                        className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors"
                     >
                         <Github className="w-5 h-5 text-slate-800 dark:text-slate-100 shrink-0" />
                         <div className="min-w-0">
@@ -165,7 +166,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                         href={mirrors.Gitee}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors"
+                        className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors"
                     >
                         <GiteeIcon className="w-5 h-5 shrink-0" />
                         <div className="min-w-0">
