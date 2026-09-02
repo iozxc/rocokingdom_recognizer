@@ -164,19 +164,19 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-in zoom-in-95 duration-200 transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 py-4 bg-gradient-to-r from-[#F5F9FF] to-white border-b-2 border-[#E6EEF8] flex items-center justify-between shrink-0">
+        <div className="px-5 py-4 bg-gradient-to-r from-[#F5F9FF] to-white dark:from-slate-800 dark:to-slate-900 border-b-2 border-[#E6EEF8] dark:border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#7ABCF4] to-[#2B78C4] text-white flex items-center justify-center shadow-sm">
               <History className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
+              <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
                 图鉴遇见与操作历史
-                <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2]">
+                <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
                   共 {totalHistoryCount} 条操作记录
                 </span>
               </h3>
@@ -192,14 +192,14 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
               sound.playClick();
               onClose();
             }}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Search & Filter Toolbar */}
-        <div className="p-3.5 bg-slate-50 border-b border-[#E6EEF8] space-y-2.5 shrink-0">
+        <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border-b border-[#E6EEF8] dark:border-slate-700 space-y-2.5 shrink-0">
           {/* Search bar */}
           <div className="relative">
             <Search className="w-4 h-4 text-[#7ABCF4] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -208,13 +208,13 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="快速检索历史精灵名称、地图或备注..."
-              className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-white border-2 border-[#BCD7F2] focus:border-[#7ABCF4] rounded-xl outline-hidden text-slate-800 font-bold shadow-inner placeholder:text-slate-400 placeholder:font-normal"
+              className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border-2 border-[#BCD7F2] dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-400 rounded-xl outline-hidden text-slate-800 dark:text-slate-100 font-bold shadow-inner placeholder:text-slate-400 placeholder:font-normal"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -234,8 +234,8 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                 }}
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   statusFilter === 'all'
-                    ? 'bg-[#7ABCF4] text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 全部 ({totalHistoryCount})
@@ -249,7 +249,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
                   statusFilter === 'encountered'
                     ? 'bg-[#95D151] text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-[#2D6613] hover:bg-[#E1F7DB]/50'
+                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[#2D6613] dark:text-emerald-400 hover:bg-[#E1F7DB]/50 dark:hover:bg-emerald-950/40'
                 }`}
               >
                 <Check className="w-3 h-3 stroke-[3]" />
@@ -335,13 +335,13 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                   key={`${record.mapId}_${record.filename}_${record.lastSeenAt || ''}`}
                   className={`group p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-2.5 sm:gap-3 ${
                     isEnc
-                      ? 'bg-[#F9FEF8] border-[#95D151]/60 hover:border-[#95D151]'
-                      : 'bg-slate-50/80 border-slate-200 hover:border-slate-300'
+                      ? 'bg-[#F9FEF8] dark:bg-emerald-950/30 border-[#95D151]/60 dark:border-emerald-600/50 hover:border-[#95D151]'
+                      : 'bg-slate-50/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
                   {/* Left: Avatar + Details */}
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white border border-[#E6EEF8] p-0.5 flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white dark:bg-slate-900 border border-[#E6EEF8] dark:border-slate-700 p-0.5 flex items-center justify-center shrink-0 shadow-2xs">
                       {IS_STATIC && petMeta?.sprite ? (
                           <PetSprite
                               pet={petMeta}
@@ -364,11 +364,11 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                         size="xs"
                       />
                       {isEnc ? (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white">
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white dark:border-slate-800">
                           <Check className="w-2.5 h-2.5 stroke-[3]" />
                         </div>
                       ) : (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-400 rounded-full flex items-center justify-center text-white shadow-xs border border-white">
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-400 rounded-full flex items-center justify-center text-white shadow-xs border border-white dark:border-slate-800">
                           <EyeOff className="w-2.5 h-2.5" />
                         </div>
                       )}
@@ -376,7 +376,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-800 min-w-0 truncate" title={cleanName}>
+                        <h4 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 min-w-0 truncate" title={cleanName}>
                           {cleanName}
                         </h4>
 
@@ -397,11 +397,11 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
 
                         {/* Status Badge */}
                         {isEnc ? (
-                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-[#E1F7DB] text-[#2D6613] border border-[#95D151]/50 whitespace-nowrap shrink-0">
+                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border border-[#95D151]/50 whitespace-nowrap shrink-0">
                             已点亮
                           </span>
                         ) : (
-                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600 whitespace-nowrap shrink-0">
+                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap shrink-0">
                             未遇见
                           </span>
                         )}
@@ -409,12 +409,12 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
 
                       {/* Time info and note */}
                       <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-400 mt-1 flex-wrap font-medium">
-                        <span className="flex items-center gap-1 font-mono text-slate-500 shrink-0" title={timeObj.fullTime}>
+                        <span className="flex items-center gap-1 font-mono text-slate-500 dark:text-slate-400 shrink-0" title={timeObj.fullTime}>
                           <Clock className="w-3 h-3 text-slate-400" />
                           {timeObj.relative}
                         </span>
                         {record.note && (
-                          <span className="bg-white px-1.5 py-0.2 rounded border border-slate-200 text-slate-500 text-[10px] truncate max-w-[180px]">
+                          <span className="bg-white dark:bg-slate-800 px-1.5 py-0.2 rounded border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[10px] truncate max-w-[180px]">
                             {record.note}
                           </span>
                         )}
@@ -433,8 +433,8 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                       }}
                       className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-black border-2 transition-all flex items-center gap-1 cursor-pointer active:scale-95 ${
                         isEnc
-                          ? 'bg-white hover:bg-rose-50 hover:border-rose-300 text-rose-600 border-slate-200'
-                          : 'bg-[#E1F7DB] hover:bg-[#D3F3CA] text-[#2D6613] border-[#95D151]'
+                          ? 'bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-300 text-rose-600 dark:text-rose-400 border-slate-200 dark:border-slate-700'
+                          : 'bg-[#E1F7DB] dark:bg-emerald-950/60 hover:bg-[#D3F3CA] text-[#2D6613] dark:text-emerald-300 border-[#95D151]'
                       }`}
                       title={isEnc ? '误操作点亮？点击撤销恢复为未遇见' : '重新点亮为已遇见'}
                     >
@@ -451,7 +451,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                           onNavigateToPet(mapObj.num, record.filename);
                           onClose();
                         }}
-                        className="p-1 sm:p-1.5 rounded-xl bg-white hover:bg-[#7ABCF4] text-slate-400 hover:text-white border border-slate-200 hover:border-[#7ABCF4] transition-colors cursor-pointer"
+                        className="p-1 sm:p-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-[#7ABCF4] dark:hover:bg-sky-600 text-slate-400 hover:text-white border border-slate-200 dark:border-slate-700 hover:border-[#7ABCF4] transition-colors cursor-pointer"
                         title="在主界面图鉴中定位此精灵"
                       >
                         <ArrowRight className="w-4 h-4" />
@@ -465,9 +465,9 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="px-5 py-3 bg-slate-50 border-t-2 border-[#E6EEF8] flex items-center justify-between text-xs text-slate-500 font-bold shrink-0">
+        <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border-t-2 border-[#E6EEF8] dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold shrink-0">
           <span>
-            当前展示 <strong className="text-[#2B78C4]">{filteredList.length}</strong> 条操作记录
+            当前展示 <strong className="text-[#2B78C4] dark:text-sky-400">{filteredList.length}</strong> 条操作记录
           </span>
           <span className="text-[11px] text-slate-400">
             按时间倒序排列 · 支持一键撤销以防止误点

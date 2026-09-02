@@ -16,17 +16,17 @@ export const UserAgreementModal: React.FC<UserAgreementModalProps> = ({ isOpen, 
 
   return (
       <div className="fixed inset-0 z-[4000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-        <div className="relative w-full max-w-lg max-h-[85vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col">
+        <div className="relative w-full max-w-lg max-h-[85vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col transition-colors">
 
           {/* 顶部标题栏 */}
-          <div className="px-5 py-3.5 bg-[#7ABCF4] text-white flex items-center justify-between border-b-2 border-[#5DA8E8] shrink-0">
+          <div className="px-5 py-3.5 bg-[#7ABCF4] dark:bg-slate-800 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h3 className="text-base font-black tracking-tight">用户协议</h3>
-                <p className="text-[11px] text-white/80 font-medium">
+                <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">
                   本程序使用前需同意以下条款
                 </p>
               </div>
@@ -49,7 +49,7 @@ export const UserAgreementModal: React.FC<UserAgreementModalProps> = ({ isOpen, 
           </div>
 
           {/* 底部 */}
-          <div className="px-5 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+          <div className="px-5 py-3 bg-slate-50/80 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 shrink-0">
             <div className="mr-auto text-[10px] text-slate-400 leading-snug">
               开源不收费 · 源码可见
               <br />

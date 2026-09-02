@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, ChevronLeft, Volume2, VolumeX, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, Camera, Image as ImageIcon, Settings2, ShieldCheck, ChevronDown } from 'lucide-react';
-import { EffectLevel, FloatingButtonsMode, CaptureMode } from '../types';
+import { X, ChevronLeft, Volume2, VolumeX, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, Camera, Image as ImageIcon, Settings2, ShieldCheck, ChevronDown, Sun, Moon } from 'lucide-react';
+import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
+import { themeService } from '../services/theme';
 import { useUpdateStore } from '../services/useUpdateStore';
 import { IS_STATIC } from '../services/staticMode';
 import { SyncPopType } from './SyncPopNotification';
@@ -25,6 +26,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const updateState = useUpdateStore();
   const contentRef = useRef<HTMLDivElement | null>(null);
   const [canScrollDown, setCanScrollDown] = useState<boolean>(false);
+  const [currentTheme, setCurrentTheme] = useState<ThemeMode>(() => themeService.getTheme());
   const [effectLevel, setEffectLevel] = useState<EffectLevel>(() => {
     return storage.getSetting<EffectLevel>('effectLevel', 0);
   });
@@ -130,7 +132,21 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Sync theme changes
+  useEffect(() => {
+    const unsub = themeService.subscribe((theme) => {
+      setCurrentTheme(theme);
+    });
+    return () => unsub();
+  }, []);
+
   if (!isOpen) return null;
+
+  const handleSelectTheme = (mode: ThemeMode) => {
+    sound.playClick();
+    setCurrentTheme(mode);
+    themeService.setTheme(mode, true);
+  };
 
   const handleSelectEffect = (level: EffectLevel) => {
     sound.playClick();
@@ -237,24 +253,24 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       >
         <div
             id="app-settings-modal-dialog"
-            className="w-full max-w-md max-h-[88vh] sm:max-h-[85vh] bg-white rounded-2xl border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+            className="w-full max-w-md max-h-[88vh] sm:max-h-[85vh] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 transition-colors"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+          <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/60 shrink-0">
             <div className="flex items-center gap-2">
               {view !== 'main' && (
                   <button
                       type="button"
                       id="app-settings-back-btn"
                       onClick={handleBack}
-                      className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer"
+                      className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer"
                       title="返回"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
               )}
-              <h3 className="text-sm font-bold text-slate-800 tracking-tight">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                 {view === 'update' ? '更新设置' : view === 'system' ? '系统设置' : '偏好设置'}
               </h3>
             </div>
@@ -265,7 +281,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   sound.playClick();
                   onClose();
                 }}
-                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer"
                 title="关闭 (Esc)"
             >
               <X className="w-4 h-4" />
@@ -278,50 +294,50 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               onScroll={checkScrollable}
               className="relative grid flex-1 min-h-0 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
-            <div key={`sub-${view}`} className={`col-start-1 row-start-1 p-4 sm:p-5 space-y-4 sm:space-y-5 text-xs text-slate-600 ${view === 'main' ? 'hidden' : (exiting ? 'animate-out fade-out slide-out-to-right duration-200' : 'animate-in fade-in slide-in-from-right duration-300')}`}>
+            <div key={`sub-${view}`} className={`col-start-1 row-start-1 p-4 sm:p-5 space-y-4 sm:space-y-5 text-xs text-slate-600 dark:text-slate-300 ${view === 'main' ? 'hidden' : (exiting ? 'animate-out fade-out slide-out-to-right duration-200' : 'animate-in fade-in slide-in-from-right duration-300')}`}>
             {view === 'update' ? (
                 <div className="space-y-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-semibold text-slate-800">启动时自动检测更新</div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">启动时自动检测更新</div>
                       <div className="text-[10px] text-slate-400">每次打开应用时后台静默检查一次新版本</div>
                     </div>
                     <button
                         type="button"
                         id="auto-check-switch-btn"
                         onClick={handleToggleAutoCheck}
-                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${autoCheckUpdate ? 'bg-[#95D151]' : 'bg-slate-200'}`}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${autoCheckUpdate ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
                     >
                       <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${autoCheckUpdate ? 'translate-x-4' : 'translate-x-0'}`} />
                     </button>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-semibold text-slate-800">隐藏更新提示红点</div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">隐藏更新提示红点</div>
                       <div className="text-[10px] text-slate-400">检测到新版本时不显示右上角提示红点</div>
                     </div>
                     <button
                         type="button"
                         id="hide-dot-switch-btn"
                         onClick={handleToggleHideDot}
-                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${hideUpdateDot ? 'bg-[#95D151]' : 'bg-slate-200'}`}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${hideUpdateDot ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
                     >
                       <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${hideUpdateDot ? 'translate-x-4' : 'translate-x-0'}`} />
                     </button>
                   </div>
 
-                  <div className="space-y-2 pt-1 border-t border-slate-100">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                  <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
                       <ArrowUpCircle className="w-3.5 h-3.5 text-emerald-500" />
                       <span>更新方式</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/60">
+                    <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
                       <button
                           type="button"
                           id="update-mode-auto-btn"
                           onClick={() => handleSelectUpdateMode('auto')}
-                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${updateMode === 'auto' ? 'bg-white text-slate-900 shadow-xs font-semibold' : 'text-slate-500 hover:text-slate-800'}`}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${updateMode === 'auto' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
                       >
                         自动增量
                       </button>
@@ -329,7 +345,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                           type="button"
                           id="update-mode-full-btn"
                           onClick={() => handleSelectUpdateMode('full')}
-                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${updateMode === 'full' ? 'bg-white text-slate-900 shadow-xs font-semibold' : 'text-slate-500 hover:text-slate-800'}`}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${updateMode === 'full' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
                       >
                         全量更新
                       </button>
@@ -343,9 +359,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
                   {/* 图鉴数据更新 */}
                   {onOpenDataUpdate && (
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div>
-                          <div className="text-xs font-semibold text-slate-800">图鉴数据热更新</div>
+                          <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">图鉴数据热更新</div>
                           <div className="text-[10px] text-slate-400">检测并更新图鉴数据库与地图数据</div>
                         </div>
                         <button
@@ -364,12 +380,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                       </div>
                   )}
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-semibold text-slate-800">当前程序版本</div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">当前程序版本</div>
                       <div className="text-[10px] text-slate-400">本地已安装的演示作品版本号</div>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80">
+                    <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200/80 dark:border-slate-700">
                       v{updateState.updateData?.current_version || '1.0.0'}
                     </span>
                   </div>
@@ -378,14 +394,14 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 <div className="space-y-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-semibold text-slate-800">启动/退出提示</div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">启动/退出提示</div>
                       <div className="text-[10px] text-slate-400">启动与退出时显示蓝白提示窗口，关闭后不再弹出</div>
                     </div>
                     <button
                         type="button"
                         id="settings-hints-switch-btn"
                         onClick={handleToggleHints}
-                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showHints ? 'bg-[#95D151]' : 'bg-slate-200'}`}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showHints ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
                         title={showHints ? '点击关闭提示' : '点击开启提示'}
                     >
                       <span
@@ -395,19 +411,19 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </div>
 
                   {/* 界面设置 */}
-                  <div className="pt-2 border-t border-slate-100 space-y-3">
-                    <div className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">界面设置</div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">界面设置</div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-xs font-semibold text-slate-800">快捷面板精简模式</div>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">快捷面板精简模式</div>
                         <div className="text-[10px] text-slate-400">默认隐藏单个识别、批量导入与数据管理</div>
                       </div>
                       <button
                           type="button"
                           id="settings-simplified-fabs-switch-btn"
                           onClick={handleToggleSimplifiedFABs}
-                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isSimplifiedFABs ? 'bg-[#95D151]' : 'bg-slate-200'}`}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isSimplifiedFABs ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
                           title={isSimplifiedFABs ? '点击关闭精简模式' : '点击开启精简模式'}
                       >
                         <span
@@ -418,14 +434,14 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-xs font-semibold text-slate-800">跟随识别窗口置顶</div>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">跟随识别窗口置顶</div>
                         <div className="text-[10px] text-slate-400">打开跟随识别时自动置顶到所有窗口前面</div>
                       </div>
                       <button
                           type="button"
                           id="settings-topmost-switch-btn"
                           onClick={handleToggleFollowTopMost}
-                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${followTopMost ? 'bg-[#95D151]' : 'bg-slate-200'}`}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${followTopMost ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
                           title={followTopMost ? '点击关闭自动置顶' : '点击开启自动置顶'}
                       >
                         <span
@@ -439,27 +455,66 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
 
             {/* 主菜单 */}
-            <div key={`main-${view}`} className={`col-start-1 row-start-1 p-5 space-y-5 text-xs text-slate-600 ${view === 'main' ? 'animate-in fade-in duration-200' : 'hidden'}`}>
+            <div key={`main-${view}`} className={`col-start-1 row-start-1 p-5 space-y-5 text-xs text-slate-600 dark:text-slate-300 ${view === 'main' ? 'animate-in fade-in duration-200' : 'hidden'}`}>
 
-            {/* Section 1: 视觉与特效 */}
+            {/* Section 0: 外观主题 */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
+                  <Sun className="w-3.5 h-3.5 text-amber-500" />
+                  <span>外观风格</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                <button
+                    type="button"
+                    id="theme-mode-light-btn"
+                    onClick={() => handleSelectTheme('light')}
+                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
+                        currentTheme === 'light'
+                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                >
+                  <Sun className="w-3.5 h-3.5 text-amber-500" />
+                  <span>明亮模式</span>
+                </button>
+                <button
+                    type="button"
+                    id="theme-mode-dark-btn"
+                    onClick={() => handleSelectTheme('dark')}
+                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
+                        currentTheme === 'dark'
+                            ? 'bg-slate-700 text-white shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                >
+                  <Moon className="w-3.5 h-3.5 text-sky-400" />
+                  <span>暗黑模式</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Section 1: 视觉与特效 */}
+            <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
                   <Sparkles className="w-3.5 h-3.5 text-sky-500" />
                   <span>同步反馈动画</span>
                 </div>
               </div>
 
               {/* iOS Segmented Control: 关闭 (0), 轻微 (1), 标准 (2), 丰富 (3) */}
-              <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100/90 rounded-xl border border-slate-200/60">
+              <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-xl border border-slate-200/60 dark:border-slate-700">
                 <button
                     type="button"
                     id="effect-level-0-btn"
                     onClick={() => handleSelectEffect(0)}
                     className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
                         effectLevel === 0
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   关闭
@@ -470,8 +525,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     onClick={() => handleSelectEffect(1)}
                     className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
                         effectLevel === 1
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   轻微
@@ -482,8 +537,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     onClick={() => handleSelectEffect(2)}
                     className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
                         effectLevel === 2
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   标准
@@ -494,8 +549,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     onClick={() => handleSelectEffect(3)}
                     className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
                         effectLevel === 3
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   丰富
@@ -504,21 +559,21 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
 
             {/* Section 2: 界面布局 */}
-            <div className="space-y-2 pt-1 border-t border-slate-100">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+            <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
                 <Monitor className="w-3.5 h-3.5 text-slate-500" />
                 <span>悬浮快捷栏展示</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/60">
+              <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
                 <button
                     type="button"
                     id="floating-mode-normal-btn"
                     onClick={() => handleSelectFloatingMode('normal')}
                     className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
                         floatingMode === 'normal'
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   标准悬浮
@@ -529,8 +584,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     onClick={() => handleSelectFloatingMode('compact')}
                     className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
                         floatingMode === 'compact'
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   纯图标
@@ -541,8 +596,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     onClick={() => handleSelectFloatingMode('hidden')}
                     className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
                         floatingMode === 'hidden'
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   移至顶栏
@@ -552,21 +607,21 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
 
             {/* Section 3: 截图方式（web 版隐藏） */}
-            <div className={`space-y-2 pt-1 border-t border-slate-100${IS_STATIC ? ' hidden' : ''}`}>
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+            <div className={`space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800${IS_STATIC ? ' hidden' : ''}`}>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
                 <Camera className="w-3.5 h-3.5 text-violet-500" />
                 <span>截图方式</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/60">
+              <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
                 <button
                     type="button"
                     id="capture-mode-grab-btn"
                     onClick={() => handleSelectCaptureMode('grab')}
                     className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
                         captureMode === 'grab'
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   屏幕截图
@@ -577,8 +632,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     onClick={() => handleSelectCaptureMode('hwnd')}
                     className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
                         captureMode === 'hwnd'
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 hover:text-slate-800'
+                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
                   内存提取
@@ -593,13 +648,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
 
             {/* Section 3: 声音 */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
                   {isSoundMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-800">操作音效</div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">操作音效</div>
                   <div className="text-[10px] text-slate-400">点亮图鉴与识别时的提示音</div>
                 </div>
               </div>
@@ -609,7 +664,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   id="settings-sound-switch-btn"
                   onClick={handleToggleSound}
                   className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      !isSoundMuted ? 'bg-[#95D151]' : 'bg-slate-200'
+                      !isSoundMuted ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'
                   }`}
               >
               <span
@@ -622,13 +677,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
             {/* Section 4: 数据与同步 */}
             {onOpenDataBackup && (
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                    <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
                       <Database className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-slate-800">数据备份与导出</div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">数据备份与导出</div>
                       <div className="text-[10px] text-slate-400">本地存储就绪，可导出备份 JSON</div>
                     </div>
                   </div>
@@ -641,7 +696,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                         onClose();
                         onOpenDataBackup();
                       }}
-                      className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+                      className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
                   >
                     <span>管理</span>
                     <ArrowRight className="w-3 h-3" />
@@ -650,13 +705,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             )}
 
             {/* Section 5: 识别截图示例（web 版隐藏） */}
-            <div className={`pt-2 border-t border-slate-100 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
+            <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
                   <ImageIcon className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-800">识别截图示例</div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">识别截图示例</div>
                   <div className="text-[10px] text-slate-400">识别卡片里的示例截图图标与正确截图格式提示</div>
                 </div>
               </div>
@@ -666,7 +721,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   id="settings-samples-switch-btn"
                   onClick={handleToggleSamples}
                   className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      showSamples ? 'bg-[#95D151]' : 'bg-slate-200'
+                      showSamples ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'
                   }`}
                   title={showSamples ? '点击隐藏示例' : '点击显示示例'}
               >
@@ -679,13 +734,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
 
             {/* Section 6: 系统设置入口（web 版隐藏） */}
-            <div className={`pt-2 border-t border-slate-100 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
+            <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
                   <Settings2 className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-800">系统设置</div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">系统设置</div>
                   <div className="text-[10px] text-slate-400">启动/退出提示、界面设置等</div>
                 </div>
               </div>
@@ -696,7 +751,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     sound.playClick();
                     setView('system');
                   }}
-                  className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+                  className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
               >
                 <span>设置</span>
                 <ArrowRight className="w-3 h-3" />
@@ -704,13 +759,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
 
             {/* Section 7: 更新设置入口（web 版隐藏） */}
-            <div className={`pt-2 border-t border-slate-100 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
+            <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
                   <ArrowUpCircle className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                     <span>更新设置</span>
                     <span className="text-[10px] text-slate-400 font-mono font-normal">
                       (当前 v{updateState.updateData?.current_version || '1.0.0'})
@@ -726,7 +781,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     sound.playClick();
                     setView('update');
                   }}
-                  className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+                  className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
               >
                 <span>设置</span>
                 <ArrowRight className="w-3 h-3" />
@@ -734,13 +789,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
 
             {/* Section 8: 用户协议查看 */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
                   <ShieldCheck className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-800">用户协议</div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">用户协议</div>
                   <div className="text-[10px] text-slate-400">查看本软件的使用条款与免责声明</div>
                 </div>
               </div>
@@ -751,7 +806,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     sound.playClick();
                     setIsAgreementOpen(true);
                   }}
-                  className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+                  className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
               >
                 <span>查看</span>
                 <ArrowRight className="w-3 h-3" />
@@ -759,23 +814,23 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
 
             {/* 免责声明 / 开发者说明 */}
-            <div className="pt-3 border-t border-slate-100">
-              <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/60 text-[11px] text-slate-500 space-y-1">
-                <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                  <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="p-3 bg-slate-50/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200">
+                  <ShieldCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                   <span>免责与开发者声明</span>
                 </div>
-                <p className="leading-relaxed text-slate-500 text-[10px]">
+                <p className="leading-relaxed text-slate-500 dark:text-slate-400 text-[10px]">
                   <strong>声明：</strong>本项目为<strong>个人玩家独立开发的图像识别技术演示作品</strong>，仅用于编程学习与技术交流，<strong>不存在任何商业盈利行为，未获得腾讯官方授权</strong>。
                   游戏官方用户协议禁止各类第三方工具，使用者确认已充分知晓该规则，如仍自愿使用本项目，由此产生的账号限制、封禁等全部风险与后果均由使用者本人独立承担，本项目开发者不承担任何责任。
                 </p>
-                <p className="leading-relaxed text-slate-500 text-[10px]">
+                <p className="leading-relaxed text-slate-500 dark:text-slate-400 text-[10px]">
                   参考说明：页面部分内容参考来自第三方社区
                   <a
                     href="https://wiki.biligame.com/rocom"
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className="text-sky-600 font-medium hover:underline mx-1"
+                    className="text-sky-600 dark:text-sky-400 font-medium hover:underline mx-1"
                   >
                     Bilibili游戏‑RocoWiki
                   </a>，本站仅作引用参考，不对第三方内容的真实性、完整性承担责任。游戏相关全部素材、商标、知识产权均归腾讯公司《洛克王国：世界》所有。
@@ -796,7 +851,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
           )}
 
           {/* Footer */}
-          <div className="px-5 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+          <div className="px-5 py-3 bg-slate-50/80 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <span className="text-[10px] text-slate-400">配置已自动保存</span>
             <button
                 type="button"
@@ -804,7 +859,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   sound.playClick();
                   onClose();
                 }}
-                className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-medium text-xs rounded-lg transition-colors cursor-pointer shadow-xs"
+                className="px-4 py-1.5 bg-slate-900 dark:bg-sky-600 hover:bg-slate-800 dark:hover:bg-sky-500 active:bg-slate-950 text-white font-medium text-xs rounded-lg transition-colors cursor-pointer shadow-xs"
             >
               完成
             </button>

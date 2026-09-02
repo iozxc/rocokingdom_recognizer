@@ -73,14 +73,14 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
   return (
     <div
       ref={popoverRef}
-      className={`${placementClasses} w-72 sm:w-80 bg-white rounded-2xl border-2 border-slate-200 shadow-2xl z-50 p-4 animate-in fade-in zoom-in-95 duration-100 ${className}`}
+      className={`${placementClasses} w-72 sm:w-80 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-2xl z-50 p-4 animate-in fade-in zoom-in-95 duration-100 transition-colors ${className}`}
     >
-      <div className="flex items-center justify-between border-b pb-2 mb-3">
-        <span className="text-xs font-black text-slate-700 flex items-center gap-1.5">
-          <Filter className="w-3.5 h-3.5 text-[#2B78C4]" />
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-3">
+        <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+          <Filter className="w-3.5 h-3.5 text-[#2B78C4] dark:text-sky-400" />
           高级筛选
           {activeCount > 0 && (
-            <span className="bg-[#2B78C4] text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+            <span className="bg-[#2B78C4] dark:bg-sky-500 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
               {activeCount}
             </span>
           )}
@@ -90,7 +90,7 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
             <button
               type="button"
               onClick={handleReset}
-              className="text-[10px] text-slate-400 hover:text-[#2B78C4] transition-colors flex items-center gap-0.5 font-bold cursor-pointer"
+              className="text-[10px] text-slate-400 hover:text-[#2B78C4] dark:hover:text-sky-300 transition-colors flex items-center gap-0.5 font-bold cursor-pointer"
             >
               <RotateCcw className="w-2.5 h-2.5" />
               重置
@@ -99,7 +99,7 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -109,15 +109,15 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
       <div className="space-y-4">
         {/* Special Types Filters (首领化 / 多形态) */}
         <div>
-          <h4 className="text-[11px] font-black text-slate-500 mb-2">类型筛选</h4>
+          <h4 className="text-[11px] font-black text-slate-500 dark:text-slate-400 mb-2">类型筛选</h4>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => toggleSpecialType('boss')}
               className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 border-2 cursor-pointer ${
                 filters.specialTypes.includes('boss')
-                  ? 'bg-rose-50 border-rose-400 text-rose-700 font-black'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                  ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 dark:border-rose-700 text-rose-700 dark:text-rose-300 font-black'
+                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 hover:text-slate-800'
               }`}
             >
               {filters.specialTypes.includes('boss') && <Check className="w-3 h-3 stroke-[3]" />}
@@ -128,8 +128,8 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
               onClick={() => toggleSpecialType('multiform')}
               className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 border-2 cursor-pointer ${
                 filters.specialTypes.includes('multiform')
-                  ? 'bg-amber-50 border-amber-400 text-amber-800 font-black'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                  ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-400 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-black'
+                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 hover:text-slate-800'
               }`}
             >
               {filters.specialTypes.includes('multiform') && <Check className="w-3 h-3 stroke-[3]" />}
@@ -140,7 +140,7 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
 
         {/* Elements Filters (属性) */}
         <div>
-          <h4 className="text-[11px] font-black text-slate-500 mb-2">属性筛选</h4>
+          <h4 className="text-[11px] font-black text-slate-500 dark:text-slate-400 mb-2">属性筛选</h4>
           <div className="grid grid-cols-4 gap-1.5">
             {elementsList.map((el) => {
               const isActive = filters.elements.includes(el);
@@ -151,11 +151,15 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
                   type="button"
                   onClick={() => toggleElement(el)}
                   style={{
-                    backgroundColor: isActive ? colorStyle.bg : '#F8FAFC',
-                    color: isActive ? (colorStyle.fg || '#FFFFFF') : '#475569',
-                    borderColor: isActive ? 'transparent' : '#E2E8F0',
+                    backgroundColor: isActive ? colorStyle.bg : undefined,
+                    color: isActive ? (colorStyle.fg || '#FFFFFF') : undefined,
+                    borderColor: isActive ? 'transparent' : undefined,
                   }}
-                  className={`flex items-center gap-1 px-1.5 py-1 rounded-xl text-[10px] font-black border transition-all cursor-pointer justify-center hover:scale-105 active:scale-95 select-none`}
+                  className={`flex items-center gap-1 px-1.5 py-1 rounded-xl text-[10px] font-black border transition-all cursor-pointer justify-center hover:scale-105 active:scale-95 select-none ${
+                    isActive
+                      ? ''
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750'
+                  }`}
                 >
                   <img
                     src={getElementIconUrl(el)}

@@ -85,18 +85,18 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
           onClick={onClose}
       >
         <div
-            className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-md w-full overflow-hidden flex flex-col"
+            className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-md w-full overflow-hidden flex flex-col transition-colors"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-[#7ABCF4] px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8]">
+          <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
                 <Database className="w-4 h-4 text-white" />
               </div>
               <div>
                 <h3 className="text-base font-black tracking-tight">数据管理</h3>
-                <p className="text-[11px] text-white/80 font-medium">导入 / 导出本地图鉴点亮记录与设置</p>
+                <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">导入 / 导出本地图鉴点亮记录与设置</p>
               </div>
             </div>
             <button
@@ -113,7 +113,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
 
           {/* Content */}
           <div className="p-5 space-y-4">
-            <p className="text-[11px] text-slate-500 leading-snug">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
               数据包含图鉴点亮记录、识别门槛与偏好设置。{IS_STATIC ? '导出将直接下载 JSON 文件。' : '导出时支持自选保存目录与路径。'}
             </p>
 
@@ -122,12 +122,12 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                   type="button"
                   onClick={handleExport}
                   disabled={isExporting}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-[#D5E3F0] bg-white hover:bg-[#EBF4FE] hover:border-[#7ABCF4] transition-colors cursor-pointer disabled:opacity-50"
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors cursor-pointer disabled:opacity-50"
               >
-                <div className="w-11 h-11 rounded-xl bg-[#95D151]/20 text-[#689F38] flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-[#95D151]/20 dark:bg-emerald-950/60 text-[#689F38] dark:text-emerald-400 flex items-center justify-center">
                   <Download className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-black text-slate-800">
+                <span className="text-xs font-black text-slate-800 dark:text-slate-100">
                   {IS_STATIC ? '导出数据' : '自选路径导出'}
                 </span>
                 <span className="text-[10px] text-slate-400">
@@ -138,12 +138,12 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
               <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-[#D5E3F0] bg-white hover:bg-[#EBF4FE] hover:border-[#7ABCF4] transition-colors cursor-pointer"
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors cursor-pointer"
               >
-                <div className="w-11 h-11 rounded-xl bg-[#7ABCF4]/20 text-[#2B78C4] flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-[#7ABCF4]/20 dark:bg-sky-950/60 text-[#2B78C4] dark:text-sky-400 flex items-center justify-center">
                   <Upload className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-black text-slate-800">导入数据</span>
+                <span className="text-xs font-black text-slate-800 dark:text-slate-100">导入数据</span>
                 <span className="text-[10px] text-slate-400">选择 roco_user_data.json</span>
               </button>
             </div>
@@ -157,8 +157,8 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                 <div
                     className={`flex items-start gap-2 p-3 rounded-xl border-2 text-[11px] font-medium break-all ${
                         msgType === 'ok'
-                            ? 'bg-[#F0FDF4] border-[#BBF7D0] text-emerald-700'
-                            : 'bg-amber-50 border-amber-200 text-amber-700'
+                            ? 'bg-[#F0FDF4] dark:bg-emerald-950/60 border-[#BBF7D0] dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300'
                     }`}
                 >
                   {msgType === 'ok' ? (

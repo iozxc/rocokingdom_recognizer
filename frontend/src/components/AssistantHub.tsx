@@ -62,10 +62,10 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
       {trialAssistants.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3 px-1">
-            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-sky-100 text-sky-600">
+            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400">
               <Sparkles className="w-3.5 h-3.5" />
             </div>
-            <h2 className="text-base font-black text-slate-700 tracking-wide">试炼助手</h2>
+            <h2 className="text-base font-black text-slate-700 dark:text-slate-200 tracking-wide">试炼助手</h2>
             <span className="text-xs font-bold text-slate-400">({trialAssistants.length})</span>
           </div>
           <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-5">
@@ -76,7 +76,7 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                   key={a.key}
                   type="button"
                   onClick={() => onSelectAssistant(a.key)}
-                  className="group relative overflow-hidden rounded-2xl border-2 border-[#E6EEF8] bg-white shadow-xs hover:border-[#7ABCF4] hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer text-left"
+                  className="group relative overflow-hidden rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer text-left"
                   title="点击进入"
                 >
                   <div className={`relative w-full aspect-[16/10] bg-gradient-to-br ${a.gradient} flex items-center justify-center`}>
@@ -98,8 +98,8 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                     )}
                   </div>
                   <div className="p-3 sm:p-3.5">
-                    <div className="text-sm font-black text-slate-800">{a.title}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">{a.subtitle}</div>
+                    <div className="text-sm font-black text-slate-800 dark:text-slate-100">{a.title}</div>
+                    <div className="text-[11px] text-slate-400 dark:text-slate-400 mt-0.5">{a.subtitle}</div>
                   </div>
                 </button>
               );
@@ -112,10 +112,10 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
       {toolAssistants.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3 px-1">
-            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-100 text-indigo-600">
+            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400">
               <Wrench className="w-3.5 h-3.5" />
             </div>
-            <h2 className="text-base font-black text-slate-700 tracking-wide">实用工具</h2>
+            <h2 className="text-base font-black text-slate-700 dark:text-slate-200 tracking-wide">实用工具</h2>
             <span className="text-xs font-bold text-slate-400">({toolAssistants.length})</span>
           </div>
           <div className="grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-5">
@@ -126,7 +126,7 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                   key={a.key}
                   type="button"
                   onClick={() => onSelectAssistant(a.key)}
-                  className="group relative overflow-hidden rounded-2xl border-2 border-[#E6EEF8] bg-white shadow-xs hover:border-[#7ABCF4] hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer text-left"
+                  className="group relative overflow-hidden rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer text-left"
                   title="点击进入"
                 >
                   <div className={`relative w-full aspect-[16/10] bg-gradient-to-br ${a.gradient} flex items-center justify-center`}>
@@ -148,8 +148,8 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                     )}
                   </div>
                   <div className="p-3 sm:p-3.5">
-                    <div className="text-sm font-black text-slate-800">{a.title}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">{a.subtitle}</div>
+                    <div className="text-sm font-black text-slate-800 dark:text-slate-100">{a.title}</div>
+                    <div className="text-[11px] text-slate-400 dark:text-slate-400 mt-0.5">{a.subtitle}</div>
                   </div>
                 </button>
               );

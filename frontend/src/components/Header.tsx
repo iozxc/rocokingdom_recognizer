@@ -1,9 +1,10 @@
-import React from 'react';
-import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings, BookOpen, History, Download} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings, BookOpen, History, Download, Sun, Moon} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
-import { MapConfig } from '../types';
+import { MapConfig, ThemeMode } from '../types';
 import { sound } from '../services/sound';
 import { useUpdateStore } from '../services/useUpdateStore';
+import { themeService } from '../services/theme';
 import { IS_STATIC } from '../services/staticMode';
 import { APP_VERSION } from '../version';
 
@@ -59,6 +60,15 @@ export const Header: React.FC<HeaderProps> = ({
                                                   centerStatus,
                                               }) => {
     const updateState = useUpdateStore();
+    const [currentTheme, setCurrentTheme] = useState<ThemeMode>(() => themeService.getTheme());
+
+    useEffect(() => {
+        const unsubscribe = themeService.subscribe((theme) => {
+            setCurrentTheme(theme);
+        });
+        return () => unsubscribe();
+    }, []);
+
     const isBusyDownloading =
         updateState.downloadStatus === 'downloading' ||
         updateState.downloadStatus.startsWith('verifying') ||
@@ -73,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <>
-        <header className="relative bg-[#7ABCF4] border-b-4 border-[#5DA8E8] sticky top-0 z-30 shadow-md text-white select-none">
+        <header className="relative bg-[#7ABCF4] dark:bg-[#1e293b] border-b-4 border-[#5DA8E8] dark:border-[#334155] sticky top-0 z-30 shadow-md text-white select-none transition-colors duration-200">
             <div className="mx-auto px-2 sm:px-4 lg:px-8 py-1.5 sm:py-2">
                 <div className="relative flex items-center justify-between gap-1.5 sm:gap-3">
                     {/* Logo & Kingdom Branding */}
@@ -96,11 +106,11 @@ export const Header: React.FC<HeaderProps> = ({
                             title={onOpenHub ? '打开助手选择' : undefined}
                             className={`flex items-center gap-2 rounded-2xl p-1 -m-1 transition-all duration-200 min-w-0 ${
                                 onOpenHub
-                                    ? 'cursor-pointer hover:bg-white/25 hover:shadow-sm active:scale-[0.98]'
+                                    ? 'cursor-pointer hover:bg-white/25 dark:hover:bg-white/10 hover:shadow-sm active:scale-[0.98]'
                                     : ''
                             }`}
                         >
-                            <div className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-white shadow-sm border-2 border-white overflow-hidden p-0.5 shrink-0">
+                            <div className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border-2 border-white dark:border-slate-700 overflow-hidden p-0.5 shrink-0">
                                 <img
                                     src="./icon.jpg"
                                     alt="洛克王国"
@@ -120,9 +130,9 @@ export const Header: React.FC<HeaderProps> = ({
                                         </span>
                                     )}
                                 </div>
-                                <div className="hidden min-[840px]:flex items-center gap-1.5 text-[10px] text-white/80 font-medium whitespace-nowrap min-w-0">
+                                <div className="hidden min-[840px]:flex items-center gap-1.5 text-[10px] text-white/80 dark:text-slate-400 font-medium whitespace-nowrap min-w-0">
                                     <span>图鉴识别 · 本地记录</span>
-                                    <span className="text-[9px] font-mono text-white/40 tracking-wider">
+                                    <span className="text-[9px] font-mono text-white/40 dark:text-slate-500 tracking-wider">
                                         v{APP_VERSION}
                                     </span>
                                 </div>
@@ -132,7 +142,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {/* Map Nav Buttons with Individual Counts (Silky progressive shrinkage) */}
                     {showMapNav && (
-                        <div className="hidden min-[870px]:flex items-center gap-1 p-1 bg-white/20 backdrop-blur-xs rounded-2xl border border-white/30 shrink min-w-0 overflow-hidden">
+                        <div className="hidden min-[870px]:flex items-center gap-1 p-1 bg-white/20 dark:bg-slate-800/80 backdrop-blur-xs rounded-2xl border border-white/30 dark:border-slate-700 shrink min-w-0 overflow-hidden">
                             {(mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS).map((map) => {
                                 const isActive = activeStageNum === map.num;
                                 const mapStat = mapsStats.find((s) => s.num === map.num);
@@ -153,8 +163,8 @@ export const Header: React.FC<HeaderProps> = ({
                                         }}
                                         className={`px-2 lg:px-2.5 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer shrink min-w-0 ${
                                             isActive
-                                                ? 'bg-white text-[#2B78C4] shadow-sm scale-[1.02]'
-                                                : 'text-white/90 hover:text-white hover:bg-white/20'
+                                                ? 'bg-white dark:bg-sky-500 text-[#2B78C4] dark:text-white shadow-sm scale-[1.02]'
+                                                : 'text-white/90 dark:text-slate-300 hover:text-white hover:bg-white/20 dark:hover:bg-white/10'
                                         }`}
                                         title={`${map.name} (${mapEnc}/${mapTot})`}
                                     >
@@ -183,8 +193,8 @@ export const Header: React.FC<HeaderProps> = ({
                                         <span
                                             className={`text-[10px] font-mono font-black px-1 rounded-md shrink-0 ${
                                                 isActive
-                                                    ? 'bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2]'
-                                                    : 'bg-white/25 text-white'
+                                                    ? 'bg-[#EBF4FE] dark:bg-slate-900 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-700'
+                                                    : 'bg-white/25 dark:bg-slate-700 text-white dark:text-slate-200'
                                             }`}
                                         >
                                             {mapEnc}/{mapTot}
@@ -195,7 +205,7 @@ export const Header: React.FC<HeaderProps> = ({
                         </div>
                     )}
 
-                    {/* Right Action: Auth, History, Feedback, Check Update, Sound & Settings */}
+                    {/* Right Action: Auth, History, Feedback, Check Update, Theme Toggle, Sound & Settings */}
                     <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                         {rightStatus}
 
@@ -207,7 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     onOpenHistory();
                                 }}
                                 title="查看图鉴遇见与操作历史"
-                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
+                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
                             >
                                 <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
                                 <span className="hidden min-[1100px]:inline">遇见历史</span>
@@ -223,7 +233,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     onOpenFeedback();
                                 }}
                                 title="加入官方交流群 / 反馈异常"
-                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
+                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
                             >
                                 <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
                                 <span className="hidden min-[1100px]:inline">群聊反馈</span>
@@ -240,7 +250,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     onOpenDownloadApp();
                                 }}
                                 title="下载桌面版使用本地识别AI"
-                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
+                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
                             >
                                 <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
                                 <span className="hidden min-[1100px]:inline">下载APP</span>
@@ -255,7 +265,7 @@ export const Header: React.FC<HeaderProps> = ({
                                         onOpenUpdate();
                                     }}
                                     title="查看是否有最新版本"
-                                    className="relative overflow-hidden px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black active:scale-95"
+                                    className="relative overflow-hidden px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black active:scale-95"
                                 >
                                     {showUpdateFill && (
                                         <span
@@ -273,6 +283,23 @@ export const Header: React.FC<HeaderProps> = ({
                             </span>
                         ))}
 
+                        {/* Theme Toggle Button (Light/Dark Mode) */}
+                        <button
+                            id="theme-toggle-btn"
+                            onClick={() => {
+                                sound.playClick();
+                                themeService.toggleTheme();
+                            }}
+                            title={currentTheme === 'dark' ? '切换为明亮模式' : '切换为暗黑模式'}
+                            className="p-1.5 sm:p-2 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer shrink-0 active:scale-95"
+                        >
+                            {currentTheme === 'dark' ? (
+                                <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] hover:rotate-90 transition-transform duration-300" />
+                            ) : (
+                                <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white hover:-rotate-12 transition-transform duration-300" />
+                            )}
+                        </button>
+
                         <button
                             id="sound-toggle-btn"
                             onClick={() => {
@@ -280,7 +307,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 onToggleSound();
                             }}
                             title={isSoundMuted ? '点击开启声音特效' : '点击静音'}
-                            className="p-1.5 sm:p-2 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer shrink-0 active:scale-95"
+                            className="p-1.5 sm:p-2 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer shrink-0 active:scale-95"
                         >
                             {isSoundMuted ? (
                                 <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
@@ -296,8 +323,8 @@ export const Header: React.FC<HeaderProps> = ({
                                     sound.playClick();
                                     onOpenSettings();
                                 }}
-                                title="系统设置 (特效等级/悬浮按钮)"
-                                className="p-1.5 sm:p-2 rounded-2xl border border-white/40 bg-white/20 hover:bg-white/30 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer shrink-0 active:scale-95"
+                                title="系统设置 (特效等级/主题/悬浮按钮)"
+                                className="p-1.5 sm:p-2 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer shrink-0 active:scale-95"
                             >
                                 <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white hover:rotate-45 transition-transform duration-300" />
                             </button>
@@ -309,4 +336,5 @@ export const Header: React.FC<HeaderProps> = ({
         </>
     );
 };
+
 

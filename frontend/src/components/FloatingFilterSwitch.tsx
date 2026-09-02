@@ -104,7 +104,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                 </button>
 
                 {/* Filter Mode Icon Pills */}
-                <div className="flex flex-col gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-xl shadow-slate-900/10 relative">
+                <div className="flex flex-col gap-1.5 p-1 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl border-2 border-white dark:border-slate-700 shadow-xl shadow-slate-900/10 relative">
                     <button
                         type="button"
                         onClick={() => {
@@ -113,8 +113,8 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                         }}
                         className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
                             filterMode === 'all'
-                                ? 'bg-[#7ABCF4] text-white shadow-sm'
-                                : 'text-slate-600 hover:bg-slate-100'
+                                ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white shadow-sm'
+                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                         }`}
                         title={`全部精灵 (${totalCount})`}
                     >
@@ -130,7 +130,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                         className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
                             filterMode === 'encountered'
                                 ? 'bg-[#95D151] text-white shadow-sm'
-                                : 'text-slate-600 hover:bg-slate-100'
+                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                         }`}
                         title={`已遇见精灵 (${encounteredCount})`}
                     >
@@ -146,7 +146,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                         className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
                             filterMode === 'unencountered'
                                 ? 'bg-amber-500 text-white shadow-sm'
-                                : 'text-slate-600 hover:bg-slate-100'
+                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                         }`}
                         title={`未遇见精灵 (${unencounteredCount})`}
                     >
@@ -165,7 +165,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                 className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer relative ${
                                     activeAdvancedCount > 0
                                         ? 'bg-[#2B78C4] text-white shadow-sm'
-                                        : 'text-slate-600 hover:bg-slate-100'
+                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                                 title="高级筛选 (属性与类型)"
                             >
@@ -202,7 +202,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                     type="button"
                     id="floating-filter-expand-btn"
                     onClick={() => handleToggleCollapse(false)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white relative pointer-events-auto"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white dark:border-slate-700 relative pointer-events-auto"
                     style={{ backgroundColor: currentMap.themeColor }}
                     title={`当前: ${currentMap.name} (${encounteredCount}/${totalCount}) - 点击展开左侧筛选栏`}
                 >
@@ -217,7 +217,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                 /* Expanded Stack (Arranged vertically from bottom to top) */
                 <div className="flex flex-col-reverse items-start gap-2 relative">
                     {/* Bottom-most Bar: Map Switcher Button + Collapse Toggle */}
-                    <div className="flex items-center gap-1.5 p-1 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-xl shadow-slate-900/10 pointer-events-auto">
+                    <div className="flex items-center gap-1.5 p-1 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl border-2 border-white dark:border-slate-700 shadow-xl shadow-slate-900/10 pointer-events-auto">
                         {/* 1. Map Switcher (First Button) - Clicking cycles through maps */}
                         <button
                             type="button"
@@ -245,7 +245,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                             type="button"
                             id="floating-filter-collapse-btn"
                             onClick={() => handleToggleCollapse(true)}
-                            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
                             title="收起左侧悬浮筛选栏"
                         >
                             <ChevronLeft className="w-4 h-4" />
@@ -253,7 +253,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                     </div>
 
                     {/* Above the map switcher: Vertical Filter Modes Stack (From bottom to top: 全部 -> 已遇见 -> 未遇见 -> 高级筛选) */}
-                    <div className="flex flex-col gap-1.5 p-1.5 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-lg shadow-slate-900/10 relative pointer-events-auto">
+                    <div className="flex flex-col gap-1.5 p-1.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl border-2 border-white dark:border-slate-700 shadow-lg shadow-slate-900/10 relative pointer-events-auto">
                         {/* Filter 1: 全部 */}
                         <button
                             type="button"

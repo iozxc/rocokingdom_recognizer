@@ -402,15 +402,15 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   /* Expanded FABs Stack */
                   <div className="flex flex-col items-end gap-2">
                     {/* Header Toolbar: 精简模式图标切换 + 收起按钮 */}
-                    <div className="flex items-center gap-1 p-1 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-white shadow-md shadow-slate-900/5 self-end">
+                    <div className="flex items-center gap-1 p-1 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl border-2 border-white dark:border-slate-700 shadow-md shadow-slate-900/5 self-end">
                       <button
                           type="button"
                           id="global-floating-simplified-toggle-btn"
                           onClick={handleToggleSimplified}
                           className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
                               isSimplified
-                                  ? 'bg-[#7ABCF4] text-white border-[#5DA8E8] shadow-xs hover:bg-[#68AEEB]'
-                                  : 'bg-slate-100 text-slate-500 hover:text-slate-800 hover:bg-slate-200 border-slate-200/80'
+                                  ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs hover:bg-[#68AEEB]'
+                                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-600 border-slate-200/80 dark:border-slate-600'
                           }`}
                           title={isSimplified ? '当前为精简模式（已隐藏单个识别、批量导入、数据管理、共创图鉴），点击还原' : '点击开启精简模式（隐藏单个识别、批量导入、数据管理、共创图鉴）'}
                       >
@@ -424,7 +424,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           type="button"
                           id="global-floating-collapse-fab"
                           onClick={() => handleToggleCollapse(true)}
-                          className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
                           title="收起右侧快捷悬浮栏"
                       >
                         <ChevronRight className="w-4 h-4" />
@@ -440,7 +440,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               sound.playClick();
                               openFollowScanner(followTrialKey);
                             }}
-                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] via-[#6366F1] to-[#4F46E5] hover:from-[#7C3AED] hover:via-[#4F46E5] hover:to-[#4338CA] text-white font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] via-[#6366F1] to-[#4F46E5] hover:from-[#7C3AED] hover:via-[#4F46E5] hover:to-[#4338CA] text-white font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                             title="窗口跟随识别"
                         >
                           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shadow-2xs">
@@ -462,7 +462,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               sound.playClick();
                               onOpenSingleRecognizer();
                             }}
-                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#95D151] to-[#689F38] hover:from-[#84C242] hover:to-[#558B2F] text-white font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#95D151] to-[#689F38] hover:from-[#84C242] hover:to-[#558B2F] text-white font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                             title="单个识别"
                         >
                           <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-white shadow-2xs">
@@ -484,7 +484,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               sound.playClick();
                               onOpenBatchInit();
                             }}
-                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#FEE061] to-[#F59E0B] hover:from-[#FDD835] hover:to-[#D97706] text-[#854D0E] font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#FEE061] to-[#F59E0B] hover:from-[#FDD835] hover:to-[#D97706] text-[#854D0E] font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                             title="批量导入"
                         >
                           <div className="w-6 h-6 rounded-full bg-white/40 flex items-center justify-center text-[#854D0E] shadow-2xs">
@@ -506,7 +506,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               sound.playClick();
                               onOpenDataManage();
                             }}
-                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#34D399] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#34D399] to-[#059669] hover:from-[#10B981] hover:to-[#047857] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                             title="数据管理 (导入/导出 roco_user_data.json)"
                         >
                           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
@@ -529,7 +529,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                     sound.playClick();
                                     onOpenFireAtlas();
                                   }}
-                                  className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                                  className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#F97316] to-[#EA580C] hover:from-[#EA580C] hover:to-[#C2410C] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                                   title="共创图鉴"
                               >
                                 <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
@@ -550,13 +550,13 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           sound.playClick();
                           setIsOpen(true);
                         }}
-                        className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                        className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
                         title="全局全图鉴智能搜索 (快捷键: Ctrl+K 或 /)"
                     >
                       {/* Pulsing ring indicator */}
                       <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FEE061] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FEE061] border-2 border-white"></span>
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#FEE061] border-2 border-white dark:border-slate-700"></span>
                 </span>
 
                       <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
@@ -603,20 +603,20 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 onClick={() => setIsOpen(false)}
             >
               <div
-                  className="relative w-full max-w-3xl bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200"
+                  className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 transition-colors"
                   onClick={(e) => e.stopPropagation()}
               >
                 {/* Top Search Input Bar */}
-                <div className="p-4 sm:p-5 bg-gradient-to-r from-[#F5F9FF] to-white border-b-2 border-[#E6EEF8] shrink-0">
+                <div className="p-4 sm:p-5 bg-gradient-to-r from-[#F5F9FF] to-white dark:from-slate-800 dark:to-slate-900 border-b-2 border-[#E6EEF8] dark:border-slate-800 shrink-0">
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-xl bg-[#7ABCF4] text-white flex items-center justify-center shadow-xs">
                         <Search className="w-4 h-4" />
                       </div>
                       <div>
-                        <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
+                        <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
                           全域精灵图鉴检索
-                          <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#EBF4FE] text-[#2B78C4] border border-[#BCD7F2]">
+                          <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
                         跨 {maps.length} 张地图共 {totalAllPets} 只精灵
                       </span>
                         </h3>
@@ -625,14 +625,14 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
 
                     <div className="flex items-center gap-2">
                   <span className="text-[11px] text-slate-400 hidden sm:inline-block">
-                    按 <kbd className="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-600 border border-slate-200">ESC</kbd> 退出
+                    按 <kbd className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">ESC</kbd> 退出
                   </span>
                       <button
                           onClick={() => {
                             sound.playClick();
                             setIsOpen(false);
                           }}
-                          className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -652,7 +652,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         }}
                         onKeyDown={handleKeyDownInInput}
                         placeholder="输入精灵名、图鉴id实时查找..."
-                        className="w-full pl-12 pr-10 py-3 text-sm sm:text-base bg-white border-2 border-[#BCD7F2] focus:border-[#7ABCF4] rounded-2xl outline-hidden text-slate-800 font-bold shadow-inner transition-all placeholder:text-slate-400 placeholder:font-normal"
+                        className="w-full pl-12 pr-10 py-3 text-sm sm:text-base bg-white dark:bg-slate-800 border-2 border-[#BCD7F2] dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-400 rounded-2xl outline-hidden text-slate-800 dark:text-slate-100 font-bold shadow-inner transition-all placeholder:text-slate-400 placeholder:font-normal"
                     />
                     {searchQuery && (
                         <button
@@ -668,7 +668,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   </div>
 
                   {/* Filter Tabs Row */}
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                     {/* Map Filter */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[11px] font-black text-slate-400">地图:</span>
@@ -680,8 +680,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           }}
                           className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                               selectedMapFilter === 'all'
-                                  ? 'bg-[#7ABCF4] text-white shadow-xs'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                  ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white shadow-xs'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                           }`}
                       >
                         全部地图
@@ -696,8 +696,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               }}
                               className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
                                   selectedMapFilter === m.num
-                                      ? 'bg-[#7ABCF4] text-white shadow-xs'
-                                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                      ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white shadow-xs'
+                                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                               }`}
                           >
                             <span>{m.num}、{m.name.replace('记忆中的', '')}</span>
@@ -716,8 +716,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           }}
                           className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
                               selectedStatusFilter === 'all'
-                                  ? 'bg-slate-700 text-white shadow-xs'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-xs'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                           }`}
                       >
                         全部
@@ -731,7 +731,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
                               selectedStatusFilter === 'unencountered'
                                   ? 'bg-[#95D151] text-white shadow-xs'
-                                  : 'bg-[#E1F7DB] text-[#2D6613] hover:bg-[#d5f3cb]'
+                                  : 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 hover:bg-[#d5f3cb]'
                           }`}
                       >
                         <Sparkles className="w-2.5 h-2.5" />
@@ -745,8 +745,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           }}
                           className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
                               selectedStatusFilter === 'encountered'
-                                  ? 'bg-slate-600 text-white shadow-xs'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                  ? 'bg-slate-600 dark:bg-slate-600 text-white shadow-xs'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                           }`}
                       >
                         <Check className="w-2.5 h-2.5" />
@@ -757,8 +757,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 </div>
 
                 {/* Results Counter Banner */}
-                <div className="px-5 py-2 bg-[#F5F9FF] border-b border-[#E6EEF8] flex items-center justify-between text-xs text-slate-500 font-bold shrink-0">
-                  <span>找到 <strong className="text-[#2B78C4]">{filteredResults.length}</strong> 只相关精灵</span>
+                <div className="px-5 py-2 bg-[#F5F9FF] dark:bg-slate-800/80 border-b border-[#E6EEF8] dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold shrink-0">
+                  <span>找到 <strong className="text-[#2B78C4] dark:text-sky-400">{filteredResults.length}</strong> 只相关精灵</span>
                   <span className="text-[11px] text-slate-400 hidden sm:inline-block">
                 点击精灵卡片即可快速跳转至该地图并定位 · 或点击右侧快捷勾选
               </span>
@@ -771,10 +771,10 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 >
                   {filteredResults.length === 0 ? (
                       <div className="py-16 text-center text-slate-400 flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-2">
                           <Search className="w-6 h-6" />
                         </div>
-                        <p className="text-sm font-black text-slate-700">未找到符合条件的精灵</p>
+                        <p className="text-sm font-black text-slate-700 dark:text-slate-200">未找到符合条件的精灵</p>
                         <p className="text-xs text-slate-400 mt-1">
                           请尝试检查拼写，或切换地图/遇见状态筛选条件
                         </p>
@@ -789,16 +789,16 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                 onClick={() => handleSelectPet(item)}
                                 className={`group relative p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 cursor-pointer ${
                                     isFocused
-                                        ? 'border-[#7ABCF4] bg-[#F0F7FF] shadow-md ring-2 ring-[#7ABCF4]/40'
+                                        ? 'border-[#7ABCF4] dark:border-sky-400 bg-[#F0F7FF] dark:bg-slate-800 shadow-md ring-2 ring-[#7ABCF4]/40'
                                         : item.isEncountered
-                                            ? 'border-[#95D151]/50 bg-[#F9FEF8] hover:border-[#95D151] hover:shadow-sm'
-                                            : 'border-[#E6EEF8] bg-white hover:border-[#7ABCF4] hover:bg-[#F8FAFC] hover:shadow-sm'
+                                            ? 'border-[#95D151]/50 dark:border-emerald-600/50 bg-[#F9FEF8] dark:bg-emerald-950/20 hover:border-[#95D151] hover:shadow-sm'
+                                            : 'border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#7ABCF4] dark:hover:border-sky-400 hover:bg-[#F8FAFC] dark:hover:bg-slate-750 hover:shadow-sm'
                                 }`}
                             >
                               {/* Left: Avatar + Details */}
                               <div className="flex items-center gap-3.5 min-w-0">
                                 {/* Pet Image Avatar */}
-                                <div className="relative w-12 h-12 rounded-xl bg-white p-1 border border-[#E6EEF8] shadow-inner flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <div className="relative w-12 h-12 rounded-xl bg-white dark:bg-slate-900 p-1 border border-[#E6EEF8] dark:border-slate-700 shadow-inner flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                   <PetSprite
                                       pet={item.pet}
                                       alt={item.cleanName}
@@ -824,13 +824,13 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                 {/* Text Info */}
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <h4 className="text-sm font-black text-slate-800 truncate" title={item.cleanName}>
+                                    <h4 className="text-sm font-black text-slate-800 dark:text-slate-100 truncate" title={item.cleanName}>
                                       {item.cleanName}
                                     </h4>
 
                                     {/* Map Tag */}
                                     <span
-                                        className="text-[10px] font-black px-2 py-0.5 rounded-md border flex items-center gap-1"
+                                        className="text-[10px] font-black px-2 py-0.5 rounded-md border flex items-center gap-1 dark:bg-slate-800"
                                         style={{
                                           backgroundColor: item.mapConfig.num === 1 ? '#E1F7DB' : item.mapConfig.num === 2 ? '#FEF9E6' : '#EBF4FE',
                                           color: item.mapConfig.num === 1 ? '#2D6613' : item.mapConfig.num === 2 ? '#854D0E' : '#1D5E9E',
@@ -845,15 +845,15 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                   {/* Secondary status text */}
                                   <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5">
                                     {item.isEncountered ? (
-                                        <span className="text-[#2D6613] font-bold flex items-center gap-1">
-                                <Check className="w-3 h-3 text-[#2D6613]" /> 已在当前关卡点亮
+                                        <span className="text-[#2D6613] dark:text-emerald-400 font-bold flex items-center gap-1">
+                                <Check className="w-3 h-3 text-[#2D6613] dark:text-emerald-400" /> 已在当前关卡点亮
                               </span>
                                     ) : (
-                                        <span className="text-amber-600 font-bold flex items-center gap-1">
+                                        <span className="text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
                                 <Sparkles className="w-3 h-3 text-amber-500" /> 尚未在图鉴中遇见
                               </span>
                                     )}
-                                  </p>
+                              </p>
                                 </div>
                               </div>
 
@@ -869,8 +869,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                     }}
                                     className={`px-2.5 py-1.5 rounded-xl text-xs font-black border transition-all flex items-center gap-1 cursor-pointer ${
                                         item.isEncountered
-                                            ? 'bg-[#E1F7DB] hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 text-[#2D6613] border-[#95D151]'
-                                            : 'bg-white hover:bg-[#E1F7DB] hover:text-[#2D6613] hover:border-[#95D151] text-slate-600 border-slate-200 shadow-2xs'
+                                            ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 hover:border-rose-300 text-[#2D6613] dark:text-emerald-300 border-[#95D151]'
+                                            : 'bg-white dark:bg-slate-700 hover:bg-[#E1F7DB] dark:hover:bg-emerald-950/60 hover:text-[#2D6613] dark:hover:text-emerald-300 hover:border-[#95D151] text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-600 shadow-2xs'
                                     }`}
                                     title={item.isEncountered ? '点击取消该精灵图鉴遇见' : '快捷标记为【已遇见】'}
                                 >
@@ -881,7 +881,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                 </button>
 
                                 {/* Navigate Button */}
-                                <div className="w-8 h-8 rounded-xl bg-[#F5F9FF] group-hover:bg-[#7ABCF4] group-hover:text-white text-[#2B78C4] flex items-center justify-center transition-colors border border-[#E6EEF8]">
+                                <div className="w-8 h-8 rounded-xl bg-[#F5F9FF] dark:bg-slate-700 group-hover:bg-[#7ABCF4] dark:group-hover:bg-sky-500 group-hover:text-white text-[#2B78C4] dark:text-sky-300 flex items-center justify-center transition-colors border border-[#E6EEF8] dark:border-slate-600">
                                   <ArrowRight className="w-4 h-4" />
                                 </div>
                               </div>
@@ -892,21 +892,21 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 </div>
 
                 {/* Bottom Keyboard Hints & Summary */}
-                <div className="p-3.5 bg-slate-50 border-t-2 border-[#E6EEF8] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 shrink-0">
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border-t-2 border-[#E6EEF8] dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 shrink-0">
                   <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <kbd className="font-mono bg-white px-1.5 py-0.5 rounded text-slate-700 border border-slate-300 shadow-2xs">↑</kbd>
-                  <kbd className="font-mono bg-white px-1.5 py-0.5 rounded text-slate-700 border border-slate-300 shadow-2xs">↓</kbd>
+                  <kbd className="font-mono bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 shadow-2xs">↑</kbd>
+                  <kbd className="font-mono bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 shadow-2xs">↓</kbd>
                   <span>选择</span>
                 </span>
                     <span className="flex items-center gap-1">
-                  <kbd className="font-mono bg-white px-1.5 py-0.5 rounded text-slate-700 border border-slate-300 shadow-2xs">Enter</kbd>
+                  <kbd className="font-mono bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 shadow-2xs">Enter</kbd>
                   <span>跳转地图定位</span>
                 </span>
                   </div>
 
                   <div className="text-[11px] text-slate-400">
-                    支持拼音与模糊查询 · 随时随地按 <kbd className="font-mono bg-white px-1 py-0.5 rounded text-slate-600 border border-slate-300">Ctrl+K</kbd> 唤出
+                    支持拼音与模糊查询 · 随时随地按 <kbd className="font-mono bg-white dark:bg-slate-700 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600">Ctrl+K</kbd> 唤出
                   </div>
                 </div>
               </div>

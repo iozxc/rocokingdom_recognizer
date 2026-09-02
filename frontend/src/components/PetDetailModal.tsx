@@ -64,7 +64,7 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
         onWheel={(e) => e.stopPropagation()}
     >
       <div
-        className="relative w-full max-w-sm bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-6 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl p-6 overflow-hidden animate-in fade-in zoom-in-95 duration-200 transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -73,14 +73,14 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
             sound.playClick();
             onClose();
           }}
-          className="absolute top-4 right-4 p-2 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-[#F5F9FF] transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-2xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-[#F5F9FF] dark:hover:bg-slate-800 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Pet Visual Display */}
         <div className="flex flex-col items-center text-center mt-2">
-          <div className="relative w-36 h-36 rounded-3xl bg-[#F5F9FF] border-3 border-[#E6EEF8] p-4 shadow-inner flex items-center justify-center">
+          <div className="relative w-36 h-36 rounded-3xl bg-[#F5F9FF] dark:bg-slate-800 border-3 border-[#E6EEF8] dark:border-slate-700 p-4 shadow-inner flex items-center justify-center">
             {IS_STATIC && pet.sprite ? (
                 <PetSprite
                     pet={pet}
@@ -109,11 +109,11 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
           </div>
 
           <div className="mt-4 text-center">
-            <h3 className="text-xl font-black text-slate-800">
+            <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">
               {displayName}
             </h3>
             {pet.id != null && (
-                <p className="text-xs font-bold text-[#7ABCF4] mt-1">
+                <p className="text-xs font-bold text-[#7ABCF4] dark:text-sky-400 mt-1">
                   图鉴编号 #{pet.id}
                 </p>
             )}
@@ -126,17 +126,17 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
 
           {/* 遇见信息：时间与置信度/备注（来自用户记录） */}
           {isEncountered && record && (
-              <div className="mt-4 w-full rounded-2xl bg-[#F5F9FF] border border-[#E6EEF8] p-3 space-y-2 text-left">
+              <div className="mt-4 w-full rounded-2xl bg-[#F5F9FF] dark:bg-slate-800 border border-[#E6EEF8] dark:border-slate-700 p-3 space-y-2 text-left">
                 <div className="flex items-center justify-between gap-2 text-xs">
-                  <span className="text-slate-500 font-bold shrink-0">遇见时间</span>
-                  <span className="text-slate-800 font-black font-mono truncate">
+                  <span className="text-slate-500 dark:text-slate-400 font-bold shrink-0">遇见时间</span>
+                  <span className="text-slate-800 dark:text-slate-100 font-black font-mono truncate">
                     {formatTime(record.lastSeenAt)}
                   </span>
                 </div>
                 {record.note && (
                     <div className="flex items-start justify-between gap-2 text-xs">
-                      <span className="text-slate-500 font-bold shrink-0">置信度/备注</span>
-                      <span className="text-slate-800 font-bold text-right">
+                      <span className="text-slate-500 dark:text-slate-400 font-bold shrink-0">置信度/备注</span>
+                      <span className="text-slate-800 dark:text-slate-100 font-bold text-right">
                         {record.note}
                       </span>
                     </div>
@@ -151,7 +151,7 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
             onClick={handleToggle}
             className={`w-full py-3 px-4 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
               isEncountered
-                ? 'roco-btn-secondary text-rose-600 hover:bg-rose-50'
+                ? 'roco-btn-secondary text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
                 : 'roco-btn-success'
             }`}
           >

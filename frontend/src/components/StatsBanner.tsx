@@ -44,11 +44,11 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
 
 
     return (
-        <div className="bg-white roco-card p-3 sm:p-5 relative mb-4 sm:mb-5 space-y-3 sm:space-y-3.5 shadow-xs border border-slate-100">
+        <div className="bg-white dark:bg-slate-900 roco-card p-3 sm:p-5 relative mb-4 sm:mb-5 space-y-3 sm:space-y-3.5 shadow-xs border border-slate-100 dark:border-slate-800 transition-colors">
             {/* Decorative gradient aura container to handle overflow boundaries safely */}
             <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
                 <div
-                    className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${currentMap.bgGradient} rounded-full blur-3xl -mr-20 -mt-20 opacity-40`}
+                    className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${currentMap.bgGradient} rounded-full blur-3xl -mr-20 -mt-20 opacity-40 dark:opacity-20`}
                 />
             </div>
 
@@ -57,24 +57,24 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                 {/* Left: Map Information & Level Badge */}
                 <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 flex-1 min-w-0">
                     <div
-                        className="w-10 h-10 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center text-xl sm:text-2xl border-2 shrink-0 bg-[#F5F9FF] shadow-xs"
+                        className="w-10 h-10 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center text-xl sm:text-2xl border-2 shrink-0 bg-[#F5F9FF] dark:bg-slate-800 shadow-xs"
                         style={{ borderColor: currentMap.themeColor }}
                     >
                         {currentMap.num === 1 ? '🌿' : currentMap.num === 2 ? '🗿' : currentMap.num === 3 ? '🌱' : '🔥'}
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                            <span className={`text-[10px] sm:text-[11px] font-black px-1.5 sm:px-2 py-0.5 rounded-lg border ${currentMap.badgeBg}`}>
+                            <span className={`text-[10px] sm:text-[11px] font-black px-1.5 sm:px-2 py-0.5 rounded-lg border ${currentMap.badgeBg} dark:bg-slate-800 dark:border-slate-700`}>
                                 地图 #{currentMap.num}
                             </span>
-                            <h2 className="text-base sm:text-lg lg:text-xl font-black text-slate-800 tracking-tight flex items-center gap-1.5 truncate">
+                            <h2 className="text-base sm:text-lg lg:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-1.5 truncate">
                                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7ABCF4] shrink-0" />
                                 <span>{currentMap.name}</span>
                             </h2>
                         </div>
 
                         {/* Description */}
-                        <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 max-w-xl line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 max-w-xl line-clamp-2 leading-relaxed">
                             {currentMap.description}
                         </p>
                     </div>
@@ -82,19 +82,19 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
 
                 {/* Right: Map Dex Completion Progress Card */}
                 <div className="shrink-0 w-full sm:w-72 md:w-80">
-                    <div className="p-2.5 sm:p-3 bg-gradient-to-b from-[#F5F9FF] to-[#EFF6FF] rounded-2xl border border-[#D5E2F0] shadow-xs space-y-1.5">
-                        <div className="flex items-center justify-between text-xs font-black text-slate-700">
-                            <span className="flex items-center gap-1.5 text-[#2B78C4]">
+                    <div className="p-2.5 sm:p-3 bg-gradient-to-b from-[#F5F9FF] to-[#EFF6FF] dark:from-slate-800/90 dark:to-slate-800/50 rounded-2xl border border-[#D5E2F0] dark:border-slate-700 shadow-xs space-y-1.5">
+                        <div className="flex items-center justify-between text-xs font-black text-slate-700 dark:text-slate-200">
+                            <span className="flex items-center gap-1.5 text-[#2B78C4] dark:text-sky-400">
                                 <Sparkles className="w-3.5 h-3.5 text-[#FEE061]" />
                                 <span>本图遇见进度</span>
                             </span>
-                            <span className="font-mono text-[#2B78C4] font-black text-xs">
+                            <span className="font-mono text-[#2B78C4] dark:text-sky-300 font-black text-xs">
                                 {encounteredCount} / {totalMapPets} ({percentage}%)
                             </span>
                         </div>
 
                         {/* Progress bar */}
-                        <div className="w-full h-2.5 bg-slate-200/90 rounded-full overflow-hidden p-0.5">
+                        <div className="w-full h-2.5 bg-slate-200/90 dark:bg-slate-700 rounded-full overflow-hidden p-0.5">
                             <div
                                 className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-[#95D151] to-[#7ABCF4]"
                                 style={{ width: `${percentage}%` }}
@@ -102,7 +102,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                         </div>
 
                         {/* Progress Footer: Remaining count & Subtle Reset link */}
-                        <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium pt-0.5">
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-400 font-medium pt-0.5">
                             <span>{unencounteredCount === 0 ? '🎉 已全部遇见' : `还差 ${unencounteredCount} 只完成`}</span>
                             {encounteredCount > 0 ? (
                                 <button
@@ -113,7 +113,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                         setIsConfirmOpen(true);
                                     }}
                                     title="清空当前关卡遇见记录"
-                                    className="text-[10px] text-slate-400 hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer hover:underline"
+                                    className="text-[10px] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-1 cursor-pointer hover:underline"
                                 >
                                     <RotateCcw className="w-2.5 h-2.5 text-slate-400" />
                                     <span>重置记录</span>
@@ -125,8 +125,8 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
 
                         {/* Optional subtle data update alert */}
                         {dataUpdateAvailable && onOpenDataUpdate && (
-                            <div className="pt-1.5 mt-1 border-t border-[#D5E2F0]/70 flex items-center justify-between">
-                                <span className="text-[10px] text-amber-700 font-medium flex items-center gap-1">
+                            <div className="pt-1.5 mt-1 border-t border-[#D5E2F0]/70 dark:border-slate-700 flex items-center justify-between">
+                                <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                                     图鉴数据库有更新
                                 </span>
@@ -137,7 +137,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                         sound.playClick();
                                         onOpenDataUpdate();
                                     }}
-                                    className="text-[10px] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 cursor-pointer hover:underline"
+                                    className="text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-1 cursor-pointer hover:underline"
                                 >
                                     <ArrowUpCircle className="w-3 h-3 text-sky-500" />
                                     <span>前往更新</span>
@@ -164,12 +164,12 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
             />
 
             {/* Integrated Divider Line */}
-            <div className="border-t border-[#E6EEF8] relative z-10" />
+            <div className="border-t border-[#E6EEF8] dark:border-slate-800 relative z-10" />
 
             {/* Bottom Row: Filter Tabs & Search Controls */}
             <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 pt-0.5">
                 {/* Filter Mode Buttons */}
-                <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#F5F9FF] rounded-xl border border-[#E2E8F0] w-full sm:w-auto overflow-x-auto">
+                <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#F5F9FF] dark:bg-slate-800 rounded-xl border border-[#E2E8F0] dark:border-slate-700 w-full sm:w-auto overflow-x-auto">
                     <button
                         type="button"
                         id="filter-all-btn"
@@ -179,8 +179,8 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                         }}
                         className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'all'
-                                ? 'bg-white text-[#2B78C4] border-[#7ABCF4] shadow-2xs'
-                                : 'bg-transparent text-slate-500 hover:text-slate-800 border-transparent'
+                                ? 'bg-white dark:bg-slate-700 text-[#2B78C4] dark:text-sky-300 border-[#7ABCF4] dark:border-sky-500 shadow-2xs'
+                                : 'bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
                         }`}
                     >
                         全部 ({totalMapPets})
@@ -195,7 +195,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                         className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'encountered'
                                 ? 'bg-[#95D151] text-white border-[#76B032] shadow-2xs'
-                                : 'bg-transparent text-[#2D6613] hover:text-slate-800 border-transparent'
+                                : 'bg-transparent text-[#2D6613] dark:text-emerald-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
                         }`}
                     >
                         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
@@ -211,7 +211,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                         className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
                             filterMode === 'unencountered'
                                 ? 'bg-[#FEE061] text-[#854D0E] border-[#E5C43B] shadow-2xs'
-                                : 'bg-transparent text-slate-500 hover:text-slate-800 border-transparent'
+                                : 'bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
                         }`}
                     >
                         <X className="w-3.5 h-3.5 shrink-0" />
@@ -229,7 +229,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             value={searchQuery}
                             onChange={(e) => onSearchChange(e.target.value)}
                             placeholder="搜索精灵名、图鉴id..."
-                            className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-white border border-[#7ABCF4]/60 focus:border-[#7ABCF4] rounded-xl shadow-2xs focus:shadow-xs outline-hidden transition-all text-slate-800 placeholder:text-slate-400 font-medium"
+                            className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-white dark:bg-slate-800 border border-[#7ABCF4]/60 dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-400 rounded-xl shadow-2xs focus:shadow-xs outline-hidden transition-all text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium"
                         />
                         {searchQuery && (
                             <button
@@ -239,7 +239,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                     sound.playClick();
                                     onSearchChange('');
                                 }}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/80 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
                                 title="清空输入内容"
                             >
                                 <X className="w-3.5 h-3.5" />
@@ -256,8 +256,8 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                             }}
                             className={`p-2 rounded-xl border-2 transition-all flex items-center justify-center gap-1 cursor-pointer hover:scale-105 active:scale-95 ${
                                 activeAdvancedCount > 0
-                                    ? 'bg-[#F0F7FF] border-[#7ABCF4] text-[#2B78C4]'
-                                    : 'bg-white border-slate-200 text-slate-600 hover:border-[#7ABCF4] hover:text-[#2B78C4]'
+                                    ? 'bg-[#F0F7FF] dark:bg-slate-800 border-[#7ABCF4] dark:border-sky-500 text-[#2B78C4] dark:text-sky-300'
+                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#7ABCF4] hover:text-[#2B78C4]'
                             }`}
                             title="高级筛选"
                         >

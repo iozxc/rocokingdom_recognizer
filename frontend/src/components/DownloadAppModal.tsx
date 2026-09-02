@@ -77,11 +77,11 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
           onClick={onClose}
       >
         <div
-            className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col"
+            className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col transition-colors"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-[#7ABCF4] px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8]">
+          <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
                 <Download className="w-4 h-4 text-white" />
@@ -90,7 +90,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                 <h3 className="text-base font-black tracking-tight">
                   下载桌面版 · 使用完整识别 AI
                 </h3>
-                <p className="text-[11px] text-white/80 font-medium">
+                <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">
                   网页版仅提供图鉴浏览；识别功能需下载本地桌面端
                 </p>
               </div>
@@ -110,9 +110,9 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
           {/* Content */}
           <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
             {/* 版本 */}
-            <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
               <span className="text-slate-400">当前版本</span>
-              <span className="px-2 py-0.5 bg-[#EBF4FE] text-[#2B78C4] rounded-lg border border-[#BCD7F2] font-black">
+              <span className="px-2 py-0.5 bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 rounded-lg border border-[#BCD7F2] dark:border-sky-800 font-black">
                 v{appInfo?.version ?? '1.4.4'}
               </span>
               <span className="text-slate-400">· 网页版为图鉴浏览版</span>
@@ -120,19 +120,19 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
 
             {/* 功能补充介绍 */}
             <div className="space-y-2.5">
-              <div className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+              <div className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
                 <span>桌面 APP 功能补充</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {APP_FEATURES.map((f) => (
-                    <div key={f.title} className="flex gap-2.5 p-2.5 bg-[#F0F6FC] rounded-2xl border-2 border-[#D5E3F0]">
-                      <div className="w-7 h-7 shrink-0 rounded-lg bg-[#7ABCF4]/20 text-[#2B78C4] flex items-center justify-center">
+                    <div key={f.title} className="flex gap-2.5 p-2.5 bg-[#F0F6FC] dark:bg-slate-800 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700">
+                      <div className="w-7 h-7 shrink-0 rounded-lg bg-[#7ABCF4]/20 dark:bg-sky-950/60 text-[#2B78C4] dark:text-sky-400 flex items-center justify-center">
                         <f.icon className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-xs font-black text-slate-800">{f.title}</div>
-                        <div className="text-[10px] text-slate-500 leading-snug">{f.desc}</div>
+                        <div className="text-xs font-black text-slate-800 dark:text-slate-100">{f.title}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">{f.desc}</div>
                       </div>
                     </div>
                 ))}
@@ -141,8 +141,8 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
 
             {/* 下载渠道 */}
             <div className="space-y-2.5">
-              <div className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                <Link2 className="w-3.5 h-3.5 text-sky-600" />
+              <div className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <Link2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                 <span>下载渠道</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -151,11 +151,11 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                         href={mirrors.GitHub}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-[#D5E3F0] bg-white hover:bg-[#EBF4FE] hover:border-[#7ABCF4] transition-colors"
+                        className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors"
                     >
-                        <Github className="w-5 h-5 text-slate-800 shrink-0" />
+                        <Github className="w-5 h-5 text-slate-800 dark:text-slate-100 shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs font-black text-slate-800">GitHub 下载</div>
+                          <div className="text-xs font-black text-slate-800 dark:text-slate-100">GitHub 下载</div>
                           <div className="text-[10px] text-slate-400 truncate">发布页 / Releases</div>
                         </div>
                       </a>
@@ -165,11 +165,11 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                         href={mirrors.Gitee}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-[#D5E3F0] bg-white hover:bg-[#EBF4FE] hover:border-[#7ABCF4] transition-colors"
+                        className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-750 hover:border-[#7ABCF4] dark:hover:border-sky-500 transition-colors"
                     >
                         <GiteeIcon className="w-5 h-5 shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs font-black text-slate-800">Gitee 下载</div>
+                          <div className="text-xs font-black text-slate-800 dark:text-slate-100">Gitee 下载</div>
                           <div className="text-[10px] text-slate-400 truncate">发布页 / Releases</div>
                         </div>
                       </a>
@@ -178,30 +178,30 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
             </div>
 
             {/* 免费开源声明 */}
-            <div className="flex items-start gap-2 p-3 rounded-2xl bg-emerald-50 border-2 border-emerald-200">
-              <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-emerald-800 leading-snug">
+            <div className="flex items-start gap-2 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-200 dark:border-emerald-800">
+              <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-snug">
                 本应用<strong>完全免费且开源</strong>，无广告、无内购、不上传你的隐私数据，数据完全本地存储。
               </p>
             </div>
 
             {/* QQ群 下载 */}
             <div className="space-y-2.5">
-              <div className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span>进 QQ 群获取</span>
               </div>
-              <div className="p-3 sm:p-4 bg-[#F0F6FC] rounded-2xl border-2 border-[#D5E3F0] flex flex-col gap-3">
+              <div className="p-3 sm:p-4 bg-[#F0F6FC] dark:bg-slate-800 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 flex flex-col gap-3">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 w-full sm:w-auto">
                     <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#7ABCF4] text-white flex items-center justify-center shrink-0 shadow-xs border-2 border-[#5DA8E8]">
                       <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-black text-slate-800 truncate" title={gname}>{gname}</div>
+                      <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate" title={gname}>{gname}</div>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <span className="text-xs font-mono font-black text-[#1E5B99] bg-white px-2 py-0.5 rounded-lg border border-[#BCD7F2]">{gid}</span>
-                        <span className="text-[11px] text-slate-500 font-medium">群内提供安装包</span>
+                        <span className="text-xs font-mono font-black text-[#1E5B99] dark:text-sky-300 bg-white dark:bg-slate-700 px-2 py-0.5 rounded-lg border border-[#BCD7F2] dark:border-slate-600">{gid}</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">群内提供安装包</span>
                       </div>
                     </div>
                   </div>
@@ -214,7 +214,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                         }}
                         title="扫码进群"
                         className={`p-2 rounded-xl text-xs font-black flex items-center justify-center transition-all cursor-pointer border-2 ${
-                            qrOpen ? 'bg-[#7ABCF4] text-white border-[#5DA8E8] shadow-xs' : 'bg-white hover:bg-[#EBF4FE] text-[#1E5B99] border-[#BCD7F2] hover:border-[#7ABCF4] shadow-xs'
+                            qrOpen ? 'bg-[#7ABCF4] text-white border-[#5DA8E8] shadow-xs' : 'bg-white dark:bg-slate-700 hover:bg-[#EBF4FE] dark:hover:bg-slate-600 text-[#1E5B99] dark:text-sky-300 border-[#BCD7F2] dark:border-slate-600 hover:border-[#7ABCF4] shadow-xs'
                         }`}
                     >
                       <QrCode className="w-4 h-4" />
@@ -223,7 +223,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                         type="button"
                         onClick={handleCopyQQGroup}
                         className={`px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1 transition-all cursor-pointer border-2 ${
-                            copiedGroupId === gid ? 'bg-[#95D151] text-white border-[#76B032]' : 'bg-white hover:bg-[#EBF4FE] text-[#1E5B99] border-[#BCD7F2] hover:border-[#7ABCF4] shadow-xs'
+                            copiedGroupId === gid ? 'bg-[#95D151] text-white border-[#76B032]' : 'bg-white dark:bg-slate-700 hover:bg-[#EBF4FE] dark:hover:bg-slate-600 text-[#1E5B99] dark:text-sky-300 border-[#BCD7F2] dark:border-slate-600 hover:border-[#7ABCF4] shadow-xs'
                         }`}
                     >
                       {copiedGroupId === gid ? (
@@ -241,7 +241,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                   </div>
                 </div>
                 {qrOpen && (
-                    <div className="pt-3 border-t border-[#D5E3F0] flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 bg-white/80 p-3 sm:p-3.5 rounded-xl border border-white shadow-inner animate-in fade-in zoom-in-95 duration-200">
+                    <div className="pt-3 border-t border-[#D5E3F0] dark:border-slate-700 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 bg-white/80 dark:bg-slate-900/80 p-3 sm:p-3.5 rounded-xl border border-white dark:border-slate-700 shadow-inner animate-in fade-in zoom-in-95 duration-200">
                       <div className="p-2 bg-white rounded-2xl border-2 border-[#BCD7F2] shadow-sm flex items-center justify-center shrink-0">
                         <img
                             src={qrSrc}
@@ -254,12 +254,12 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                         />
                       </div>
                       <div className="text-center sm:text-left space-y-1">
-                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-black text-slate-800">
-                          <QrCode className="w-4 h-4 text-[#2B78C4]" />
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-black text-slate-800 dark:text-slate-100">
+                          <QrCode className="w-4 h-4 text-[#2B78C4] dark:text-sky-400" />
                           <span>扫一扫加入交流群</span>
                         </div>
-                        <p className="text-[11px] text-slate-500">使用手机 QQ 扫描上方二维码即可一键加入</p>
-                        <p className="text-[10px] text-[#2B78C4] font-mono font-bold bg-[#EBF4FE] px-2 py-0.5 rounded-md inline-block">群号: {gid}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">使用手机 QQ 扫描上方二维码即可一键加入</p>
+                        <p className="text-[10px] text-[#2B78C4] dark:text-sky-300 font-mono font-bold bg-[#EBF4FE] dark:bg-sky-950/70 px-2 py-0.5 rounded-md inline-block">群号: {gid}</p>
                       </div>
                     </div>
                 )}

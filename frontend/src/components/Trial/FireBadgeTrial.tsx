@@ -561,8 +561,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   // 避免地图切换区先显示 0/0、加载后突然变成真实计数导致缩放跳动。
   if (!loaded) {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center selection:bg-orange-200 selection:text-orange-900 bg-gradient-to-b from-[#7ABCF4]/10 to-white">
-          <div className="text-center text-slate-500 text-sm font-medium">正在加载火系全图鉴...</div>
+        <div className="min-h-screen flex flex-col items-center justify-center selection:bg-orange-200 selection:text-orange-900 bg-gradient-to-b from-[#7ABCF4]/10 to-white dark:from-slate-900 dark:to-slate-950">
+          <div className="text-center text-slate-500 dark:text-slate-400 text-sm font-medium">正在加载火系全图鉴...</div>
         </div>
     );
   }

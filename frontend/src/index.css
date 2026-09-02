@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   html {
     /* 始终预留纵向滚动条，避免页面高度变化时滚动条出现/消失导致布局横向跳动 */
@@ -27,6 +29,13 @@
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  html.dark body {
+    background-color: #0f172a;
+    color: #f1f5f9;
+    background-image: radial-gradient(#1e293b 1px, transparent 1px);
   }
 
   /* 所有可点按钮在 hover 时显示手型 */
@@ -60,6 +69,11 @@
     margin: 0;
     padding: 0;
   }
+
+  html.dark body.scanner-transparent-mode {
+    background-color: #0b1120 !important;
+    background: #0b1120 !important;
+  }
 }
 
 /* pywebview draggable titlebar */
@@ -76,11 +90,21 @@
   background-color: #ffffff;
   border: 2px solid #E6EEF8;
   border-radius: 1.5rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
+}
+
+.dark .roco-card {
+  background-color: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 }
 
 .roco-card-interactive:hover {
   border-color: #7ABCF4;
+}
+
+.dark .roco-card-interactive:hover {
+  border-color: #38bdf8;
 }
 
 /* Primary Button (Sleek Sky Blue) */
@@ -147,9 +171,20 @@
   transition: all 0.15s ease;
 }
 
+.dark .roco-btn-secondary {
+  background: #1e293b;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
 .roco-btn-secondary:hover {
   background: #F8FAFC;
   border-color: #CBD5E1;
+}
+
+.dark .roco-btn-secondary:hover {
+  background: #334155;
+  border-color: #64748b;
 }
 
 .roco-btn-secondary:active {
@@ -206,12 +241,21 @@
   background: #FDF9F3;
   border-radius: 4px;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
 ::-webkit-scrollbar-thumb {
   background: #7ABCF4;
   border-radius: 4px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #5DA8E8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 /* Highlight Target Pet Animation */

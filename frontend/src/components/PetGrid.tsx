@@ -196,8 +196,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
         {/* Empty State */}
         {filteredPets.length === 0 ? (
             <div className="py-16 text-center text-slate-400 flex flex-col items-center">
-              <Sparkles className="w-10 h-10 text-slate-300 mb-2" />
-              <p className="text-sm font-black text-slate-600">未找到符合条件的精灵</p>
+              <Sparkles className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-2" />
+              <p className="text-sm font-black text-slate-600 dark:text-slate-300">未找到符合条件的精灵</p>
               <p className="text-xs text-slate-400 mt-1">请尝试调整搜索关键词或切换筛选条件</p>
             </div>
         ) : (
@@ -226,10 +226,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         }}
                         className={`group relative rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 flex flex-col items-center cursor-pointer transition-all duration-200 select-none ${
                             isJustEncountered
-                                ? 'encounter-pop-active bg-[#F2FBF0] border-2 border-[#95D151] ring-2 ring-[#95D151]/40'
+                                ? 'encounter-pop-active bg-[#F2FBF0] dark:bg-emerald-950/40 border-2 border-[#95D151] ring-2 ring-[#95D151]/40'
                                 : isEnc
-                                    ? 'bg-[#F2FBF0] border-2 border-[#95D151] hover:border-[#76B032]'
-                                    : 'bg-[#F5F9FF] border-2 border-[#E6EEF8] hover:border-[#7ABCF4] hover:bg-white'
+                                    ? 'bg-[#F2FBF0] dark:bg-emerald-950/30 border-2 border-[#95D151] dark:border-emerald-600 hover:border-[#76B032]'
+                                    : 'bg-[#F5F9FF] dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:bg-white dark:hover:bg-slate-750'
                         }`}
                     >
                       {/* Floating sparkle badge during encounter activation */}
@@ -243,7 +243,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       {/* Fixed Uniform Image Container - 1:1 Aspect Ratio with object-contain */}
                       {communityCard ? (
                           /* 共创图鉴（火系）：头部行吃进立绘容器顶部（aspect-square 不变，卡片高度与草系一致） */
-                          <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-white p-1 sm:p-1.5 flex flex-col overflow-hidden border border-[#E6EEF8]">
+                          <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-white dark:bg-slate-900 p-1 sm:p-1.5 flex flex-col overflow-hidden border border-[#E6EEF8] dark:border-slate-700">
                             {/* 头部行：左系别图标、右图鉴编号（轻量小元素） */}
                             <div className="flex items-start justify-between w-full shrink-0">
                               <ElementBadges
@@ -259,10 +259,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
                             {/* 置信度（Wilson 下界）：悬浮在精灵图标顶部居中 */}
                             {(() => {
                               const conf = communityInfo?.confidence ?? 0;
-                              const tcls = conf >= 0.7 ? 'text-green-600' : conf >= 0.3 ? 'text-amber-600' : 'text-rose-600';
+                              const tcls = conf >= 0.7 ? 'text-green-600 dark:text-green-400' : conf >= 0.3 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
                               return (
                                   <div className="absolute -top-[3px] left-0 right-0 z-[2] text-center">
-                                    <span className={`text-[8px] sm:text-[9px] font-mono font-black px-1 py-0.5 rounded-full ${tcls}`} style={{ textShadow: '0 1px 2px rgba(255,255,255,0.8)' }}>
+                                    <span className={`text-[8px] sm:text-[9px] font-mono font-black px-1 py-0.5 rounded-full ${tcls}`}>
                                       置信度：{Math.round(conf * 100)}%
                                     </span>
                                   </div>
@@ -288,13 +288,13 @@ export const PetGrid: React.FC<PetGridProps> = ({
                               const barCls = vr >= 0.5 ? 'bg-green-500' : vr >= 0.25 ? 'bg-amber-400' : 'bg-rose-400';
                               return (
                                   <div className="flex items-center gap-1 w-full shrink-0 pt-0.5">
-                                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                       <div
                                           className={`h-full rounded-full ${barCls}`}
                                           style={{ width: `${Math.min(100, Math.round(vr * 100))}%` }}
                                       />
                                     </div>
-                                    <span className="text-[9px] sm:text-[10px] font-mono font-black leading-none shrink-0 text-slate-600">
+                                    <span className="text-[9px] sm:text-[10px] font-mono font-black leading-none shrink-0 text-slate-600 dark:text-slate-400">
                                       {vc}/{tc}
                                     </span>
                                   </div>
@@ -303,7 +303,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                           </div>
                       ) : (
                           /* 草系经典：编号/系别图标叠加在立绘上 */
-                          <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-white p-1 sm:p-1.5 flex items-center justify-center overflow-hidden border border-[#E6EEF8]">
+                          <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-white dark:bg-slate-900 p-1 sm:p-1.5 flex items-center justify-center overflow-hidden border border-[#E6EEF8] dark:border-slate-700">
                             {pet.id != null && (
                                 <span className="absolute top-1 right-1 z-[1] text-[8px] sm:text-[9px] font-mono font-black px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-md bg-slate-800/70 text-white/90">
                                   #{pet.id}
@@ -330,7 +330,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       <div className="mt-1 sm:mt-2 w-full text-center">
                         <p
                             className={`text-[11px] sm:text-xs font-black truncate transition-colors duration-200 ${
-                                isEnc ? 'text-[#2D6613]' : 'text-slate-700'
+                                isEnc ? 'text-[#2D6613] dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'
                             }`}
                             title={formatPetName(pet.name)}
                         >
@@ -357,7 +357,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                         className={`text-[10px] font-black w-5 h-5 sm:w-6 sm:h-6 rounded-md border flex items-center justify-center transition-colors select-none ${
                                             active
                                                 ? type === 'agree' ? 'bg-green-500 border-green-500 text-white' : 'bg-rose-500 border-rose-500 text-white'
-                                                : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-500'
+                                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-500 dark:hover:text-slate-300'
                                         } cursor-pointer`}
                                         title={type === 'agree' ? '赞同' : '不赞同'}
                                     >
@@ -369,7 +369,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                   <>
                                     {renderBtn('agree', '✓')}
                                     <span className={`text-[10px] sm:text-[11px] font-black leading-none truncate ${
-                                        isEnc ? 'text-[#2D6613]' : 'text-slate-400'
+                                        isEnc ? 'text-[#2D6613] dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'
                                     }`}>
                                       {isEnc ? '已遇见' : '未探索'}
                                     </span>
@@ -382,11 +382,11 @@ export const PetGrid: React.FC<PetGridProps> = ({
                           /* Status indicator pill（非社区宠保留） */
                           <div className="mt-1 sm:mt-2 flex items-center justify-center w-full">
                             {isEnc ? (
-                                <span className="text-[10px] sm:text-[11px] font-black text-[#2D6613] bg-[#E1F7DB] px-1.5 sm:px-2.5 py-0.5 rounded-md w-full text-center border border-[#95D151]/40 truncate">
+                                <span className="text-[10px] sm:text-[11px] font-black text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-1.5 sm:px-2.5 py-0.5 rounded-md w-full text-center border border-[#95D151]/40 dark:border-emerald-600/40 truncate">
                           已遇见
                         </span>
                             ) : (
-                                <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 bg-white px-1.5 sm:px-2 py-0.5 rounded-md w-full text-center border border-slate-200 group-hover:border-[#BCD7F2] group-hover:text-slate-600 transition-colors truncate">
+                                <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 dark:text-slate-400 bg-white dark:bg-slate-800 px-1.5 sm:px-2 py-0.5 rounded-md w-full text-center border border-slate-200 dark:border-slate-700 group-hover:border-[#BCD7F2] dark:group-hover:border-sky-500 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors truncate">
                           未探索
                         </span>
                             )}
@@ -401,7 +401,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
         {/* 右键菜单：精灵详情 / 反馈 */}
         {contextMenu && (
             <div
-                className="fixed z-50 w-48 bg-white rounded-xl border-2 border-slate-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+                className="fixed z-50 w-48 bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                 style={{
                   left: Math.min(contextMenu.x, window.innerWidth - 200),
                   top: Math.min(contextMenu.y, window.innerHeight - 250),
@@ -414,7 +414,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                     onOpenPetDetail?.(contextMenu.pet);
                     setContextMenu(null);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-black text-slate-700 hover:bg-[#F0F7FF] hover:text-[#2B78C4] transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-black text-slate-700 dark:text-slate-200 hover:bg-[#F0F7FF] dark:hover:bg-slate-700 hover:text-[#2B78C4] dark:hover:text-sky-300 transition-colors cursor-pointer"
               >
                 <Info className="w-4 h-4 text-[#7ABCF4]" />
                 精灵详情
@@ -426,7 +426,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                     onOpenFeedback?.('精灵图鉴纠错', contextMenu.pet);
                     setContextMenu(null);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
               >
                 <Bug className="w-4 h-4 text-slate-400" />
                 反馈错误

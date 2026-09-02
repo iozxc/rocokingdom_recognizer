@@ -48,11 +48,11 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
       onWheel={(e) => e.stopPropagation()}
     >
       <div
-        className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-4xl w-full h-[88vh] max-h-[820px] overflow-hidden flex flex-col"
+        className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-4xl w-full h-[88vh] max-h-[820px] overflow-hidden flex flex-col transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-[#7ABCF4] px-5 py-3.5 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] shrink-0">
+        <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-3.5 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
               <BookOpen className="w-5 h-5 text-white" />
@@ -64,7 +64,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                   图文指南
                 </span>
               </div>
-              <p className="text-[11px] text-white/85 font-medium">
+              <p className="text-[11px] text-white/85 dark:text-slate-300 font-medium">
                 详细操作说明、AI 识别指引、快捷键与常见疑问全解答
               </p>
             </div>
@@ -83,7 +83,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-[#F0F6FC] px-3 py-2 border-b border-[#D5E3F0] flex items-center gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
+        <div className="bg-[#F0F6FC] dark:bg-slate-800/80 px-3 py-2 border-b border-[#D5E3F0] dark:border-slate-700 flex items-center gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -95,8 +95,8 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 cursor-pointer ${
                   isActive
-                    ? 'bg-[#2B78C4] text-white shadow-sm scale-[1.02]'
-                    : 'text-slate-600 hover:bg-white/80 hover:text-[#2B78C4]'
+                    ? 'bg-[#2B78C4] dark:bg-sky-500 text-white shadow-sm scale-[1.02]'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700 hover:text-[#2B78C4] dark:hover:text-white'
                 }`}
               >
                 {tab.icon}
@@ -107,12 +107,12 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Body Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 text-slate-700 leading-relaxed text-sm">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 text-slate-700 dark:text-slate-200 leading-relaxed text-sm">
           {/* TAB 1: QUICKSTART */}
           {activeTab === 'quickstart' && (
             <div className="space-y-6 animate-in fade-in duration-200">
               {/* Introduction Banner */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-50 to-blue-50 border-2 border-sky-100 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-50 to-blue-50 dark:from-slate-800 dark:to-slate-800/60 border-2 border-sky-100 dark:border-slate-700 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 <div className="p-3 bg-[#7ABCF4] text-white rounded-2xl shadow-sm shrink-0">
                   <Sparkles className="w-6 h-6" />
                 </div>

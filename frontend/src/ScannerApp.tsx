@@ -23,13 +23,16 @@ import {
   Pin,
   PinOff,
   History,
+  Sun,
+  Moon,
 } from 'lucide-react';
-import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse, FirePokedexEntry } from './types';
+import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse, FirePokedexEntry, ThemeMode } from './types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA, createSvgPetAvatar } from './data/mockPets';
 import { FIRE_MAP_CONFIGS } from './data/trials';
 import { sound } from './services/sound';
 import { api } from './services/api';
 import { storage } from './services/storage';
+import { themeService } from './services/theme';
 import { fireStorage } from './services/fireStorage';
 import { getFireTrialPetsCached } from './services/fireTrialData';
 import { collectAtlasObservation, fetchTrialAtlas, syncTrialAtlas, petKeyOf, TrialAtlas, wilsonLower } from './services/atlasCollector';
@@ -110,26 +113,26 @@ const CandidateCarousel: React.FC<{
   };
 
   return (
-      <div className="pt-2 border-t-2 border-[#F1F5F9]">
-        <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5 font-bold">
+      <div className="pt-2 border-t-2 border-[#F1F5F9] dark:border-slate-800">
+        <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 mb-1.5 font-bold">
           <div className="flex items-center gap-1.5">
             <span>候选置信度排行:</span>
             {totalPages > 1 && (
-                <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
               第 {currentPage + 1}/{totalPages} 页 (共 {candidates.length} 项)
             </span>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[#1E5B99]">选定: #{selectedCandidateIndex + 1}</span>
+            <span className="font-mono text-[#1E5B99] dark:text-sky-300">选定: #{selectedCandidateIndex + 1}</span>
             {totalPages > 1 && (
                 <div className="flex items-center gap-1">
                   <button
                       type="button"
                       onClick={handlePrevPage}
                       disabled={currentPage === 0}
-                      className="w-5 h-5 rounded-md bg-white border border-[#BCD7F2] text-[#1E5B99] flex items-center justify-center hover:bg-[#EBF5FE] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-95 shadow-2xs"
+                      className="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 text-[#1E5B99] dark:text-sky-300 flex items-center justify-center hover:bg-[#EBF5FE] dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-95 shadow-2xs"
                       title="上一页候选 (#1-#3)"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
@@ -138,7 +141,7 @@ const CandidateCarousel: React.FC<{
                       type="button"
                       onClick={handleNextPage}
                       disabled={currentPage >= totalPages - 1}
-                      className="w-5 h-5 rounded-md bg-white border border-[#BCD7F2] text-[#1E5B99] flex items-center justify-center hover:bg-[#EBF5FE] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-95 shadow-2xs"
+                      className="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 text-[#1E5B99] dark:text-sky-300 flex items-center justify-center hover:bg-[#EBF5FE] dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-95 shadow-2xs"
                       title="下一页候选 (#4-#6)"
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -166,14 +169,14 @@ const CandidateCarousel: React.FC<{
                     onClick={() => onSelect(slotId, cIdx)}
                     className={`p-1.5 rounded-xl text-left transition-all cursor-pointer border-2 ${
                         isSelected
-                            ? 'bg-[#EBF5FE] border-[#7ABCF4] text-[#1E5B99] font-black shadow-xs ring-1 ring-[#7ABCF4]'
-                            : 'bg-[#F8FBFE] border-[#E2E8F0] text-slate-600 hover:border-[#BCD7F2] hover:bg-[#E9F2FA]'
+                            ? 'bg-[#EBF5FE] dark:bg-sky-950/70 border-[#7ABCF4] dark:border-sky-500 text-[#1E5B99] dark:text-sky-300 font-black shadow-xs ring-1 ring-[#7ABCF4]'
+                            : 'bg-[#F8FBFE] dark:bg-slate-800 border-[#E2E8F0] dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#BCD7F2] dark:hover:border-slate-600 hover:bg-[#E9F2FA] dark:hover:bg-slate-750'
                     }`}
                 >
                   {/* 一行布局：左图 + 右文本（紧凑，避免撑成两行） */}
                   <div className="flex items-center gap-1.5">
                     {/* 候选精灵预览图（悬停/点击放大） */}
-                    <div className="relative w-9 h-9 shrink-0 rounded-lg bg-white border border-[#E2E8F0] p-0.5 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-9 h-9 shrink-0 rounded-lg bg-white dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-700 p-0.5 flex items-center justify-center overflow-hidden">
                       <ImageZoom
                           src={candViewUrl}
                           alt={candName}
@@ -194,22 +197,22 @@ const CandidateCarousel: React.FC<{
                       <div className="flex items-center gap-1 text-[9px] font-mono">
                         <span className="text-slate-400 font-bold">
                           {checkEncountered(candName, sourceMapNum) ? (
-                              <span className="inline-flex items-center gap-0.5 text-[#2D6613] bg-[#E1F7DB] px-1 py-0.2 rounded-full border border-[#95D151]/40">
+                              <span className="inline-flex items-center gap-0.5 text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-1 py-0.2 rounded-full border border-[#95D151]/40">
                                 <Check className="w-2 h-2 text-emerald-600 stroke-[3]" />
                                 #{cIdx + 1}
                               </span>
                           ) : (
-                              <span className="inline-flex items-center gap-0.5 text-amber-800 bg-[#FEF9E6] px-1 py-0.2 rounded-full border border-[#E5C43B]/60">
+                              <span className="inline-flex items-center gap-0.5 text-amber-800 dark:text-amber-300 bg-[#FEF9E6] dark:bg-amber-950/60 px-1 py-0.2 rounded-full border border-[#E5C43B]/60">
                                 <Sparkle className="w-2 h-2 text-amber-600" />
                                 #{cIdx + 1}
                               </span>
                           )}
                         </span>
-                        <span className={isSelected ? 'text-[#1E5B99] font-black' : 'text-slate-500'}>
+                        <span className={isSelected ? 'text-[#1E5B99] dark:text-sky-300 font-black' : 'text-slate-500 dark:text-slate-400'}>
                           {candPercent}%
                         </span>
                       </div>
-                      <div className="text-[10px] font-bold truncate" title={candName}>
+                      <div className="text-[10px] font-bold text-slate-800 dark:text-slate-100 truncate" title={candName}>
                         {candName}
                       </div>
                       {communityInfo && (
@@ -1176,6 +1179,21 @@ export const ScannerApp: React.FC = () => {
                 type="button"
                 onClick={() => {
                   sound.playClick();
+                  themeService.toggleTheme();
+                }}
+                className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center justify-center transition-all cursor-pointer border-2 border-white/40"
+                title={themeService.isDark() ? '切换为明亮模式' : '切换为暗黑模式'}
+            >
+              {themeService.isDark() ? (
+                <Sun className="w-3.5 h-3.5 text-[#FEE061]" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-white" />
+              )}
+            </button>
+            <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
                   setIsHistoryOpen(true);
                 }}
                 className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center gap-1 text-xs font-black transition-all cursor-pointer border-2 border-white/40"
@@ -1222,11 +1240,11 @@ export const ScannerApp: React.FC = () => {
         </div>
 
         {/* ------------------------------------------------------------- */}
-        {/* 2. Main Content Area: Roco Light Clean Aesthetics (Zero-Gap) */}
+        {/* 2. Main Content Area: Roco Light / Dark Clean Aesthetics (Zero-Gap) */}
         {/* ------------------------------------------------------------- */}
         <div
             id="scanner-scroll-content"
-            className="flex-1 flex flex-col justify-between overflow-y-auto bg-[#FDF9F3] p-3 gap-2.5"
+            className="flex-1 flex flex-col justify-between overflow-y-auto bg-[#FDF9F3] dark:bg-slate-900 p-3 gap-2.5 transition-colors"
         >
           {!isCollapsedContent ? (
               <div className="space-y-2.5">

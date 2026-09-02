@@ -82,17 +82,17 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
         {children}
 
         {showOverlay && (
-            <div className="fixed inset-0 z-[3000] flex items-center justify-center p-3 sm:p-4 bg-slate-900/25 backdrop-blur-[2px] select-none">
-              <div className="relative w-full max-w-lg max-h-[88vh] bg-white rounded-3xl border-4 border-[#7ABCF4] shadow-2xl overflow-hidden flex flex-col">
+            <div className="fixed inset-0 z-[3000] flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-[2px] select-none">
+              <div className="relative w-full max-w-lg max-h-[88vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col transition-colors">
 
                 {/* 顶部标题栏 */}
-                <div className="px-4 py-3 bg-[#7ABCF4] text-white flex items-center gap-2.5 border-b-2 border-[#5DA8E8] shrink-0">
+                <div className="px-4 py-3 bg-[#7ABCF4] dark:bg-slate-800 text-white flex items-center gap-2.5 border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">
                   <div className="w-8 h-8 rounded-lg bg-white/20 border border-white/40 flex items-center justify-center shrink-0">
                     <ShieldCheck className="w-4 h-4 text-white" />
                   </div>
                   <div className="min-w-0">
                     <h1 className="text-sm font-black tracking-tight">严正提醒</h1>
-                    <p className="text-[10.5px] text-white/85 font-medium">
+                    <p className="text-[10.5px] text-white/85 dark:text-slate-300 font-medium">
                       请先阅读以下说明，再决定是否继续使用本程序。
                     </p>
                   </div>
@@ -108,8 +108,8 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
                 </div>
 
                 {/* 底部：说明 + 按钮 */}
-                <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 shrink-0">
-                  <p className="text-[10px] text-slate-500 leading-snug">
+                <div className="px-4 py-3 bg-slate-50/80 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 shrink-0">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">
                     开源不收费 · 源码可见
                   </p>
                   <div className="flex flex-col items-stretch sm:items-end gap-1.5">
@@ -122,7 +122,7 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
                       <button
                           type="button"
                           onClick={handleExit}
-                          className="flex-1 sm:flex-none px-3.5 h-8 rounded-lg bg-white border-2 border-[#7ABCF4] text-[#2B78C4] text-[11px] font-black hover:bg-[#EAF4FF] transition-colors cursor-pointer whitespace-nowrap"
+                          className="flex-1 sm:flex-none px-3.5 h-8 rounded-lg bg-white dark:bg-slate-800 border-2 border-[#7ABCF4] dark:border-sky-500 text-[#2B78C4] dark:text-sky-300 text-[11px] font-black hover:bg-[#EAF4FF] dark:hover:bg-slate-700 transition-colors cursor-pointer whitespace-nowrap"
                       >
                         {IS_STATIC ? '关闭窗口' : '退出程序'}
                       </button>
@@ -132,8 +132,8 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
                           disabled={!unlocked}
                           className={`flex-1 sm:flex-none px-4 h-8 rounded-lg text-[11px] font-black transition-colors cursor-pointer whitespace-nowrap ${
                               unlocked
-                                  ? 'bg-[#7ABCF4] hover:bg-[#5DA8E8] text-white shadow-md shadow-sky-200'
-                                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                  ? 'bg-[#7ABCF4] hover:bg-[#5DA8E8] text-white shadow-md shadow-sky-200 dark:shadow-none'
+                                  : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                           }`}
                       >
                         同意协议并开始

@@ -112,18 +112,18 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
             onWheel={(e) => e.stopPropagation()}
         >
             <div
-                className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col"
+                className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col transition-colors"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="bg-[#7ABCF4] px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8]">
+                <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
                             <MessageCircle className="w-4 h-4 text-white" />
                         </div>
                         <div>
                             <h3 className="text-base font-black tracking-tight">联系与反馈 · 洛克交流</h3>
-                            <p className="text-[11px] text-white/80 font-medium">加入玩家QQ群 · 提出意见或报告异常</p>
+                            <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">加入玩家QQ群 · 提出意见或报告异常</p>
                         </div>
                     </div>
                     <button

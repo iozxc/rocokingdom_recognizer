@@ -214,6 +214,7 @@ export interface FollowRecognizeApiResponse {
 export type EffectLevel = 0 | 1 | 2 | 3;
 export type FloatingButtonsMode = 'normal' | 'compact' | 'hidden';
 export type CaptureMode = 'hwnd' | 'grab';
+export type ThemeMode = 'light' | 'dark';
 
 export interface FireSettings {
   agreeRatio?: number; // 火系赞同率阈值 0~1（默认 0）
@@ -222,6 +223,7 @@ export interface FireSettings {
 }
 
 export interface AppSettings {
+  theme?: ThemeMode; // 'light' 明亮模式 | 'dark' 暗黑模式
   isSoundMuted?: boolean;
   isFABCollapsed?: boolean; // 右下角快捷按钮栏是否收起
   isFilterSwitchCollapsed?: boolean; // 左下角筛选悬浮按钮栏是否收起

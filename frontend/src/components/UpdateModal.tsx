@@ -234,18 +234,18 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             onWheel={(e) => e.stopPropagation()}
         >
             <div
-                className="bg-white rounded-3xl border-4 border-[#5DA8E8] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col relative"
+                className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col relative transition-colors"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="bg-[#7ABCF4] px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8]">
+                <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
                             <ArrowDownCircle className="w-4 h-4 text-[#FEE061]" />
                         </div>
                         <div>
                             <h3 className="text-base font-black tracking-tight">检查版本更新</h3>
-                            <p className="text-[11px] text-white/80 font-medium">获取洛克王国识别助手最新版本与更新日志</p>
+                            <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">获取洛克王国识别助手最新版本与更新日志</p>
                         </div>
                     </div>
                     <button
@@ -312,12 +312,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
                             {/* Update Changelog Box */}
                             {updateData.update_log && (
-                                <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-slate-200">
+                                <div className="p-4 bg-[#F8FAFC] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
                                     <div className="flex items-center gap-1.5 mb-2">
-                                        <Info className="w-4 h-4 text-[#2B78C4]" />
-                                        <span className="text-xs font-black text-slate-800">更新日志</span>
+                                        <Info className="w-4 h-4 text-[#2B78C4] dark:text-sky-400" />
+                                        <span className="text-xs font-black text-slate-800 dark:text-slate-100">更新日志</span>
                                     </div>
-                                    <div className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed bg-white p-3 rounded-xl border border-slate-100 font-medium">
+                                    <div className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800 font-medium">
                                         {updateData.update_log}
                                     </div>
                                 </div>
@@ -326,8 +326,8 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                             {/* Mirrors / Manual Download Links */}
                             {updateData.mirrors && Object.keys(updateData.mirrors).length > 0 && (
                                 <div className="space-y-2">
-                  <span className="text-xs font-black text-slate-700 flex items-center gap-1">
-                    <Download className="w-3.5 h-3.5 text-[#2B78C4]" />
+                  <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                    <Download className="w-3.5 h-3.5 text-[#2B78C4] dark:text-sky-400" />
                     下载与发布渠道
                   </span>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -337,13 +337,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 href={url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="p-3 bg-[#F0F6FC] hover:bg-[#E1F0FE] border-2 border-[#BCD7F2] hover:border-[#7ABCF4] rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] transition-all group shadow-2xs cursor-pointer"
+                                                className="p-3 bg-[#F0F6FC] dark:bg-slate-800 hover:bg-[#E1F0FE] dark:hover:bg-slate-750 border-2 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 rounded-2xl flex items-center justify-between text-xs font-black text-[#1E5B99] dark:text-sky-300 transition-all group shadow-2xs cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-2">
-                                                    <Download className="w-4 h-4 text-[#2B78C4] group-hover:translate-y-0.5 transition-transform" />
+                                                    <Download className="w-4 h-4 text-[#2B78C4] dark:text-sky-400 group-hover:translate-y-0.5 transition-transform" />
                                                     <span>{name}</span>
                                                 </div>
-                                                <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#2B78C4]" />
+                                                <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#2B78C4] dark:group-hover:text-sky-400" />
                                             </a>
                                         ))}
                                     </div>
@@ -351,40 +351,40 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                             )}
 
                             {/* Automatic Download & Update Section */}
-                            <div className="p-4 bg-white rounded-2xl border-2 border-[#BCD7F2] space-y-3.5 shadow-xs">
+                            <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border-2 border-[#BCD7F2] dark:border-slate-700 space-y-3.5 shadow-xs">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-6 h-6 rounded-lg bg-[#7ABCF4] text-white flex items-center justify-center">
                                             <Download className="w-3.5 h-3.5" />
                                         </div>
-                                        <span className="text-xs font-black text-slate-800">一键自动下载更新</span>
+                                        <span className="text-xs font-black text-slate-800 dark:text-slate-100">一键自动下载更新</span>
                                     </div>
 
                                     <div className="flex items-center gap-2 text-xs font-black">
                                         {downloadStatus === 'downloading' && (
                                             <div className="flex items-center gap-2">
                                                 {typeof speedBps === 'number' && (
-                                                    <span className="flex items-center gap-1 text-[11px] font-mono text-[#1E5B99] bg-[#E1F0FE] px-2 py-0.5 rounded-md border border-[#BCD7F2]">
-                            <Activity className="w-3 h-3 text-[#2B78C4]" />
+                                                    <span className="flex items-center gap-1 text-[11px] font-mono text-[#1E5B99] dark:text-sky-300 bg-[#E1F0FE] dark:bg-sky-950/70 px-2 py-0.5 rounded-md border border-[#BCD7F2] dark:border-sky-800">
+                            <Activity className="w-3 h-3 text-[#2B78C4] dark:text-sky-400" />
                                                         {formatSpeed(speedBps)}
                           </span>
                                                 )}
-                                                <span className="font-mono text-[#2B78C4]">{percentage}%</span>
+                                                <span className="font-mono text-[#2B78C4] dark:text-sky-300">{percentage}%</span>
                                             </div>
                                         )}
                                         {downloadStatus === 'stopped' && (
-                                            <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                            <span className="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
                         已暂停 ({percentage}%)
                       </span>
                                         )}
                                         {downloadStatus.startsWith('verifying') && (
-                                            <span className="text-amber-600 animate-pulse">MD5 校验中</span>
+                                            <span className="text-amber-600 dark:text-amber-400 animate-pulse">MD5 校验中</span>
                                         )}
                                         {downloadStatus === 'merging' && (
-                                            <span className="text-indigo-600 animate-pulse">合并解压中</span>
+                                            <span className="text-indigo-600 dark:text-indigo-400 animate-pulse">合并解压中</span>
                                         )}
                                         {downloadStatus === 'ready' && (
-                                            <span className="text-[#22C55E] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                            <span className="text-[#22C55E] dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
                         准备安装
                       </span>
                                         )}
@@ -393,11 +393,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
                                 {/* 包大小与预估时间 */}
                                 {(pkgSizeText || etaText) && (
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500 font-medium bg-[#F8FAFC] border border-slate-200 rounded-lg px-2.5 py-1.5">
-                                        {pkgSizeText && <span className="text-slate-700 font-semibold">{pkgSizeText}</span>}
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium bg-[#F8FAFC] dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5">
+                                        {pkgSizeText && <span className="text-slate-700 dark:text-slate-200 font-semibold">{pkgSizeText}</span>}
                                         {etaText && <span>· {etaText}</span>}
                                         {measuredSpeedBps && (
-                                            <span className="text-emerald-600 font-semibold">· 实测 {formatSpeed(measuredSpeedBps)}</span>
+                                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">· 实测 {formatSpeed(measuredSpeedBps)}</span>
                                         )}
                                         {speedTestSeconds && (
                                             <span className="text-slate-400">· 测速用时 {speedTestSeconds.toFixed(1)} 秒</span>
@@ -412,7 +412,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                                 downloadStatus === 'merging' ||
                                                 downloadStatus.startsWith('verifying')
                                             }
-                                            className="ml-auto text-[11px] font-bold text-[#2B78C4] hover:text-[#1E5B99] bg-[#E1F0FE] border border-[#BCD7F2] rounded-md px-2 py-0.5 cursor-pointer disabled:opacity-50 transition-colors"
+                                            className="ml-auto text-[11px] font-bold text-[#2B78C4] dark:text-sky-300 hover:text-[#1E5B99] bg-[#E1F0FE] dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 rounded-md px-2 py-0.5 cursor-pointer disabled:opacity-50 transition-colors"
                                         >
                                             {speedTesting ? '测速中…' : measuredSpeedBps ? '重新测速' : '测速'}
                                         </button>
