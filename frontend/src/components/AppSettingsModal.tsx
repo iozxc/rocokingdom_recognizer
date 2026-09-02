@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, ChevronLeft, Volume2, VolumeX, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, Camera, Image as ImageIcon, Settings2, ShieldCheck, ChevronDown, Sun, Moon } from 'lucide-react';
+import { X, ChevronLeft, Volume2, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, Camera, Settings2, ShieldCheck, ChevronDown, Sun, Moon, Info, LayoutGrid, Bug } from 'lucide-react';
 import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
@@ -62,6 +62,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [isSimplifiedFABs, setIsSimplifiedFABs] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSimplifiedFABs', true);
   });
+  const [debugImageCap, setDebugImageCap] = useState<number>(() => {
+    return storage.getSetting<number>('debugImageCap', 100);
+  });
   const [isAgreementOpen, setIsAgreementOpen] = useState<boolean>(false);
 
   // Sync settings updates
@@ -78,6 +81,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (typeof settings.showHints === 'boolean') setShowHints(settings.showHints);
       if (typeof settings.followTopMost === 'boolean') setFollowTopMost(settings.followTopMost);
       if (typeof settings.isSimplifiedFABs === 'boolean') setIsSimplifiedFABs(settings.isSimplifiedFABs);
+      if (typeof settings.debugImageCap === 'number') setDebugImageCap(settings.debugImageCap);
     });
     return () => unsubscribe();
   }, []);
@@ -102,6 +106,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setShowHints(storage.getSetting<boolean>('showHints', false));
     setFollowTopMost(storage.getSetting<boolean>('followTopMost', true));
     setIsSimplifiedFABs(storage.getSetting<boolean>('isSimplifiedFABs', true));
+    setDebugImageCap(storage.getSetting<number>('debugImageCap', 100));
     setView('main');
   }, [isOpen]);
 
@@ -191,6 +196,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     const next = !showSamples;
     setShowSamples(next);
     storage.setSetting('showRecognitionSamples', next);
+  };
+
+  const handleDebugCapChange = (value: number) => {
+    const clamped = Math.max(0, Math.min(9999, Math.round(value) || 0));
+    setDebugImageCap(clamped);
+    storage.setSetting('debugImageCap', clamped);
   };
 
   const handleSelectUpdateMode = (mode: 'auto' | 'full') => {
@@ -392,28 +403,57 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 </div>
               ) : (
                 <div className="space-y-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">启动/退出提示</div>
-                      <div className="text-[10px] text-slate-400">启动与退出时显示蓝白提示窗口，关闭后不再弹出</div>
+                  {/* 提示与示例 */}
+                  <div className="space-y-3">
+                    <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                      <Info className="w-3.5 h-3.5 text-sky-500" />
+                      <span>提示与示例</span>
                     </div>
-                    <button
-                        type="button"
-                        id="settings-hints-switch-btn"
-                        onClick={handleToggleHints}
-                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showHints ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
-                        title={showHints ? '点击关闭提示' : '点击开启提示'}
-                    >
-                      <span
-                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showHints ? 'translate-x-4' : 'translate-x-0'}`}
-                      />
-                    </button>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">启动/退出提示</div>
+                        <div className="text-[10px] text-slate-400">启动与退出时显示蓝白提示窗口，关闭后不再弹出</div>
+                      </div>
+                      <button
+                          type="button"
+                          id="settings-hints-switch-btn"
+                          onClick={handleToggleHints}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showHints ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                          title={showHints ? '点击关闭提示' : '点击开启提示'}
+                      >
+                        <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showHints ? 'translate-x-4' : 'translate-x-0'}`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">识别截图示例</div>
+                        <div className="text-[10px] text-slate-400">识别卡片里的示例截图图标与正确截图格式提示</div>
+                      </div>
+                      <button
+                          type="button"
+                          id="settings-samples-switch-btn"
+                          onClick={handleToggleSamples}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showSamples ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                          title={showSamples ? '点击隐藏示例' : '点击显示示例'}
+                      >
+                        <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showSamples ? 'translate-x-4' : 'translate-x-0'}`}
+                        />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* 界面设置 */}
+                  {/* 界面 */}
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                    <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">界面设置</div>
-                    
+                    <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                      <LayoutGrid className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                      <span>界面</span>
+                    </div>
+
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">快捷面板精简模式</div>
@@ -448,6 +488,57 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                             className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${followTopMost ? 'translate-x-4' : 'translate-x-0'}`}
                         />
                       </button>
+                    </div>
+                  </div>
+
+                  {/* 声音 */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                      <Volume2 className="w-3.5 h-3.5 text-[#95D151]" />
+                      <span>声音</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">操作音效</div>
+                        <div className="text-[10px] text-slate-400">点亮图鉴与识别时的提示音</div>
+                      </div>
+                      <button
+                          type="button"
+                          id="settings-sound-switch-btn"
+                          onClick={handleToggleSound}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${!isSoundMuted ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                      >
+                        <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${!isSoundMuted ? 'translate-x-4' : 'translate-x-0'}`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 调试 */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                      <Bug className="w-3.5 h-3.5 text-rose-500" />
+                      <span>调试</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">调试截图保存</div>
+                        <div className="text-[10px] text-slate-400">识别/捕获时保留的调试图上限（0 = 不保存）</div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <input
+                            type="number"
+                            min={0}
+                            max={9999}
+                            value={debugImageCap}
+                            onChange={(e) => handleDebugCapChange(parseInt(e.target.value || '0', 10))}
+                            className="w-16 h-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 text-xs font-mono font-black text-slate-700 dark:text-slate-200 text-right focus:outline-none focus:border-sky-400"
+                        />
+                        <span className="text-[10px] text-slate-400 font-mono">张</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -647,34 +738,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </div>
             </div>
 
-            {/* Section 3: 声音 */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
-                  {isSoundMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">操作音效</div>
-                  <div className="text-[10px] text-slate-400">点亮图鉴与识别时的提示音</div>
-                </div>
-              </div>
-
-              <button
-                  type="button"
-                  id="settings-sound-switch-btn"
-                  onClick={handleToggleSound}
-                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      !isSoundMuted ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'
-                  }`}
-              >
-              <span
-                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                      !isSoundMuted ? 'translate-x-4' : 'translate-x-0'
-                  }`}
-              />
-              </button>
-            </div>
-
             {/* Section 4: 数据与同步 */}
             {onOpenDataBackup && (
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -703,35 +766,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </button>
                 </div>
             )}
-
-            {/* Section 5: 识别截图示例（web 版隐藏） */}
-            <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
-                  <ImageIcon className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">识别截图示例</div>
-                  <div className="text-[10px] text-slate-400">识别卡片里的示例截图图标与正确截图格式提示</div>
-                </div>
-              </div>
-
-              <button
-                  type="button"
-                  id="settings-samples-switch-btn"
-                  onClick={handleToggleSamples}
-                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      showSamples ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'
-                  }`}
-                  title={showSamples ? '点击隐藏示例' : '点击显示示例'}
-              >
-                <span
-                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                        showSamples ? 'translate-x-4' : 'translate-x-0'
-                    }`}
-                />
-              </button>
-            </div>
 
             {/* Section 6: 系统设置入口（web 版隐藏） */}
             <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
