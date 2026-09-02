@@ -43,6 +43,7 @@ import { ScannerMapGalleryModal } from './components/ScannerMapGalleryModal';
 import { EncounterHistoryModal } from './components/EncounterHistoryModal';
 import { ImageZoom } from './components/ImageZoom';
 import { ElementBadges } from './components/ElementBadges';
+import { PetSpecialTag } from './components/PetSpecialTag';
 import {
   formatPetName,
   isSamePetName,
@@ -215,6 +216,10 @@ const CandidateCarousel: React.FC<{
                       <div className="text-[10px] font-bold text-slate-800 dark:text-slate-100 truncate" title={candName}>
                         {candName}
                       </div>
+                      <PetSpecialTag
+                          filename={cand.filename}
+                          className="mt-0.5"
+                      />
                       {communityInfo && (
                           <div className="mt-0.5">
                             <span
@@ -1523,6 +1528,10 @@ export const ScannerApp: React.FC = () => {
                                     <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 truncate" title={displayName}>
                                       {displayName}
                                     </span>
+                                    <PetSpecialTag
+                                        pet={slot.matchedPet}
+                                        filename={slot.selectedPetName || slot.name}
+                                    />
                                     <span className="text-[10px] font-mono font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800">
                                       {topScorePercent}%
                                     </span>

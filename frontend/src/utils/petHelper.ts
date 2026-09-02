@@ -132,3 +132,42 @@ export function getMapEncounteredCount(
   if (!pets || pets.length === 0) return 0;
   return pets.filter((pet) => isPetEncounteredInRecords(records, mapId, pet.name)).length;
 }
+
+/**
+ * 精灵的特殊类型判定（与「高级筛选」中的首领化/多形态完全一致）。
+ *
+ * 规则：
+ * - 展示名含下划线（是某只精灵的具体形态/变体） -> 'multiform'
+ *   （如 板板壳_本来、板板壳_蜕皮、刺轮砣_上弦、乌达_极夜，含 seq=1 的基础形态）
+ * - seq > 1 且展示名无下划线                -> 'boss'（首领化，如 圣草迪莫、武斗酷猫）
+ * - 其余                                    -> null（普通/单形态）
+ *
+ * 兼容识别结果：当传入的 PetItem 缺少 seq 时，会从原始文件名 `{id}_{seq}_{name}.png`
+ * 中解析形态序号，保证跟随/批量/单个/首页识别都能正确标注。
+ */
+export type PetSpecialType = 'boss' | 'multiform' | null;
+
+export function getPetSpecialType(
+    pet?: Pick<PetItem, 'name' | 'id' | 'seq'> | null,
+    filename?: string
+): PetSpecialType {
+  if (!pet && !filename) return null;
+
+  const name = pet?.name || filename || '';
+  let seq = pet?.seq ?? null;
+
+  // seq 缺失时回退从文件名 `{id}_{seq}_{name}` 解析形态序号
+  if (seq == null && name) {
+    const m = name.match(/^(\d{1,4})_(\d{1,3})_/);
+    if (m) seq = parseInt(m[2], 10);
+  }
+
+  const cleanName = formatPetName(name);
+  // 有 `_` 后缀即视为「形态/变体」，无论 seq 是否为 1
+  // （如 板板壳_本来、刺轮砣_下弦 都是 seq=1 的基础形态，但同样属于多形态精灵）
+  if (cleanName.includes('_')) return 'multiform';
+
+  // 无 `_` 后缀但 seq > 1：属于命名不同的进阶 / 首领形态
+  const isSeqGreater = seq != null && seq > 1;
+  return isSeqGreater ? 'boss' : null;
+}

@@ -42,6 +42,7 @@ import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
 import { formatPetName, isSamePetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 import { ElementBadges } from './ElementBadges';
+import { PetSpecialTag } from './PetSpecialTag';
 
 interface BatchRecognizerCardProps {
   currentMap: MapConfig;
@@ -1123,7 +1124,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                               <ElementBadges
                                   elements={item.matchedPet?.elements}
                                   className="absolute top-0.5 left-0.5 z-10"
-                                  size="sm"
+                                  size="xs"
                               />
                               {item.matchedPet?.id != null && (
                                   <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
@@ -1141,9 +1142,15 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                             {/* Current Chosen Pet Name */}
                             <div className="mt-1.5 w-full">
                               {isMatched && item.matchedPet ? (
-                                  <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate" title={displayName}>
-                                    {displayName}
-                                  </p>
+                                  <div className="flex items-center justify-center gap-1 flex-wrap">
+                                    <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate" title={displayName}>
+                                      {displayName}
+                                    </p>
+                                    <PetSpecialTag
+                                        pet={item.matchedPet}
+                                        filename={item.filename}
+                                    />
+                                  </div>
                               ) : (
                                   <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold truncate" title={item.reason || '特征不匹配'}>
                                     {item.reason || '未匹配到精灵'}
@@ -1263,6 +1270,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                             <span className="text-[11px] truncate flex-1 font-bold">
                                               {candDisplayName}
                                             </span>
+                                            <PetSpecialTag
+                                                pet={cand.matchedPet}
+                                                filename={cand.filename}
+                                            />
                                           </div>
 
                                           <div className="relative z-10 flex items-center gap-1 shrink-0">

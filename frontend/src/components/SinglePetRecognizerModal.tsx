@@ -25,6 +25,7 @@ import { formatPetName } from '../utils/petHelper';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 import { ElementBadges } from './ElementBadges';
+import { PetSpecialTag } from './PetSpecialTag';
 
 interface SinglePetRecognizerModalProps {
   isOpen: boolean;
@@ -573,6 +574,11 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                                   <h4 className="text-base font-black text-slate-800 dark:text-slate-100 truncate">
                                     {formatPetName(activeCandidate.matchedPet?.name || activeCandidate.filename)}
                                   </h4>
+                                  <PetSpecialTag
+                                      pet={activeCandidate.matchedPet}
+                                      filename={activeCandidate.filename}
+                                      className="mt-1"
+                                  />
                                 </div>
 
                                 <div className="mt-2">
@@ -642,6 +648,11 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                                               <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">
                                                 {formatPetName(cand.matchedPet?.name || cand.filename)}
                                               </p>
+                                              <PetSpecialTag
+                                                  pet={cand.matchedPet}
+                                                  filename={cand.filename}
+                                                  className="mt-0.5"
+                                              />
                                               <p className="text-[10px] text-slate-400 dark:text-slate-400 truncate">
                                                 {candEncountered ? '已在图鉴' : '未遇见'}
                                               </p>

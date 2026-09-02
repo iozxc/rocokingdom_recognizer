@@ -37,6 +37,7 @@ import { storage } from '../services/storage';
 import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
 import { formatPetName, isSamePetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
+import { PetSpecialTag } from './PetSpecialTag';
 
 interface BatchInitModalProps {
   isOpen: boolean;
@@ -1107,9 +1108,15 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                               {/* Current Chosen Pet Name */}
                               <div className="mt-1.5 w-full">
                                 {isMatched && item.matchedPet ? (
-                                    <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate" title={displayName}>
-                                      {displayName}
-                                    </p>
+                                    <div className="flex items-center justify-center gap-1 flex-wrap">
+                                      <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate" title={displayName}>
+                                        {displayName}
+                                      </p>
+                                      <PetSpecialTag
+                                          pet={item.matchedPet}
+                                          filename={item.filename}
+                                      />
+                                    </div>
                                 ) : (
                                     <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold truncate" title={item.reason || '特征不匹配'}>
                                       {item.reason || '未匹配到精灵'}
@@ -1224,6 +1231,10 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                               <span className="text-[11px] truncate flex-1 font-bold">
                                        {candDisplayName}
                                      </span>
+                                              <PetSpecialTag
+                                                  pet={cand.matchedPet}
+                                                  filename={cand.filename}
+                                              />
                                             </div>
 
                                             <div className="relative z-10 flex items-center gap-1 shrink-0">

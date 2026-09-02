@@ -3,7 +3,7 @@ import { Sparkles, Check, Sparkle, Filter, Info, Bug } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState } from '../types';
 import { sound } from '../services/sound';
 import { IS_STATIC } from '../services/staticMode';
-import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
+import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecialType } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
 import { petKeyOf } from '../services/atlasCollector';
@@ -140,21 +140,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
 
       // Special Types Filter (Boss / Multi-form)
       if (advancedFilters.specialTypes.length > 0) {
-        const isSeqGreater = pet.seq !== undefined && pet.seq > 1;
-        const cleanName = formatPetName(pet.name);
-        const hasUnderscore = cleanName.includes('_');
-
-        const isBoss = isSeqGreater && !hasUnderscore;
-        const isMultiForm = isSeqGreater && hasUnderscore;
-
-        let matchesSpecial = false;
-        if (advancedFilters.specialTypes.includes('boss') && isBoss) {
-          matchesSpecial = true;
-        }
-        if (advancedFilters.specialTypes.includes('multiform') && isMultiForm) {
-          matchesSpecial = true;
-        }
-
+        const specialType = getPetSpecialType(pet);
+        const matchesSpecial =
+            (advancedFilters.specialTypes.includes('boss') && specialType === 'boss') ||
+            (advancedFilters.specialTypes.includes('multiform') && specialType === 'multiform');
         if (!matchesSpecial) return false;
       }
 

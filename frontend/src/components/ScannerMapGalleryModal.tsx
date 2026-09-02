@@ -17,7 +17,7 @@ import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { themeService } from '../services/theme';
-import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
+import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecialType } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
 import { PetSprite } from './PetSprite';
@@ -177,21 +177,11 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
 
         if (advancedFilters.specialTypes.length > 0) {
             list = list.filter((item) => {
-                const isSeqGreater = item.pet.seq !== undefined && item.pet.seq > 1;
-                const cleanName = formatPetName(item.pet.name);
-                const hasUnderscore = cleanName.includes('_');
-
-                const isBoss = isSeqGreater && !hasUnderscore;
-                const isMultiForm = isSeqGreater && hasUnderscore;
-
-                let matchesSpecial = false;
-                if (advancedFilters.specialTypes.includes('boss') && isBoss) {
-                    matchesSpecial = true;
-                }
-                if (advancedFilters.specialTypes.includes('multiform') && isMultiForm) {
-                    matchesSpecial = true;
-                }
-                return matchesSpecial;
+                const specialType = getPetSpecialType(item.pet);
+                return (
+                    (advancedFilters.specialTypes.includes('boss') && specialType === 'boss') ||
+                    (advancedFilters.specialTypes.includes('multiform') && specialType === 'multiform')
+                );
             });
         }
 
