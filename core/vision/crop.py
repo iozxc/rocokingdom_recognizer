@@ -44,16 +44,29 @@ class YOLOv8ORT:
     def preprocess(self, pil_img):
         orig_w, orig_h = pil_img.size
         img = np.array(pil_img.convert('RGB'))
-        img = cv2.resize(img, (self.model_w, self.model_h))
+        # letterbox：保持宽高比，缩放到模型输入内并补黑边。
+        # 之前用 cv2.resize 直接拉伸，16:9 画面被竖向拉长，导致小目标（头像/名字）检测崩掉。
+        scale = min(self.model_w / orig_w, self.model_h / orig_h)
+        new_w = int(round(orig_w * scale))
+        new_h = int(round(orig_h * scale))
+        resized = cv2.resize(img, (new_w, new_h))
+        canvas = np.full((self.model_h, self.model_w, 3), 114, np.uint8)
+        pad_x = (self.model_w - new_w) // 2
+        pad_y = (self.model_h - new_h) // 2
+        canvas[pad_y:pad_y + new_h, pad_x:pad_x + new_w] = resized
+        img = canvas
         img = img.astype(np.float32) / 255.0
         img = img.transpose(2, 0, 1)
         img = np.expand_dims(img, axis=0)
-        logger.debug(f"预处理: 原图 {orig_w}x{orig_h} -> 缩放 {self.model_w}x{self.model_h}")
-        return img, orig_w, orig_h
+        logger.debug(
+            f"预处理(letterbox): 原图 {orig_w}x{orig_h} -> {new_w}x{new_h} 补边({pad_x},{pad_y})"
+        )
+        return img, orig_w, orig_h, (scale, pad_x, pad_y)
 
-    def postprocess(self, outputs, orig_w, orig_h, conf_threshold=0.25):
+    def postprocess(self, outputs, orig_w, orig_h, lb, conf_threshold=0.25):
         predictions = np.squeeze(outputs[0])
         predictions = predictions.T
+        scale, pad_x, pad_y = lb
 
         boxes = []
         scores = []
@@ -66,6 +79,11 @@ class YOLOv8ORT:
             if max_score >= conf_threshold:
                 class_id = np.argmax(cls_scores)
                 cx, cy, w, h = pred[0:4]
+                # 模型空间(含letterbox补边) -> 原图坐标
+                cx = (cx - pad_x) / scale
+                cy = (cy - pad_y) / scale
+                w = w / scale
+                h = h / scale
                 x1 = cx - w / 2
                 y1 = cy - h / 2
                 boxes.append([float(x1), float(y1), float(w), float(h)])
@@ -77,14 +95,13 @@ class YOLOv8ORT:
         indices = cv2.dnn.NMSBoxes(boxes, scores, conf_threshold, NMS_THRESH)
         results = []
         if len(indices) > 0:
-            scale_w = orig_w / self.model_w
-            scale_h = orig_h / self.model_h
             for i in indices.flatten():
                 x, y, w, h = boxes[i]
-                rx1 = int(x * scale_w)
-                ry1 = int(y * scale_h)
-                rx2 = int((x + w) * scale_w)
-                ry2 = int((y + h) * scale_h)
+                # 裁剪到原图范围内，避免越界
+                rx1 = max(0, int(round(x)))
+                ry1 = max(0, int(round(y)))
+                rx2 = min(orig_w, int(round(x + w)))
+                ry2 = min(orig_h, int(round(y + h)))
                 results.append({
                     "box": (rx1, ry1, rx2, ry2),
                     "conf": scores[i],
@@ -95,9 +112,9 @@ class YOLOv8ORT:
 
     def predict(self, pil_image, conf_threshold=0.25):
         t0 = time.time()
-        blob, orig_w, orig_h = self.preprocess(pil_image)
+        blob, orig_w, orig_h, lb = self.preprocess(pil_image)
         outputs = self.session.run(self.output_names, {self.input_name: blob})
-        results = self.postprocess(outputs, orig_w, orig_h, conf_threshold)
+        results = self.postprocess(outputs, orig_w, orig_h, lb, conf_threshold)
         elapsed = (time.time() - t0) * 1000
         logger.debug(f"YOLO推理耗时: {elapsed:.1f}ms, 检测到 {len(results)} 个目标")
         return results
