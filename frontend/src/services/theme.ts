@@ -84,13 +84,26 @@ class ThemeService {
   private applyTheme(theme: ThemeMode, persist: boolean) {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.setAttribute('data-theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      root.setAttribute('data-theme', 'light');
-    }
+
+    // 切换期间临时禁用所有 transition / animation：让主题色在同一个 frame 内一起变成新值，
+    // 避免“逐元素渐变 / View Transition 交叉淡化”造成中途半亮半暗的奇怪中间态。
+    root.classList.add('theme-switching');
+
+    const apply = () => {
+      if (theme === 'dark') {
+        root.classList.add('dark');
+        root.setAttribute('data-theme', 'dark');
+      } else {
+        root.classList.remove('dark');
+        root.setAttribute('data-theme', 'light');
+      }
+    };
+    apply();
+
+    // 两帧后恢复过渡，保证常规 hover 等动画仍正常。
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => root.classList.remove('theme-switching'));
+    });
 
     if (persist) {
       try {

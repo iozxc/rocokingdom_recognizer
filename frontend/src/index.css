@@ -11,11 +11,17 @@
 
 @layer base {
   html {
+    /* 原生控件/滚动条跟随主题，减少明暗切换时的突兀感 */
+    color-scheme: light;
     /* 始终预留纵向滚动条，避免页面高度变化时滚动条出现/消失导致布局横向跳动 */
     overflow-y: scroll;
     /* 隐藏右侧滚动条，但保留滚动能力 */
     scrollbar-width: none;
     -ms-overflow-style: none;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   html::-webkit-scrollbar {
@@ -38,11 +44,21 @@
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  html.dark body {
-    background-color: #0f172a;
-    color: #f1f5f9;
-    background-image: radial-gradient(#1e293b 1px, transparent 1px);
-  }
+html.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
+  background-image: radial-gradient(#1e293b 1px, transparent 1px);
+}
+
+/* 主题切换时临时禁用所有过渡/动画：让主题色在同一帧内一起变成新值，
+   实现干净地 A→B，避免“逐元素渐变 / 交叉淡化”中途出现半亮半暗的中间态。
+   该类由 theme.ts 在切换瞬间挂到 <html>、两帧后移除。 */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
+}
 
   /* 所有可点按钮在 hover 时显示手型 */
   button:not(:disabled),

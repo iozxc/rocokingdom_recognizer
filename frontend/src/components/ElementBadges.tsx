@@ -31,7 +31,7 @@ const ElementBadge: React.FC<{ element: string; size: 'xs' | 'sm' | 'md' | 'lg' 
     return (
         <span
             title={element}
-            className={`inline-flex items-center justify-center rounded-full font-black text-white shadow-sm ring-1 ring-white/70 select-none ${fallbackCls}`}
+            className={`inline-flex items-center justify-center rounded-full font-black text-white shadow-sm select-none ${fallbackCls}`}
             style={{ backgroundColor: style.bg, color: style.fg || '#ffffff' }}
         >
           {element}
@@ -51,7 +51,7 @@ const ElementBadge: React.FC<{ element: string; size: 'xs' | 'sm' | 'md' | 'lg' 
               row={es.row}
               cols={meta.cols}
               rows={meta.rows}
-              className={`inline-block rounded-full shadow-sm ring-1 ring-white/60 shrink-0 ${sizeCls}`}
+              className={`inline-block rounded-full shadow-sm shrink-0 ${sizeCls}`}
               alt={element}
           />
       );
@@ -59,7 +59,7 @@ const ElementBadge: React.FC<{ element: string; size: 'xs' | 'sm' | 'md' | 'lg' 
     return (
         <span
             title={element}
-            className={`inline-flex items-center justify-center rounded-full font-black text-white shadow-sm ring-1 ring-white/70 select-none ${fallbackCls}`}
+            className={`inline-flex items-center justify-center rounded-full font-black text-white shadow-sm select-none ${fallbackCls}`}
             style={{ backgroundColor: style.bg, color: style.fg || '#ffffff' }}
         >
           {element}
@@ -72,7 +72,7 @@ const ElementBadge: React.FC<{ element: string; size: 'xs' | 'sm' | 'md' | 'lg' 
           src={getElementIconUrl(element)}
           alt={element}
           title={element}
-          className="inline-block rounded-full object-contain shadow-sm ring-1 ring-white/60 shrink-0"
+          className="inline-block rounded-full object-contain shadow-sm shrink-0"
           style={{ width: px, height: px }}
           onError={() => setFailed(true)}
       />
