@@ -39,7 +39,7 @@ keys/
 /setup.iss
 /Output/
 auth_secret.txt
-core/_auth_secret.py
+core/auth/_auth_secret.py
 build_key.txt
 /frontend/dist/
 /frontend/dist-web/
