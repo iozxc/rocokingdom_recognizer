@@ -62,6 +62,7 @@ build_key.txt
 /train/assets/
 /train/onnx/
 /build.bat
+/build_logs/
 /train/onnx_dino/
 /frontend/public/mapdata/
 /roco_user_mapdata.json
