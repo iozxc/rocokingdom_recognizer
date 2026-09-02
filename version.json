@@ -1,10 +1,10 @@
 {
-  "version": "1.4.5",
+  "version": "1.4.4",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.4.5 更新公告】\n\n注意：自 1.4.2 版本起，后续所有版本均需完成来源认证并阅读用户协议后方可使用。【注意】\n更新前请先确认自己的图鉴个数。若更新后出现精灵对不上号的情况，通常是命名调整所致，请以最新图鉴为准。\n\n【更新方式】\n自动更新：启动旧版本后按提示点击“立即更新”即可。\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。",
+  "update_log": "【v1.4.4 更新公告】\n\n注意：自 1.4.2 版本起，后续所有版本均需完成来源认证并阅读用户协议后方可使用。\n\n主要更新：【网页端】\n\n【功能新增】\n1、增加数据导出、导入功能\n2、增加了网页版以及对手机端网页版的适配（无AI识别）：https://roco.omisheep.cn/\n\n【注意】\n更新前请先确认自己的图鉴个数。若更新后出现精灵对不上号的情况，通常是命名调整所致，请以最新图鉴为准。\n\n【更新方式】\n自动更新：启动旧版本后按提示点击“立即更新”即可。\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.4/",
     "files": [
