@@ -1,5 +1,6 @@
 import { IS_STATIC, PLATFORM } from './staticMode';
 import { APP_VERSION } from '../version';
+import { getWebDeviceCode } from './webDevice';
 
 /**
  * Web 端“打开 / 心跳”上报（仅统计流量，不做授权、存储、反馈）。
@@ -23,30 +24,15 @@ const AUTH_SERVER: string =
     'https://api.omisheep.cn';
 const EVENT_PATH = '/api/auth/status';
 const HEARTBEAT_MS = 180_000; // 与桌面端 _HEARTBEAT_INTERVAL 一致：约 3 分钟
-const MACHINE_CODE_KEY = 'roco_web_machine_code_v1';
 
 let started = false;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let closed = false;
 
-function getMachineCode(): string {
-  try {
-    let code = localStorage.getItem(MACHINE_CODE_KEY);
-    if (code) return code;
-    code = typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    localStorage.setItem(MACHINE_CODE_KEY, code);
-    return code;
-  } catch {
-    return `web-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  }
-}
-
 async function report(event: 'open' | 'heartbeat'): Promise<void> {
   if (!IS_STATIC || !AUTH_SERVER) return;
   const payload = {
-    machine_code: getMachineCode(),
+    machine_code: getWebDeviceCode(),
     timestamp: String(Math.floor(Date.now() / 1000)),
     version: APP_VERSION,
     event,
@@ -74,7 +60,7 @@ function reportClose(): void {
   stopWebTelemetry();
   if (!IS_STATIC || !AUTH_SERVER) return;
   const payload = {
-    machine_code: getMachineCode(),
+    machine_code: getWebDeviceCode(),
     timestamp: String(Math.floor(Date.now() / 1000)),
     version: APP_VERSION,
     event: 'close',

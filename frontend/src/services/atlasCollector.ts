@@ -13,6 +13,7 @@
 import { IS_STATIC, PLATFORM } from './staticMode';
 import { APP_VERSION } from '../version';
 import { authStore } from './auth';
+import { getWebDeviceCode } from './webDevice';
 
 // 远端统计/采集服务器（与 webTelemetry 同源），可用 VITE_ROCO_AUTH_SERVER 覆盖
 const ATLAS_SERVER: string =
@@ -94,6 +95,8 @@ function deviceHash(): string {
   // 优先用稳定设备码(machine_code)，避免随机 UUID 在不同页面/会话被当成不同设备
   const mc = authStore.getState().machine_code;
   if (mc) return mc;
+  // web 端：统一用与 auth/status 相同的 localStorage 设备码，保证同一浏览器＝同一设备
+  if (IS_STATIC) return getWebDeviceCode();
   // 兜底：localStorage（web / 授权尚未加载）
   try {
     let d = localStorage.getItem(DEVICE_KEY);
