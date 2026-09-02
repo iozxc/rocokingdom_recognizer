@@ -21,6 +21,7 @@ import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecial
 import { ElementBadges } from './ElementBadges';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
 import { PetSprite } from './PetSprite';
+import { PetSpecialTag } from './PetSpecialTag';
 import { petKeyOf } from '../services/atlasCollector';
 
 interface ScannerMapGalleryModalProps {
@@ -499,6 +500,10 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                                     </div>
                                                 );
                                             })()}
+                                        {/* 多形态/首领化（火系共创图鉴）：右侧竖排，z 与 #id 同级 */}
+                                        <div className="absolute right-0.5 top-1/2 -translate-y-1/2 z-[1] pointer-events-none">
+                                            <PetSpecialTag pet={pet} vertical />
+                                        </div>
                                         </div>
                                     ) : (
                                         /* 草系经典：编号/系别图标叠加在立绘上 */
@@ -524,6 +529,10 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                                     <Check className="w-2.5 h-2.5 stroke-[3.5]" />
                                                 </div>
                                             )}
+                                            {/* 多形态/首领化：叠在立绘底部，z 与 #id 同级 */}
+                                            <div className="absolute bottom-1 left-0 right-0 z-[1] flex justify-center pointer-events-none">
+                                                <PetSpecialTag pet={pet} />
+                                            </div>
                                         </div>
                                     )}
 

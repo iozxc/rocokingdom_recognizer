@@ -238,6 +238,7 @@ export interface AppSettings {
   hideUpdateDot?: boolean; // 是否隐藏更新提示红点（默认不隐藏）
   showHints?: boolean; // 启动/退出提示窗口是否显示（默认关闭，首次启动强制显示一次）
   followTopMost?: boolean; // 跟随识别窗口是否默认置顶（默认开启）
+  debugImageCap?: number; // debug 截图保留上限（张），0 = 关闭不保存（默认 100）
   fireSettings?: FireSettings; // 火系徽章试炼专属设置
   [key: string]: unknown;
 }

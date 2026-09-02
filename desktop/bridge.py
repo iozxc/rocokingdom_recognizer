@@ -11,7 +11,7 @@ from core.vision.crop import crop_sections_from_pil_by_YOLOv8
 from core.infra.logger import logger
 from core.services.trials import get_trial_or_default
 from core.services.trial_filter import filter_candidates_by_trial
-from core.infra.capture import capture_window, clean_debug_folder, match_scene_unique_char
+from core.infra.capture import capture_window, clean_debug_folder, debug_enabled, match_scene_unique_char
 
 # OCR 命中这些名称时直接匹配，无需模糊匹配
 SPECIAL_DIRECT_MATCH = ("魔力之源", "远行商人")
@@ -144,14 +144,15 @@ class AppApi:
 
             title_pil, names_pil, items_pil = crop_sections_from_pil_by_YOLOv8(img)
 
-            debug_dir = os.path.join("debug", "capture")
-            if not os.path.exists(debug_dir):
-                os.makedirs(debug_dir)
-            clean_debug_folder(debug_dir, max_count=100)
-            file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
-            save_path = os.path.join(debug_dir, file_name)
-            img.save(save_path, "JPEG", quality=90)
-            logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
+            if debug_enabled():
+                debug_dir = os.path.join("debug", "capture")
+                if not os.path.exists(debug_dir):
+                    os.makedirs(debug_dir)
+                clean_debug_folder(debug_dir)
+                file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
+                save_path = os.path.join(debug_dir, file_name)
+                img.save(save_path, "JPEG", quality=90)
+                logger.debug(f"--> [DEBUG] 截图已保存至: {os.path.abspath(save_path)}")
 
             stage_classifier = models.get_stage_classifier(trial_key)
             if stage_num is None:

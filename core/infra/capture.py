@@ -17,12 +17,37 @@ from PIL import Image, ImageGrab
 from core.infra.logger import logger
 from core.services.user_storage import user_storage
 
-def clean_debug_folder(folder_path: str, max_count: int = 30):
+DEBUG_CAP_KEY = "debugImageCap"
+
+
+def get_debug_cap(default: int = 100) -> int:
+    """读取用户设置里的 debug 截图保留上限（0 = 关闭，不保存），异常回退 default。"""
+    try:
+        val = user_storage.get_app_settings().get(DEBUG_CAP_KEY)
+        if isinstance(val, int) and not isinstance(val, bool) and 0 <= val <= 9999:
+            return val
+    except Exception:
+        pass
+    return default
+
+
+def debug_enabled() -> bool:
+    """debug 截图是否保存（cap > 0）。"""
+    return get_debug_cap() > 0
+
+
+def clean_debug_folder(folder_path: str, max_count: int | None = None):
     """
     清理debug截图文件夹，最多保留max_count张，删除最旧的文件
     :param folder_path: 文件夹路径
-    :param max_count: 最大保留文件数量
+    :param max_count: 最大保留文件数量；None 时读取用户设置 debugImageCap（0=关闭不清理）
     """
+    if max_count is None:
+        max_count = get_debug_cap()
+    if max_count <= 0:
+        logger.debug(f"debug 保存已关闭，跳过清理: {folder_path}")
+        return
+
     logger.debug(f"开始清理debug文件夹: path={folder_path}, max_count={max_count}")
 
     folder = Path(folder_path)

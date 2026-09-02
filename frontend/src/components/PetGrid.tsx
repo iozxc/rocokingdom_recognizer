@@ -6,6 +6,7 @@ import { IS_STATIC } from '../services/staticMode';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecialType } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
+import { PetSpecialTag } from './PetSpecialTag';
 import { petKeyOf } from '../services/atlasCollector';
 
 interface PetGridProps {
@@ -289,6 +290,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                   </div>
                               );
                             })()}
+                            {/* 多形态/首领化（火系共创图鉴）：右侧竖排，z 与 #id 同级 */}
+                            <div className="absolute right-0.5 top-1/2 -translate-y-1/2 z-[1] pointer-events-none">
+                              <PetSpecialTag pet={pet} vertical />
+                            </div>
                           </div>
                       ) : (
                           /* 草系经典：编号/系别图标叠加在立绘上 */
@@ -312,6 +317,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
                                         : 'group-hover:scale-105'
                                 }`}
                             />
+                            {/* 多形态/首领化：叠在立绘底部，z 与 #id 同级 */}
+                            <div className="absolute bottom-1 left-0 right-0 z-[1] flex justify-center pointer-events-none">
+                              <PetSpecialTag pet={pet} />
+                            </div>
                           </div>
                       )}
 

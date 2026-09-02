@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageFont  # 增加了 ImageDraw 和 ImageFont
 
 import config
 from core.infra.logger import logger
-from core.infra.capture import clean_debug_folder
+from core.infra.capture import clean_debug_folder, debug_enabled
 
 # --- 配置 ---
 MODEL_PATH = config.SCANNER_MODEL if config.SCANNER_MODEL.endswith(".onnx") else config.SCANNER_MODEL.replace(".pt", ".onnx")
@@ -125,6 +125,10 @@ def visualize_detections(pil_image, detections, save_name="yolo_debug.png"):
     """
     在图片上画框并保存，用于查看识别是否准确
     """
+    if not debug_enabled():
+        logger.debug("debug 截图保存已关闭，跳过 YOLO 可视化")
+        return None
+
     logger.debug(f"开始可视化检测结果，共 {len(detections)} 个框")
 
     draw_img = pil_image.copy()
@@ -154,7 +158,7 @@ def visualize_detections(pil_image, detections, save_name="yolo_debug.png"):
     debug_dir = os.path.join("debug", "yolo_viz")
     if not os.path.exists(debug_dir):
         os.makedirs(debug_dir)
-    clean_debug_folder(debug_dir, max_count=100)
+    clean_debug_folder(debug_dir)
     file_name = time.strftime("%Y%m%d_%H%M%S") + ".jpg"
     save_path = os.path.join(debug_dir, file_name)
     draw_img.save(save_path)

@@ -9,6 +9,8 @@ interface PetSpecialTagProps {
   className?: string;
   /** 仅显示图标（不显示文字/胶囊背景），用于紧凑位置的角标。 */
   iconOnly?: boolean;
+  /** 竖排展示（文字从上往下写），用于卡片右侧的纵向标识。 */
+  vertical?: boolean;
 }
 
 /**
@@ -16,7 +18,7 @@ interface PetSpecialTagProps {
  * 图标使用内置矢量图标（Crown / Layers），避免额外图片请求；
  * tools/wiki/fetch_special_icons.py 可用来发现官方标志图标，找到后再接入。
  */
-export const PetSpecialTag: React.FC<PetSpecialTagProps> = ({ pet, filename, className = '', iconOnly = false }) => {
+export const PetSpecialTag: React.FC<PetSpecialTagProps> = ({ pet, filename, className = '', iconOnly = false, vertical = false }) => {
   const type = getPetSpecialType(pet, filename);
   if (!type) return null;
 
@@ -41,6 +43,26 @@ export const PetSpecialTag: React.FC<PetSpecialTagProps> = ({ pet, filename, cla
   const cls = isBoss
       ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800'
       : 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700';
+
+  if (vertical) {
+    return (
+        <span
+            className={`inline-flex flex-col items-center gap-0.5 text-[10px] font-black px-1 py-0.5 rounded-md border leading-none select-none shrink-0 align-middle ${cls} ${className}`}
+            title={isBoss ? '首领化精灵，形态/特征易与其他形态混淆' : '多形态精灵，存在多种形态易分辨错'}
+        >
+          {isBoss ? (
+              <Crown className="w-3 h-3 stroke-[3]" />
+          ) : (
+              <Layers className="w-3 h-3 stroke-[3]" />
+          )}
+          <span className="flex flex-col items-center">
+            {label.split('').map((ch, i) => (
+                <span key={i} className="leading-none">{ch}</span>
+            ))}
+          </span>
+        </span>
+    );
+  }
 
   return (
       <span

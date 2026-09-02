@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Filter, Check, RotateCcw, X } from 'lucide-react';
+import { Filter, Check, RotateCcw, X, Crown, Layers } from 'lucide-react';
 import { ELEMENT_COLORS, getElementIconUrl } from '../utils/elements';
 import { AdvancedFilterState } from '../types';
 import { sound } from '../services/sound';
@@ -121,6 +121,7 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
               }`}
             >
               {filters.specialTypes.includes('boss') && <Check className="w-3 h-3 stroke-[3]" />}
+              <Crown className="w-3 h-3 stroke-[3]" />
               首领化
             </button>
             <button
@@ -133,6 +134,7 @@ export const AdvancedFilterPopover: React.FC<AdvancedFilterPopoverProps> = ({
               }`}
             >
               {filters.specialTypes.includes('multiform') && <Check className="w-3 h-3 stroke-[3]" />}
+              <Layers className="w-3 h-3 stroke-[3]" />
               多形态
             </button>
           </div>
