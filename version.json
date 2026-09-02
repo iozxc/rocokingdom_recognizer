@@ -1,61 +1,69 @@
 {
-  "version": "1.4.4",
+  "version": "1.4.5",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.4.4 更新公告】\n\n注意：自 1.4.2 版本起，后续所有版本均需完成来源认证并阅读用户协议后方可使用。\n\n主要更新：【网页端】\n\n【功能新增】\n1、增加数据导出、导入功能\n2、增加了网页版以及对手机端网页版的适配（无AI识别）：https://roco.omisheep.cn/\n\n【注意】\n更新前请先确认自己的图鉴个数。若更新后出现精灵对不上号的情况，通常是命名调整所致，请以最新图鉴为准。\n\n【更新方式】\n自动更新：启动旧版本后按提示点击“立即更新”即可。\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。",
+  "update_log": "feat: 【v1.4.5 更新公告】\n\n注意：自 1.4.2 版本起，后续所有版本均需完成来源认证并阅读用户协议后方可使用。\n\n【功能新增】\n1、客户端新增多形态、首领化专属标识，精灵卡片与图鉴列表统一标记展示\n2、客户端新增明亮 / 暗黑模式全局切换\n\n【优化】\n3、提升多形态精灵的识别准确性\n4、优化跟随识别算法，提升跟随识别的稳定性与准确性\n\n【注意】\n更新前请先确认自己的图鉴个数。若更新后出现精灵对不上号的情况，通常是命名调整所致，请以最新图鉴为准。\n\n【更新方式】\n自动更新：启动旧版本后按提示点击 “立即更新” 即可。\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。\n\n",
   "auto_update": {
-    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.4/",
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.5/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "7dc82fbda64e357dbc1d61057d11de1a",
+        "md5": "72ca080af19e5cea2f33b2a064718233",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "33741005c710be85fc0ab5114c8e920a",
+        "md5": "76286eb0b75747b85d950043ecf1aa17",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "6e25ed5d3fff70cb932da2b3ef7e4a66",
-        "size": 31480140
+        "md5": "31b13afdf5545eddaf677d4ab97539e3",
+        "size": 31492830
       }
     ]
   },
   "deltas": [
     {
+      "base_version": "1.4.4",
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.5/RocoKingdomRecognizer_delta_1.4.4.7z",
+      "md5": "8bc1e710b0843caebbded0b6f8745538",
+      "size": 19866191,
+      "changed": 8,
+      "removed": 0
+    },
+    {
       "base_version": "1.4.3",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.4/RocoKingdomRecognizer_delta_1.4.3.7z",
-      "md5": "98c63e353041de9aabcc263cf6caf429",
-      "size": 21349088,
-      "changed": 9,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.5/RocoKingdomRecognizer_delta_1.4.3.7z",
+      "md5": "3c3797abae2cc1e8931527c674f2000a",
+      "size": 21371453,
+      "changed": 10,
       "removed": 0
     },
     {
       "base_version": "1.4.2",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.4/RocoKingdomRecognizer_delta_1.4.2.7z",
-      "md5": "45868cd058c92187a85c389faa242763",
-      "size": 37039086,
-      "changed": 16,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.5/RocoKingdomRecognizer_delta_1.4.2.7z",
+      "md5": "702d10a0be83bc1ad86d4176655af200",
+      "size": 37059390,
+      "changed": 17,
       "removed": 0
     },
     {
       "base_version": "1.4.1",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.4/RocoKingdomRecognizer_delta_1.4.1.7z",
-      "md5": "585c8f2c27fe87a737ea4d2d8dcb1b18",
-      "size": 37186960,
-      "changed": 17,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.5/RocoKingdomRecognizer_delta_1.4.1.7z",
+      "md5": "3cc2cf5177f21b88485dd82995b015d9",
+      "size": 37208728,
+      "changed": 18,
       "removed": 0
     },
     {
       "base_version": "1.4.0",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.4/RocoKingdomRecognizer_delta_1.4.0.7z",
-      "md5": "4279acae2608404e5be33efba74be59b",
-      "size": 37186959,
-      "changed": 17,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.5/RocoKingdomRecognizer_delta_1.4.0.7z",
+      "md5": "ae3e0af9944c39e24d56c36a38268992",
+      "size": 37208728,
+      "changed": 18,
       "removed": 0
     }
   ]
