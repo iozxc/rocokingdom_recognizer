@@ -307,6 +307,7 @@ export const ScannerApp: React.FC = () => {
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [topmost, setTopmost] = useState<boolean>(true);
+  const [isDarkTheme, setIsDarkTheme] = useState<boolean>(() => themeService.isDark());
 
   // 当前试炼：初始取自 localStorage（来源页面打开窗口前写入），之后可在窗口内自行切换
   const [trialKey, setTrialKey] = useState<'grass' | 'fire'>(() => {
@@ -332,6 +333,12 @@ export const ScannerApp: React.FC = () => {
         })
         .catch(() => { /* 失败保持默认草系 */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 监听主题变更，保证切换按钮的 icon/提示实时更新
+  useEffect(() => {
+    const unsub = themeService.subscribe((t) => setIsDarkTheme(t === 'dark'));
+    return () => unsub();
   }, []);
 
   // 火系共创图鉴：社区聚合数据 + 本地投票 + 隐藏投票开关（均与首页共用 localStorage，跨窗口一致）
@@ -775,15 +782,9 @@ export const ScannerApp: React.FC = () => {
   // Handle manual map selection (does NOT trigger recognition, only changes view/pending target)
   const handleSelectMap = (mapNum: number | null) => {
     sound.playClick();
+    // 仅切换视图/目标地图，不再自动钉住；钉住只由用户手动点击“钉住”按钮决定，
+    // 避免“切换地图 → 点击识别”后被自动钉住（跟随用户手动习惯）。
     setSelectedMapNum(mapNum);
-    // 钉住模式下切换地图 = 钉随当前选择移动；切回“全图”则取消钉住
-    if (mapNum !== null) {
-      setPinnedMapNum(mapNum);
-      storage.setSetting('scannerPinnedStageNum', mapNum);
-    } else {
-      setPinnedMapNum(null);
-      storage.setSetting('scannerPinnedStageNum', null);
-    }
   };
 
   // 钉住/取消钉住当前试炼关卡：钉住后识别完成不再跳回识别结果对应的关卡
@@ -1204,9 +1205,9 @@ export const ScannerApp: React.FC = () => {
                   themeService.toggleTheme();
                 }}
                 className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center justify-center transition-all cursor-pointer border-2 border-white/40"
-                title={themeService.isDark() ? '切换为明亮模式' : '切换为暗黑模式'}
+                title={isDarkTheme ? '切换为明亮模式' : '切换为暗黑模式'}
             >
-              {themeService.isDark() ? (
+              {isDarkTheme ? (
                 <Sun className="w-3.5 h-3.5 text-[#FEE061]" />
               ) : (
                 <Moon className="w-3.5 h-3.5 text-white" />

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     X,
     Layers,
@@ -77,6 +77,12 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
         specialTypes: [],
     });
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
+    // 监听主题变更，强制重渲染以刷新切换按钮的 icon/提示
+    useEffect(() => {
+      const unsub = themeService.subscribe(() => setThemeTick((t) => t + 1));
+      return () => unsub();
+    }, []);
 
     // 试炼地图配置：默认草系；火系等试炼由调用方传入
     const galleryMaps = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
