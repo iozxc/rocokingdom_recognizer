@@ -233,7 +233,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
         throw new Error('请先导入或选择图片');
       }
 
-      const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, 5);
+      const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, 3);
 
       setTotalDetected(data.total_detected || data.results.length);
 

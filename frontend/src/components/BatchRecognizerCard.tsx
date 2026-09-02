@@ -70,7 +70,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [threshold, setThreshold] = useState<number>(() => storage.getThreshold('batch_threshold', 0.25));
-  const [topK, setTopK] = useState<number>(() => storage.getTopK(4));
+  const [topK, setTopK] = useState<number>(() => storage.getTopK(3));
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
