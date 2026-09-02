@@ -313,6 +313,20 @@ export const ScannerApp: React.FC = () => {
   const isFire = trialKey === 'fire';
   const activeMapsConfig = isFire ? FIRE_MAP_CONFIGS : MAP_CONFIGS;
   const [isTrialSwitcherOpen, setIsTrialSwitcherOpen] = useState<boolean>(false);
+  // 可切换试炼列表：以服务端 /api/trials 为准（打包环境会按 dev_only 过滤掉火系）
+  const [trialOptions, setTrialOptions] = useState<{ key: string; title: string }[]>([
+    { key: 'grass', title: '草系徽章试炼' },
+  ]);
+
+  useEffect(() => {
+    api.getTrials()
+        .then((res) => {
+          const options = (res.trials || []).map((t) => ({ key: t.key, title: t.title }));
+          if (options.length) setTrialOptions(options);
+        })
+        .catch(() => { /* 失败保持默认草系 */ });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 火系共创图鉴：社区聚合数据 + 本地投票 + 隐藏投票开关（均与首页共用 localStorage，跨窗口一致）
   const [serverAtlas, setServerAtlas] = useState<TrialAtlas | null>(null);
@@ -836,7 +850,7 @@ export const ScannerApp: React.FC = () => {
   };
 
   // 窗口内切换试炼：重置识别态，写入 localStorage 供桥接/采集/其他窗口使用
-  const switchTrial = (next: 'grass' | 'fire') => {
+  const switchTrial = (next: string) => {
     setIsTrialSwitcherOpen(false);
     if (next === trialKey) return;
     sound.playClick();
@@ -1141,20 +1155,20 @@ export const ScannerApp: React.FC = () => {
                     {/* 外罩：点击任意处关闭 */}
                     <div className="fixed inset-0 z-40 cursor-default" onClick={() => setIsTrialSwitcherOpen(false)} />
                     <div className="absolute left-0 top-9 z-50 w-44 bg-white dark:bg-slate-800 rounded-xl border-2 border-[#D5E3F0] dark:border-slate-700 shadow-xl overflow-hidden">
-                      {(['grass', 'fire'] as const).map((k) => (
+                      {trialOptions.map((t) => (
                           <button
-                              key={k}
+                              key={t.key}
                               type="button"
-                              onClick={() => switchTrial(k)}
+                              onClick={() => switchTrial(t.key)}
                               className={`w-full px-3 py-2 flex items-center gap-2 text-xs font-black transition-colors cursor-pointer ${
-                                  k === trialKey
+                                  t.key === trialKey
                                       ? 'bg-[#EBF5FE] dark:bg-sky-950/70 text-[#1E5B99] dark:text-sky-300'
                                       : 'text-slate-700 dark:text-slate-200 hover:bg-[#F8FBFE] dark:hover:bg-slate-700'
                               }`}
                           >
-                            <ElementBadges elements={[ELEMENT_EN_TO_CN[k]]} size="sm" />
-                            <span>{k === 'fire' ? '火系徽章试炼' : '草系徽章试炼'}</span>
-                            {k === trialKey && <Check className="w-3.5 h-3.5 ml-auto text-[#1E5B99] dark:text-sky-300 stroke-[3]" />}
+                            <ElementBadges elements={[ELEMENT_EN_TO_CN[t.key] || '草']} size="sm" />
+                            <span>{t.title}</span>
+                            {t.key === trialKey && <Check className="w-3.5 h-3.5 ml-auto text-[#1E5B99] dark:text-sky-300 stroke-[3]" />}
                           </button>
                       ))}
                     </div>
