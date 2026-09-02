@@ -8,11 +8,15 @@ import {
     BookOpen,
     Filter,
     ArrowRight,
+    Sun,
+    Moon,
+    History,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, AdvancedFilterState, MapConfig } from '../types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
+import { themeService } from '../services/theme';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
@@ -42,6 +46,10 @@ interface ScannerMapGalleryModalProps {
     onAtlasVote?: (mapId: string, petKey: string, petName: string, type: 'agree' | 'disagree') => void;
     /** 共创图鉴卡片布局（火系专用）：头部行（系别图标+#编号）+ 进度条/投票区；默认 false 保持草系经典叠加布局。 */
     communityCard?: boolean;
+    /** 打开「遇见历史」弹窗（跟随识别主窗的 EncounterHistoryModal）。 */
+    onOpenHistory?: () => void;
+    /** 当前试炼 key（'grass' | 'fire'），用于顶部与主窗一致的试炼 logo。 */
+    trialKey?: string;
 }
 
 export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
@@ -55,11 +63,14 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                                                                   communityAtlas,
                                                                                   onAtlasVote,
                                                                                   communityCard = false,
+                                                                                  onOpenHistory,
+                                                                                  trialKey = 'grass',
                                                                               }) => {
     // 'all' for full gallery, or 1, 2, 3...
     const [selectedTab, setSelectedTab] = useState<'all' | number>(initialMapNum);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMode, setFilterMode] = useState<'all' | 'unencountered' | 'encountered'>('all');
+    const [, setThemeTick] = useState(0);
     const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({
         elements: [],
         specialTypes: [],
@@ -191,31 +202,68 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-50 w-full h-full bg-[#FDF9F3] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between select-none overflow-hidden font-sans animate-in fade-in duration-150 rounded-none">
-            {/* 1. Modal Top Bar (Matching ScannerApp top bar exactly: #7ABCF4) */}
-            <div className="pywebview-drag-region cursor-move h-11 px-3 bg-[#7ABCF4] border-b border-[#5DA8E8] flex items-center justify-between gap-2 shrink-0 text-white rounded-none">
-                <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-xl bg-white/20 border-2 border-white/40 flex items-center justify-center shrink-0">
-                        <BookOpen className="w-4 h-4 text-white" />
-                    </div>
+            {/* 1. Modal Top Bar（与跟随识别主窗完全一致：同高度/同配色/同布局，仅少「查图鉴」并有返回关闭） */}
+            <div className="pywebview-drag-region cursor-move h-11 px-3 bg-[#7ABCF4] dark:bg-slate-800 border-b border-[#5DA8E8] dark:border-slate-700 flex items-center justify-between gap-2 shrink-0 text-white rounded-none">
+                <div className="flex items-center gap-2 min-w-0 cursor-default">
+                    {/* 试炼 logo（静态展示当前试炼，点击返回主界面） */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            sound.playClick();
+                            onClose();
+                        }}
+                        className="w-7 h-7 rounded-xl bg-white/20 border-2 border-white/40 hover:bg-white/30 active:opacity-80 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                        title={`当前试炼：${trialKey === 'fire' ? '火系徽章试炼' : '草系徽章试炼'}（点击返回）`}
+                    >
+                        <ElementBadges elements={[trialKey === 'fire' ? '火' : '草']} size="md" />
+                    </button>
                     <span className="text-xs sm:text-sm font-black text-white truncate tracking-tight">
-            精灵图鉴
-          </span>
+                        精灵图鉴
+                    </span>
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FEE061] text-[#854D0E] border-2 border-[#E5C43B] shrink-0 font-mono">
-            {grandEncountered}/{grandTotal} ({grandPercent}%)
-          </span>
+                        {grandEncountered}/{grandTotal} ({grandPercent}%)
+                    </span>
                 </div>
 
-                <button
-                    type="button"
-                    className="pywebview-no-drag w-7 h-7 rounded-xl bg-white/20 hover:bg-rose-500 text-white border-2 border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer shrink-0 active:opacity-80"
-                    onClick={() => {
-                        sound.playClick();
-                        onClose();
-                    }}
-                    title="返回识别主界面"
-                >
-                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0 pywebview-no-drag">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            sound.playClick();
+                            themeService.toggleTheme();
+                            setThemeTick((t) => t + 1);
+                        }}
+                        className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center justify-center transition-all cursor-pointer border-2 border-white/40"
+                        title={themeService.isDark() ? '切换为明亮模式' : '切换为暗黑模式'}
+                    >
+                        {themeService.isDark() ? <Sun className="w-3.5 h-3.5 text-[#FEE061]" /> : <Moon className="w-3.5 h-3.5 text-white" />}
+                    </button>
+                    {onOpenHistory && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                sound.playClick();
+                                onOpenHistory();
+                            }}
+                            className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center gap-1 text-xs font-black transition-all cursor-pointer border-2 border-white/40"
+                            title="查看遇见历史"
+                        >
+                            <History className="w-3.5 h-3.5 text-[#FEE061]" />
+                            <span>历史</span>
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className="w-7 h-7 rounded-xl bg-white/20 hover:bg-rose-500 text-white border-2 border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer shrink-0 active:opacity-80"
+                        onClick={() => {
+                            sound.playClick();
+                            onClose();
+                        }}
+                        title="返回识别主界面"
+                    >
+                        <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                </div>
             </div>
 
             {/* 2. Map Switcher Tabs & Filter Bar (Optimized for 420px fixed width) */}

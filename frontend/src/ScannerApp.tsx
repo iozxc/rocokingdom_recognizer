@@ -1656,6 +1656,8 @@ export const ScannerApp: React.FC = () => {
             communityAtlas={isFire && showAtlasVote ? communityAtlas : undefined}
             onAtlasVote={isFire && showAtlasVote ? handleAtlasVote : undefined}
             communityCard={isFire}
+            onOpenHistory={() => setIsHistoryOpen(true)}
+            trialKey={trialKey}
         />
 
         {/* 5. Encounter History Modal */}
