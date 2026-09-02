@@ -68,7 +68,9 @@ def get_best_match(user_name, map_key, names_dict):
     for candidate in candidates:
         # SequenceMatcher 计算 0.0 到 1.0 之间的分值
         # ratio() 算法: 2.0 * M / T (M是匹配字符数, T是总字符数)
-        score = SequenceMatcher(None, user_name, candidate).ratio()
+        # 只匹配“基名”（去掉多形态后缀，如 小星光_星光 -> 小星光），避免后缀影响置信度
+        base = str(candidate).split('_')[0].strip()
+        score = SequenceMatcher(None, (user_name or '').strip(), base).ratio()
 
         if score > max_score:
             max_score = score
@@ -92,11 +94,18 @@ def get_top_k_matches(user_name, map_key, names_dict, k=3):
 
     # 2. 计算所有候选词的相似度
     for candidate in candidates:
-        score = SequenceMatcher(None, user_name.strip(), candidate.strip()).ratio()
+        base = str(candidate).split('_')[0].strip()
+        user = (user_name or '').strip()
+        raw = SequenceMatcher(None, user, base).ratio()
+        # 基名匹配成功后：无形态后缀 -> 100%分；多形态（_ 后缀）-> 固定 98% + seq_tag，交给图像模态进一步筛选
+        has_suffix = candidate != base
+        ok = raw >= 0.75
+        score = 0.98 if (has_suffix and ok) else (1.0 if ok else raw)
 
         scored_results.append({
             "name": candidate,
-            "score": round(score, 4)
+            "score": round(score, 4),
+            "seq_tag": bool(has_suffix and ok),
         })
 
     # 3. 排序：按 score 从大到小排序
@@ -115,6 +124,27 @@ def get_top_k_matches(user_name, map_key, names_dict, k=3):
         logger.debug("get_top_k_matches: 无匹配结果")
 
     return top_k
+
+
+def fuse_ocr_feat(ocr_results, feat_results):
+    """OCR 候选与特征(图像)候选融合：按「基名」匹配，OCR 置信度 + (1-OCR)*特征置信度 加权。"""
+    base_score = {}
+    for f in feat_results or []:
+        if not isinstance(f, dict):
+            continue
+        b = str(f.get("name") or "").split("_")[0].strip()
+        s = float(f.get("score") or 0.0)
+        if b and (b not in base_score or s > base_score[b]):
+            base_score[b] = s
+    out = []
+    for item in ocr_results or []:
+        item = dict(item)
+        b = str(item.get("name") or "").split("_")[0].strip()
+        fs = base_score.get(b, 0.0)
+        if fs > 0.0 and item.get("seq_tag"):
+            item["score"] = round(item["score"] + (1.0 - item["score"]) * fs, 4)
+        out.append(item)
+    return out
 
 
 # 2k

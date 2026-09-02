@@ -9,7 +9,7 @@ from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
 from core.services.trials import get_trial
 from core.services.trial_filter import filter_candidates_by_trial
-from core.infra.utils import get_top_k_matches, get_icon_file_name
+from core.infra.utils import get_top_k_matches, get_icon_file_name, fuse_ocr_feat
 from core.infra.logger import logger
 from core.auth.service import is_authorized
 
@@ -47,7 +47,8 @@ def ocr_top_k_match(image, stage_num, top_k=6, trial_key="grass"):
             final_ocr_results.append({
                 "match_path": file_name,
                 "filename": os.path.basename(file_name),  # 数据集文件名，如 258_乌达_极夜.png
-                "score": item['score']
+                "score": item['score'],
+                "seq_tag": bool(item.get('seq_tag', False)),
             })
 
     logger.debug(f"OCR模糊匹配完成: 原始候选={len(raw_result_list)}, 有效结果={len(final_ocr_results)}")
@@ -103,6 +104,8 @@ def predict():
         ocr_results = ocr_top_k_match(temp_path, stage_num, top_k, trial_key)
         logger.debug(f"[/predict] OCR匹配结果数: {len(ocr_results)}")
 
+        # 特调：OCR 多形态名字(seq_tag)按特征(图像)置信度加权
+        ocr_results = fuse_ocr_feat(ocr_results, feat_results)
         combined_results = feat_results + ocr_results
 
         # 去重：如果同一个文件既被特征匹配到，也被 OCR 匹配到，取分数高的那个
@@ -234,7 +237,8 @@ def predict_batch():
                         ocr_match_results.append({
                             "match_path": file_name,
                             "filename": os.path.basename(file_name),
-                            "score": m['score']
+                            "score": m['score'],
+                            "seq_tag": bool(m.get('seq_tag', False)),
                         })
 
             # B'  OCR 结果也按当前 map 白名单过滤
@@ -243,6 +247,7 @@ def predict_batch():
             )
 
             # C. 合并与去重 (按文件名去重，保留最高分)
+            ocr_match_results = fuse_ocr_feat(ocr_match_results, feat_results)
             unique_results = {}
             for res in (feat_results + ocr_match_results):
                 f_name = res['filename']

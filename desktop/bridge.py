@@ -6,7 +6,7 @@ import pygetwindow as gw
 
 import config
 from core.services.icon_catalog import icon_catalog
-from core.infra.utils import get_icon_file_name, get_top_k_matches, strip_id_prefix
+from core.infra.utils import get_icon_file_name, get_top_k_matches, strip_id_prefix, fuse_ocr_feat
 from core.vision.crop import crop_sections_from_pil_by_YOLOv8
 from core.infra.logger import logger
 from core.services.trials import get_trial_or_default
@@ -242,6 +242,7 @@ class AppApi:
         logger.debug(f"[槽位{i}] 特征匹配候选数: {len(feat_results[0]) if feat_results else 0}")
 
         # 合并逻辑（保持原有逻辑）
+        ocr_results = fuse_ocr_feat(ocr_results, feat_results[0])
         combined_results = feat_results[0] + ocr_results
         unique_results = {}
         for res in combined_results:
@@ -272,7 +273,8 @@ class AppApi:
             if file_name:
                 ocr_match_results.append({
                     "filename": os.path.basename(file_name),
-                    "score": m['score']
+                    "score": m['score'],
+                    "seq_tag": bool(m.get('seq_tag', False)),
                 })
 
         result = {
