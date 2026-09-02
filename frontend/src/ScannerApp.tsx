@@ -57,7 +57,7 @@ interface DetectedPetSlot {
   name: string;
   score: number;
   view_url?: string;
-  candidates: { filename: string; score: number; elements?: string[] }[];
+  candidates: { filename: string; score: number; elements?: string[]; matchedPet?: PetItem }[];
   selectedCandidateIndex: number;
   selectedPetName: string;
   matchedPet?: PetItem;
@@ -82,7 +82,7 @@ const buildFireMapsPets = (pets: FirePokedexEntry[]): Record<string, { count: nu
 
 // 候选置信度排行分页导航组件（保持原版大尺寸卡片，每页3项，左右翻页，无滑动条）
 const CandidateCarousel: React.FC<{
-  candidates: { filename: string; score: number; elements?: string[] }[];
+  candidates: { filename: string; score: number; elements?: string[]; matchedPet?: PetItem }[];
   selectedCandidateIndex: number;
   slotId: string;
   sourceMapNum?: number;
@@ -212,14 +212,15 @@ const CandidateCarousel: React.FC<{
                         <span className={isSelected ? 'text-[#1E5B99] dark:text-sky-300 font-black' : 'text-slate-500 dark:text-slate-400'}>
                           {candPercent}%
                         </span>
+                        <PetSpecialTag
+                            pet={cand.matchedPet}
+                            filename={cand.filename}
+                            iconOnly
+                        />
                       </div>
                       <div className="text-[10px] font-bold text-slate-800 dark:text-slate-100 truncate" title={candName}>
                         {candName}
                       </div>
-                      <PetSpecialTag
-                          filename={cand.filename}
-                          className="mt-0.5"
-                      />
                       {communityInfo && (
                           <div className="mt-0.5">
                             <span
@@ -989,6 +990,7 @@ export const ScannerApp: React.FC = () => {
           filename: c.filename || '未知精灵',
           score: typeof c.score === 'number' ? c.score : 0.85,
           elements: findPetMetadata(c.filename || '')?.elements,
+          matchedPet: findPetMetadata(c.filename || ''),
         })),
         selectedCandidateIndex: 0,
         selectedPetName: initialName,
@@ -997,12 +999,13 @@ export const ScannerApp: React.FC = () => {
       };
     });
 
-    // 优化识别：3 个候选区全部为 10.0%以下（无有效候选）时，说明画面里根本没有精灵，
-    // 直接清空结果走“当前未检测到精灵”空态，而不是显示 3 张 10.0%以下 的未知精灵卡片
+    // 优化识别：逐槽过滤。top 置信度为 0（或全部候选都 ≤10%）的槽位说明没有实际命中，
+    // 不展示该条信息，避免出现“未知精灵 0.0%”这类无意义卡片；
+    // 全部空时走“当前未检测到精灵”空态。
     const isEmptySlot = (slot: DetectedPetSlot) =>
         slot.score <= 0 || slot.candidates.every((c) => c.score <= 0.1);
-    const allSlotsEmpty = formattedSlots.length > 0 && formattedSlots.every(isEmptySlot);
-    setDetectedPets(allSlotsEmpty ? [] : formattedSlots);
+    const visibleSlots = formattedSlots.filter((slot) => !isEmptySlot(slot));
+    setDetectedPets(visibleSlots);
 
     // 共创采集：无完整图鉴的试炼（如火系），把跟随识别到的 (图, 精灵id, 置信度) 上报用于聚合
     formattedSlots.forEach((slot) => {

@@ -528,7 +528,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     if (count === 5) {
       return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
     }
-    return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6';
+    // 仅 1600px 以上才排 6 列，1280~1600 保持 5 列，避免卡片被压窄导致候选换行出滚动条
+    return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6!';
   };
 
   return (
@@ -1225,36 +1226,31 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                     };
 
                                     return (
-                                        <button
+                                        <div
                                             key={cand.filename + candIdx}
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleSelectCandidate(item.index, cand);
-                                            }}
-                                            className={`relative overflow-hidden w-full p-1.5 rounded-xl border-2 text-left flex items-center justify-between gap-1.5 transition-colors duration-150 cursor-pointer group/cand ${
-                                                isSelectedCand
-                                                    ? 'bg-[#EEF6FF] dark:bg-slate-700 border-[#7ABCF4] dark:border-sky-500 shadow-xs font-black'
-                                                    : 'bg-white/90 dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700 hover:bg-[#F5F9FF] dark:hover:bg-slate-700 hover:border-[#BCD7F2] text-slate-700 dark:text-slate-200'
-                                            }`}
-                                            title={`点击切换为: ${candDisplayName} (置信度 ${candScorePercent}% · ${isCandAlready ? '已在图鉴中' : '未遇见新宠'})`}
+                                            className="@container w-full"
                                         >
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleSelectCandidate(item.index, cand);
+                                                }}
+                                                className={`relative overflow-hidden w-full p-1.5 rounded-xl border-2 text-left @max-[300px]:grid @max-[300px]:grid-cols-[auto_1fr] @max-[300px]:items-center @max-[300px]:gap-x-1.5 @max-[300px]:gap-y-0.5 @[300px]:flex @[300px]:flex-nowrap @[300px]:items-center @[300px]:gap-1.5 transition-colors duration-150 cursor-pointer group/cand ${
+                                                    isSelectedCand
+                                                        ? 'bg-[#EEF6FF] dark:bg-slate-700 border-[#7ABCF4] dark:border-sky-500 shadow-xs font-black'
+                                                        : 'bg-white/90 dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700 hover:bg-[#F5F9FF] dark:hover:bg-slate-700 hover:border-[#BCD7F2] text-slate-700 dark:text-slate-200'
+                                                }`}
+                                                title={`点击切换为: ${candDisplayName} (置信度 ${candScorePercent}% · ${isCandAlready ? '已在图鉴中' : '未遇见新宠'})`}
+                                            >
                                           {/* Low-saturation background confidence bar fill */}
                                           <div
                                               className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressBarColor(scoreVal)} pointer-events-none transition-[width] duration-300 rounded-l-lg`}
                                               style={{ width: `${Math.min(100, Math.max(0, scoreVal * 100))}%` }}
                                           />
 
-                                          <div className="relative z-10 flex items-center gap-1.5 min-w-0 flex-1">
-                                            <span className={`text-[8px] font-mono font-black px-1 py-0.2 rounded shrink-0 ${
-                                                candIdx === 0
-                                                    ? 'bg-[#FEE061] text-[#854D0E]'
-                                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                                            }`}>
-                                              #{candIdx + 1}
-                                            </span>
-
-                                            <div className="w-5 h-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                                          {/* 图标：窄卡跨两行铺满，宽卡内联小图 */}
+                                          <div className="relative z-10 w-5 h-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs @max-[300px]:w-9 @max-[300px]:h-auto @max-[300px]:min-h-9 @max-[300px]:row-span-2 @max-[300px]:self-stretch">
                                               <img
                                                   src={cand.view_url || cand.matchedPet?.url}
                                                   alt={candDisplayName}
@@ -1267,16 +1263,25 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                               />
                                             </div>
 
-                                            <span className="text-[11px] truncate flex-1 font-bold">
+                                          {/* 名字 + 序号 */}
+                                          <div className="relative z-10 flex items-center gap-1.5 min-w-0 flex-1">
+                                            <span className={`text-[8px] font-mono font-black px-1 py-0.2 rounded shrink-0 ${
+                                                candIdx === 0
+                                                    ? 'bg-[#FEE061] text-[#854D0E]'
+                                                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                            }`}>
+                                              #{candIdx + 1}
+                                            </span>
+                                            <span className="text-[11px] truncate flex-1 min-w-0 font-bold">
                                               {candDisplayName}
                                             </span>
+                                          </div>
+
+                                          <div className="relative z-10 flex items-center gap-1 flex-wrap shrink-0">
                                             <PetSpecialTag
                                                 pet={cand.matchedPet}
                                                 filename={cand.filename}
                                             />
-                                          </div>
-
-                                          <div className="relative z-10 flex items-center gap-1 shrink-0">
                                             {/* In-Dex Encountered Status Pill */}
                                             {isCandAlready ? (
                                                 <span className="text-[8px] font-black px-1 py-0.2 rounded bg-slate-100/90 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-600 shadow-2xs backdrop-blur-2xs">
@@ -1291,13 +1296,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                             <span className="text-[9px] font-mono font-black text-slate-600 dark:text-slate-300">
                                               {candScorePercent}%
                                             </span>
-                                            {isSelectedCand && (
-                                                <span className="text-[8px] px-1 py-0.2 bg-[#7ABCF4] dark:bg-sky-500 text-white rounded font-black shadow-2xs">
-                                                  当前
-                                                </span>
-                                            )}
                                           </div>
-                                        </button>
+                                            </button>
+                                        </div>
                                     );
                                   })}
                                 </div>

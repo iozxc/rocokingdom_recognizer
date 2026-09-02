@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* 把核心 2xl 断点覆盖为 1600px：用于「≥1600px 才排 6 列」的布局。
+   核心命名断点会按序排在 xl(1280) 之后，确保 6 列能覆盖 5 列，不会被反超。 */
+@theme {
+  --breakpoint-2xl: 1600px;
+}
+
 @layer base {
   html {
     /* 始终预留纵向滚动条，避免页面高度变化时滚动条出现/消失导致布局横向跳动 */
@@ -348,4 +354,3 @@
 .custom-roco-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #7ABCF4;
 }
-
