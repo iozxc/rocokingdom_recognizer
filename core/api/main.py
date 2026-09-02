@@ -83,12 +83,6 @@ def get_icon_file(filename):
     return _serve_icon(filename)
 
 
-@bp.route('/icons/<map_name>/<filename>')
-def get_icon_file_with_map(map_name, filename):
-    """兼容旧地址 /icons/<map>/<filename>，行为与新地址一致。"""
-    return _serve_icon(filename, map_name=map_name)
-
-
 @bp.route('/api/app/agreement_required', methods=['GET'])
 def api_app_agreement_required():
     """是否仍需展示用户协议：以 roco_user_data.json 中 agreementAccepted 字段判断。
@@ -190,6 +184,9 @@ def _serve_icon(filename, map_name=None):
         db = get_db()
         row = db.execute("SELECT data FROM icons WHERE path = ?", (db_path,)).fetchone()
 
+        if row is None:
+            # 纯展示名（如火系跟随识别返回的“乌达_极夜.png”，已被去掉 id 前缀）按 icons.name 反查
+            row = db.execute("SELECT data FROM icons WHERE name = ?", (db_path,)).fetchone()
         if row is None:
             # 旧命名（如 乌达_极夜.png）通过关联 JSON 反查数据集文件名
             mapped = None
