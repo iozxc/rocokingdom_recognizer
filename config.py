@@ -255,6 +255,7 @@ DATA_MANIFEST_JSON = get_resource_path(os.path.join("datasets", "data_manifest.j
 DATA_JSON = get_external_path('roco_user_data.json')
 MAP_DATA_JSON = get_external_path('roco_user_mapdata.json')
 MANIFEST_JSON = get_resource_path('file_manifest.json')
+TRAITS_SKILLS_JSON = get_resource_path('traits_skills.json')
 
 # 全局模型
 # 全图鉴图标特征库：识别统一用它，具体试炼的 topk 过滤由服务端按白名单完成
@@ -263,6 +264,10 @@ DINO_FEATURE_FULL = get_resource_path(os.path.join('onnx', 'feature_icon_dino_fu
 DINO = (DINO_BACKBONE, DINO_FEATURE_FULL)
 
 SCANNER_MODEL = get_resource_path(os.path.join('onnx', 'scanner.onnx'))
+# scanner.onnx 是动态输入 shape；跟随识别等实时路径按此尺寸推理。
+# 默认 1280：比 1920 快约 2 倍，且对标题×1/精灵×3/名字×3 仍稳定检出（见 test/bench_yolo_size.py）。
+# 若某机型检出偏弱，可临时调回 1600/1920。
+SCANNER_INFER_IMGSZ = int(_env("ROCO_SCANNER_INFER_IMGSZ", "1280"))
 DET_MODEL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_det_infer.onnx"))
 CLS_MODEL = get_resource_path(os.path.join("onnx", "ch_ppocr_mobile_v2.0_cls_infer.onnx"))
 REC_MODEL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_rec_infer.onnx"))

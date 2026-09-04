@@ -156,7 +156,8 @@ class AppApi:
 
             stage_classifier = models.get_stage_classifier(trial_key)
             if stage_num is None:
-                ocr_map_name = ocr().recognize_text(title_pil)
+                # 标题已被 YOLO 切成一条文字，直接 rec-only（跳过 det+cls），快 10~50 倍
+                ocr_map_name = ocr().recognize_crop_only(title_pil)
                 map_name = match_scene_unique_char(ocr_map_name, trial_key)
                 if map_name is None:
                     if stage_classifier is not None:
@@ -174,6 +175,26 @@ class AppApi:
             else:
                 map_name = f"map{stage_num}"
 
+            # 批量提取所有非空槽位的图标特征（一次 ONNX 推理，远快于逐张）。
+            # 失败时回退到逐张（_process_single_item 里 pre_feat=None 走原逻辑）。
+            recognizer = models.get_icon_recognizer()
+            feature_by_slot = {}
+            if recognizer is not None:
+                item_list = [
+                    items_pil[i] for i in range(3)
+                    if i < len(items_pil) and items_pil[i]
+                ]
+                if item_list:
+                    try:
+                        feats = recognizer.get_feature_batch(item_list)
+                        idx = 0
+                        for i in range(3):
+                            if i < len(items_pil) and items_pil[i]:
+                                feature_by_slot[i] = feats[idx]
+                                idx += 1
+                    except Exception as e:
+                        logger.warning(f"批量特征提取失败，回退逐张识别: {e}")
+
             all_results = []
             for i in range(0, 3):
                 _items_pil = None
@@ -182,7 +203,10 @@ class AppApi:
                     _items_pil = items_pil[i]
                 if len(names_pil) > i:
                     _names_pil = names_pil[i]
-                result = self._process_single_item(i, _names_pil, _items_pil, stage_num, map_name, trial_key)
+                result = self._process_single_item(
+                    i, _names_pil, _items_pil, stage_num, map_name, trial_key,
+                    pre_feat=feature_by_slot.get(i),
+                )
                 all_results.append(result)
 
             elapsed_total = (time.perf_counter() - t_total) * 1000
@@ -200,7 +224,7 @@ class AppApi:
     def capture_and_recognize_by_map(self, stage_num, trial_key="grass"):
         return self.capture_and_recognize(config.GAME_WINDOW_TITLE, stage_num, trial_key)
 
-    def _process_single_item(self, i, name_img, item_img, stage_num, map_name, trial_key="grass"):
+    def _process_single_item(self, i, name_img, item_img, stage_num, map_name, trial_key="grass", pre_feat=None):
         """单个槽位的识别与匹配流程"""
         from core.vision.ocr import ocr
         from core.services.recognizers import models
@@ -239,7 +263,11 @@ class AppApi:
             if recognizer is None:
                 logger.warning(f"[槽位{i}] 试炼 {trial_key} 图标特征库不可用，跳过特征匹配")
             else:
-                feat_results = recognizer.match(item_img, 0.25, 36)
+                if pre_feat is None:
+                    feat_results = recognizer.match(item_img, 0.25, 36)
+                else:
+                    # 已由外层批量提取特征，这里直接按特征排名，避免重复 ONNX 推理
+                    feat_results = recognizer.match_from_feature(pre_feat, 0.25, 36)
         logger.debug(f"[槽位{i}] 特征匹配候选数: {len(feat_results[0]) if feat_results else 0}")
 
         # 合并逻辑（保持原有逻辑）

@@ -11,7 +11,8 @@ from core.infra.capture import clean_debug_folder, debug_enabled
 
 # --- 配置 ---
 MODEL_PATH = config.SCANNER_MODEL if config.SCANNER_MODEL.endswith(".onnx") else config.SCANNER_MODEL.replace(".pt", ".onnx")
-INFER_IMGSZ = 1920
+# 动态输入，默认 1280（见 config.SCANNER_INFER_IMGSZ）
+INFER_IMGSZ = config.SCANNER_INFER_IMGSZ
 CONF_THRESH = 0.1
 NMS_THRESH = 0.4
 

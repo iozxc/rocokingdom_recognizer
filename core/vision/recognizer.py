@@ -121,22 +121,40 @@ class ImageRecognizer:
         logger.debug(f"ImageRecognizer特征提取: 维度={len(feature)}, 耗时={elapsed:.1f}ms")
         return feature
 
-    def match(self, img_pil, threshold=0.7, top_k=3):
+    def get_feature_batch(self, img_pils):
+        """批量提取多张 PIL 图的特征（单次 ONNX 推理），比逐张 get_feature 快很多。
+
+        返回 (N, D) 的 L2 归一化特征数组，顺序与输入一致。配合 match_from_feature 使用，
+        可在一次推理内得到多张图的候选结果。
+        """
         t0 = time.perf_counter()
-        logger.debug(f"ImageRecognizer.match: threshold={threshold}, top_k={top_k}")
+        if not img_pils:
+            return np.zeros((0, 0), dtype=np.float32)
+        sz = self.input_size
+        batch_list = []
+        for img in img_pils:
+            arr = np.array(img)
+            img_bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+            img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+            img_resized = cv2.resize(img_rgb, (sz, sz), interpolation=cv2.INTER_LINEAR)
+            img_float = img_resized.astype(np.float32) / 255.0
+            img_norm = (img_float - self.mean) / self.std
+            batch_list.append(img_norm.transpose(2, 0, 1))
+        batch = np.stack(batch_list, axis=0).astype(np.float32)  # (N,3,sz,sz)
+        ort_inputs = {self.session.get_inputs()[0].name: batch}
+        ort_outs = self.session.run(None, ort_inputs)
+        feats = ort_outs[0].reshape(batch.shape[0], -1)
+        norms = np.linalg.norm(feats, axis=1, keepdims=True)
+        norms[norms == 0] = 1.0
+        feats = feats / norms
+        elapsed = (time.perf_counter() - t0) * 1000
+        logger.debug(f"ImageRecognizer批量特征提取: N={len(img_pils)}, 维度={feats.shape[1]}, 耗时={elapsed:.1f}ms")
+        return feats
 
+    def _rank_features(self, query_feat, threshold, top_k):
+        """给定已归一化的 query 特征，在特征库里做余弦匹配并汇聚候选。"""
+        t0 = time.perf_counter()
         db = self.database
-        if not db or "features" not in db or len(db["features"]) == 0:
-            logger.warning("ImageRecognizer.match: 特征库为空")
-            return None, "特征库为空"
-
-        # 捕获图片处理异常，不再抛出cv2错误到上层
-        try:
-            query_feat = self.get_feature(img_pil)
-        except Exception as e:
-            logger.error(f"ImageRecognizer.match 图片预处理失败: {e}", exc_info=True)
-            return None, "图片预处理失败"
-
         db_size = len(db["features"])
         logger.debug(f"ImageRecognizer.match: 特征库大小={db_size}")
 
@@ -211,3 +229,28 @@ class ImageRecognizer:
         logger.debug(f"ImageRecognizer.match: 匹配成功 top1={top1['name']}({top1['score']:.4f}), "
                     f"候选数={len(results)}, 耗时={elapsed:.1f}ms")
         return results, None
+
+    def match_from_feature(self, query_feat, threshold=0.7, top_k=3):
+        """用已算好的 query 特征直接排名（不复算特征），用于批量场景。"""
+        db = self.database
+        if not db or "features" not in db or len(db["features"]) == 0:
+            return None, "特征库为空"
+        return self._rank_features(query_feat, threshold, top_k)
+
+    def match(self, img_pil, threshold=0.7, top_k=3):
+        t0 = time.perf_counter()
+        logger.debug(f"ImageRecognizer.match: threshold={threshold}, top_k={top_k}")
+
+        db = self.database
+        if not db or "features" not in db or len(db["features"]) == 0:
+            logger.warning("ImageRecognizer.match: 特征库为空")
+            return None, "特征库为空"
+
+        # 捕获图片处理异常，不再抛出cv2错误到上层
+        try:
+            query_feat = self.get_feature(img_pil)
+        except Exception as e:
+            logger.error(f"ImageRecognizer.match 图片预处理失败: {e}", exc_info=True)
+            return None, "图片预处理失败"
+
+        return self._rank_features(query_feat, threshold, top_k)
