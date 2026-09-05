@@ -277,20 +277,6 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       </div>
                     )}
 
-                    {/* Quick Info Button for direct modal access */}
-                    <button
-                      id={`pet-card-info-btn-${pet.name.replace('.', '-')}`}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenPetDetail?.(pet);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 sm:opacity-0 focus:opacity-100 transition-opacity absolute top-1.5 right-1.5 z-20 w-5 h-5 rounded-md bg-white/90 dark:bg-slate-800/90 hover:bg-sky-500 hover:text-white text-slate-400 dark:text-slate-300 flex items-center justify-center shadow-xs cursor-pointer border border-slate-200 dark:border-slate-700"
-                      title="查看精灵详情与全技能"
-                    >
-                      <Info className="w-3 h-3" />
-                    </button>
-
                     {/* Fixed Uniform Image Container - 1:1 Aspect Ratio with object-contain */}
                     {communityCard ? (
                       /* 共创图鉴（火系）：头部行吃进立绘容器顶部 */
@@ -354,6 +340,18 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         <div className="absolute right-0.5 top-1/2 -translate-y-1/2 z-[1] pointer-events-none">
                           <PetSpecialTag pet={pet} vertical />
                         </div>
+                        <button
+                          id={`pet-card-info-btn-${pet.name.replace('.', '-')}`}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenPetDetail?.(pet);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 sm:opacity-0 focus:opacity-100 transition-opacity absolute bottom-1 right-1 z-20 w-5 h-5 rounded-md bg-white/90 dark:bg-slate-800/90 hover:bg-sky-500 hover:text-white text-slate-400 dark:text-slate-300 flex items-center justify-center shadow-xs cursor-pointer border border-slate-200 dark:border-slate-700"
+                          title="查看精灵详情与全技能"
+                        >
+                          <Info className="w-3 h-3" />
+                        </button>
                       </div>
                     ) : (
                       /* 经典布局：编号/系别图标叠加在立绘上 */
@@ -379,6 +377,18 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         <div className="absolute bottom-1 left-0 right-0 z-[1] flex justify-center pointer-events-none">
                           <PetSpecialTag pet={pet} />
                         </div>
+                        <button
+                          id={`pet-card-info-btn-${pet.name.replace('.', '-')}`}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenPetDetail?.(pet);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 sm:opacity-0 focus:opacity-100 transition-opacity absolute bottom-1 right-1 z-20 w-5 h-5 rounded-md bg-white/90 dark:bg-slate-800/90 hover:bg-sky-500 hover:text-white text-slate-400 dark:text-slate-300 flex items-center justify-center shadow-xs cursor-pointer border border-slate-200 dark:border-slate-700"
+                          title="查看精灵详情与全技能"
+                        >
+                          <Info className="w-3 h-3" />
+                        </button>
                       </div>
                     )}
 
