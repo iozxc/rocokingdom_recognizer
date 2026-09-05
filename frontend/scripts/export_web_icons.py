@@ -32,6 +32,7 @@ DB = DATASETS / "datasets.db"
 POKEDEX = DATASETS / "roco_all_pets_info.json"
 TRAITS_SKILLS = DATASETS / "traits_skills.json"
 OUT = ROOT / "frontend" / "public-web"
+TS_ICONS_SRC = Path(r"D:\game\RocoKingdom_Script\datasets\icons")
 
 # ---- 雪碧图可调参数 ----
 ICONS_PER_SPRITE = 100   # 每张精灵雪碧图最大格子数；387 只 → 4 张
@@ -111,7 +112,7 @@ def resolve_pet_info(meta, traits):
     if tid:
         t = (traits.get("traits") or {}).get(tid) or {}
         if t.get("name"):
-            trait = {"id": tid, "name": t.get("name"), "desc": t.get("desc")}
+            trait = {"id": tid, "name": t.get("name"), "desc": t.get("desc"), "icon_url": f"/ts_icons/{tid}.png"}
     skills = []
     for sid in meta.get("active_skills") or []:
         s = (traits.get("skills") or {}).get(sid) or {}
@@ -126,6 +127,7 @@ def resolve_pet_info(meta, traits):
             "damage_kind": s.get("damage_kind"),
             "energy_cost": s.get("energy_cost"),
             "power": s.get("power"),
+            "icon_url": f"/ts_icons/{sid}.png",
         })
     return {"trait": trait, "skills": skills}
 
@@ -320,7 +322,12 @@ def main():
     data_dir = OUT / "data"
     elements_dir = OUT / "elements"
     resources_dir = OUT / "resources"
+    ts_dir = OUT / "ts_icons"
     prepare_public_assets(icons_dir, elements_dir, resources_dir)
+    ts_dir.mkdir(parents=True, exist_ok=True)
+    if TS_ICONS_SRC.exists():
+        for png in TS_ICONS_SRC.glob("*.png"):
+            shutil.copy2(png, ts_dir / png.name)
     data_dir.mkdir(parents=True, exist_ok=True)
 
     db = sqlite3.connect(str(DB))

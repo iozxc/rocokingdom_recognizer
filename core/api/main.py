@@ -6,7 +6,7 @@ from flask import Blueprint, Response, current_app, request, send_from_directory
 
 import config
 from core.api.response import error, success
-from core.infra.db import get_db
+from core.infra.db import get_db, get_ts_db
 from core.infra.icon_names import load_map_pets, sprite_to_file, sprite_to_file_any
 from core.infra.logger import logger
 from core.infra.pet_path import sort_key
@@ -17,6 +17,7 @@ bp = Blueprint("main", __name__)
 
 ICONS = {}
 ICON_FILE_CACHE = {}
+TS_ICON_CACHE = {}
 _TRAITS_CACHE = None
 
 
@@ -44,7 +45,12 @@ def _resolve_pet_info(meta, traits):
     if tid:
         t = (traits.get("traits") or {}).get(tid) or {}
         if t.get("name"):
-            trait = {"id": tid, "name": t.get("name"), "desc": t.get("desc")}
+            trait = {
+                "id": tid,
+                "name": t.get("name"),
+                "desc": t.get("desc"),
+                "icon_url": url_for("main.ts_icon_file", filename=tid, _external=True),
+            }
 
     skills = []
     for sid in meta.get("active_skills") or []:
@@ -60,6 +66,7 @@ def _resolve_pet_info(meta, traits):
             "damage_kind": s.get("damage_kind"),
             "energy_cost": s.get("energy_cost"),
             "power": s.get("power"),
+            "icon_url": url_for("main.ts_icon_file", filename=sid, _external=True),
         })
     return {"trait": trait, "skills": skills}
 
@@ -68,7 +75,9 @@ def invalidate_icons_cache():
     """清空 /icons 列表缓存（图鉴数据更新后调用）。"""
     global ICONS
     global _TRAITS_CACHE
+    global TS_ICON_CACHE
     ICONS.clear()
+    TS_ICON_CACHE.clear()
     _TRAITS_CACHE = None
 
 
@@ -132,6 +141,24 @@ def list_icons():
 def get_icon_file(filename):
     """从缓存/datasets.db 返回图片二进制流（不再依赖试炼关卡约束）。"""
     return _serve_icon(filename)
+
+
+@bp.route('/ts_icons/<path:filename>')
+def ts_icon_file(filename):
+    """从 datasets_ts.db 返回技能/特性图标。"""
+    key = filename[:-4] if filename.lower().endswith(".png") else filename
+    if key in TS_ICON_CACHE:
+        return Response(TS_ICON_CACHE[key], mimetype="image/png")
+    try:
+        conn = get_ts_db()
+        row = conn.execute("SELECT data FROM icons WHERE path = ?", (key,)).fetchone()
+        if not row:
+            return "Icon Not Found", 404
+        TS_ICON_CACHE[key] = row[0]
+        return Response(row[0], mimetype="image/png")
+    except Exception as e:
+        logger.error(f"ts_icon_file {filename}: {e}", exc_info=True)
+        return str(e), 500
 
 
 @bp.route('/api/app/agreement_required', methods=['GET'])

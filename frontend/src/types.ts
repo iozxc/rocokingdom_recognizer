@@ -18,6 +18,7 @@ export interface PetTraitInfo {
   id?: string;
   name: string;
   desc?: string;
+  icon_url?: string;
 }
 
 export interface PetSkillInfo {
@@ -29,6 +30,7 @@ export interface PetSkillInfo {
   damage_kind?: '物理' | '魔法' | '真实' | null;
   energy_cost?: number | null;
   power?: number | null;
+  icon_url?: string;
 }
 
 export interface MapData {
