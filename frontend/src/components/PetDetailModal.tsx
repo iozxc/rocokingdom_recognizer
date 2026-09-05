@@ -6,6 +6,7 @@ import { sound } from '../services/sound';
 import { IS_STATIC } from '../services/staticMode';
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
+import { PetSkillPanel } from './PetSkillPanel';
 import { formatPetName } from '../utils/petHelper';
 import { createSvgPetAvatar } from '../data/mockPets';
 
@@ -123,6 +124,13 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
                 </div>
             )}
           </div>
+
+          {/* 特性 + 技能展示 */}
+          {(pet.trait?.name || (pet.skills && pet.skills.length > 0)) && (
+              <div className="mt-4 w-full">
+                <PetSkillPanel pet={pet} />
+              </div>
+          )}
 
           {/* 遇见信息：时间与置信度/备注（来自用户记录） */}
           {isEncountered && record && (

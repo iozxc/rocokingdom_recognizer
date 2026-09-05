@@ -7,7 +7,9 @@ import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecial
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
 import { PetSpecialTag } from './PetSpecialTag';
+import { PetSkillPanel } from './PetSkillPanel';
 import { petKeyOf } from '../services/atlasCollector';
+import { storage } from '../services/storage';
 
 interface PetGridProps {
   currentMap: MapConfig;
@@ -55,7 +57,17 @@ export const PetGrid: React.FC<PetGridProps> = ({
   const [animatingKeys, setAnimatingKeys] = useState<Record<string, boolean>>({});
   const [unanimatingKeys, setUnanimatingKeys] = useState<Record<string, boolean>>({});
   const [contextMenu, setContextMenu] = useState<{ pet: PetItem; x: number; y: number } | null>(null);
+  const [showSkillHover, setShowSkillHover] = useState<boolean>(() => storage.getSetting<boolean>('showPetSkillHover', true));
   const totalCount = pets.length;
+
+  useEffect(() => {
+    const unsub = storage.subscribeSettings((settings) => {
+      if (typeof settings.showPetSkillHover === 'boolean') {
+        setShowSkillHover(settings.showPetSkillHover);
+      }
+    });
+    return unsub;
+  }, []);
 
   // 右键菜单：点击其他位置或按 ESC 关闭
   useEffect(() => {
@@ -388,6 +400,13 @@ export const PetGrid: React.FC<PetGridProps> = ({
                           未探索
                         </span>
                             )}
+                          </div>
+                      )}
+
+                      {/* Hover 技能面板：固定在卡片右侧，不跟随鼠标 */}
+                      {showSkillHover && (
+                          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 hidden group-hover:block z-50 pointer-events-none w-[300px]">
+                            <PetSkillPanel pet={pet} compact />
                           </div>
                       )}
                     </div>

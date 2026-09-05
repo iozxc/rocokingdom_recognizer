@@ -10,6 +10,25 @@ export interface PetItem {
   id?: number;
   seq?: number; // 形态序号（同 id 多形态时使用，单形态无）
   rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+  trait?: PetTraitInfo | null;
+  skills?: PetSkillInfo[];
+}
+
+export interface PetTraitInfo {
+  id?: string;
+  name: string;
+  desc?: string;
+}
+
+export interface PetSkillInfo {
+  sid: string;
+  name: string;
+  desc?: string;
+  skill_type?: '攻击' | '状态' | '防御' | '其他';
+  element?: string;
+  damage_kind?: '物理' | '魔法' | '真实' | null;
+  energy_cost?: number | null;
+  power?: number | null;
 }
 
 export interface MapData {
@@ -240,6 +259,7 @@ export interface AppSettings {
   followTopMost?: boolean; // 跟随识别窗口是否默认置顶（默认开启）
   debugImageCap?: number; // debug 截图保留上限（张），0 = 关闭不保存（默认 100）
   fireSettings?: FireSettings; // 火系徽章试炼专属设置
+  showPetSkillHover?: boolean; // petgrid 卡片 hover 时是否展示精灵技能面板（默认开启）
   [key: string]: unknown;
 }
 

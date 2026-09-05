@@ -307,6 +307,8 @@ export class ApiService {
                 elements: Array.isArray(item.elements) ? item.elements : [],
                 element: item.element || 'grass',
                 rarity: item.rarity || 'common',
+                trait: item.trait ?? null,
+                skills: Array.isArray(item.skills) ? item.skills : [],
               };
             });
             normalized[mapKey] = { count: mapInfo.count || enrichedItems.length, items: enrichedItems };
@@ -352,6 +354,8 @@ export class ApiService {
               elements,
               element: fallbackItem?.element || 'grass',
               rarity: fallbackItem?.rarity || 'common',
+              trait: item.trait ?? null,
+              skills: Array.isArray(item.skills) ? item.skills : [],
             };
           });
 

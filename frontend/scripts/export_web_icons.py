@@ -30,6 +30,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent  # RocoKingdom 根
 DATASETS = ROOT / "datasets"
 DB = DATASETS / "datasets.db"
 POKEDEX = DATASETS / "roco_all_pets_info.json"
+TRAITS_SKILLS = DATASETS / "traits_skills.json"
 OUT = ROOT / "frontend" / "public-web"
 
 # ---- 雪碧图可调参数 ----
@@ -91,6 +92,42 @@ def load_pet_elements() -> dict:
         seq = int(raw_seq) if raw_seq is not None else None
         result[(pid, seq)] = list(pet.get("elements") or [])
     return result
+
+
+def load_traits_skills() -> dict:
+    """读取 traits_skills.json，失败回退空结构。"""
+    if not TRAITS_SKILLS.exists():
+        return {"traits": {}, "skills": {}}
+    try:
+        return json.loads(TRAITS_SKILLS.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {"traits": {}, "skills": {}}
+
+
+def resolve_pet_info(meta, traits):
+    """把 map_pets 里的 trait_id / active_skills 解析成可展示对象。"""
+    trait = None
+    tid = meta.get("trait_id")
+    if tid:
+        t = (traits.get("traits") or {}).get(tid) or {}
+        if t.get("name"):
+            trait = {"id": tid, "name": t.get("name"), "desc": t.get("desc")}
+    skills = []
+    for sid in meta.get("active_skills") or []:
+        s = (traits.get("skills") or {}).get(sid) or {}
+        if not s.get("name"):
+            continue
+        skills.append({
+            "sid": sid,
+            "name": s.get("name"),
+            "desc": s.get("desc"),
+            "skill_type": s.get("skill_type"),
+            "element": s.get("element"),
+            "damage_kind": s.get("damage_kind"),
+            "energy_cost": s.get("energy_cost"),
+            "power": s.get("power"),
+        })
+    return {"trait": trait, "skills": skills}
 
 
 def discover_trials() -> list:
@@ -301,6 +338,7 @@ def main():
 
     icons_structure = {}
     total_items = 0
+    traits = load_traits_skills()
     for trial in trials:
         maps = {}
         for map_name in trial["maps"]:
@@ -315,6 +353,7 @@ def main():
                 cell = pos.get(db_path)
                 if cell is None:
                     continue
+                extra = resolve_pet_info(meta, traits)
                 items.append({
                     "name": _strip_id_prefix(filename),
                     "id": pet_id,
@@ -324,6 +363,7 @@ def main():
                     "sprite": cell["sprite"],
                     "col": cell["col"],
                     "row": cell["row"],
+                    **extra,
                 })
                 total_items += 1
             maps[map_name] = {"count": len(items), "items": items}

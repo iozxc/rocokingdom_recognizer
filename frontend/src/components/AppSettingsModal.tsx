@@ -42,6 +42,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [showSamples, setShowSamples] = useState<boolean>(() => {
     return storage.getSetting<boolean>('showRecognitionSamples', true);
   });
+  const [showPetSkillHover, setShowPetSkillHover] = useState<boolean>(() => {
+    return storage.getSetting<boolean>('showPetSkillHover', true);
+  });
   const [updateMode, setUpdateMode] = useState<'auto' | 'full'>(() => {
     return storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
   });
@@ -75,6 +78,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (typeof settings.isSoundMuted === 'boolean') setIsSoundMuted(settings.isSoundMuted);
       if (settings.captureMode === 'hwnd' || settings.captureMode === 'grab') setCaptureMode(settings.captureMode);
       if (typeof settings.showRecognitionSamples === 'boolean') setShowSamples(settings.showRecognitionSamples);
+      if (typeof settings.showPetSkillHover === 'boolean') setShowPetSkillHover(settings.showPetSkillHover);
       if (settings.updateMode === 'auto' || settings.updateMode === 'full') setUpdateMode(settings.updateMode);
       if (typeof settings.autoCheckUpdate === 'boolean') setAutoCheckUpdate(settings.autoCheckUpdate);
       if (typeof settings.hideUpdateDot === 'boolean') setHideUpdateDot(settings.hideUpdateDot);
@@ -97,6 +101,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       setCaptureMode(savedCaptureMode);
     }
     setShowSamples(storage.getSetting<boolean>('showRecognitionSamples', true));
+    setShowPetSkillHover(storage.getSetting<boolean>('showPetSkillHover', true));
     const savedUpdateMode = storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
     if (savedUpdateMode === 'auto' || savedUpdateMode === 'full') {
       setUpdateMode(savedUpdateMode);
@@ -196,6 +201,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     const next = !showSamples;
     setShowSamples(next);
     storage.setSetting('showRecognitionSamples', next);
+  };
+
+  const handleTogglePetSkillHover = () => {
+    const next = !showPetSkillHover;
+    setShowPetSkillHover(next);
+    storage.setSetting('showPetSkillHover', next);
   };
 
   const handleDebugCapChange = (value: number) => {
@@ -696,6 +707,28 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </div>
             </div>
 
+            {/* 精灵技能悬浮提示开关 */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                  <Info className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">精灵技能悬浮提示</div>
+                  <div className="text-[10px] text-slate-400">在卡片右侧悬停展示特性与 4 个技能</div>
+                </div>
+              </div>
+              <button
+                  type="button"
+                  onClick={handleTogglePetSkillHover}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showPetSkillHover ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                  title={showPetSkillHover ? '点击关闭技能悬浮提示' : '点击开启技能悬浮提示'}
+              >
+                <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showPetSkillHover ? 'translate-x-4' : 'translate-x-0'}`}
+                />
+              </button>
+            </div>
 
             {/* Section 3: 截图方式（web 版隐藏） */}
             <div className={`space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800${IS_STATIC ? ' hidden' : ''}`}>

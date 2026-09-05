@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -16,12 +17,59 @@ bp = Blueprint("main", __name__)
 
 ICONS = {}
 ICON_FILE_CACHE = {}
+_TRAITS_CACHE = None
+
+
+def _load_traits_skills():
+    """读取 traits_skills.json，失败回退空结构。"""
+    global _TRAITS_CACHE
+    if _TRAITS_CACHE is not None:
+        return _TRAITS_CACHE
+    path = config.get_resource_path(os.path.join("datasets", "traits_skills.json"))
+    if not os.path.exists(path):
+        path = config.TRAITS_SKILLS_JSON
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            _TRAITS_CACHE = json.load(f)
+    except Exception as e:
+        logger.error(f"读取 traits_skills.json 失败 {path}: {e}", exc_info=True)
+        _TRAITS_CACHE = {"traits": {}, "skills": {}}
+    return _TRAITS_CACHE
+
+
+def _resolve_pet_info(meta, traits):
+    """把 map_pets 里的 trait_id / active_skills 解析成可展示对象。"""
+    trait = None
+    tid = meta.get("trait_id")
+    if tid:
+        t = (traits.get("traits") or {}).get(tid) or {}
+        if t.get("name"):
+            trait = {"id": tid, "name": t.get("name"), "desc": t.get("desc")}
+
+    skills = []
+    for sid in meta.get("active_skills") or []:
+        s = (traits.get("skills") or {}).get(sid) or {}
+        if not s.get("name"):
+            continue
+        skills.append({
+            "sid": sid,
+            "name": s.get("name"),
+            "desc": s.get("desc"),
+            "skill_type": s.get("skill_type"),
+            "element": s.get("element"),
+            "damage_kind": s.get("damage_kind"),
+            "energy_cost": s.get("energy_cost"),
+            "power": s.get("power"),
+        })
+    return {"trait": trait, "skills": skills}
 
 
 def invalidate_icons_cache():
     """清空 /icons 列表缓存（图鉴数据更新后调用）。"""
     global ICONS
+    global _TRAITS_CACHE
     ICONS.clear()
+    _TRAITS_CACHE = None
 
 
 @bp.route('/')
@@ -50,6 +98,7 @@ def list_icons():
         icons_structure = {}
         map_pets = load_map_pets(trial_key)
         elements_map = load_pet_elements()
+        traits = _load_traits_skills()
         for map_name in trial.get("map_list", []):
             entries = map_pets.get(map_name, {})
             items = []
@@ -60,13 +109,15 @@ def list_icons():
                 seq_val = meta.get("seq")
                 seq_val = int(seq_val) if seq_val is not None else None
                 pet_id = int(pet_id) if pet_id is not None else None
+                extra = _resolve_pet_info(meta, traits)
                 items.append({
                     # 对外/用户数据不保留 id 前缀；URL 仍指向真实数据集文件
                     "name": strip_id_prefix(filename),
                     "id": pet_id,
                     "seq": seq_val,
                     "elements": elements_map.get((pet_id, seq_val), []),
-                    "url": url_for('main.get_icon_file', filename=filename, _external=True)
+                    "url": url_for('main.get_icon_file', filename=filename, _external=True),
+                    **extra,
                 })
             icons_structure[map_name] = {"count": len(items), "items": items}
 
