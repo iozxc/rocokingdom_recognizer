@@ -286,7 +286,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         onOpenPetDetail?.(pet);
                       }}
                       className="opacity-0 group-hover:opacity-100 sm:opacity-0 focus:opacity-100 transition-opacity absolute top-1.5 right-1.5 z-20 w-5 h-5 rounded-md bg-white/90 dark:bg-slate-800/90 hover:bg-sky-500 hover:text-white text-slate-400 dark:text-slate-300 flex items-center justify-center shadow-xs cursor-pointer border border-slate-200 dark:border-slate-700"
-                      title="查看精灵详情与全技能 (也可右键点击)"
+                      title="查看精灵详情与全技能"
                     >
                       <Info className="w-3 h-3" />
                     </button>
