@@ -9,8 +9,33 @@ import {
 import { PetItem, PetSkillInfo } from '../types';
 import { getPetSpecialType, formatPetName } from '../utils/petHelper';
 import { ElementBadges, ElementBadge } from './ElementBadges';
-import { getElementColor } from '../utils/elements';
 import { resolvePetSkillsAndTrait } from '../data/petSkillMock';
+import { TsIcon } from './TsIcon';
+
+const SKILL_ICON_BASE = `${import.meta.env.BASE_URL}icon/`;
+const SKILL_CATEGORY_ICONS = {
+  physical: { key: 'physical', src: `${SKILL_ICON_BASE}physical.webp`, label: '物理' },
+  magic: { key: 'magic', src: `${SKILL_ICON_BASE}magic.webp`, label: '魔法' },
+  status: { key: 'status', src: `${SKILL_ICON_BASE}status.webp`, label: '状态' },
+  defense: { key: 'defense', src: `${SKILL_ICON_BASE}defense.webp`, label: '防御' },
+};
+const ENERGY_ICON_SRC = `${SKILL_ICON_BASE}energy.webp`;
+// 参考 roco.world：白色分类图标垫在对应色圆底上才可辨识
+const SKILL_CATEGORY_COLORS: Record<string, string> = {
+  physical: '#9a4238',
+  magic: '#6b579e',
+  status: '#6f8655',
+  defense: '#4f8492',
+};
+const ENERGY_ICON_COLOR = '#ffc65f';
+
+function resolveSkillCategory(skill: PetSkillInfo): { key: string; src: string; label: string } {
+  if (skill.damage_kind === '物理') return SKILL_CATEGORY_ICONS.physical;
+  if (skill.damage_kind === '魔法') return SKILL_CATEGORY_ICONS.magic;
+  if (skill.damage_kind === '真实') return { ...SKILL_CATEGORY_ICONS.magic, label: '真实' };
+  if (skill.skill_type === '防御') return SKILL_CATEGORY_ICONS.defense;
+  return SKILL_CATEGORY_ICONS.status;
+}
 
 interface PetSkillPanelProps {
   pet: PetItem;
@@ -168,15 +193,7 @@ export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
           >
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden shrink-0 border border-amber-500/20 bg-white dark:bg-slate-900 flex items-center justify-center">
               {trait.icon_url ? (
-                <img
-                  src={trait.icon_url}
-                  alt={trait.name}
-                  loading="lazy"
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
+                <TsIcon url={trait.icon_url} alt={trait.name} className="w-full h-full" />
               ) : (
                 <Sparkles className="w-4 h-4 text-amber-500" />
               )}
@@ -229,7 +246,10 @@ interface SkillCardProps {
 
 const SkillCard: React.FC<SkillCardProps> = ({ skill, defaultElement, compact }) => {
   const skillElement = skill.element || defaultElement;
-  const elementStyle = getElementColor(skillElement);
+  const category = resolveSkillCategory(skill);
+  const powerText = skill.power != null && skill.power > 0 ? String(skill.power) : '--';
+  const badgeCls = compact ? 'h-[18px] px-1 text-[9px]' : 'h-5 px-1.5 text-[10px]';
+  const iconCls = compact ? 'w-3 h-3' : 'w-3.5 h-3.5';
 
   return (
     <div
@@ -238,67 +258,54 @@ const SkillCard: React.FC<SkillCardProps> = ({ skill, defaultElement, compact })
         compact ? 'py-1.5 first:pt-0.5 last:pb-0' : 'py-2 first:pt-1 last:pb-0'
       }`}
     >
-      {/* 技能图标列：纵向跨过名称/规格与描述两行 */}
-      <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 flex items-center justify-center">
+      {/* 技能图标列：右下角叠系别图标，对齐参考站排版 */}
+      <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg overflow-visible shrink-0 border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 flex items-center justify-center">
         {skill.icon_url ? (
-          <img
-            src={skill.icon_url}
-            alt={skill.name}
-            loading="lazy"
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
+          <TsIcon url={skill.icon_url} alt={skill.name} className="w-full h-full" />
         ) : (
           <ElementBadge element={skill.element || defaultElement} size="xs" />
         )}
+        <span className="absolute -top-1 -right-1 z-10 drop-shadow-sm">
+          <ElementBadge element={skillElement} size="xs" />
+        </span>
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-1.5 min-w-0 flex-nowrap">
-          {/* 技能名称与伤害类型 */}
-          <div className="flex items-center gap-1.5 min-w-0 flex-nowrap overflow-hidden">
-            <span
-              className={`font-black text-slate-800 dark:text-slate-100 tracking-tight truncate ${
-                compact ? 'text-xs' : 'text-sm'
-              }`}
-            >
-              {skill.name}
-            </span>
-            {skill.damage_kind && (
-              <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 shrink-0 leading-none">
-                {skill.damage_kind}
-              </span>
-            )}
-          </div>
-
-          {/* 右侧：★能耗 + 系别/威力 */}
-          <div
-            className="inline-flex items-center h-5 rounded-md overflow-hidden border border-slate-200/90 dark:border-slate-700/80 shadow-2xs shrink-0 select-none whitespace-nowrap"
-            title={`能量消耗: ${skill.energy_cost ?? 1} | ${skillElement}系技能，威力: ${
-              skill.power != null && skill.power > 0 ? skill.power : '无/变化'
+          <span
+            className={`min-w-0 flex-1 font-black text-slate-800 dark:text-slate-100 tracking-tight truncate ${
+              compact ? 'text-xs' : 'text-sm'
             }`}
           >
-            <div className="h-full px-1.5 flex items-center gap-0.5 bg-slate-800 dark:bg-slate-850 text-white font-mono font-bold text-[10px] border-r border-slate-700/70 shrink-0">
-              <span className="text-amber-300 text-[9px] leading-none select-none">★</span>
-              <span className="leading-none">{skill.energy_cost ?? 1}</span>
-            </div>
+            {skill.name}
+          </span>
 
-            <div
-              className="h-full px-1.5 flex items-center gap-1 font-mono font-bold text-[10px] shrink-0"
-              style={{
-                backgroundColor: elementStyle.bg,
-                color: elementStyle.fg || '#ffffff',
-              }}
+          {/* 参考站同款双徽章：与技能名同一行 */}
+          <span className="flex items-center gap-1 shrink-0">
+            <span
+              className={`inline-flex items-center gap-1 rounded-full bg-slate-800 dark:bg-slate-800 font-mono font-bold text-slate-100 shrink-0 select-none whitespace-nowrap shadow-xs ${badgeCls}`}
+              title={`技能类型 ${category.label}；威力 ${powerText}`}
             >
-              <div className="shrink-0 flex items-center justify-center">
-                <ElementBadge element={skillElement} size="xs" />
-              </div>
-              <span className="leading-none tracking-tight drop-shadow-2xs">
-                {skill.power != null && skill.power > 0 ? skill.power : '—'}
+              <span
+                className={`${iconCls} rounded-full overflow-hidden flex items-center justify-center shrink-0`}
+                style={{ backgroundColor: SKILL_CATEGORY_COLORS[category.key] || '#8a7d68' }}
+              >
+                <img src={category.src} alt={category.label} loading="lazy" className="w-full h-full object-contain" />
               </span>
-            </div>
-          </div>
+              <span className="leading-none">{powerText}</span>
+            </span>
+            <span
+              className={`inline-flex items-center gap-1 rounded-full bg-slate-800 dark:bg-slate-800 font-mono font-bold text-amber-300 shrink-0 select-none whitespace-nowrap shadow-xs ${badgeCls}`}
+              title={`能量 ${skill.energy_cost ?? 0}`}
+            >
+              <span
+                className={`${iconCls} rounded-full overflow-hidden flex items-center justify-center shrink-0`}
+                style={{ backgroundColor: ENERGY_ICON_COLOR }}
+              >
+                <img src={ENERGY_ICON_SRC} alt="能量" loading="lazy" className="w-full h-full object-contain" />
+              </span>
+              <span className="leading-none">{skill.energy_cost ?? 0}</span>
+            </span>
+          </span>
         </div>
 
         <p

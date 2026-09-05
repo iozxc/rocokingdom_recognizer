@@ -32,13 +32,26 @@ DB = DATASETS / "datasets.db"
 POKEDEX = DATASETS / "roco_all_pets_info.json"
 TRAITS_SKILLS = DATASETS / "traits_skills.json"
 OUT = ROOT / "frontend" / "public-web"
-TS_ICONS_SRC = Path(r"D:\game\RocoKingdom_Script\datasets\icons")
+
+
+def resolve_ts_icons_src() -> Path:
+    """技能/特性图标原始目录：优先仓库内的 train 数据集，缺失时回退旧路径。"""
+    local = ROOT / "train" / "dataset" / "icons_ts"
+    if local.exists():
+        return local
+    return Path(r"D:\game\RocoKingdom_Script\datasets\icons")
+
+
+TS_ICONS_SRC = resolve_ts_icons_src()
 
 # ---- 雪碧图可调参数 ----
 ICONS_PER_SPRITE = 100   # 每张精灵雪碧图最大格子数；387 只 → 4 张
 PET_CELL = 128           # 宠物图统一 128x128
 ELEM_CELL = 198          # 属性图统一 198x198
 ELEM_COLS = 6            # 属性雪碧图列数（18 / 6 = 3 行）
+TS_CELL = 96             # 技能/特性图标统一 96x96
+TS_PER_SPRITE = 100      # 每张技能/特性雪碧图最大格子数
+TS_COLS = 10             # 技能/特性雪碧图列数
 
 
 def _split_pet_filename(filename: str):
@@ -305,6 +318,36 @@ def build_elements_sprite(elements_dir, icons_dir):
     return elements_meta, sheet_meta
 
 
+def build_ts_sprites(ts_src, icons_dir):
+    """把技能/特性图标（Sxxx/Txxx）打包成多张雪碧图，返回 (ts_pos, sheet_meta)。"""
+    files = sorted(ts_src.glob("*.png"), key=lambda p: p.stem)
+    if not files:
+        return {}, {}
+    ts_pos = {}
+    sheet_meta = {}
+    sheet_count = math.ceil(len(files) / TS_PER_SPRITE)
+    for sheet_idx in range(sheet_count):
+        chunk = files[sheet_idx * TS_PER_SPRITE : (sheet_idx + 1) * TS_PER_SPRITE]
+        images = []
+        for f in chunk:
+            im = Image.open(f).convert("RGBA")
+            if im.size != (TS_CELL, TS_CELL):
+                im = im.resize((TS_CELL, TS_CELL), Image.LANCZOS)
+            images.append(im)
+        cols = min(TS_COLS, max(1, len(images)))
+        sheet, ccols, crows = _paste_into_sheet(images, TS_CELL, cols)
+        sprite_name = f"ts-sprite-{sheet_idx + 1}.png"
+        sheet.save(icons_dir / sprite_name, "PNG", optimize=True)
+        sheet_meta[sprite_name] = {"cols": ccols, "rows": crows}
+        for offset, f in enumerate(chunk):
+            ts_pos[f.stem] = {
+                "sprite": sprite_name,
+                "col": offset % ccols,
+                "row": offset // ccols,
+            }
+    return ts_pos, sheet_meta
+
+
 def main():
     if not DB.exists():
         raise SystemExit(f"[export_web_icons] 找不到数据库: {DB}")
@@ -322,12 +365,13 @@ def main():
     data_dir = OUT / "data"
     elements_dir = OUT / "elements"
     resources_dir = OUT / "resources"
-    ts_dir = OUT / "ts_icons"
     prepare_public_assets(icons_dir, elements_dir, resources_dir)
-    ts_dir.mkdir(parents=True, exist_ok=True)
-    if TS_ICONS_SRC.exists():
-        for png in TS_ICONS_SRC.glob("*.png"):
-            shutil.copy2(png, ts_dir / png.name)
+    icon_dir = OUT / "icon"
+    icon_dir.mkdir(parents=True, exist_ok=True)
+    public_icon_src = ROOT / "frontend" / "public" / "icon"
+    if public_icon_src.exists():
+        for webp in public_icon_src.glob("*.webp"):
+            shutil.copy2(webp, icon_dir / webp.name)
     data_dir.mkdir(parents=True, exist_ok=True)
 
     db = sqlite3.connect(str(DB))
@@ -341,7 +385,9 @@ def main():
 
     pos, sprites_meta, unique_total = build_pet_sprites(cur, all_filenames, icons_dir)
     elements_meta, elem_sheet_meta = build_elements_sprite(elements_dir, icons_dir)
+    ts_pos, ts_sheet_meta = build_ts_sprites(TS_ICONS_SRC, icons_dir)
     sprites_meta.update(elem_sheet_meta)
+    sprites_meta.update(ts_sheet_meta)
 
     icons_structure = {}
     total_items = 0
@@ -384,6 +430,10 @@ def main():
         json.dumps(sprites_meta, ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8",
     )
+    (data_dir / "ts_sprites.json").write_text(
+        json.dumps(ts_pos, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8",
+    )
     (data_dir / "elements.json").write_text(
         json.dumps(elements_meta, ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8",
@@ -392,7 +442,8 @@ def main():
 
     print(
         f"[export_web_icons] 完成: {total_items} 条图鉴 / "
-        f"{unique_total} 张去重精灵图 → {len(sprites_meta)} 张雪碧图 -> {OUT}"
+        f"{unique_total} 张去重精灵图 + {len(ts_pos)} 张技能/特性图 "
+        f"→ {len(sprites_meta)} 张雪碧图 -> {OUT}"
     )
 
 

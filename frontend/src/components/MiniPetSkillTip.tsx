@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { PetItem } from '../types';
 import { formatPetName } from '../utils/petHelper';
+import { TsIcon } from './TsIcon';
 
 export const MiniPetSkillTip: React.FC<{ pet: PetItem }> = ({ pet }) => {
   if (!pet.trait?.name && !(pet.skills && pet.skills.length > 0)) return null;
@@ -10,7 +11,7 @@ export const MiniPetSkillTip: React.FC<{ pet: PetItem }> = ({ pet }) => {
         {pet.trait?.name && (
             <div className="flex items-center gap-1.5 pb-1.5 mb-1.5 border-b border-slate-100 dark:border-slate-800">
               {pet.trait.icon_url ? (
-                  <img src={pet.trait.icon_url} alt={pet.trait.name} loading="lazy" className="w-6 h-6 rounded object-contain" />
+                  <TsIcon url={pet.trait.icon_url} alt={pet.trait.name} className="w-6 h-6 rounded" />
               ) : (
                   <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
               )}
@@ -25,7 +26,7 @@ export const MiniPetSkillTip: React.FC<{ pet: PetItem }> = ({ pet }) => {
           {(pet.skills || []).map((s) => (
               <div key={s.sid + s.name} className="flex items-center gap-1.5 min-w-0">
                 {s.icon_url ? (
-                    <img src={s.icon_url} alt={s.name} loading="lazy" className="w-5 h-5 rounded object-contain shrink-0" />
+                    <TsIcon url={s.icon_url} alt={s.name} className="w-5 h-5 rounded shrink-0" />
                 ) : (
                     <span className="w-5 h-5 rounded bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[9px] font-black text-slate-500 shrink-0">
                       {s.element?.[0] || '技'}

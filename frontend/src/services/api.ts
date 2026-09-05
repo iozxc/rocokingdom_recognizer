@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { loadSpriteMeta, loadElementSprites } from './spriteMeta';
+import { loadSpriteMeta, loadElementSprites, loadTsSprites } from './spriteMeta';
 import {
   IconsApiResponse,
   PredictApiResponse,
@@ -274,6 +274,7 @@ export class ApiService {
         // 先预载雪碧图/属性图元信息，保证渲染时能同步拿到 cols/rows
         await loadSpriteMeta();
         await loadElementSprites();
+        await loadTsSprites();
         const res = await axios.get(`${import.meta.env.BASE_URL}data/icons.json`, {
           timeout: 10000,
         });
