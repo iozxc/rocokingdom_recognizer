@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import {
   Swords,
   Shield,
@@ -13,7 +12,7 @@ import { getPetSpecialType, formatPetName } from '../utils/petHelper';
 import { ElementBadges, ElementBadge } from './ElementBadges';
 import { resolvePetSkillsAndTrait } from '../data/petSkillMock';
 import { TsIcon } from './TsIcon';
-import { getGlossaryTerm, GlossaryTerm } from '../services/glossary';
+import { TermHighlightText } from './TermHighlightText';
 
 const SKILL_ICON_BASE = `${import.meta.env.BASE_URL}icon/`;
 const SKILL_CATEGORY_ICONS = {
@@ -230,7 +229,7 @@ export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
               <p className={`text-slate-600 dark:text-slate-300 font-normal leading-snug ${
                 compact ? 'mt-0.5 text-[10.5px]' : 'mt-1 text-xs leading-relaxed'
               }`}>
-                <GlossaryRichText text={trait.desc || '入场即生效的专属常驻被动能力。'} ids={trait.glossary} interactive={!compact} />
+                <TermHighlightText text={trait.desc || '入场即生效的专属常驻被动能力。'} ids={trait.glossary} interactive={!compact} />
               </p>
             </div>
           </div>
@@ -263,114 +262,6 @@ interface SkillCardProps {
   defaultElement: string;
   compact?: boolean;
 }
-
-interface GlossaryRichTextProps {
-  text: string;
-  ids?: string[];
-  /** 完整详情中开启悬浮解释；紧凑 hover 面板无需 title。 */
-  interactive?: boolean;
-}
-
-interface GlossaryMatch {
-  start: number;
-  end: number;
-  term: GlossaryTerm;
-}
-
-function computeGlossaryMatches(text: string, ids: string[] | undefined): GlossaryMatch[] {
-  if (!text || !ids || ids.length === 0) return [];
-  const terms = ids
-      .map((id) => getGlossaryTerm(id))
-      .filter((term): term is GlossaryTerm => !!term && !!term.name && text.includes(term.name));
-  terms.sort((a, b) => b.name.length - a.name.length);
-
-  const picked: GlossaryMatch[] = [];
-  for (const term of terms) {
-    let from = 0;
-    while (true) {
-      const at = text.indexOf(term.name, from);
-      if (at < 0) break;
-      const end = at + term.name.length;
-      if (!picked.some((p) => at < p.end && end > p.start)) {
-        picked.push({ start: at, end, term });
-        picked.sort((a, b) => a.start - b.start);
-      }
-      from = at + 1;
-    }
-  }
-  return picked;
-}
-
-const GlossaryRichText: React.FC<GlossaryRichTextProps> = ({ text, ids, interactive = false }) => {
-  const matches = useMemo(() => computeGlossaryMatches(text, ids), [text, ids]);
-  const [popup, setPopup] = useState<{ x: number; y: number; term: GlossaryTerm } | null>(null);
-  if (matches.length === 0) return <>{text}</>;
-
-  const nodes: React.ReactNode[] = [];
-  let pos = 0;
-  matches.forEach((match, index) => {
-    if (match.start > pos) {
-      nodes.push(text.slice(pos, match.start));
-    }
-    nodes.push(
-        <span
-            key={`${match.term.id}-${index}`}
-            onMouseEnter={(e) => {
-              if (!interactive) return;
-              const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-              const width = 250;
-              const height = 170;
-              const left = Math.min(Math.max(8, rect.left), Math.max(8, window.innerWidth - width - 8));
-              const below = rect.bottom + 8;
-              const top = below + height > window.innerHeight && rect.top - height - 8 > 0
-                  ? rect.top - height - 8
-                  : below;
-              setPopup({ x: left, y: top, term: match.term });
-            }}
-            onMouseLeave={() => {
-              if (interactive) setPopup(null);
-            }}
-            className={`underline decoration-amber-500/70 decoration-dotted underline-offset-2 transition-colors ${
-              interactive ? 'cursor-help hover:text-sky-600 dark:hover:text-sky-300' : ''
-            }`}
-        >
-          {text.slice(match.start, match.end)}
-        </span>,
-    );
-    pos = match.end;
-  });
-  if (pos < text.length) {
-    nodes.push(text.slice(pos));
-  }
-  return (
-      <>
-        {nodes}
-        {interactive && popup && createPortal(
-            <div
-                role="tooltip"
-                className="fixed z-[220] w-[250px] pointer-events-none select-none animate-in fade-in zoom-in-95 duration-100"
-                style={{ left: popup.x, top: popup.y }}
-            >
-              <div className="overflow-hidden rounded-xl border-2 border-amber-300/80 dark:border-amber-500/40 bg-[#FFFDF2] dark:bg-[#2a2438] shadow-[0_14px_30px_-10px_rgba(146,92,20,0.45)] dark:shadow-[0_14px_30px_-8px_rgba(0,0,0,0.6)]">
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-amber-200/80 via-yellow-100/70 to-sky-100/70 dark:from-amber-500/25 dark:via-yellow-500/10 dark:to-sky-500/20 border-b-2 border-amber-200/90 dark:border-amber-400/20">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-300 shrink-0" />
-                  <span className="text-xs font-black text-amber-900 dark:text-amber-200 truncate">
-                    {popup.term.name}
-                  </span>
-                  <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white/70 dark:bg-white/10 text-amber-700 dark:text-amber-300/90 border border-amber-300/70 dark:border-amber-300/20 shrink-0">
-                    术语
-                  </span>
-                </div>
-                <p className="px-2.5 py-2 text-[11px] leading-relaxed font-medium text-slate-600 dark:text-slate-200">
-                  {popup.term.desc}
-                </p>
-              </div>
-            </div>,
-            document.body,
-        )}
-      </>
-  );
-};
 
 const SkillCard: React.FC<SkillCardProps> = ({ skill, defaultElement, compact }) => {
   const skillElement = skill.element || defaultElement;
@@ -443,7 +334,7 @@ const SkillCard: React.FC<SkillCardProps> = ({ skill, defaultElement, compact })
             compact ? 'mt-0.5 text-[10px]' : 'mt-1 text-xs leading-relaxed'
           }`}
         >
-          <GlossaryRichText text={skill.desc || '对敌方精灵造成属性伤害与对战效果。'} ids={skill.glossary} interactive={!compact} />
+          <TermHighlightText text={skill.desc || '对敌方精灵造成属性伤害与对战效果。'} ids={skill.glossary} interactive={!compact} />
         </p>
       </div>
     </div>
