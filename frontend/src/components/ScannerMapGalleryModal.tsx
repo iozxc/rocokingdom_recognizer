@@ -637,7 +637,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                                 <span className={`text-[10px] font-black leading-none truncate ${
                                                     isEnc ? 'text-[#2D6613] dark:text-emerald-400' : 'text-slate-400'
                                                 }`}>
-                                                    {isEnc ? '已遇见' : '未探索'}
+                                                    {isEnc ? '已遇见' : '未遇见'}
                                                 </span>
                                                 {renderBtn('disagree', '✕')}
                                             </div>
@@ -651,7 +651,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 group-hover:bg-[#EBF5FE] dark:group-hover:bg-sky-950/50 group-hover:text-[#1E5B99] dark:group-hover:text-sky-300 group-hover:border-[#7ABCF4] dark:group-hover:border-sky-600'
                                                 }`}
                                             >
-                                                {isEnc ? '已遇见' : '未探索'}
+                                                {isEnc ? '已遇见' : '未遇见'}
                                             </span>
                                         </div>
                                     )}

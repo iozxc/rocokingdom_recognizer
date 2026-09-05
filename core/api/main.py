@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import time
 
 from flask import Blueprint, Response, current_app, request, send_from_directory, url_for
@@ -49,7 +50,7 @@ def _resolve_pet_info(meta, traits):
                 "id": tid,
                 "name": t.get("name"),
                 "desc": t.get("desc"),
-                "icon_url": url_for("main.ts_icon_file", filename=tid, _external=True),
+                "icon_url": url_for("main.ts_icon_file", filename=t.get("icon_id") or tid, _external=True),
             }
 
     skills = []
@@ -148,15 +149,23 @@ def get_icon_file(filename):
 def ts_icon_file(filename):
     """从 datasets_ts.db 返回技能/特性图标。"""
     key = filename[:-4] if filename.lower().endswith(".png") else filename
-    if key in TS_ICON_CACHE:
-        return Response(TS_ICON_CACHE[key], mimetype="image/png")
+    # 首领特性 T005a/T005b 与基础 T005 共用图标：直接回退到基础编号
+    keys = [key]
+    base_match = re.match(r"^(T\d+)[a-z]$", key)
+    if base_match:
+        keys.append(base_match.group(1))
+    for candidate in keys:
+        if candidate in TS_ICON_CACHE:
+            return Response(TS_ICON_CACHE[candidate], mimetype="image/png")
     try:
         conn = get_ts_db()
-        row = conn.execute("SELECT data FROM icons WHERE path = ?", (key,)).fetchone()
-        if not row:
-            return "Icon Not Found", 404
-        TS_ICON_CACHE[key] = row[0]
-        return Response(row[0], mimetype="image/png")
+        for candidate in keys:
+            row = conn.execute("SELECT data FROM icons WHERE path = ?", (candidate,)).fetchone()
+            if row:
+                TS_ICON_CACHE[candidate] = row[0]
+                TS_ICON_CACHE[key] = row[0]
+                return Response(row[0], mimetype="image/png")
+        return "Icon Not Found", 404
     except Exception as e:
         logger.error(f"ts_icon_file {filename}: {e}", exc_info=True)
         return str(e), 500

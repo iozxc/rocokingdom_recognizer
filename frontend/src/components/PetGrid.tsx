@@ -436,7 +436,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                               <span className={`text-[10px] sm:text-[11px] font-black leading-none truncate ${
                                 isEnc ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'
                               }`}>
-                                {isEnc ? '已遇见' : '未探索'}
+                                {isEnc ? '已遇见' : '未遇见'}
                               </span>
                               {renderBtn('disagree', '✕')}
                             </>
@@ -452,7 +452,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                           </span>
                         ) : (
                           <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 px-2 py-0.5 rounded-lg w-full text-center border border-slate-200 dark:border-slate-700 group-hover:border-sky-300 dark:group-hover:border-sky-600 group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors truncate">
-                            未探索
+                            未遇见
                           </span>
                         )}
                       </div>
@@ -540,7 +540,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                 {isPetEncounteredInRecords(records, currentMap.id, contextMenu.pet.name) ? (
                   <>
                     <RotateCcw className="w-4 h-4 text-rose-500" />
-                    <span>标记为【未探索】</span>
+                    <span>标记为【未遇见】</span>
                   </>
                 ) : (
                   <>

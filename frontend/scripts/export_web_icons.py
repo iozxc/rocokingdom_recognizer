@@ -125,7 +125,7 @@ def resolve_pet_info(meta, traits):
     if tid:
         t = (traits.get("traits") or {}).get(tid) or {}
         if t.get("name"):
-            trait = {"id": tid, "name": t.get("name"), "desc": t.get("desc"), "icon_url": f"/ts_icons/{tid}.png"}
+            trait = {"id": tid, "name": t.get("name"), "desc": t.get("desc"), "icon_url": f"/ts_icons/{t.get("icon_id") or tid}.png"}
     skills = []
     for sid in meta.get("active_skills") or []:
         s = (traits.get("skills") or {}).get(sid) or {}
