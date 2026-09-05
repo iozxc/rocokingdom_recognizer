@@ -140,6 +140,7 @@ def resolve_pet_info(meta, traits):
             "damage_kind": s.get("damage_kind"),
             "energy_cost": s.get("energy_cost"),
             "power": s.get("power"),
+            "glossary": s.get("glossary") or [],
             "icon_url": f"/ts_icons/{sid}.png",
         })
     return {"trait": trait, "skills": skills}
@@ -438,6 +439,9 @@ def main():
         json.dumps(elements_meta, ensure_ascii=False, separators=(",", ":")),
         encoding="utf-8",
     )
+    glossary_src = DATASETS / "glossary.json"
+    if glossary_src.exists():
+        shutil.copy2(glossary_src, data_dir / "glossary.json")
     db.close()
 
     print(

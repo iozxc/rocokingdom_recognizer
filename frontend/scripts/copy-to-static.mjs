@@ -42,6 +42,12 @@ for (const name of readdirSync(srcAssets)) {
 
 copyDir(join(distDir, 'icon'), join(staticDir, 'icon'));
 
+const glossarySrc = join(frontendDir, '..', 'datasets', 'glossary.json');
+if (existsSync(glossarySrc)) {
+  mkdirSync(join(staticDir, 'data'), { recursive: true });
+  copyFileSync(glossarySrc, join(staticDir, 'data', 'glossary.json'));
+}
+
 // 注意：elements、map 与 mapdata_real 等静态资源无需在 postbuild 阶段重复复制，改为按需手动维护。
 
-console.log('[copy-to-static] 已同步: static/index.html + static/assets/* + static/icon/*');
+console.log('[copy-to-static] 已同步: static/index.html + static/assets/* + static/icon/* + static/data/*');

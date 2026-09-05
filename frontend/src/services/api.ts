@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { loadSpriteMeta, loadElementSprites, loadTsSprites } from './spriteMeta';
+import { loadGlossary } from './glossary';
 import {
   IconsApiResponse,
   PredictApiResponse,
@@ -268,6 +269,7 @@ export class ApiService {
     isOfflineMock: boolean;
     errorMsg?: string;
   }> {
+    void loadGlossary();
     if (IS_STATIC) {
       // 纯前端版：读取打包进 public-web/data/icons.json 的静态图鉴。
       try {
@@ -275,6 +277,7 @@ export class ApiService {
         await loadSpriteMeta();
         await loadElementSprites();
         await loadTsSprites();
+        await loadGlossary();
         const res = await axios.get(`${import.meta.env.BASE_URL}data/icons.json`, {
           timeout: 10000,
         });

@@ -582,7 +582,7 @@
     },
     "T146": {
       "name": "整点报时",
-      "desc": "每场战斗1次，回合​结束​时，​若自己累计消耗的能量恰好为12，则回满能量和生命。"
+      "desc": "每场战斗1次，回合结束时，若自己累计消耗的能量恰好为12，则回满能量和生命。"
     },
     "T147": {
       "name": "圣火骑士",
@@ -666,7 +666,7 @@
     },
     "T167": {
       "name": "狂欢开始",
-      "desc": "在​场​时，​背​包里​会​变化​出​随机​​精灵​，随机精灵只能与本精灵相互更换。本精灵受到的克制伤害+25%。"
+      "desc": "在场时，背包里会变化出随机精灵，随机精灵只能与本精灵相互更换。本精灵受到的克制伤害+25%。"
     },
     "T168": {
       "name": "换碟",
@@ -674,7 +674,7 @@
     },
     "T169": {
       "name": "博物",
-      "desc": "在场时，识破​精灵​的​变化​效果，​解除​其​伪装。​"
+      "desc": "在场时，识破精灵的变化效果，解除其伪装。"
     },
     "T170": {
       "name": "拉拉队长",
@@ -686,7 +686,7 @@
     },
     "T172": {
       "name": "戏耍",
-      "desc": "自己​无法回复生命，而是将回复生命变​为​敌方​扣除​等量​生命​。"
+      "desc": "自己无法回复生命，而是将回复生命变为敌方扣除等量生命。"
     },
     "T173": {
       "name": "大火球",
@@ -726,7 +726,7 @@
     },
     "T182": {
       "name": "友谊之果",
-      "desc": "回合​结束​时，​双方​队​伍​中的所有精灵回复1能量。"
+      "desc": "回合结束时，双方队伍中的所有精灵回复1能量。"
     },
     "T183": {
       "name": "淬炼火",
@@ -750,7 +750,7 @@
     },
     "T188": {
       "name": "安眠",
-      "desc": "王国入​夜​后，​进入​战斗​时​获得​全​技​能​能​耗​+2，​回合​结束​时自己回复5%​生命​和1​能量。​"
+      "desc": "王国入夜后，进入战斗时获得全技能能耗+2，回合结束时自己回复5%生命和1能量。"
     },
     "T189": {
       "name": "守护之心",
@@ -778,7 +778,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S002": {
       "name": "主场优势",
@@ -788,7 +788,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1018",
+        "3010"
+      ]
     },
     "S003": {
       "name": "乘胜追击",
@@ -798,7 +801,9 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 40,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S004": {
       "name": "乱打",
@@ -808,7 +813,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 25,
-      "wiki_verified": true
+      "glossary": []
     },
     "S005": {
       "name": "以重制重",
@@ -818,7 +823,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S006": {
       "name": "休息回复",
@@ -828,7 +833,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S007": {
       "name": "伺机而动",
@@ -838,7 +843,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S008": {
       "name": "借用",
@@ -848,7 +853,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S009": {
       "name": "倾泻",
@@ -858,7 +863,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "3010"
+      ]
     },
     "S010": {
       "name": "偷袭",
@@ -868,7 +875,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S011": {
       "name": "先发制人",
@@ -878,7 +887,9 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 55,
-      "wiki_verified": true
+      "glossary": [
+        "1020"
+      ]
     },
     "S012": {
       "name": "冲撞",
@@ -888,7 +899,7 @@
       "damage_kind": "物理",
       "energy_cost": 7,
       "power": 135,
-      "wiki_verified": true
+      "glossary": []
     },
     "S013": {
       "name": "力量增效",
@@ -898,7 +909,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S014": {
       "name": "加固",
@@ -908,7 +919,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S015": {
       "name": "压扁",
@@ -918,7 +929,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 155,
-      "wiki_verified": true
+      "glossary": []
     },
     "S016": {
       "name": "友谊满溢",
@@ -928,7 +939,10 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "3019"
+      ]
     },
     "S017": {
       "name": "取念",
@@ -938,7 +952,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S018": {
       "name": "同频",
@@ -948,7 +962,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 125,
-      "wiki_verified": true
+      "glossary": [
+        "3011"
+      ]
     },
     "S019": {
       "name": "后发制人",
@@ -958,7 +974,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 155,
-      "wiki_verified": true
+      "glossary": [
+        "1020"
+      ]
     },
     "S020": {
       "name": "吓退",
@@ -968,7 +986,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1003"
+      ]
     },
     "S021": {
       "name": "吞噬",
@@ -978,7 +999,7 @@
       "damage_kind": "物理",
       "energy_cost": 6,
       "power": 150,
-      "wiki_verified": true
+      "glossary": []
     },
     "S022": {
       "name": "吨位压制",
@@ -988,7 +1009,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 160,
-      "wiki_verified": true
+      "glossary": []
     },
     "S023": {
       "name": "吹散",
@@ -998,7 +1019,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 65,
-      "wiki_verified": true
+      "glossary": [
+        "1012",
+        "3010",
+        "3019"
+      ]
     },
     "S024": {
       "name": "咆哮",
@@ -1008,7 +1033,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S025": {
       "name": "嗜痛",
@@ -1018,7 +1043,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S026": {
       "name": "垂死反击",
@@ -1028,7 +1055,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S027": {
       "name": "埋伏",
@@ -1038,7 +1065,9 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S028": {
       "name": "复写",
@@ -1048,7 +1077,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S029": {
       "name": "天旋地转",
@@ -1058,7 +1087,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 60,
-      "wiki_verified": true
+      "glossary": [
+        "1010",
+        "1020"
+      ]
     },
     "S030": {
       "name": "应激反应",
@@ -1068,7 +1100,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S031": {
       "name": "当头棒喝",
@@ -1078,7 +1112,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S032": {
       "name": "彗星",
@@ -1088,7 +1122,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 240,
-      "wiki_verified": true
+      "glossary": []
     },
     "S033": {
       "name": "快速移动",
@@ -1098,7 +1132,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S034": {
       "name": "急中生智",
@@ -1108,7 +1144,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "1013"
+      ]
     },
     "S035": {
       "name": "打鼾",
@@ -1118,7 +1156,7 @@
       "damage_kind": "魔法",
       "energy_cost": 6,
       "power": 165,
-      "wiki_verified": true
+      "glossary": []
     },
     "S036": {
       "name": "扫尾",
@@ -1128,7 +1166,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 90,
-      "wiki_verified": true
+      "glossary": []
     },
     "S037": {
       "name": "抓挠",
@@ -1138,7 +1176,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 35,
-      "wiki_verified": true
+      "glossary": []
     },
     "S038": {
       "name": "拍击",
@@ -1148,7 +1186,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 65,
-      "wiki_verified": true
+      "glossary": []
     },
     "S039": {
       "name": "摇篮曲",
@@ -1158,7 +1196,10 @@
       "damage_kind": null,
       "energy_cost": 5,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1011"
+      ]
     },
     "S040": {
       "name": "操控",
@@ -1168,7 +1209,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S041": {
       "name": "旋转突击",
@@ -1178,7 +1219,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 35,
-      "wiki_verified": true
+      "glossary": []
     },
     "S042": {
       "name": "无畏之心",
@@ -1188,7 +1229,9 @@
       "damage_kind": null,
       "energy_cost": 5,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S043": {
       "name": "星星撞击",
@@ -1198,7 +1241,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 90,
-      "wiki_verified": true
+      "glossary": []
     },
     "S044": {
       "name": "晒太阳",
@@ -1208,7 +1251,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1012"
+      ]
     },
     "S045": {
       "name": "有效预防",
@@ -1218,7 +1263,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1020"
+      ]
     },
     "S046": {
       "name": "棘刺",
@@ -1228,7 +1276,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1019",
+        "3010"
+      ]
     },
     "S047": {
       "name": "气势一击",
@@ -1238,7 +1289,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S048": {
       "name": "消毒法",
@@ -1248,7 +1299,9 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 115,
-      "wiki_verified": true
+      "glossary": [
+        "1012"
+      ]
     },
     "S049": {
       "name": "湮灭",
@@ -1258,7 +1311,7 @@
       "damage_kind": "魔法",
       "energy_cost": 5,
       "power": 155,
-      "wiki_verified": true
+      "glossary": []
     },
     "S050": {
       "name": "激怒",
@@ -1268,7 +1321,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S051": {
       "name": "热身运动",
@@ -1278,7 +1331,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S052": {
       "name": "猛烈撞击",
@@ -1288,7 +1343,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 65,
-      "wiki_verified": true
+      "glossary": []
     },
     "S053": {
       "name": "穿膛",
@@ -1298,7 +1353,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 65,
-      "wiki_verified": true
+      "glossary": []
     },
     "S054": {
       "name": "突袭",
@@ -1308,7 +1363,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S055": {
       "name": "精神扰乱",
@@ -1318,7 +1375,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S056": {
       "name": "缓一缓",
@@ -1328,7 +1387,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S057": {
       "name": "耀眼",
@@ -1338,7 +1397,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S058": {
       "name": "聒噪",
@@ -1348,7 +1409,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S059": {
       "name": "能量刃",
@@ -1358,7 +1419,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S060": {
       "name": "能量炮",
@@ -1368,7 +1429,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 50,
-      "wiki_verified": true
+      "glossary": []
     },
     "S061": {
       "name": "落星",
@@ -1378,7 +1439,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 45,
-      "wiki_verified": true
+      "glossary": []
     },
     "S062": {
       "name": "蓄能轰击",
@@ -1388,7 +1449,7 @@
       "damage_kind": "魔法",
       "energy_cost": 6,
       "power": 130,
-      "wiki_verified": true
+      "glossary": []
     },
     "S063": {
       "name": "血气",
@@ -1398,7 +1459,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S064": {
       "name": "见招拆招",
@@ -1408,7 +1471,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 65,
-      "wiki_verified": true
+      "glossary": []
     },
     "S065": {
       "name": "触底强击",
@@ -1418,7 +1481,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 95,
-      "wiki_verified": true
+      "glossary": []
     },
     "S066": {
       "name": "许愿星",
@@ -1428,7 +1491,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 110,
-      "wiki_verified": true
+      "glossary": []
     },
     "S067": {
       "name": "践踏",
@@ -1438,7 +1501,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 130,
-      "wiki_verified": true
+      "glossary": []
     },
     "S068": {
       "name": "连续爪击",
@@ -1448,7 +1511,10 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "3005"
+      ]
     },
     "S069": {
       "name": "迫近攻击",
@@ -1458,7 +1524,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": true
+      "glossary": []
     },
     "S070": {
       "name": "追打",
@@ -1468,7 +1534,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S071": {
       "name": "退化",
@@ -1478,7 +1546,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S072": {
       "name": "逆袭",
@@ -1488,7 +1558,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 55,
-      "wiki_verified": true
+      "glossary": []
     },
     "S073": {
       "name": "重击",
@@ -1498,7 +1568,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S074": {
       "name": "锐利眼神",
@@ -1508,7 +1578,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S075": {
       "name": "防反",
@@ -1518,7 +1588,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S076": {
       "name": "防御",
@@ -1528,7 +1600,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S077": {
       "name": "阻断",
@@ -1538,7 +1612,10 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 75,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1011"
+      ]
     },
     "S078": {
       "name": "音波弹",
@@ -1548,7 +1625,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S079": {
       "name": "音爆",
@@ -1558,7 +1635,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 130,
-      "wiki_verified": true
+      "glossary": []
     },
     "S080": {
       "name": "飞踢",
@@ -1568,7 +1645,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 110,
-      "wiki_verified": true
+      "glossary": []
     },
     "S081": {
       "name": "魔法增效",
@@ -1578,7 +1655,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S082": {
       "name": "魔能爆",
@@ -1588,7 +1665,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 1,
-      "wiki_verified": true
+      "glossary": []
     },
     "S083": {
       "name": "鼓劲",
@@ -1598,7 +1675,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S084": {
       "name": "丰收",
@@ -1608,7 +1685,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 85,
-      "wiki_verified": true
+      "glossary": []
     },
     "S085": {
       "name": "丰饶",
@@ -1618,7 +1695,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S086": {
       "name": "仙人掌刺击",
@@ -1628,7 +1705,7 @@
       "damage_kind": "物理",
       "energy_cost": 6,
       "power": 150,
-      "wiki_verified": true
+      "glossary": []
     },
     "S087": {
       "name": "光合作用",
@@ -1638,7 +1715,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1021",
+        "3010"
+      ]
     },
     "S088": {
       "name": "光能聚集",
@@ -1648,7 +1728,7 @@
       "damage_kind": "魔法",
       "energy_cost": 7,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S089": {
       "name": "养分回流",
@@ -1658,7 +1738,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": true
+      "glossary": []
     },
     "S090": {
       "name": "刺藤",
@@ -1668,7 +1748,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 45,
-      "wiki_verified": true
+      "glossary": []
     },
     "S091": {
       "name": "叶绿光束",
@@ -1678,7 +1758,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": true
+      "glossary": []
     },
     "S092": {
       "name": "孢子",
@@ -1688,7 +1768,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1008"
+      ]
     },
     "S093": {
       "name": "孢子爆散",
@@ -1698,7 +1780,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S094": {
       "name": "富养化",
@@ -1708,7 +1792,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S095": {
       "name": "徒长",
@@ -1718,7 +1802,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S096": {
       "name": "抽枝",
@@ -1728,7 +1812,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 90,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S097": {
       "name": "撒花",
@@ -1738,7 +1824,10 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 95,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "3019"
+      ]
     },
     "S098": {
       "name": "根吸收",
@@ -1748,7 +1837,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S099": {
       "name": "棘突",
@@ -1758,7 +1847,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S100": {
       "name": "氧输送",
@@ -1768,7 +1857,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S101": {
       "name": "汲取",
@@ -1778,7 +1867,9 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "1029"
+      ]
     },
     "S102": {
       "name": "甜蜜陷阱",
@@ -1788,7 +1879,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 50,
-      "wiki_verified": true
+      "glossary": []
     },
     "S103": {
       "name": "盛开",
@@ -1798,7 +1889,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S104": {
       "name": "种子弹",
@@ -1808,7 +1901,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S105": {
       "name": "种皮爆裂",
@@ -1818,7 +1911,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 25,
-      "wiki_verified": true
+      "glossary": []
     },
     "S106": {
       "name": "移花接木",
@@ -1828,7 +1921,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1003"
+      ]
     },
     "S107": {
       "name": "筛管奔流",
@@ -1838,7 +1933,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S108": {
       "name": "纤维化",
@@ -1848,7 +1943,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S109": {
       "name": "聚盐",
@@ -1858,7 +1955,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S110": {
       "name": "花炮",
@@ -1868,7 +1967,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S111": {
       "name": "花香",
@@ -1878,7 +1977,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S112": {
       "name": "芳香诱引",
@@ -1888,7 +1987,11 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "3005",
+        "1011"
+      ]
     },
     "S113": {
       "name": "荆棘爪",
@@ -1898,7 +2001,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S114": {
       "name": "藤绞",
@@ -1908,7 +2011,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S115": {
       "name": "蜡质膜",
@@ -1918,7 +2021,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S116": {
       "name": "补觉",
@@ -1928,7 +2033,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3019"
+      ]
     },
     "S117": {
       "name": "酶浓度调整",
@@ -1938,7 +2045,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S118": {
       "name": "针刺射击",
@@ -1948,7 +2057,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S119": {
       "name": "顶端优势",
@@ -1958,7 +2067,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S120": {
       "name": "飞叶",
@@ -1968,7 +2077,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S121": {
       "name": "充分燃烧",
@@ -1978,7 +2087,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1002"
+      ]
     },
     "S122": {
       "name": "双响炮",
@@ -1988,7 +2099,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 25,
-      "wiki_verified": true
+      "glossary": []
     },
     "S123": {
       "name": "吹火",
@@ -1998,7 +2109,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 50,
-      "wiki_verified": true
+      "glossary": []
     },
     "S124": {
       "name": "天火",
@@ -2008,7 +2119,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1002"
+      ]
     },
     "S125": {
       "name": "山火",
@@ -2018,7 +2132,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 15,
-      "wiki_verified": true
+      "glossary": []
     },
     "S126": {
       "name": "引燃",
@@ -2028,7 +2142,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1002"
+      ]
     },
     "S127": {
       "name": "怒火",
@@ -2038,7 +2154,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S128": {
       "name": "持续高温",
@@ -2048,7 +2164,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S129": {
       "name": "易燃物质",
@@ -2058,7 +2176,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "1002"
+      ]
     },
     "S130": {
       "name": "暖气",
@@ -2068,7 +2188,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S131": {
       "name": "流星火雨",
@@ -2078,7 +2200,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": true
+      "glossary": []
     },
     "S132": {
       "name": "流火",
@@ -2088,7 +2210,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 15,
-      "wiki_verified": true
+      "glossary": []
     },
     "S133": {
       "name": "淬火",
@@ -2098,7 +2220,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S134": {
       "name": "火云车",
@@ -2108,7 +2232,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S135": {
       "name": "火焰冲锋",
@@ -2118,7 +2242,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S136": {
       "name": "火焰切割",
@@ -2128,7 +2252,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S137": {
       "name": "火焰护盾",
@@ -2138,7 +2262,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1002"
+      ]
     },
     "S138": {
       "name": "火焰箭",
@@ -2148,7 +2275,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S139": {
       "name": "火爪",
@@ -2158,7 +2285,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S140": {
       "name": "火苗",
@@ -2168,7 +2295,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S141": {
       "name": "灼伤",
@@ -2178,7 +2305,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": true
+      "glossary": []
     },
     "S142": {
       "name": "炎息",
@@ -2188,7 +2315,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S143": {
       "name": "炎打",
@@ -2198,7 +2325,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 95,
-      "wiki_verified": true
+      "glossary": []
     },
     "S144": {
       "name": "炎枪",
@@ -2208,7 +2335,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S145": {
       "name": "炙热波动",
@@ -2218,7 +2345,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 55,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1002"
+      ]
     },
     "S146": {
       "name": "烈焰风暴",
@@ -2228,7 +2358,9 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 75,
-      "wiki_verified": true
+      "glossary": [
+        "1002"
+      ]
     },
     "S147": {
       "name": "热气",
@@ -2238,7 +2370,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S148": {
       "name": "热身",
@@ -2248,7 +2380,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S149": {
       "name": "焚尽",
@@ -2258,7 +2392,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3010",
+        "3011"
+      ]
     },
     "S150": {
       "name": "焚毁",
@@ -2268,7 +2405,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 40,
-      "wiki_verified": true
+      "glossary": [
+        "3010"
+      ]
     },
     "S151": {
       "name": "焚烧烙印",
@@ -2278,7 +2417,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1002",
+        "3010"
+      ]
     },
     "S152": {
       "name": "焚身",
@@ -2288,7 +2430,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 180,
-      "wiki_verified": true
+      "glossary": []
     },
     "S153": {
       "name": "燃尽",
@@ -2298,7 +2440,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 155,
-      "wiki_verified": true
+      "glossary": []
     },
     "S154": {
       "name": "爆裂飞弹",
@@ -2308,7 +2450,7 @@
       "damage_kind": "魔法",
       "energy_cost": 7,
       "power": 160,
-      "wiki_verified": true
+      "glossary": []
     },
     "S155": {
       "name": "花火",
@@ -2318,7 +2460,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1002"
+      ]
     },
     "S156": {
       "name": "野火",
@@ -2328,7 +2472,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1002",
+        "3019"
+      ]
     },
     "S157": {
       "name": "闪燃",
@@ -2338,7 +2485,9 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 40,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S158": {
       "name": "阳火增辉",
@@ -2348,7 +2497,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": true
+      "glossary": []
     },
     "S159": {
       "name": "除厄",
@@ -2358,7 +2507,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 60,
-      "wiki_verified": true
+      "glossary": [
+        "1013"
+      ]
     },
     "S160": {
       "name": "高温回火",
@@ -2368,7 +2519,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 40,
-      "wiki_verified": true
+      "glossary": [
+        "1003"
+      ]
     },
     "S161": {
       "name": "叠浪",
@@ -2378,7 +2531,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 10,
-      "wiki_verified": true
+      "glossary": []
     },
     "S162": {
       "name": "天洪",
@@ -2388,7 +2541,9 @@
       "damage_kind": "魔法",
       "energy_cost": 7,
       "power": 150,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S163": {
       "name": "打湿",
@@ -2398,7 +2553,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1022",
+        "3010"
+      ]
     },
     "S164": {
       "name": "气泡",
@@ -2408,7 +2566,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S165": {
       "name": "水光冲击",
@@ -2418,7 +2576,7 @@
       "damage_kind": "魔法",
       "energy_cost": 5,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S166": {
       "name": "水刃",
@@ -2428,7 +2586,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 115,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S167": {
       "name": "水幕冲击",
@@ -2438,7 +2598,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S168": {
       "name": "水弹",
@@ -2448,7 +2608,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S169": {
       "name": "水弹枪",
@@ -2458,7 +2618,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S170": {
       "name": "水泡盾",
@@ -2468,7 +2628,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S171": {
       "name": "水波术",
@@ -2478,7 +2640,7 @@
       "damage_kind": "魔法",
       "energy_cost": 6,
       "power": 90,
-      "wiki_verified": true
+      "glossary": []
     },
     "S172": {
       "name": "水炮",
@@ -2488,7 +2650,7 @@
       "damage_kind": "魔法",
       "energy_cost": 5,
       "power": 110,
-      "wiki_verified": true
+      "glossary": []
     },
     "S173": {
       "name": "水环",
@@ -2498,7 +2660,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S174": {
       "name": "水花四溅",
@@ -2508,7 +2672,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 20,
-      "wiki_verified": true
+      "glossary": []
     },
     "S175": {
       "name": "沉溺",
@@ -2518,7 +2682,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 110,
-      "wiki_verified": true
+      "glossary": [
+        "3008"
+      ]
     },
     "S176": {
       "name": "泡沫",
@@ -2528,7 +2694,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S177": {
       "name": "泡沫幻影",
@@ -2538,7 +2704,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1003"
+      ]
     },
     "S178": {
       "name": "洗礼",
@@ -2548,7 +2717,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1013"
+      ]
     },
     "S179": {
       "name": "涌泉",
@@ -2558,7 +2729,7 @@
       "damage_kind": "魔法",
       "energy_cost": 6,
       "power": 90,
-      "wiki_verified": true
+      "glossary": []
     },
     "S180": {
       "name": "润泽",
@@ -2568,7 +2739,7 @@
       "damage_kind": null,
       "energy_cost": 7,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S181": {
       "name": "清洗",
@@ -2578,7 +2749,10 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1013",
+        "3011"
+      ]
     },
     "S182": {
       "name": "潮汐",
@@ -2588,7 +2762,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1022",
+        "3010"
+      ]
     },
     "S183": {
       "name": "潮涌",
@@ -2598,7 +2776,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S184": {
       "name": "激流",
@@ -2608,7 +2786,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": true
+      "glossary": []
     },
     "S185": {
       "name": "甩水",
@@ -2618,7 +2796,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S186": {
       "name": "盐水浴",
@@ -2628,7 +2806,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S187": {
       "name": "肥皂泡",
@@ -2638,7 +2818,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S188": {
       "name": "落雨",
@@ -2648,7 +2828,9 @@
       "damage_kind": null,
       "energy_cost": 5,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3008"
+      ]
     },
     "S189": {
       "name": "蓄水",
@@ -2658,7 +2840,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S190": {
       "name": "光之矛",
@@ -2668,7 +2850,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S191": {
       "name": "光刃",
@@ -2678,7 +2860,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": true
+      "glossary": []
     },
     "S192": {
       "name": "光球",
@@ -2688,7 +2870,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S193": {
       "name": "天光",
@@ -2698,7 +2880,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": true
+      "glossary": []
     },
     "S194": {
       "name": "折射",
@@ -2708,7 +2890,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 50,
-      "wiki_verified": true
+      "glossary": []
     },
     "S195": {
       "name": "折线冲击",
@@ -2718,7 +2900,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S196": {
       "name": "放晴",
@@ -2728,7 +2910,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S197": {
       "name": "漫反射",
@@ -2738,7 +2922,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S198": {
       "name": "点亮",
@@ -2748,7 +2932,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S199": {
       "name": "脉冲光线",
@@ -2758,7 +2944,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S200": {
       "name": "色散",
@@ -2768,7 +2954,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "3015"
+      ]
     },
     "S201": {
       "name": "虹光冲击",
@@ -2778,7 +2966,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S202": {
       "name": "过曝",
@@ -2788,7 +2976,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S203": {
       "name": "透射",
@@ -2798,7 +2986,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S204": {
       "name": "透镜实验",
@@ -2808,7 +2996,10 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 115,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "3019"
+      ]
     },
     "S205": {
       "name": "镜像反射",
@@ -2818,7 +3009,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S206": {
       "name": "闪光",
@@ -2828,7 +3021,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S207": {
       "name": "闪光冲击",
@@ -2838,7 +3031,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S208": {
       "name": "不动如山",
@@ -2848,7 +3041,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S209": {
       "name": "刺盾",
@@ -2858,7 +3053,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S210": {
       "name": "地刺",
@@ -2868,7 +3065,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1011"
+      ]
     },
     "S211": {
       "name": "地陷",
@@ -2878,7 +3078,9 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S212": {
       "name": "地震",
@@ -2888,7 +3090,7 @@
       "damage_kind": "物理",
       "energy_cost": 10,
       "power": 190,
-      "wiki_verified": true
+      "glossary": []
     },
     "S213": {
       "name": "壁垒",
@@ -2898,7 +3100,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S214": {
       "name": "岩土暴击",
@@ -2908,7 +3112,7 @@
       "damage_kind": "物理",
       "energy_cost": 8,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S215": {
       "name": "岩脉崩毁",
@@ -2918,7 +3122,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": true
+      "glossary": []
     },
     "S216": {
       "name": "扬尘",
@@ -2928,7 +3132,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "1020",
+        "3006"
+      ]
     },
     "S217": {
       "name": "扬沙",
@@ -2938,7 +3145,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S218": {
       "name": "抛石",
@@ -2948,7 +3155,7 @@
       "damage_kind": "物理",
       "energy_cost": 30,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S219": {
       "name": "沙涌",
@@ -2958,7 +3165,9 @@
       "damage_kind": null,
       "energy_cost": 7,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3006"
+      ]
     },
     "S220": {
       "name": "沙石阵",
@@ -2968,7 +3177,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3019"
+      ]
     },
     "S221": {
       "name": "泥巴喷射",
@@ -2978,7 +3189,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S222": {
       "name": "泥浆",
@@ -2988,7 +3199,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S223": {
       "name": "泥浆铠甲",
@@ -2998,7 +3209,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1012"
+      ]
     },
     "S224": {
       "name": "流沙",
@@ -3008,7 +3222,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "3023"
+      ]
     },
     "S225": {
       "name": "淤泥表皮",
@@ -3018,7 +3235,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "3005"
+      ]
     },
     "S226": {
       "name": "热砂",
@@ -3028,7 +3248,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S227": {
       "name": "石肤术",
@@ -3038,7 +3258,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S228": {
       "name": "石锁",
@@ -3048,7 +3268,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 50,
-      "wiki_verified": true
+      "glossary": [
+        "3023"
+      ]
     },
     "S229": {
       "name": "砂石冲撞",
@@ -3058,7 +3280,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S230": {
       "name": "硬化",
@@ -3068,7 +3290,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S231": {
       "name": "落石",
@@ -3078,7 +3302,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 55,
-      "wiki_verified": true
+      "glossary": []
     },
     "S232": {
       "name": "蓄势待发",
@@ -3088,7 +3312,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1030",
+        "3010"
+      ]
     },
     "S233": {
       "name": "裂石",
@@ -3098,7 +3325,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S234": {
       "name": "跺地",
@@ -3108,7 +3337,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S235": {
       "name": "遁地",
@@ -3118,7 +3347,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1003"
+      ]
     },
     "S236": {
       "name": "钧势",
@@ -3128,7 +3360,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S237": {
       "name": "陨石",
@@ -3138,7 +3370,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S238": {
       "name": "震击",
@@ -3148,7 +3380,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S239": {
       "name": "鸣沙陷阱",
@@ -3158,7 +3392,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S240": {
       "name": "丢冰块",
@@ -3168,7 +3402,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": true
+      "glossary": []
     },
     "S241": {
       "name": "冬至",
@@ -3178,7 +3412,9 @@
       "damage_kind": null,
       "energy_cost": 7,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3007"
+      ]
     },
     "S242": {
       "name": "冰冻光线",
@@ -3188,7 +3424,7 @@
       "damage_kind": "魔法",
       "energy_cost": 7,
       "power": 90,
-      "wiki_verified": true
+      "glossary": []
     },
     "S243": {
       "name": "冰墙",
@@ -3198,7 +3434,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1004"
+      ]
     },
     "S244": {
       "name": "冰天雪地",
@@ -3208,7 +3447,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S245": {
       "name": "冰捆缚",
@@ -3218,7 +3459,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S246": {
       "name": "冰晶坠",
@@ -3228,7 +3469,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 90,
-      "wiki_verified": true
+      "glossary": []
     },
     "S247": {
       "name": "冰点",
@@ -3238,7 +3479,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1004"
+      ]
     },
     "S248": {
       "name": "冰爪",
@@ -3248,7 +3492,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S249": {
       "name": "冰蛋壳",
@@ -3258,7 +3502,11 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1032",
+        "3010"
+      ]
     },
     "S250": {
       "name": "冰裂",
@@ -3268,7 +3516,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "3019"
+      ]
     },
     "S251": {
       "name": "冰锋横扫",
@@ -3278,7 +3528,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 1,
-      "wiki_verified": true
+      "glossary": []
     },
     "S252": {
       "name": "冰锥",
@@ -3288,7 +3538,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S253": {
       "name": "冰雹",
@@ -3298,7 +3548,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 105,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S254": {
       "name": "冷凝",
@@ -3308,7 +3560,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 95,
-      "wiki_verified": true
+      "glossary": [
+        "1004"
+      ]
     },
     "S255": {
       "name": "冷风",
@@ -3318,7 +3572,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S256": {
       "name": "寒潮",
@@ -3328,7 +3582,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1004",
+        "3011"
+      ]
     },
     "S257": {
       "name": "寒风吹",
@@ -3338,7 +3596,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": []
     },
     "S258": {
       "name": "打喷嚏",
@@ -3348,7 +3606,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1004"
+      ]
     },
     "S259": {
       "name": "打雪仗",
@@ -3358,7 +3618,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 45,
-      "wiki_verified": true
+      "glossary": []
     },
     "S260": {
       "name": "暴风雪",
@@ -3368,7 +3628,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "3007",
+        "1004"
+      ]
     },
     "S261": {
       "name": "极寒领域",
@@ -3378,7 +3641,10 @@
       "damage_kind": "魔法",
       "energy_cost": 6,
       "power": 105,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1004"
+      ]
     },
     "S262": {
       "name": "滚雪球",
@@ -3388,7 +3654,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 55,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1004"
+      ]
     },
     "S263": {
       "name": "瞬间零度",
@@ -3398,7 +3667,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S264": {
       "name": "碎冰冰",
@@ -3408,7 +3679,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 40,
-      "wiki_verified": true
+      "glossary": [
+        "1004"
+      ]
     },
     "S265": {
       "name": "速冻",
@@ -3418,7 +3691,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1032",
+        "3010"
+      ]
     },
     "S266": {
       "name": "雪原狩猎",
@@ -3428,7 +3704,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "3007"
+      ]
     },
     "S267": {
       "name": "雪替身",
@@ -3438,7 +3716,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S268": {
       "name": "雪球",
@@ -3448,7 +3728,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S269": {
       "name": "雾气环绕",
@@ -3458,7 +3738,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S270": {
       "name": "霜冻",
@@ -3468,7 +3748,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S271": {
       "name": "霜天",
@@ -3478,7 +3758,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1004"
+      ]
     },
     "S272": {
       "name": "霜降",
@@ -3488,7 +3770,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1004"
+      ]
     },
     "S273": {
       "name": "风吹雪",
@@ -3498,7 +3782,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S274": {
       "name": "升龙咆哮",
@@ -3508,7 +3792,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 200,
-      "wiki_verified": true
+      "glossary": [
+        "1007"
+      ]
     },
     "S275": {
       "name": "吹炎",
@@ -3518,7 +3804,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 170,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1007"
+      ]
     },
     "S276": {
       "name": "守护咒",
@@ -3528,7 +3817,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "3011"
+      ]
     },
     "S277": {
       "name": "怨力打击",
@@ -3538,7 +3830,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 1,
-      "wiki_verified": true
+      "glossary": [
+        "1007"
+      ]
     },
     "S278": {
       "name": "架势",
@@ -3548,7 +3842,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1007"
+      ]
     },
     "S279": {
       "name": "绵里藏针",
@@ -3558,7 +3854,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S280": {
       "name": "角击",
@@ -3568,7 +3864,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S281": {
       "name": "隼鳞",
@@ -3578,7 +3874,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S282": {
       "name": "龙之利爪",
@@ -3588,7 +3884,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 130,
-      "wiki_verified": true
+      "glossary": [
+        "1007",
+        "1029"
+      ]
     },
     "S283": {
       "name": "龙吟",
@@ -3598,7 +3897,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1007"
+      ]
     },
     "S284": {
       "name": "龙吼",
@@ -3608,7 +3909,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S285": {
       "name": "龙威",
@@ -3618,7 +3919,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1031",
+        "3010"
+      ]
     },
     "S286": {
       "name": "龙守望",
@@ -3628,7 +3932,12 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1007",
+        "1011",
+        "3019"
+      ]
     },
     "S287": {
       "name": "龙息环爆",
@@ -3638,7 +3947,10 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 55,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1007"
+      ]
     },
     "S288": {
       "name": "龙炮",
@@ -3648,7 +3960,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S289": {
       "name": "龙爪",
@@ -3658,7 +3970,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": true
+      "glossary": []
     },
     "S290": {
       "name": "龙血",
@@ -3668,7 +3980,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1007"
+      ]
     },
     "S291": {
       "name": "交叉闪电",
@@ -3678,7 +3993,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S292": {
       "name": "加大功率",
@@ -3688,7 +4003,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1003"
+      ]
     },
     "S293": {
       "name": "双联脉冲",
@@ -3698,7 +4015,9 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 50,
-      "wiki_verified": true
+      "glossary": [
+        "1010"
+      ]
     },
     "S294": {
       "name": "增程电池",
@@ -3708,7 +4027,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1023",
+        "3010"
+      ]
     },
     "S295": {
       "name": "导电撞击",
@@ -3718,7 +4040,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S296": {
       "name": "引雷",
@@ -3728,7 +4050,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 35,
-      "wiki_verified": true
+      "glossary": [
+        "1010"
+      ]
     },
     "S297": {
       "name": "强制重启",
@@ -3738,7 +4062,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1024"
+      ]
     },
     "S298": {
       "name": "惊雷",
@@ -3748,7 +4075,9 @@
       "damage_kind": null,
       "energy_cost": 5,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3021"
+      ]
     },
     "S299": {
       "name": "感电",
@@ -3758,7 +4087,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 60,
-      "wiki_verified": true
+      "glossary": [
+        "3009"
+      ]
     },
     "S300": {
       "name": "球状闪电",
@@ -3768,7 +4099,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S301": {
       "name": "电弧",
@@ -3778,7 +4109,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "1010"
+      ]
     },
     "S302": {
       "name": "电流",
@@ -3788,7 +4121,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S303": {
       "name": "电磁偏转",
@@ -3798,7 +4131,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S304": {
       "name": "电离爆破",
@@ -3808,7 +4143,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S305": {
       "name": "磁干扰",
@@ -3818,7 +4153,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S306": {
       "name": "离子火花",
@@ -3828,7 +4163,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S307": {
       "name": "落雷",
@@ -3838,7 +4173,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 35,
-      "wiki_verified": true
+      "glossary": []
     },
     "S308": {
       "name": "触电",
@@ -3848,7 +4183,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S309": {
       "name": "超导",
@@ -3858,7 +4193,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": true
+      "glossary": [
+        "1010"
+      ]
     },
     "S310": {
       "name": "超导加速",
@@ -3868,7 +4205,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": true
+      "glossary": []
     },
     "S311": {
       "name": "踏雷",
@@ -3878,7 +4215,11 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1010",
+        "1024"
+      ]
     },
     "S312": {
       "name": "过载回路",
@@ -3888,7 +4229,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1024"
+      ]
     },
     "S313": {
       "name": "远程访问",
@@ -3898,7 +4241,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1024"
+      ]
     },
     "S314": {
       "name": "通电",
@@ -3908,7 +4253,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": true
+      "glossary": [
+        "3022"
+      ]
     },
     "S315": {
       "name": "闪击折返",
@@ -3918,7 +4265,9 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 45,
-      "wiki_verified": true
+      "glossary": [
+        "1003"
+      ]
     },
     "S316": {
       "name": "集中",
@@ -3928,7 +4277,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1024"
+      ]
     },
     "S317": {
       "name": "雷暴",
@@ -3938,7 +4290,9 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 55,
-      "wiki_verified": true
+      "glossary": [
+        "1010"
+      ]
     },
     "S318": {
       "name": "麻痹",
@@ -3948,7 +4302,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1020"
+      ]
     },
     "S319": {
       "name": "不可接触",
@@ -3958,7 +4315,11 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1036",
+        "1001"
+      ]
     },
     "S320": {
       "name": "以毒攻毒",
@@ -3968,7 +4329,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1036",
+        "1001"
+      ]
     },
     "S321": {
       "name": "剧毒",
@@ -3978,7 +4342,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1001"
+      ]
     },
     "S322": {
       "name": "感染病",
@@ -3988,7 +4355,11 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 110,
-      "wiki_verified": true
+      "glossary": [
+        "1014",
+        "1001",
+        "3010"
+      ]
     },
     "S323": {
       "name": "毒囊",
@@ -3998,7 +4369,10 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 25,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1001"
+      ]
     },
     "S324": {
       "name": "毒孢子",
@@ -4008,7 +4382,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1001"
+      ]
     },
     "S325": {
       "name": "毒沼",
@@ -4018,7 +4394,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S326": {
       "name": "毒泡泡",
@@ -4028,7 +4404,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S327": {
       "name": "毒液渗透",
@@ -4038,7 +4414,10 @@
       "damage_kind": "魔法",
       "energy_cost": 5,
       "power": 120,
-      "wiki_verified": true
+      "glossary": [
+        "1036",
+        "1001"
+      ]
     },
     "S328": {
       "name": "毒肽",
@@ -4048,7 +4427,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "3011"
+      ]
     },
     "S329": {
       "name": "毒誓",
@@ -4058,7 +4440,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": true
+      "glossary": []
     },
     "S330": {
       "name": "毒针",
@@ -4068,7 +4450,9 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 20,
-      "wiki_verified": true
+      "glossary": [
+        "1001"
+      ]
     },
     "S331": {
       "name": "毒雾",
@@ -4078,7 +4462,10 @@
       "damage_kind": null,
       "energy_cost": 7,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1001",
+        "1012"
+      ]
     },
     "S332": {
       "name": "溃烂触碰",
@@ -4088,7 +4475,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S333": {
       "name": "溶解",
@@ -4098,7 +4485,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1012"
+      ]
     },
     "S334": {
       "name": "疫病吐息",
@@ -4108,7 +4498,11 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1014",
+        "1001",
+        "3010"
+      ]
     },
     "S335": {
       "name": "瘴气喷射",
@@ -4118,7 +4512,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S336": {
       "name": "腐化",
@@ -4128,7 +4522,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1036",
+        "1001"
+      ]
     },
     "S337": {
       "name": "腐蚀酸液",
@@ -4138,7 +4535,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 35,
-      "wiki_verified": true
+      "glossary": [
+        "1001"
+      ]
     },
     "S338": {
       "name": "落井下毒",
@@ -4148,7 +4547,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1013"
+      ]
     },
     "S339": {
       "name": "过敏原",
@@ -4158,7 +4559,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 35,
-      "wiki_verified": true
+      "glossary": [
+        "1036",
+        "3005",
+        "1001"
+      ]
     },
     "S340": {
       "name": "连续毒针",
@@ -4168,7 +4573,9 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 15,
-      "wiki_verified": true
+      "glossary": [
+        "1001"
+      ]
     },
     "S341": {
       "name": "重金属粉尘",
@@ -4178,7 +4585,11 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "3013",
+        "1001"
+      ]
     },
     "S342": {
       "name": "鸩毒",
@@ -4188,7 +4599,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1036",
+        "1001"
+      ]
     },
     "S343": {
       "name": "假寐",
@@ -4198,7 +4613,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1009"
+      ]
     },
     "S344": {
       "name": "啃咬",
@@ -4208,7 +4625,9 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": [
+        "1009"
+      ]
     },
     "S345": {
       "name": "噬心",
@@ -4218,7 +4637,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S346": {
       "name": "尾后针",
@@ -4228,7 +4647,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S347": {
       "name": "拟寄生",
@@ -4238,7 +4657,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "1008",
+        "3010"
+      ]
     },
     "S348": {
       "name": "振翅",
@@ -4248,7 +4670,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1009",
+        "3019"
+      ]
     },
     "S349": {
       "name": "捆缚",
@@ -4258,7 +4683,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1001",
+        "1009"
+      ]
     },
     "S350": {
       "name": "掩护",
@@ -4268,7 +4696,11 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1026",
+        "1003"
+      ]
     },
     "S351": {
       "name": "网缚",
@@ -4278,7 +4710,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S352": {
       "name": "翅刃",
@@ -4288,7 +4720,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "3010"
+      ]
     },
     "S353": {
       "name": "草虫冲击",
@@ -4298,7 +4733,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S354": {
       "name": "虫击",
@@ -4308,7 +4743,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S355": {
       "name": "虫刺",
@@ -4318,7 +4755,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 15,
-      "wiki_verified": true
+      "glossary": []
     },
     "S356": {
       "name": "虫结阵",
@@ -4328,7 +4765,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1009"
+      ]
     },
     "S357": {
       "name": "虫网",
@@ -4338,7 +4778,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S358": {
       "name": "虫群",
@@ -4348,7 +4788,9 @@
       "damage_kind": "物理",
       "energy_cost": 7,
       "power": 20,
-      "wiki_verified": true
+      "glossary": [
+        "1009"
+      ]
     },
     "S359": {
       "name": "虫群智慧",
@@ -4358,7 +4800,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1009"
+      ]
     },
     "S360": {
       "name": "虫群过境",
@@ -4368,7 +4812,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "3005",
+        "1009"
+      ]
     },
     "S361": {
       "name": "虫茧",
@@ -4378,7 +4825,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1009",
+        "1029"
+      ]
     },
     "S362": {
       "name": "虫蛊",
@@ -4388,7 +4838,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S363": {
       "name": "虫鸣",
@@ -4398,7 +4848,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 15,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S364": {
       "name": "蛰针",
@@ -4408,7 +4860,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S365": {
       "name": "贮藏",
@@ -4418,7 +4870,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S366": {
       "name": "飞断",
@@ -4428,7 +4880,9 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 20,
-      "wiki_verified": true
+      "glossary": [
+        "1009"
+      ]
     },
     "S367": {
       "name": "食腐",
@@ -4438,7 +4892,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3010"
+      ]
     },
     "S368": {
       "name": "一拳",
@@ -4448,7 +4904,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S369": {
       "name": "化劲",
@@ -4458,7 +4914,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S370": {
       "name": "反击拳",
@@ -4468,7 +4924,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 25,
-      "wiki_verified": true
+      "glossary": []
     },
     "S371": {
       "name": "叠势",
@@ -4478,7 +4934,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 25,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S372": {
       "name": "听桥",
@@ -4488,7 +4946,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S373": {
       "name": "回旋踢",
@@ -4498,7 +4958,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S374": {
       "name": "寸拳",
@@ -4508,7 +4968,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S375": {
       "name": "崩拳",
@@ -4518,7 +4978,9 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 65,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S376": {
       "name": "影袭",
@@ -4528,7 +4990,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S377": {
       "name": "截拳",
@@ -4538,7 +5000,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1011"
+      ]
     },
     "S378": {
       "name": "技巧打击",
@@ -4548,7 +5013,9 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 35,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S379": {
       "name": "提气",
@@ -4558,7 +5025,7 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S380": {
       "name": "散手",
@@ -4568,7 +5035,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 35,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S381": {
       "name": "斩断",
@@ -4578,7 +5047,10 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1011"
+      ]
     },
     "S382": {
       "name": "无影脚",
@@ -4588,7 +5060,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S383": {
       "name": "气沉丹田",
@@ -4598,7 +5072,7 @@
       "damage_kind": null,
       "energy_cost": 10,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S384": {
       "name": "气波",
@@ -4608,7 +5082,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S385": {
       "name": "爆冲",
@@ -4618,7 +5092,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 65,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S386": {
       "name": "破绽",
@@ -4628,7 +5104,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S387": {
       "name": "破防",
@@ -4638,7 +5116,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S388": {
       "name": "硬门",
@@ -4648,7 +5128,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1011"
+      ]
     },
     "S389": {
       "name": "缠丝劲",
@@ -4658,7 +5141,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 25,
-      "wiki_verified": true
+      "glossary": []
     },
     "S390": {
       "name": "贯手",
@@ -4668,7 +5151,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S391": {
       "name": "防御反击",
@@ -4678,7 +5161,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S392": {
       "name": "预备势",
@@ -4688,7 +5173,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S393": {
       "name": "马步",
@@ -4698,7 +5185,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1020",
+        "3019"
+      ]
     },
     "S394": {
       "name": "驱赶",
@@ -4708,7 +5198,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "3019"
+      ]
     },
     "S395": {
       "name": "乘风",
@@ -4718,7 +5211,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S396": {
       "name": "俯冲",
@@ -4728,7 +5221,9 @@
       "damage_kind": "物理",
       "energy_cost": 7,
       "power": 105,
-      "wiki_verified": true
+      "glossary": [
+        "1020"
+      ]
     },
     "S397": {
       "name": "俯冲猛击",
@@ -4738,7 +5233,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S398": {
       "name": "啄击",
@@ -4748,7 +5243,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 15,
-      "wiki_verified": true
+      "glossary": []
     },
     "S399": {
       "name": "回旋风暴",
@@ -4758,7 +5253,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S400": {
       "name": "扇风",
@@ -4768,7 +5263,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": true
+      "glossary": []
     },
     "S401": {
       "name": "暴风眼",
@@ -4778,7 +5273,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S402": {
       "name": "疾风刺",
@@ -4788,7 +5285,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 25,
-      "wiki_verified": true
+      "glossary": []
     },
     "S403": {
       "name": "疾风涡轮",
@@ -4798,7 +5295,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S404": {
       "name": "疾风连袭",
@@ -4808,7 +5305,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1005"
+      ]
     },
     "S405": {
       "name": "羽刃",
@@ -4818,7 +5317,11 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 75,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1026",
+        "1003"
+      ]
     },
     "S406": {
       "name": "羽化加速",
@@ -4828,7 +5331,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1005"
+      ]
     },
     "S407": {
       "name": "羽翼庇护",
@@ -4838,7 +5343,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "3005"
+      ]
     },
     "S408": {
       "name": "翼击",
@@ -4848,7 +5356,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 50,
-      "wiki_verified": true
+      "glossary": [
+        "1005"
+      ]
     },
     "S409": {
       "name": "试飞",
@@ -4858,7 +5368,10 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 20,
-      "wiki_verified": true
+      "glossary": [
+        "3005",
+        "3019"
+      ]
     },
     "S410": {
       "name": "超声波",
@@ -4868,7 +5381,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "3019"
+      ]
     },
     "S411": {
       "name": "远行",
@@ -4878,7 +5394,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 50,
-      "wiki_verified": true
+      "glossary": []
     },
     "S412": {
       "name": "闪击",
@@ -4888,7 +5404,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S413": {
       "name": "风墙",
@@ -4898,7 +5414,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1005"
+      ]
     },
     "S414": {
       "name": "风矢",
@@ -4908,7 +5427,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S415": {
       "name": "风起",
@@ -4918,7 +5437,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1027",
+        "3010"
+      ]
     },
     "S416": {
       "name": "风隐",
@@ -4928,7 +5450,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1003",
+        "1020"
+      ]
     },
     "S417": {
       "name": "飞箭",
@@ -4938,7 +5463,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 40,
-      "wiki_verified": true
+      "glossary": [
+        "3011"
+      ]
     },
     "S418": {
       "name": "飞羽",
@@ -4948,7 +5475,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1005",
+        "1012"
+      ]
     },
     "S419": {
       "name": "鸣叫",
@@ -4958,7 +5488,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S420": {
       "name": "鹰爪",
@@ -4968,7 +5498,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S421": {
       "name": "龙卷风",
@@ -4978,7 +5508,10 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1005"
+      ]
     },
     "S422": {
       "name": "做好事",
@@ -4988,7 +5521,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "3014",
+        "1012",
+        "3019"
+      ]
     },
     "S423": {
       "name": "击鼓传花",
@@ -4998,7 +5535,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1003",
+        "1012"
+      ]
     },
     "S424": {
       "name": "加油",
@@ -5008,7 +5548,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3012",
+        "3010"
+      ]
     },
     "S425": {
       "name": "反弹",
@@ -5018,7 +5561,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S426": {
       "name": "可爱",
@@ -5028,7 +5573,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S427": {
       "name": "委屈",
@@ -5038,7 +5583,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "3012",
+        "3010"
+      ]
     },
     "S428": {
       "name": "拆礼物",
@@ -5048,7 +5597,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 50,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S429": {
       "name": "捧杀",
@@ -5058,7 +5609,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1006"
+      ]
     },
     "S430": {
       "name": "撒娇",
@@ -5068,7 +5622,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S431": {
       "name": "月光合奏",
@@ -5078,7 +5634,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "3005",
+        "1006"
+      ]
     },
     "S432": {
       "name": "爆米花爆破",
@@ -5088,7 +5647,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S433": {
       "name": "甜心续航",
@@ -5098,7 +5657,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S434": {
       "name": "生日蛋糕",
@@ -5108,7 +5669,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1012",
+        "1013"
+      ]
     },
     "S435": {
       "name": "砂糖弹球",
@@ -5118,7 +5682,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 20,
-      "wiki_verified": true
+      "glossary": []
     },
     "S436": {
       "name": "破罐破摔",
@@ -5128,7 +5692,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "1013"
+      ]
     },
     "S437": {
       "name": "碰爪",
@@ -5138,7 +5704,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S438": {
       "name": "示弱",
@@ -5148,7 +5714,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S439": {
       "name": "耍赖",
@@ -5158,7 +5726,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3005",
+        "1013"
+      ]
     },
     "S440": {
       "name": "赤子之心",
@@ -5168,7 +5739,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S441": {
       "name": "超级糖果",
@@ -5178,7 +5751,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S442": {
       "name": "蹦跶",
@@ -5188,7 +5763,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 110,
-      "wiki_verified": true
+      "glossary": [
+        "1006",
+        "1013",
+        "3019"
+      ]
     },
     "S443": {
       "name": "转圈圈",
@@ -5198,7 +5777,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "1006"
+      ]
     },
     "S444": {
       "name": "鞭打",
@@ -5208,7 +5789,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S445": {
       "name": "飞吻",
@@ -5218,7 +5799,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S446": {
       "name": "魅惑",
@@ -5228,7 +5809,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S447": {
       "name": "入梦",
@@ -5238,7 +5819,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S448": {
       "name": "勾魂",
@@ -5248,7 +5829,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S449": {
       "name": "午夜噪音",
@@ -5258,7 +5839,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 20,
-      "wiki_verified": true
+      "glossary": []
     },
     "S450": {
       "name": "吃独食",
@@ -5268,7 +5849,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "3018",
+        "1013",
+        "3019"
+      ]
     },
     "S451": {
       "name": "嘲弄",
@@ -5278,7 +5863,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S452": {
       "name": "坟场搏击",
@@ -5288,7 +5873,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 180,
-      "wiki_verified": true
+      "glossary": []
     },
     "S453": {
       "name": "幻象",
@@ -5298,7 +5883,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S454": {
       "name": "幽灵爆发",
@@ -5308,7 +5893,7 @@
       "damage_kind": "魔法",
       "energy_cost": 5,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S455": {
       "name": "恐吓",
@@ -5318,7 +5903,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S456": {
       "name": "恶作剧",
@@ -5328,7 +5913,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S457": {
       "name": "惊吓盒子",
@@ -5338,7 +5925,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S458": {
       "name": "报复",
@@ -5348,7 +5937,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S459": {
       "name": "撞鬼",
@@ -5358,7 +5949,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": true
+      "glossary": []
     },
     "S460": {
       "name": "灵光",
@@ -5368,7 +5959,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 25,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S461": {
       "name": "灵媒",
@@ -5378,7 +5971,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S462": {
       "name": "背袭",
@@ -5388,7 +5981,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S463": {
       "name": "虚化",
@@ -5398,7 +5991,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S464": {
       "name": "诡刺",
@@ -5408,7 +6003,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S465": {
       "name": "降灵",
@@ -5418,7 +6013,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1028",
+        "3010"
+      ]
     },
     "S466": {
       "name": "鬼火",
@@ -5428,7 +6026,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S467": {
       "name": "魔镜",
@@ -5438,7 +6036,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S468": {
       "name": "下注",
@@ -5448,7 +6046,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "3019"
+      ]
     },
     "S469": {
       "name": "伪造账单",
@@ -5458,7 +6058,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1020"
+      ]
     },
     "S470": {
       "name": "假冒",
@@ -5468,7 +6070,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3011"
+      ]
     },
     "S471": {
       "name": "力量吞噬",
@@ -5478,7 +6082,7 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S472": {
       "name": "困兽",
@@ -5488,7 +6092,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": true
+      "glossary": [
+        "1029"
+      ]
     },
     "S473": {
       "name": "彼岸之手",
@@ -5498,7 +6104,7 @@
       "damage_kind": "物理",
       "energy_cost": 10,
       "power": 150,
-      "wiki_verified": true
+      "glossary": []
     },
     "S474": {
       "name": "恶念交换",
@@ -5508,7 +6114,7 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S475": {
       "name": "恶意逃离",
@@ -5518,7 +6124,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1003"
+      ]
     },
     "S476": {
       "name": "恶能量",
@@ -5528,7 +6137,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S477": {
       "name": "掠夺",
@@ -5538,7 +6147,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S478": {
       "name": "撕咬",
@@ -5548,7 +6157,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S479": {
       "name": "撕裂",
@@ -5558,7 +6169,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1029"
+      ]
     },
     "S480": {
       "name": "暗突袭",
@@ -5568,7 +6182,10 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1029"
+      ]
     },
     "S481": {
       "name": "暗箱操作",
@@ -5578,7 +6195,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S482": {
       "name": "杂耍",
@@ -5588,7 +6207,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 115,
-      "wiki_verified": true
+      "glossary": [
+        "1029",
+        "3011"
+      ]
     },
     "S483": {
       "name": "极限撕裂",
@@ -5598,7 +6220,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 135,
-      "wiki_verified": true
+      "glossary": []
     },
     "S484": {
       "name": "栽赃",
@@ -5608,7 +6230,7 @@
       "damage_kind": "魔法",
       "energy_cost": 6,
       "power": 150,
-      "wiki_verified": true
+      "glossary": []
     },
     "S485": {
       "name": "欺诈契约",
@@ -5618,7 +6240,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1012",
+        "1013"
+      ]
     },
     "S486": {
       "name": "灾厄",
@@ -5628,7 +6253,9 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S487": {
       "name": "牵连",
@@ -5638,7 +6265,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 85,
-      "wiki_verified": true
+      "glossary": []
     },
     "S488": {
       "name": "等价交换",
@@ -5648,7 +6275,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1029"
+      ]
     },
     "S489": {
       "name": "纺纱",
@@ -5658,7 +6288,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3020",
+        "3010"
+      ]
     },
     "S490": {
       "name": "虚假破产",
@@ -5668,7 +6301,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S491": {
       "name": "蝙蝠",
@@ -5678,7 +6313,9 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 65,
-      "wiki_verified": true
+      "glossary": [
+        "1029"
+      ]
     },
     "S492": {
       "name": "血契",
@@ -5688,7 +6325,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 75,
-      "wiki_verified": true
+      "glossary": []
     },
     "S493": {
       "name": "诋毁",
@@ -5698,7 +6335,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S494": {
       "name": "贪婪",
@@ -5708,7 +6345,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1029"
+      ]
     },
     "S495": {
       "name": "趁火打劫",
@@ -5718,7 +6357,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 35,
-      "wiki_verified": true
+      "glossary": [
+        "3005"
+      ]
     },
     "S496": {
       "name": "跌落",
@@ -5728,7 +6369,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 120,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S497": {
       "name": "迫害",
@@ -5738,7 +6381,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S498": {
       "name": "限时特惠",
@@ -5748,7 +6391,7 @@
       "damage_kind": "魔法",
       "energy_cost": 6,
       "power": 140,
-      "wiki_verified": true
+      "glossary": []
     },
     "S499": {
       "name": "隐藏条款",
@@ -5758,7 +6401,7 @@
       "damage_kind": null,
       "energy_cost": 8,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S500": {
       "name": "骗局",
@@ -5768,7 +6411,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 110,
-      "wiki_verified": true
+      "glossary": []
     },
     "S501": {
       "name": "魔爪",
@@ -5778,7 +6421,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S502": {
       "name": "黑手",
@@ -5788,7 +6431,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 45,
-      "wiki_verified": true
+      "glossary": []
     },
     "S503": {
       "name": "主轴",
@@ -5798,7 +6441,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 75,
-      "wiki_verified": true
+      "glossary": []
     },
     "S504": {
       "name": "传感器",
@@ -5808,7 +6451,9 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 20,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S505": {
       "name": "六自由度",
@@ -5818,7 +6463,9 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 30,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S506": {
       "name": "减压阀",
@@ -5828,7 +6475,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S507": {
       "name": "啮合传递",
@@ -5838,7 +6487,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S508": {
       "name": "微型斥候",
@@ -5848,7 +6499,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": true
+      "glossary": []
     },
     "S509": {
       "name": "拆卸",
@@ -5858,7 +6509,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S510": {
       "name": "排气",
@@ -5868,7 +6519,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S511": {
       "name": "杠杆置换",
@@ -5878,7 +6529,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": []
     },
     "S512": {
       "name": "械斗",
@@ -5888,7 +6539,9 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 45,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S513": {
       "name": "相位移动",
@@ -5898,7 +6551,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1033"
+      ]
     },
     "S514": {
       "name": "磁暴",
@@ -5908,7 +6564,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S515": {
       "name": "离子震荡",
@@ -5918,7 +6576,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S516": {
       "name": "绞轮",
@@ -5928,7 +6588,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 115,
-      "wiki_verified": true
+      "glossary": []
     },
     "S517": {
       "name": "联动装置",
@@ -5938,7 +6598,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017"
+      ]
     },
     "S518": {
       "name": "能量守恒",
@@ -5948,7 +6610,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016"
+      ]
     },
     "S519": {
       "name": "蒸汽进行曲",
@@ -5958,7 +6622,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3019"
+      ]
     },
     "S520": {
       "name": "轮班",
@@ -5968,7 +6634,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1033",
+        "3019"
+      ]
     },
     "S521": {
       "name": "轴承支撑",
@@ -5978,7 +6647,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S522": {
       "name": "过山车",
@@ -5988,7 +6659,9 @@
       "damage_kind": null,
       "energy_cost": 8,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3011"
+      ]
     },
     "S523": {
       "name": "金属噪音",
@@ -5998,7 +6671,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S524": {
       "name": "钢钻",
@@ -6008,7 +6681,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 1,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S525": {
       "name": "钢铁洪流",
@@ -6018,7 +6693,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S526": {
       "name": "铁蒺藜",
@@ -6028,7 +6705,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": [
+        "1015"
+      ]
     },
     "S527": {
       "name": "锁芯",
@@ -6038,7 +6717,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 75,
-      "wiki_verified": true
+      "glossary": []
     },
     "S528": {
       "name": "齿轮切开",
@@ -6048,7 +6727,9 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 130,
-      "wiki_verified": true
+      "glossary": [
+        "1033"
+      ]
     },
     "S529": {
       "name": "齿轮扭矩",
@@ -6058,7 +6739,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": []
     },
     "S530": {
       "name": "二律背反",
@@ -6068,7 +6749,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1017",
+        "1035",
+        "3010"
+      ]
     },
     "S531": {
       "name": "偷师",
@@ -6078,7 +6763,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S532": {
       "name": "冥想",
@@ -6088,7 +6773,11 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1016",
+        "1035",
+        "3010"
+      ]
     },
     "S533": {
       "name": "双星",
@@ -6098,7 +6787,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S534": {
       "name": "叠加态",
@@ -6108,7 +6797,11 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3014",
+        "1012",
+        "3011"
+      ]
     },
     "S535": {
       "name": "四维降解",
@@ -6118,7 +6811,9 @@
       "damage_kind": "魔法",
       "energy_cost": 7,
       "power": 100,
-      "wiki_verified": true
+      "glossary": [
+        "3010"
+      ]
     },
     "S536": {
       "name": "坍缩",
@@ -6128,7 +6823,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": true
+      "glossary": []
     },
     "S537": {
       "name": "多维击打",
@@ -6138,7 +6833,11 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 15,
-      "wiki_verified": true
+      "glossary": [
+        "1035",
+        "3005",
+        "3010"
+      ]
     },
     "S538": {
       "name": "大爆炸",
@@ -6148,7 +6847,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": true
+      "glossary": []
     },
     "S539": {
       "name": "天体吸积",
@@ -6158,7 +6857,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 20,
-      "wiki_verified": true
+      "glossary": [
+        "3010"
+      ]
     },
     "S540": {
       "name": "心灵洞悉",
@@ -6168,7 +6869,10 @@
       "damage_kind": null,
       "energy_cost": 7,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1035",
+        "3010"
+      ]
     },
     "S541": {
       "name": "念力膨胀",
@@ -6178,7 +6882,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": true
+      "glossary": []
     },
     "S542": {
       "name": "星云漩涡",
@@ -6188,7 +6892,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": true
+      "glossary": []
     },
     "S543": {
       "name": "星痕",
@@ -6198,7 +6902,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": true
+      "glossary": [
+        "3010"
+      ]
     },
     "S544": {
       "name": "星轨裂变",
@@ -6208,7 +6914,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1035",
+        "3010"
+      ]
     },
     "S545": {
       "name": "星链",
@@ -6218,7 +6927,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1035",
+        "3010"
+      ]
     },
     "S546": {
       "name": "空间压迫",
@@ -6228,7 +6940,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 70,
-      "wiki_verified": true
+      "glossary": [
+        "1035",
+        "3010"
+      ]
     },
     "S547": {
       "name": "粒子对撞",
@@ -6238,7 +6953,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 40,
-      "wiki_verified": true
+      "glossary": []
     },
     "S548": {
       "name": "薄纱环",
@@ -6248,7 +6963,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "3010",
+        "3019"
+      ]
     },
     "S549": {
       "name": "许愿池",
@@ -6258,7 +6976,9 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 55,
-      "wiki_verified": true
+      "glossary": [
+        "3010"
+      ]
     },
     "S550": {
       "name": "超新星馈赠",
@@ -6268,7 +6988,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1035",
+        "3010"
+      ]
     },
     "S551": {
       "name": "超维投射",
@@ -6278,7 +7001,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": true
+      "glossary": [
+        "1035",
+        "3010"
+      ]
     },
     "S552": {
       "name": "针状物",
@@ -6288,7 +7014,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 30,
-      "wiki_verified": true
+      "glossary": []
     },
     "S553": {
       "name": "错乱",
@@ -6298,7 +7024,11 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 65,
-      "wiki_verified": true
+      "glossary": [
+        "1015",
+        "1035",
+        "3010"
+      ]
     },
     "S554": {
       "name": "不带出下雨",
@@ -6308,7 +7038,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S555": {
       "name": "乱花葬",
@@ -6318,7 +7048,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S556": {
       "name": "亵渎",
@@ -6328,7 +7058,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 500,
-      "wiki_verified": false
+      "glossary": []
     },
     "S557": {
       "name": "伙伴的支援",
@@ -6338,7 +7068,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S558": {
       "name": "伺机爆发",
@@ -6348,7 +7078,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S559": {
       "name": "侵蚀风刃",
@@ -6358,7 +7088,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": []
     },
     "S560": {
       "name": "侵蚀龙卷",
@@ -6368,7 +7098,7 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S561": {
       "name": "偷懒",
@@ -6378,7 +7108,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S562": {
       "name": "冰1",
@@ -6388,7 +7118,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S563": {
       "name": "冰2",
@@ -6398,7 +7128,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S564": {
       "name": "冰之花",
@@ -6408,7 +7140,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S565": {
       "name": "冰刺",
@@ -6418,7 +7150,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S566": {
       "name": "冰化",
@@ -6428,7 +7160,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S567": {
       "name": "冰吹暴雪",
@@ -6438,7 +7170,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 120,
-      "wiki_verified": false
+      "glossary": []
     },
     "S568": {
       "name": "冰系地表",
@@ -6448,7 +7180,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S569": {
       "name": "利爪",
@@ -6458,7 +7190,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 80,
-      "wiki_verified": false
+      "glossary": []
     },
     "S570": {
       "name": "加尔临时用",
@@ -6468,7 +7200,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 30,
-      "wiki_verified": false
+      "glossary": []
     },
     "S571": {
       "name": "加水",
@@ -6478,7 +7210,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S572": {
       "name": "北冥之歌",
@@ -6488,7 +7220,7 @@
       "damage_kind": null,
       "energy_cost": 10,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S573": {
       "name": "友谊的治愈",
@@ -6498,7 +7230,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S574": {
       "name": "双生强化",
@@ -6508,7 +7240,11 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "3005",
+        "1012",
+        "3019"
+      ]
     },
     "S575": {
       "name": "双生强化",
@@ -6518,7 +7254,11 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "3005",
+        "1012",
+        "3019"
+      ]
     },
     "S576": {
       "name": "双生打击",
@@ -6528,7 +7268,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 20,
-      "wiki_verified": false
+      "glossary": [
+        "3019"
+      ]
     },
     "S577": {
       "name": "双生打击",
@@ -6538,7 +7280,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 20,
-      "wiki_verified": false
+      "glossary": [
+        "3019"
+      ]
     },
     "S578": {
       "name": "受伤",
@@ -6548,7 +7292,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S579": {
       "name": "叛逆",
@@ -6558,7 +7302,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S580": {
       "name": "可烤汪2",
@@ -6568,7 +7312,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S581": {
       "name": "吹飞",
@@ -6578,7 +7324,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S582": {
       "name": "呵气（Boss）",
@@ -6588,7 +7334,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 125,
-      "wiki_verified": false
+      "glossary": []
     },
     "S583": {
       "name": "唤雪",
@@ -6598,7 +7344,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S584": {
       "name": "喷砂",
@@ -6608,7 +7354,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S585": {
       "name": "地1",
@@ -6618,7 +7364,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S586": {
       "name": "地2",
@@ -6628,7 +7376,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1012"
+      ]
     },
     "S587": {
       "name": "地3",
@@ -6638,7 +7388,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 60,
-      "wiki_verified": false
+      "glossary": []
     },
     "S588": {
       "name": "埋地",
@@ -6648,7 +7398,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S589": {
       "name": "大厨消毒法",
@@ -6658,7 +7408,9 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1012"
+      ]
     },
     "S590": {
       "name": "大闹（Boss）",
@@ -6668,7 +7420,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 125,
-      "wiki_verified": false
+      "glossary": []
     },
     "S591": {
       "name": "天狼",
@@ -6678,7 +7430,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S592": {
       "name": "奇怪的种子弹",
@@ -6688,7 +7440,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 90,
-      "wiki_verified": false
+      "glossary": []
     },
     "S593": {
       "name": "奇怪的种子弹",
@@ -6698,7 +7450,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 90,
-      "wiki_verified": false
+      "glossary": []
     },
     "S594": {
       "name": "奇怪的种子弹",
@@ -6708,7 +7460,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 90,
-      "wiki_verified": false
+      "glossary": []
     },
     "S595": {
       "name": "奇怪的种子弹",
@@ -6718,7 +7470,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 90,
-      "wiki_verified": false
+      "glossary": []
     },
     "S596": {
       "name": "威压",
@@ -6728,7 +7480,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S597": {
       "name": "守护",
@@ -6738,7 +7490,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S598": {
       "name": "对撞",
@@ -6748,7 +7500,7 @@
       "damage_kind": "魔法",
       "energy_cost": 100,
       "power": 80,
-      "wiki_verified": false
+      "glossary": []
     },
     "S599": {
       "name": "小光恶1",
@@ -6758,7 +7510,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 130,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S600": {
       "name": "小龙卷风",
@@ -6768,7 +7522,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 125,
-      "wiki_verified": false
+      "glossary": []
     },
     "S601": {
       "name": "尾随",
@@ -6778,7 +7532,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S602": {
       "name": "希望超新星",
@@ -6788,7 +7542,7 @@
       "damage_kind": null,
       "energy_cost": 1000,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S603": {
       "name": "幻化",
@@ -6798,7 +7552,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S604": {
       "name": "幽1",
@@ -6808,7 +7562,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S605": {
       "name": "应对！不动如山",
@@ -6818,7 +7574,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S606": {
       "name": "应对！不可接触",
@@ -6828,7 +7586,11 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1036",
+        "1001"
+      ]
     },
     "S607": {
       "name": "应对！乱花葬",
@@ -6838,7 +7600,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S608": {
       "name": "应对！二律背反",
@@ -6848,7 +7610,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S609": {
       "name": "应对！二律背反",
@@ -6858,7 +7622,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1035",
+        "3010"
+      ]
     },
     "S610": {
       "name": "应对！二律背反",
@@ -6868,7 +7636,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1035",
+        "3010"
+      ]
     },
     "S611": {
       "name": "应对！偷袭",
@@ -6878,7 +7650,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 255,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S612": {
       "name": "应对！冥想",
@@ -6888,7 +7662,11 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1035",
+        "3010"
+      ]
     },
     "S613": {
       "name": "应对！冥想",
@@ -6898,7 +7676,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S614": {
       "name": "应对！冰2",
@@ -6908,7 +7688,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S615": {
       "name": "应对！冰之花",
@@ -6918,7 +7700,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S616": {
       "name": "应对！冰墙",
@@ -6928,7 +7710,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1004"
+      ]
     },
     "S617": {
       "name": "应对！冰天雪地",
@@ -6938,7 +7723,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S618": {
       "name": "应对！冰点",
@@ -6948,7 +7735,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1004"
+      ]
     },
     "S619": {
       "name": "应对！冰蛋壳",
@@ -6958,7 +7748,11 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1032",
+        "3010"
+      ]
     },
     "S620": {
       "name": "应对！冰雹",
@@ -6968,7 +7762,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 105,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S621": {
       "name": "应对！刺盾",
@@ -6978,7 +7774,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S622": {
       "name": "应对！剧毒",
@@ -6988,7 +7786,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1001"
+      ]
     },
     "S623": {
       "name": "应对！友谊满溢",
@@ -6998,7 +7799,10 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3019"
+      ]
     },
     "S624": {
       "name": "应对！可烤汪2",
@@ -7008,7 +7812,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S625": {
       "name": "应对！吓退",
@@ -7018,7 +7824,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1003"
+      ]
     },
     "S626": {
       "name": "应对！听桥",
@@ -7028,7 +7837,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S627": {
       "name": "应对！吹炎",
@@ -7038,7 +7849,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 340,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1007"
+      ]
     },
     "S628": {
       "name": "应对！吹炎",
@@ -7048,7 +7862,10 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1007"
+      ]
     },
     "S629": {
       "name": "应对！嗜痛",
@@ -7058,7 +7875,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S630": {
       "name": "应对！地1",
@@ -7068,7 +7887,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S631": {
       "name": "应对！地刺",
@@ -7078,7 +7899,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1011"
+      ]
     },
     "S632": {
       "name": "应对！地陷",
@@ -7088,7 +7912,9 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 160,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S633": {
       "name": "应对！壁垒",
@@ -7098,7 +7924,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S634": {
       "name": "应对！天洪",
@@ -7108,7 +7936,9 @@
       "damage_kind": "魔法",
       "energy_cost": 7,
       "power": 150,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S635": {
       "name": "应对！天火",
@@ -7118,7 +7948,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1002"
+      ]
     },
     "S636": {
       "name": "应对！委屈",
@@ -7128,7 +7961,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "3012",
+        "3010"
+      ]
     },
     "S637": {
       "name": "应对！守护咒",
@@ -7138,7 +7975,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "3011"
+      ]
     },
     "S638": {
       "name": "应对！寒潮",
@@ -7148,7 +7988,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1004",
+        "3011"
+      ]
     },
     "S639": {
       "name": "应对！寒潮",
@@ -7158,7 +8002,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1004",
+        "3011"
+      ]
     },
     "S640": {
       "name": "应对！小光恶1",
@@ -7168,7 +8016,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 130,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S641": {
       "name": "应对！崩拳",
@@ -7178,7 +8028,9 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 65,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S642": {
       "name": "应对！幽1",
@@ -7188,7 +8040,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S643": {
       "name": "应对！应激",
@@ -7198,7 +8052,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S644": {
       "name": "应对！应激反应",
@@ -7208,7 +8062,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S645": {
       "name": "应对！强制重启",
@@ -7218,7 +8074,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1024"
+      ]
     },
     "S646": {
       "name": "应对！快速移动",
@@ -7228,7 +8087,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S647": {
       "name": "应对！恶1",
@@ -7238,7 +8099,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 130,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S648": {
       "name": "应对！恶作剧",
@@ -7248,7 +8111,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S649": {
       "name": "应对！恶意逃离",
@@ -7258,7 +8123,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1003"
+      ]
     },
     "S650": {
       "name": "应对！惊吓盒子",
@@ -7268,7 +8136,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S651": {
       "name": "应对！愿力冲击",
@@ -7278,7 +8148,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S652": {
       "name": "应对！愿力冲击",
@@ -7288,7 +8160,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S653": {
       "name": "应对！愿力冲击",
@@ -7298,7 +8172,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S654": {
       "name": "应对！愿力冲击",
@@ -7308,7 +8184,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S655": {
       "name": "应对！愿力冲击",
@@ -7318,7 +8196,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S656": {
       "name": "应对！愿力冲击",
@@ -7328,7 +8208,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S657": {
       "name": "应对！愿力冲击",
@@ -7338,7 +8220,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S658": {
       "name": "应对！愿力冲击",
@@ -7348,7 +8232,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S659": {
       "name": "应对！愿力冲击",
@@ -7358,7 +8244,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S660": {
       "name": "应对！愿力冲击",
@@ -7368,7 +8256,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S661": {
       "name": "应对！愿力冲击",
@@ -7378,7 +8268,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S662": {
       "name": "应对！愿力冲击",
@@ -7388,7 +8280,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S663": {
       "name": "应对！愿力冲击",
@@ -7398,7 +8292,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S664": {
       "name": "应对！愿力冲击",
@@ -7408,7 +8304,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S665": {
       "name": "应对！愿力冲击",
@@ -7418,7 +8316,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S666": {
       "name": "应对！愿力冲击",
@@ -7428,7 +8328,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S667": {
       "name": "应对！愿力冲击",
@@ -7438,7 +8340,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S668": {
       "name": "应对！愿力冲击",
@@ -7448,7 +8352,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S669": {
       "name": "应对！愿力冲击",
@@ -7458,7 +8364,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 200,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S670": {
       "name": "应对！截拳",
@@ -7468,7 +8376,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1011"
+      ]
     },
     "S671": {
       "name": "应对！技巧打击",
@@ -7478,7 +8389,9 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 350,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S672": {
       "name": "应对！报复",
@@ -7488,7 +8401,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S673": {
       "name": "应对！抽枝",
@@ -7498,7 +8413,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S674": {
       "name": "应对！持续高温",
@@ -7508,7 +8425,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S675": {
       "name": "应对！捧杀",
@@ -7518,7 +8437,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1006"
+      ]
     },
     "S676": {
       "name": "应对！掩护",
@@ -7528,7 +8450,11 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1026",
+        "1003"
+      ]
     },
     "S677": {
       "name": "应对！摇篮曲",
@@ -7538,7 +8464,10 @@
       "damage_kind": null,
       "energy_cost": 5,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1011"
+      ]
     },
     "S678": {
       "name": "应对！撒花",
@@ -7548,7 +8477,10 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 95,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3019"
+      ]
     },
     "S679": {
       "name": "应对！撕裂",
@@ -7558,7 +8490,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1029"
+      ]
     },
     "S680": {
       "name": "应对！放晴",
@@ -7568,7 +8503,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S681": {
       "name": "应对！散手",
@@ -7578,7 +8515,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 35,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S682": {
       "name": "应对！斩断",
@@ -7588,7 +8527,10 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 70,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1011"
+      ]
     },
     "S683": {
       "name": "应对！无影脚",
@@ -7598,7 +8540,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 170,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S684": {
       "name": "应对！无畏之心",
@@ -7608,7 +8552,9 @@
       "damage_kind": null,
       "energy_cost": 5,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S685": {
       "name": "应对！暖气",
@@ -7618,7 +8564,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S686": {
       "name": "应对！暗突袭",
@@ -7628,7 +8576,10 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 140,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1029"
+      ]
     },
     "S687": {
       "name": "应对！暗箱操作",
@@ -7638,7 +8589,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S688": {
       "name": "应对！有效预防",
@@ -7648,7 +8601,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1020"
+      ]
     },
     "S689": {
       "name": "应对！机械2",
@@ -7658,7 +8614,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1033"
+      ]
     },
     "S690": {
       "name": "应对！杖责",
@@ -7668,7 +8627,7 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": false
+      "glossary": []
     },
     "S691": {
       "name": "应对！极寒领域",
@@ -7678,7 +8637,10 @@
       "damage_kind": "魔法",
       "energy_cost": 6,
       "power": 105,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1004"
+      ]
     },
     "S692": {
       "name": "应对！格斗小七2",
@@ -7688,7 +8650,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1012"
+      ]
     },
     "S693": {
       "name": "应对！检测工具攻击",
@@ -7698,7 +8663,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 140,
-      "wiki_verified": false
+      "glossary": []
     },
     "S694": {
       "name": "应对！检测工具状态正",
@@ -7708,7 +8673,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S695": {
       "name": "应对！检测工具状态负",
@@ -7718,7 +8683,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S696": {
       "name": "应对！检测工具防御",
@@ -7728,7 +8693,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S697": {
       "name": "应对！毒囊",
@@ -7738,7 +8703,10 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 25,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1001"
+      ]
     },
     "S698": {
       "name": "应对！毒囊",
@@ -7748,7 +8716,10 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 25,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1001"
+      ]
     },
     "S699": {
       "name": "应对！毒肽",
@@ -7758,7 +8729,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "3011"
+      ]
     },
     "S700": {
       "name": "应对！水1",
@@ -7768,7 +8742,10 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1012"
+      ]
     },
     "S701": {
       "name": "应对！水3",
@@ -7778,7 +8755,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S702": {
       "name": "应对！水刃",
@@ -7788,7 +8767,9 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 115,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S703": {
       "name": "应对！水星水1",
@@ -7798,7 +8779,13 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 0,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3014",
+        "3018",
+        "1012",
+        "1013"
+      ]
     },
     "S704": {
       "name": "应对！水泡盾",
@@ -7808,7 +8795,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S705": {
       "name": "应对！水环",
@@ -7818,7 +8807,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S706": {
       "name": "应对！泡沫幻影",
@@ -7828,7 +8819,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1003"
+      ]
     },
     "S707": {
       "name": "应对！泥浆铠甲",
@@ -7838,7 +8832,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1012"
+      ]
     },
     "S708": {
       "name": "应对！流沙",
@@ -7848,7 +8845,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "3023"
+      ]
     },
     "S709": {
       "name": "应对！淤泥表皮",
@@ -7858,7 +8858,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "3005"
+      ]
     },
     "S710": {
       "name": "应对！淬火",
@@ -7868,7 +8871,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S711": {
       "name": "应对！溶解",
@@ -7878,7 +8883,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1012"
+      ]
     },
     "S712": {
       "name": "应对！滚雪球",
@@ -7888,7 +8896,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 110,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1004"
+      ]
     },
     "S713": {
       "name": "应对！滚雪球",
@@ -7898,7 +8909,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 110,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1004"
+      ]
     },
     "S714": {
       "name": "应对！潮汐",
@@ -7908,7 +8922,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1022",
+        "3010"
+      ]
     },
     "S715": {
       "name": "应对！潮汐",
@@ -7918,7 +8936,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1022",
+        "3010"
+      ]
     },
     "S716": {
       "name": "应对！火1",
@@ -7928,7 +8950,10 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 40,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1002"
+      ]
     },
     "S717": {
       "name": "应对！火焰护盾",
@@ -7938,7 +8963,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1002"
+      ]
     },
     "S718": {
       "name": "应对！灵质化",
@@ -7948,7 +8976,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S719": {
       "name": "应对！灾厄",
@@ -7958,7 +8988,9 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 180,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S720": {
       "name": "应对！炙热波动",
@@ -7968,7 +9000,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 110,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1002"
+      ]
     },
     "S721": {
       "name": "应对！炙热波动",
@@ -7978,7 +9013,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 110,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1002"
+      ]
     },
     "S722": {
       "name": "应对！点亮",
@@ -7988,7 +9026,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S723": {
       "name": "应对！热身",
@@ -7998,7 +9038,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S724": {
       "name": "应对！爆冲",
@@ -8008,7 +9050,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 325,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S725": {
       "name": "应对！电1",
@@ -8018,7 +9062,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S726": {
       "name": "应对！电磁偏转",
@@ -8028,7 +9074,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S727": {
       "name": "应对！盐水浴",
@@ -8038,7 +9086,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S728": {
       "name": "应对！盛开",
@@ -8048,7 +9098,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S729": {
       "name": "应对！相位移动",
@@ -8058,7 +9110,10 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1033"
+      ]
     },
     "S730": {
       "name": "应对！瞬间零度",
@@ -8068,7 +9123,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S731": {
       "name": "应对！破绽",
@@ -8078,7 +9135,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S732": {
       "name": "应对！破防",
@@ -8088,7 +9147,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S733": {
       "name": "应对！破防",
@@ -8098,7 +9159,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S734": {
       "name": "应对！硬化",
@@ -8108,7 +9171,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S735": {
       "name": "应对！硬门",
@@ -8118,7 +9183,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1011"
+      ]
     },
     "S736": {
       "name": "应对！秘法洪流",
@@ -8128,7 +9196,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1013"
+      ]
     },
     "S737": {
       "name": "应对！秘法潮汐",
@@ -8138,7 +9208,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1022",
+        "3010"
+      ]
     },
     "S738": {
       "name": "应对！空灵斗士草1",
@@ -8148,7 +9222,11 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3014",
+        "1012"
+      ]
     },
     "S739": {
       "name": "应对！突袭",
@@ -8158,7 +9236,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 210,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S740": {
       "name": "应对！等价交换",
@@ -8168,7 +9248,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1029"
+      ]
     },
     "S741": {
       "name": "应对！精神扰乱",
@@ -8178,7 +9261,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S742": {
       "name": "应对！纤维化",
@@ -8188,7 +9273,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S743": {
       "name": "应对！羽刃",
@@ -8198,7 +9285,11 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 75,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1026",
+        "1003"
+      ]
     },
     "S744": {
       "name": "应对！羽翼庇护",
@@ -8208,7 +9299,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "3005"
+      ]
     },
     "S745": {
       "name": "应对！翅刃",
@@ -8218,7 +9312,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 85,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3010"
+      ]
     },
     "S746": {
       "name": "应对！联动装置",
@@ -8228,7 +9325,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S747": {
       "name": "应对！能量守恒",
@@ -8238,7 +9337,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S748": {
       "name": "应对！芳香诱引",
@@ -8248,7 +9349,11 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "3005",
+        "1011"
+      ]
     },
     "S749": {
       "name": "应对！芳香诱引",
@@ -8258,7 +9363,11 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "3005",
+        "1011"
+      ]
     },
     "S750": {
       "name": "应对！草1",
@@ -8268,7 +9377,10 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1008"
+      ]
     },
     "S751": {
       "name": "应对！萌1",
@@ -8278,7 +9390,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1006"
+      ]
     },
     "S752": {
       "name": "应对！萌2",
@@ -8288,7 +9403,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1006"
+      ]
     },
     "S753": {
       "name": "应对！虚假破产",
@@ -8298,7 +9416,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S754": {
       "name": "应对！虚化",
@@ -8308,7 +9428,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S755": {
       "name": "应对！虫云",
@@ -8318,7 +9440,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1009"
+      ]
     },
     "S756": {
       "name": "应对！虫击",
@@ -8328,7 +9452,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 180,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S757": {
       "name": "应对！虫结阵",
@@ -8338,7 +9464,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1009"
+      ]
     },
     "S758": {
       "name": "应对！蜡质膜",
@@ -8348,7 +9477,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S759": {
       "name": "应对！血气",
@@ -8358,7 +9489,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S760": {
       "name": "应对！裂石",
@@ -8368,7 +9501,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S761": {
       "name": "应对！裂石",
@@ -8378,7 +9513,9 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S762": {
       "name": "应对！超声波",
@@ -8388,7 +9525,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "3019"
+      ]
     },
     "S763": {
       "name": "应对！跌落",
@@ -8398,7 +9538,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 120,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S764": {
       "name": "应对！踏雷",
@@ -8408,7 +9550,11 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1010",
+        "1024"
+      ]
     },
     "S765": {
       "name": "应对！连续爪击",
@@ -8418,7 +9564,10 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 30,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3005"
+      ]
     },
     "S766": {
       "name": "应对！追打",
@@ -8428,7 +9577,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S767": {
       "name": "应对！透镜实验",
@@ -8438,7 +9589,10 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 115,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3019"
+      ]
     },
     "S768": {
       "name": "应对！通电",
@@ -8448,7 +9602,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "3022"
+      ]
     },
     "S769": {
       "name": "应对！遁地",
@@ -8458,7 +9614,10 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1003"
+      ]
     },
     "S770": {
       "name": "应对！酶浓度调整",
@@ -8468,7 +9627,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S771": {
       "name": "应对！重金属粉尘",
@@ -8478,7 +9639,11 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "3013",
+        "1001"
+      ]
     },
     "S772": {
       "name": "应对！铁蒺藜",
@@ -8488,7 +9653,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 170,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S773": {
       "name": "应对！错乱",
@@ -8498,7 +9665,11 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 65,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1035",
+        "3010"
+      ]
     },
     "S774": {
       "name": "应对！错乱",
@@ -8508,7 +9679,11 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 65,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1035",
+        "3010"
+      ]
     },
     "S775": {
       "name": "应对！镜像反射",
@@ -8518,7 +9693,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S776": {
       "name": "应对！闪燃",
@@ -8528,7 +9705,9 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 160,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S777": {
       "name": "应对！防反",
@@ -8538,7 +9717,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S778": {
       "name": "应对！防御",
@@ -8548,7 +9729,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S779": {
       "name": "应对！防御反击",
@@ -8558,7 +9741,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S780": {
       "name": "应对！阻断",
@@ -8568,7 +9753,10 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 75,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1011"
+      ]
     },
     "S781": {
       "name": "应对！集中",
@@ -8578,7 +9766,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1024"
+      ]
     },
     "S782": {
       "name": "应对！雪替身",
@@ -8588,7 +9779,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S783": {
       "name": "应对！预备势",
@@ -8598,7 +9791,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S784": {
       "name": "应对！风墙",
@@ -8608,7 +9803,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1005"
+      ]
     },
     "S785": {
       "name": "应对！首领形态",
@@ -8618,7 +9816,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S786": {
       "name": "应对！驱赶",
@@ -8628,7 +9826,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S787": {
       "name": "应对！驱赶",
@@ -8638,7 +9836,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 210,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3019"
+      ]
     },
     "S788": {
       "name": "应对！骑士敕令",
@@ -8648,7 +9849,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S789": {
       "name": "应对！鸩毒",
@@ -8658,7 +9861,11 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 75,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1036",
+        "1001"
+      ]
     },
     "S790": {
       "name": "应对！麻痹",
@@ -8668,7 +9875,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1020"
+      ]
     },
     "S791": {
       "name": "应对！龙1",
@@ -8678,7 +9888,9 @@
       "damage_kind": "物理",
       "energy_cost": 7,
       "power": 150,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S792": {
       "name": "应对！龙3",
@@ -8688,7 +9900,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1007"
+      ]
     },
     "S793": {
       "name": "应对！龙卷风",
@@ -8698,7 +9913,10 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 105,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1005"
+      ]
     },
     "S794": {
       "name": "应对！龙守望",
@@ -8708,7 +9926,12 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1007",
+        "1011",
+        "3019"
+      ]
     },
     "S795": {
       "name": "应对！龙息环爆",
@@ -8718,7 +9941,10 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 55,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1007"
+      ]
     },
     "S796": {
       "name": "应对！龙血",
@@ -8728,7 +9954,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1007"
+      ]
     },
     "S797": {
       "name": "应激",
@@ -8738,7 +9967,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S798": {
       "name": "废弃",
@@ -8748,7 +9977,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1012"
+      ]
     },
     "S799": {
       "name": "废弃",
@@ -8758,7 +9989,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S800": {
       "name": "恶1",
@@ -8768,7 +9999,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 130,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S801": {
       "name": "悠游自在",
@@ -8778,7 +10011,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S802": {
       "name": "意念飞石",
@@ -8788,7 +10021,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S803": {
       "name": "愿力冲击",
@@ -8798,7 +10031,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S804": {
       "name": "愿力冲击",
@@ -8808,7 +10043,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S805": {
       "name": "愿力冲击",
@@ -8818,7 +10055,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S806": {
       "name": "愿力冲击",
@@ -8828,7 +10067,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S807": {
       "name": "愿力冲击",
@@ -8838,7 +10079,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S808": {
       "name": "愿力冲击",
@@ -8848,7 +10091,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S809": {
       "name": "愿力冲击",
@@ -8858,7 +10103,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S810": {
       "name": "愿力冲击",
@@ -8868,7 +10115,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S811": {
       "name": "愿力冲击",
@@ -8878,7 +10127,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S812": {
       "name": "愿力冲击",
@@ -8888,7 +10139,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S813": {
       "name": "愿力冲击",
@@ -8898,7 +10151,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S814": {
       "name": "愿力冲击",
@@ -8908,7 +10163,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S815": {
       "name": "愿力冲击",
@@ -8918,7 +10175,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S816": {
       "name": "愿力冲击",
@@ -8928,7 +10187,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S817": {
       "name": "愿力冲击",
@@ -8938,7 +10199,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S818": {
       "name": "愿力冲击",
@@ -8948,7 +10211,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S819": {
       "name": "愿力冲击",
@@ -8958,7 +10223,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S820": {
       "name": "愿力冲击",
@@ -8968,7 +10235,9 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S821": {
       "name": "愿力冲击（废弃）",
@@ -8978,7 +10247,7 @@
       "damage_kind": "真实",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": []
     },
     "S822": {
       "name": "护主犬专用",
@@ -8988,7 +10257,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S823": {
       "name": "指指点点",
@@ -8998,7 +10267,7 @@
       "damage_kind": "物理",
       "energy_cost": 10,
       "power": 1,
-      "wiki_verified": false
+      "glossary": []
     },
     "S824": {
       "name": "星星的祈愿",
@@ -9008,7 +10277,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S825": {
       "name": "星系团",
@@ -9018,7 +10287,7 @@
       "damage_kind": "魔法",
       "energy_cost": 800,
       "power": 300,
-      "wiki_verified": false
+      "glossary": []
     },
     "S826": {
       "name": "普1",
@@ -9028,7 +10297,9 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1003"
+      ]
     },
     "S827": {
       "name": "暗黑切断",
@@ -9038,7 +10309,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 600,
-      "wiki_verified": false
+      "glossary": []
     },
     "S828": {
       "name": "更换",
@@ -9048,7 +10319,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S829": {
       "name": "机械1",
@@ -9058,7 +10329,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": false
+      "glossary": [
+        "1033"
+      ]
     },
     "S830": {
       "name": "机械2",
@@ -9068,7 +10341,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 95,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1033"
+      ]
     },
     "S831": {
       "name": "机警",
@@ -9078,7 +10354,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S832": {
       "name": "格斗小七2",
@@ -9088,7 +10364,10 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1012"
+      ]
     },
     "S833": {
       "name": "检测工具攻击",
@@ -9098,7 +10377,7 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 70,
-      "wiki_verified": false
+      "glossary": []
     },
     "S834": {
       "name": "检测工具状态正",
@@ -9108,7 +10387,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S835": {
       "name": "检测工具状态负",
@@ -9118,7 +10397,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S836": {
       "name": "检测工具脱离",
@@ -9128,7 +10407,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 40,
-      "wiki_verified": false
+      "glossary": [
+        "1003"
+      ]
     },
     "S837": {
       "name": "检测工具返场",
@@ -9138,7 +10419,9 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1024"
+      ]
     },
     "S838": {
       "name": "检测工具防御",
@@ -9148,7 +10431,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S839": {
       "name": "植物吸收",
@@ -9158,7 +10441,7 @@
       "damage_kind": "魔法",
       "energy_cost": 0,
       "power": 30,
-      "wiki_verified": false
+      "glossary": []
     },
     "S840": {
       "name": "武1",
@@ -9168,7 +10451,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S841": {
       "name": "毒气弥漫",
@@ -9178,7 +10461,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1014",
+        "1001",
+        "3010"
+      ]
     },
     "S842": {
       "name": "毒系地表",
@@ -9188,7 +10475,7 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 10,
-      "wiki_verified": false
+      "glossary": []
     },
     "S843": {
       "name": "毒素强化",
@@ -9198,7 +10485,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S844": {
       "name": "水1",
@@ -9208,7 +10495,10 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1012"
+      ]
     },
     "S845": {
       "name": "水2",
@@ -9218,7 +10508,7 @@
       "damage_kind": "物理",
       "energy_cost": 12,
       "power": 220,
-      "wiki_verified": false
+      "glossary": []
     },
     "S846": {
       "name": "水3",
@@ -9228,7 +10518,9 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S847": {
       "name": "水星水1",
@@ -9238,7 +10530,13 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 0,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3014",
+        "3018",
+        "1012",
+        "1013"
+      ]
     },
     "S848": {
       "name": "水泡能量",
@@ -9248,7 +10546,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S849": {
       "name": "泄愤",
@@ -9258,7 +10556,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 150,
-      "wiki_verified": false
+      "glossary": []
     },
     "S850": {
       "name": "泥涌",
@@ -9268,7 +10566,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S851": {
       "name": "深呼吸",
@@ -9278,7 +10576,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S852": {
       "name": "潜水",
@@ -9288,7 +10586,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S853": {
       "name": "潜水遁逃",
@@ -9298,7 +10596,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1003"
+      ]
     },
     "S854": {
       "name": "潮汐鲤",
@@ -9308,7 +10608,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1022",
+        "3010"
+      ]
     },
     "S855": {
       "name": "火1",
@@ -9318,7 +10622,10 @@
       "damage_kind": "物理",
       "energy_cost": 1,
       "power": 40,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1002"
+      ]
     },
     "S856": {
       "name": "火系地表",
@@ -9328,7 +10635,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 900,
-      "wiki_verified": false
+      "glossary": []
     },
     "S857": {
       "name": "灵质化",
@@ -9338,7 +10645,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016"
+      ]
     },
     "S858": {
       "name": "点到为止",
@@ -9348,7 +10657,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S859": {
       "name": "烧热",
@@ -9358,7 +10667,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S860": {
       "name": "熵增",
@@ -9368,7 +10677,7 @@
       "damage_kind": null,
       "energy_cost": 800,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S861": {
       "name": "爆炸种子",
@@ -9378,7 +10687,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S862": {
       "name": "生命燃烧",
@@ -9388,7 +10697,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S863": {
       "name": "电1",
@@ -9398,7 +10707,9 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S864": {
       "name": "电容循环",
@@ -9408,7 +10719,9 @@
       "damage_kind": null,
       "energy_cost": 8,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "3009"
+      ]
     },
     "S865": {
       "name": "电系地表",
@@ -9418,7 +10731,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S866": {
       "name": "疗愈",
@@ -9428,7 +10741,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S867": {
       "name": "疯狂生长",
@@ -9438,7 +10751,7 @@
       "damage_kind": null,
       "energy_cost": 3,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S868": {
       "name": "瘴上加毒",
@@ -9448,7 +10761,10 @@
       "damage_kind": "魔法",
       "energy_cost": 5,
       "power": 80,
-      "wiki_verified": false
+      "glossary": [
+        "1036",
+        "1001"
+      ]
     },
     "S869": {
       "name": "白加尔专属技能",
@@ -9458,7 +10774,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 125,
-      "wiki_verified": false
+      "glossary": [
+        "1012"
+      ]
     },
     "S870": {
       "name": "皇家秘术",
@@ -9468,7 +10786,7 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S871": {
       "name": "睡眠",
@@ -9478,7 +10796,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S872": {
       "name": "石梭",
@@ -9488,7 +10806,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S873": {
       "name": "研磨",
@@ -9498,7 +10816,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S874": {
       "name": "碎雪",
@@ -9508,7 +10826,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S875": {
       "name": "秒杀",
@@ -9518,7 +10836,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S876": {
       "name": "秘法潮汐",
@@ -9528,7 +10846,11 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1016",
+        "1022",
+        "3010"
+      ]
     },
     "S877": {
       "name": "空灵斗士草1",
@@ -9538,7 +10860,11 @@
       "damage_kind": "物理",
       "energy_cost": 4,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "3014",
+        "1012"
+      ]
     },
     "S878": {
       "name": "聚变",
@@ -9548,7 +10874,7 @@
       "damage_kind": null,
       "energy_cost": 600,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S879": {
       "name": "聚焰",
@@ -9558,7 +10884,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S880": {
       "name": "能量加速",
@@ -9568,7 +10894,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S881": {
       "name": "能量汲取",
@@ -9578,7 +10904,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S882": {
       "name": "能量汲取",
@@ -9588,7 +10914,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S883": {
       "name": "脱离",
@@ -9598,7 +10924,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1003"
+      ]
     },
     "S884": {
       "name": "腐蚀强酸",
@@ -9608,7 +10936,9 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 35,
-      "wiki_verified": false
+      "glossary": [
+        "1001"
+      ]
     },
     "S885": {
       "name": "致盲",
@@ -9618,7 +10948,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S886": {
       "name": "范围地震",
@@ -9628,7 +10958,7 @@
       "damage_kind": "物理",
       "energy_cost": 6,
       "power": 135,
-      "wiki_verified": false
+      "glossary": []
     },
     "S887": {
       "name": "草1",
@@ -9638,7 +10968,10 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1008"
+      ]
     },
     "S888": {
       "name": "草光冲击",
@@ -9648,7 +10981,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S889": {
       "name": "荟萃",
@@ -9658,7 +10991,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S890": {
       "name": "萌1",
@@ -9668,7 +11001,10 @@
       "damage_kind": "物理",
       "energy_cost": 3,
       "power": 90,
-      "wiki_verified": false
+      "glossary": [
+        "1015",
+        "1006"
+      ]
     },
     "S891": {
       "name": "萌2",
@@ -9678,7 +11014,10 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1006"
+      ]
     },
     "S892": {
       "name": "虚弱",
@@ -9688,7 +11027,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S893": {
       "name": "裂石偷袭",
@@ -9698,7 +11037,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 80,
-      "wiki_verified": false
+      "glossary": []
     },
     "S894": {
       "name": "裂石偷袭",
@@ -9708,7 +11047,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 80,
-      "wiki_verified": false
+      "glossary": []
     },
     "S895": {
       "name": "解药",
@@ -9718,7 +11057,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S896": {
       "name": "赋予破绽",
@@ -9728,7 +11067,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S897": {
       "name": "超级！光能聚集",
@@ -9738,7 +11077,7 @@
       "damage_kind": "魔法",
       "energy_cost": 7,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S898": {
       "name": "超级休息",
@@ -9748,7 +11087,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S899": {
       "name": "超级剧毒",
@@ -9758,7 +11097,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S900": {
       "name": "超级咆哮",
@@ -9768,7 +11107,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S901": {
       "name": "超级生长",
@@ -9778,7 +11117,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S902": {
       "name": "轻伤",
@@ -9788,7 +11127,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S903": {
       "name": "迷茫",
@@ -9798,7 +11137,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S904": {
       "name": "重置地表",
@@ -9808,7 +11147,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S905": {
       "name": "重置天气",
@@ -9818,7 +11157,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S906": {
       "name": "野蛮生长",
@@ -9828,7 +11167,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S907": {
       "name": "闪电化",
@@ -9838,7 +11177,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S908": {
       "name": "闪电步",
@@ -9848,7 +11187,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1003"
+      ]
     },
     "S909": {
       "name": "霰火",
@@ -9858,7 +11199,7 @@
       "damage_kind": "魔法",
       "energy_cost": 1,
       "power": 60,
-      "wiki_verified": false
+      "glossary": []
     },
     "S910": {
       "name": "青草场地",
@@ -9868,7 +11209,9 @@
       "damage_kind": null,
       "energy_cost": 4,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "3010"
+      ]
     },
     "S911": {
       "name": "静止",
@@ -9878,7 +11221,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S912": {
       "name": "静电",
@@ -9888,7 +11231,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S913": {
       "name": "飞沙走石",
@@ -9898,7 +11241,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S914": {
       "name": "首领场地",
@@ -9908,7 +11251,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "3010"
+      ]
     },
     "S915": {
       "name": "驱散回能",
@@ -9918,7 +11263,7 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S916": {
       "name": "骑士之炎",
@@ -9928,7 +11273,7 @@
       "damage_kind": "魔法",
       "energy_cost": 2,
       "power": 120,
-      "wiki_verified": false
+      "glossary": []
     },
     "S917": {
       "name": "骑士敕令",
@@ -9938,7 +11283,9 @@
       "damage_kind": null,
       "energy_cost": 0,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017"
+      ]
     },
     "S918": {
       "name": "骑士突袭",
@@ -9948,7 +11295,7 @@
       "damage_kind": "物理",
       "energy_cost": 2,
       "power": 90,
-      "wiki_verified": false
+      "glossary": []
     },
     "S919": {
       "name": "骑士裁决",
@@ -9958,7 +11305,7 @@
       "damage_kind": "魔法",
       "energy_cost": 4,
       "power": 0,
-      "wiki_verified": false
+      "glossary": []
     },
     "S920": {
       "name": "骑士领域",
@@ -9968,7 +11315,7 @@
       "damage_kind": null,
       "energy_cost": 1,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     },
     "S921": {
       "name": "魔法雪球",
@@ -9978,7 +11325,7 @@
       "damage_kind": "物理",
       "energy_cost": 0,
       "power": 100,
-      "wiki_verified": false
+      "glossary": []
     },
     "S922": {
       "name": "鸩毒喷射",
@@ -9988,7 +11335,7 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 120,
-      "wiki_verified": false
+      "glossary": []
     },
     "S923": {
       "name": "黑加尔专属技能",
@@ -9998,7 +11345,9 @@
       "damage_kind": "魔法",
       "energy_cost": 3,
       "power": 125,
-      "wiki_verified": false
+      "glossary": [
+        "1013"
+      ]
     },
     "S924": {
       "name": "龙1",
@@ -10008,7 +11357,9 @@
       "damage_kind": "物理",
       "energy_cost": 7,
       "power": 150,
-      "wiki_verified": false
+      "glossary": [
+        "1015"
+      ]
     },
     "S925": {
       "name": "龙2",
@@ -10018,7 +11369,10 @@
       "damage_kind": "物理",
       "energy_cost": 5,
       "power": 190,
-      "wiki_verified": false
+      "glossary": [
+        "1007",
+        "1020"
+      ]
     },
     "S926": {
       "name": "龙3",
@@ -10028,7 +11382,10 @@
       "damage_kind": null,
       "energy_cost": 2,
       "power": null,
-      "wiki_verified": false
+      "glossary": [
+        "1017",
+        "1007"
+      ]
     },
     "S927": {
       "name": "龙舞",
@@ -10038,7 +11395,7 @@
       "damage_kind": null,
       "energy_cost": 5,
       "power": null,
-      "wiki_verified": false
+      "glossary": []
     }
   }
 }

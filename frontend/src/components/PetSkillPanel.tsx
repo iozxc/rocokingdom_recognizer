@@ -5,6 +5,7 @@ import {
   Sparkles,
   Crown,
   Layers,
+  Activity,
 } from 'lucide-react';
 import { PetItem, PetSkillInfo } from '../types';
 import { getPetSpecialType, formatPetName } from '../utils/petHelper';
@@ -52,7 +53,7 @@ export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
   compact = false,
   showHeader = true,
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'trait' | 'attack' | 'support'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'trait' | 'attack' | 'status' | 'defense'>('all');
   const specialType = getPetSpecialType(pet);
   const displayName = formatPetName(pet.name);
   const defaultElement = pet.elements?.[0] || '普通';
@@ -65,8 +66,11 @@ export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
     if (activeTab === 'attack') {
       return skills.filter((s) => s.skill_type === '攻击');
     }
-    if (activeTab === 'support') {
-      return skills.filter((s) => s.skill_type === '防御' || s.skill_type === '状态' || s.skill_type === '其他');
+    if (activeTab === 'status') {
+      return skills.filter((s) => s.skill_type === '状态' || s.skill_type === '其他');
+    }
+    if (activeTab === 'defense') {
+      return skills.filter((s) => s.skill_type === '防御');
     }
     if (activeTab === 'trait') {
       return [];
@@ -75,7 +79,8 @@ export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
   }, [skills, activeTab]);
 
   const attackCount = useMemo(() => skills.filter((s) => s.skill_type === '攻击').length, [skills]);
-  const supportCount = useMemo(() => skills.filter((s) => s.skill_type !== '攻击').length, [skills]);
+  const statusCount = useMemo(() => skills.filter((s) => s.skill_type === '状态' || s.skill_type === '其他').length, [skills]);
+  const defenseCount = useMemo(() => skills.filter((s) => s.skill_type === '防御').length, [skills]);
 
   return (
     <div
@@ -164,17 +169,30 @@ export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
             攻击 ({attackCount})
           </button>
           <button
-            id="skill-tab-support"
+            id="skill-tab-status"
             type="button"
-            onClick={() => setActiveTab('support')}
+            onClick={() => setActiveTab('status')}
             className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
-              activeTab === 'support'
+              activeTab === 'status'
                 ? 'bg-emerald-500 text-white shadow-xs shadow-emerald-500/30'
                 : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
+            <Activity className="w-3 h-3" />
+            状态 ({statusCount})
+          </button>
+          <button
+            id="skill-tab-defense"
+            type="button"
+            onClick={() => setActiveTab('defense')}
+            className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
+              activeTab === 'defense'
+                ? 'bg-teal-600 text-white shadow-xs shadow-teal-600/30'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
             <Shield className="w-3 h-3" />
-            辅助/防御 ({supportCount})
+            防御 ({defenseCount})
           </button>
         </div>
       )}
@@ -254,29 +272,31 @@ const SkillCard: React.FC<SkillCardProps> = ({ skill, defaultElement, compact })
   return (
     <div
       id={`skill-row-${skill.sid || skill.name}`}
-      className={`group/skill relative transition-colors flex items-start gap-2 ${
+      className={`group/skill relative transition-colors flex items-center gap-2 ${
         compact ? 'py-1.5 first:pt-0.5 last:pb-0' : 'py-2 first:pt-1 last:pb-0'
       }`}
     >
       {/* 技能图标列：右下角叠系别图标，对齐参考站排版 */}
-      <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg overflow-visible shrink-0 border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 flex items-center justify-center">
+      <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 flex items-center justify-center">
         {skill.icon_url ? (
           <TsIcon url={skill.icon_url} alt={skill.name} className="w-full h-full" />
         ) : (
           <ElementBadge element={skill.element || defaultElement} size="xs" />
         )}
-        <span className="absolute -top-1 -right-1 z-10 drop-shadow-sm">
-          <ElementBadge element={skillElement} size="xs" />
-        </span>
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-1.5 min-w-0 flex-nowrap">
-          <span
-            className={`min-w-0 flex-1 font-black text-slate-800 dark:text-slate-100 tracking-tight truncate ${
-              compact ? 'text-xs' : 'text-sm'
-            }`}
-          >
-            {skill.name}
+          <span className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+            <span
+              className={`font-black text-slate-800 dark:text-slate-100 tracking-tight truncate ${
+                compact ? 'text-xs' : 'text-sm'
+              }`}
+            >
+              {skill.name}
+            </span>
+            <span className="inline-flex items-center shrink-0 leading-none">
+              <ElementBadge element={skillElement} size="xs" />
+            </span>
           </span>
 
           {/* 参考站同款双徽章：与技能名同一行 */}

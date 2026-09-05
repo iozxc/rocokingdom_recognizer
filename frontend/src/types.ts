@@ -30,6 +30,7 @@ export interface PetSkillInfo {
   damage_kind?: '物理' | '魔法' | '真实' | null;
   energy_cost?: number | null;
   power?: number | null;
+  glossary?: string[]; // 命中的术语 id（对应 glossary.json）
   icon_url?: string;
 }
 

@@ -66,6 +66,7 @@ def _resolve_pet_info(meta, traits):
             "damage_kind": s.get("damage_kind"),
             "energy_cost": s.get("energy_cost"),
             "power": s.get("power"),
+            "glossary": s.get("glossary") or [],
             "icon_url": url_for("main.ts_icon_file", filename=sid, _external=True),
         })
     return {"trait": trait, "skills": skills}
