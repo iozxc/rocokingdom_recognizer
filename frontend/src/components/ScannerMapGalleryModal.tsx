@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
     X,
     Layers,
@@ -8,6 +8,7 @@ import {
     BookOpen,
     Filter,
     ArrowRight,
+    Slash,
     Sun,
     Moon,
     History,
@@ -22,6 +23,7 @@ import { ElementBadges } from './ElementBadges';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
 import { PetSprite } from './PetSprite';
 import { PetSpecialTag } from './PetSpecialTag';
+import { MiniPetSkillTip } from './MiniPetSkillTip';
 import { petKeyOf } from '../services/atlasCollector';
 
 interface ScannerMapGalleryModalProps {
@@ -77,6 +79,9 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
         specialTypes: [],
     });
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+    const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [tipInfo, setTipInfo] = useState<{ pet: PetItem; x: number; y: number; left: boolean } | null>(null);
+    const [showSkillHover, setShowSkillHover] = useState<boolean>(() => storage.getSetting<boolean>('showPetSkillHover', true));
 
     // 监听主题变更，强制重渲染以刷新切换按钮的 icon/提示
     useEffect(() => {
@@ -84,10 +89,42 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
       return () => unsub();
     }, []);
 
+    // 同步「悬浮展示精灵技能」开关（与首页图鉴/设置面板共用同一份设置）
+    useEffect(() => {
+      const unsub = storage.subscribeSettings((settings) => {
+        if (typeof settings.showPetSkillHover === 'boolean') {
+          setShowSkillHover(settings.showPetSkillHover);
+        }
+      });
+      return unsub;
+    }, []);
+
     // 试炼地图配置：默认草系；火系等试炼由调用方传入
     const galleryMaps = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
 
     const activeAdvancedCount = advancedFilters.elements.length + advancedFilters.specialTypes.length;
+
+    const showTip = (pet: PetItem, e: React.MouseEvent<HTMLElement>) => {
+        if (!showSkillHover) return;
+        if (tipTimer.current) clearTimeout(tipTimer.current);
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        tipTimer.current = setTimeout(() => {
+            const left = rect.right > window.innerWidth - 240;
+            setTipInfo({ pet, x: rect.right, y: rect.top + rect.height / 2, left });
+        }, 400);
+    };
+
+    const hideTip = () => {
+        if (tipTimer.current) clearTimeout(tipTimer.current);
+        setTipInfo(null);
+    };
+
+    const handleToggleSkillHover = () => {
+        sound.playClick();
+        const next = !showSkillHover;
+        setShowSkillHover(next);
+        storage.setSetting('showPetSkillHover', next);
+    };
 
     const isEncountered = (mapId: string, filename: string): boolean => {
         return isPetEncounteredInRecords(records, mapId, filename);
@@ -223,6 +260,18 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0 pywebview-no-drag">
+                    <button
+                        type="button"
+                        id="gallery-skill-hover-switch-btn"
+                        onClick={handleToggleSkillHover}
+                        className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center justify-center transition-all cursor-pointer border-2 border-white/40 shrink-0"
+                        title={showSkillHover ? '关闭悬浮展示精灵技能' : '开启悬浮展示精灵技能'}
+                    >
+                        <span className="relative inline-flex items-center justify-center w-3.5 h-3.5">
+                            <Sparkles className={`w-3.5 h-3.5 transition-colors duration-200 ${showSkillHover ? 'text-[#FEE061]' : 'text-white/50'}`} />
+                            {!showSkillHover && <Slash className="absolute w-3.5 h-3.5 text-white/90 stroke-[3]" />}
+                        </span>
+                    </button>
                     <button
                         type="button"
                         onClick={() => {
@@ -419,6 +468,8 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                 <div
                                     key={`${mapId}_${pet.name}`}
                                     onClick={() => handleToggle(mapId, pet.name)}
+                                    onMouseEnter={(e) => showTip(pet, e)}
+                                    onMouseLeave={hideTip}
                                     className={`group relative p-2 rounded-2xl flex flex-col items-center cursor-pointer transition-all border-2 select-none roco-card-interactive ${
                                         isEnc
                                             ? 'bg-[#F2FBF0] dark:bg-emerald-950/40 border-[#95D151] dark:border-emerald-600'
@@ -625,6 +676,19 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                     返回识别
                 </button>
             </div>
+
+            {showSkillHover && tipInfo && (tipInfo.pet.trait?.name || (tipInfo.pet.skills && tipInfo.pet.skills.length)) && (
+                <div
+                    className="fixed z-[100] pointer-events-none"
+                    style={{
+                        top: Math.min(Math.max(tipInfo.y - 140, 8), Math.max(8, window.innerHeight - 320)),
+                        left: tipInfo.left ? undefined : tipInfo.x + 10,
+                        right: tipInfo.left ? Math.max(10, window.innerWidth - tipInfo.x + 10) : undefined,
+                    }}
+                >
+                    <MiniPetSkillTip pet={tipInfo.pet} />
+                </div>
+            )}
         </div>
     );
 };

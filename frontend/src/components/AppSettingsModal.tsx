@@ -554,6 +554,25 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </div>
                 </div>
               )}
+            {view === 'system' && (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">精灵技能悬浮提示</div>
+                      <div className="text-[10px] text-slate-400">图鉴/识别窗口 hover 时展示迷你技能与特性</div>
+                    </div>
+                    <button
+                        type="button"
+                        id="system-skill-hover-switch-btn"
+                        onClick={handleTogglePetSkillHover}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showPetSkillHover ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                        title={showPetSkillHover ? '点击关闭技能悬浮提示' : '点击开启技能悬浮提示'}
+                    >
+                      <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showPetSkillHover ? 'translate-x-4' : 'translate-x-0'}`} />
+                    </button>
+                  </div>
+                </div>
+            )}
             </div>
 
             {/* 主菜单 */}
@@ -705,29 +724,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   移至顶栏
                 </button>
               </div>
-            </div>
-
-            {/* 精灵技能悬浮提示开关 */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
-                  <Info className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">精灵技能悬浮提示</div>
-                  <div className="text-[10px] text-slate-400">在卡片右侧悬停展示特性与 4 个技能</div>
-                </div>
-              </div>
-              <button
-                  type="button"
-                  onClick={handleTogglePetSkillHover}
-                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showPetSkillHover ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
-                  title={showPetSkillHover ? '点击关闭技能悬浮提示' : '点击开启技能悬浮提示'}
-              >
-                <span
-                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showPetSkillHover ? 'translate-x-4' : 'translate-x-0'}`}
-                />
-              </button>
             </div>
 
             {/* Section 3: 截图方式（web 版隐藏） */}
