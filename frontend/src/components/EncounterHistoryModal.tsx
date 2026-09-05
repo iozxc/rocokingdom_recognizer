@@ -254,7 +254,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                 }`}
               >
                 <Check className="w-3 h-3 stroke-[3]" />
-                已点亮 ({encounteredCount})
+                已遇见 ({encounteredCount})
               </button>
               <button
                 type="button"
