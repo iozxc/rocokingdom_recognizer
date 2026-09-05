@@ -262,7 +262,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ auth, onClose }) => {
                 <Loader2 className="w-10 h-10 mx-auto text-sky-500 animate-spin" />
                 <h2 className="mt-4 text-lg font-black text-slate-800">等待设备授权</h2>
                 <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-                  请前往官方 QQ 群，<span className="text-sky-600 font-bold">@又又</span>或者<span className="text-sky-600 font-bold">直接发送</span> 以下指令完成绑定：
+                  请前往官方 QQ 群<span className="text-sky-600 font-bold">发送</span> 以下指令完成绑定：
                 </p>
                 <div className="mt-5 rounded-2xl bg-sky-50 border border-sky-200 px-4 py-3">
                   <div className="text-[11px] uppercase tracking-wide text-slate-400 font-bold">Bind 指令</div>
