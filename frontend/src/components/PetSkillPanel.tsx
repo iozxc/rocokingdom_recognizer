@@ -1,129 +1,288 @@
-import React from 'react';
-import { Star, Swords, Shield, Sparkles, Atom, Crown, Layers } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import {
+  Swords,
+  Shield,
+  Sparkles,
+  Crown,
+  Layers,
+} from 'lucide-react';
 import { PetItem, PetSkillInfo } from '../types';
 import { getPetSpecialType, formatPetName } from '../utils/petHelper';
+import { ElementBadges, ElementBadge } from './ElementBadges';
 import { getElementColor } from '../utils/elements';
+import { resolvePetSkillsAndTrait } from '../data/petSkillMock';
 
 interface PetSkillPanelProps {
   pet: PetItem;
   className?: string;
-  /** 用于 hover 弹出的小面板，隐藏标题装饰，更紧凑。 */
+  /** 用于 hover 弹出的小面板，隐藏复杂筛选，保留轻量核心信息。 */
+  compact?: boolean;
+  /** 是否展示精灵名称标题栏（在已包含精灵标题的 Modal 中可关闭）。 */
+  showHeader?: boolean;
+}
+
+export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
+  pet,
+  className = '',
+  compact = false,
+  showHeader = true,
+}) => {
+  const [activeTab, setActiveTab] = useState<'all' | 'trait' | 'attack' | 'support'>('all');
+  const specialType = getPetSpecialType(pet);
+  const displayName = formatPetName(pet.name);
+  const defaultElement = pet.elements?.[0] || '普通';
+
+  // 智能补齐特性与技能数据（优先自带，缺失时根据系别自适应解析）
+  const { trait, skills } = useMemo(() => resolvePetSkillsAndTrait(pet), [pet]);
+
+  // 技能分类过滤
+  const filteredSkills = useMemo(() => {
+    if (activeTab === 'attack') {
+      return skills.filter((s) => s.skill_type === '攻击');
+    }
+    if (activeTab === 'support') {
+      return skills.filter((s) => s.skill_type === '防御' || s.skill_type === '状态' || s.skill_type === '其他');
+    }
+    if (activeTab === 'trait') {
+      return [];
+    }
+    return skills;
+  }, [skills, activeTab]);
+
+  const attackCount = useMemo(() => skills.filter((s) => s.skill_type === '攻击').length, [skills]);
+  const supportCount = useMemo(() => skills.filter((s) => s.skill_type !== '攻击').length, [skills]);
+
+  return (
+    <div
+      id={`pet-skill-panel-${pet.id || pet.name}`}
+      className={`overflow-hidden flex flex-col transition-all text-slate-800 dark:text-slate-100 ${
+        showHeader
+          ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xl'
+          : ''
+      } ${className}`}
+    >
+      {/* 顶部标题栏 */}
+      {showHeader && (
+        <div className={`border-b border-slate-100 dark:border-slate-800/80 bg-gradient-to-r from-sky-50/70 via-blue-50/40 to-transparent dark:from-slate-800/60 dark:to-slate-900/40 flex items-center justify-between gap-2 ${
+          compact ? 'px-3 py-1.5' : 'px-3.5 py-2'
+        }`}>
+          <div className="flex items-center gap-2 min-w-0">
+            {pet.elements && pet.elements.length > 0 ? (
+              <ElementBadges elements={pet.elements} size="sm" horizontal />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-[10px] font-bold">
+                宠
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate flex items-center gap-1.5">
+                <span>{displayName}</span>
+                {specialType && (
+                  <span
+                    className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${
+                      specialType === 'boss'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                        : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                    }`}
+                  >
+                    {specialType === 'boss' ? <Crown className="w-2.5 h-2.5" /> : <Layers className="w-2.5 h-2.5" />}
+                    {specialType === 'boss' ? '首领' : '多形态'}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 选项卡切换（仅在非 compact 模式下完整呈现） */}
+      {!compact && (
+        <div className="px-3 pt-2 pb-1 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] overflow-x-auto select-none no-scrollbar">
+          <button
+            id="skill-tab-all"
+            type="button"
+            onClick={() => setActiveTab('all')}
+            className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 cursor-pointer ${
+              activeTab === 'all'
+                ? 'bg-sky-500 text-white shadow-xs shadow-sky-500/30'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            全部 ({skills.length + (trait?.name ? 1 : 0)})
+          </button>
+          {trait?.name && (
+            <button
+              id="skill-tab-trait"
+              type="button"
+              onClick={() => setActiveTab('trait')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
+                activeTab === 'trait'
+                  ? 'bg-amber-500 text-white shadow-xs shadow-amber-500/30'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Sparkles className="w-3 h-3 text-amber-300" />
+              特性
+            </button>
+          )}
+          <button
+            id="skill-tab-attack"
+            type="button"
+            onClick={() => setActiveTab('attack')}
+            className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
+              activeTab === 'attack'
+                ? 'bg-rose-500 text-white shadow-xs shadow-rose-500/30'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Swords className="w-3 h-3" />
+            攻击 ({attackCount})
+          </button>
+          <button
+            id="skill-tab-support"
+            type="button"
+            onClick={() => setActiveTab('support')}
+            className={`px-2.5 py-1 rounded-lg font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
+              activeTab === 'support'
+                ? 'bg-emerald-500 text-white shadow-xs shadow-emerald-500/30'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Shield className="w-3 h-3" />
+            辅助/防御 ({supportCount})
+          </button>
+        </div>
+      )}
+
+      {/* 技能与特性区域：紧凑排版，无多余大边框，严格阻止横向溢出 */}
+      <div
+        className={`${compact ? 'p-2.5 space-y-2' : 'p-3.5 space-y-2.5 max-h-[480px] overflow-y-auto'} overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700`}
+      >
+        {/* 固有特性卡片 */}
+        {(activeTab === 'all' || activeTab === 'trait') && trait?.name && (
+          <div
+            id={`trait-card-${trait.id || trait.name}`}
+            className={`group/trait relative overflow-hidden rounded-xl border border-amber-400/30 dark:border-amber-500/25 bg-gradient-to-br from-amber-50/80 via-orange-50/40 to-transparent dark:from-amber-950/30 dark:via-slate-900/60 dark:to-slate-900 transition-all hover:border-amber-400/60 ${
+              compact ? 'p-1.5' : 'p-2'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="flex items-center justify-center w-4 h-4 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                  <Sparkles className="w-2.5 h-2.5" />
+                </span>
+                <span className="text-[11px] font-black text-amber-800 dark:text-amber-200 truncate">
+                  {trait.name}
+                </span>
+              </div>
+              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0">
+                特性
+              </span>
+            </div>
+
+            <p className={`text-slate-600 dark:text-slate-300 font-normal leading-snug ${
+              compact ? 'mt-0.5 text-[10.5px]' : 'mt-1 text-xs leading-relaxed'
+            }`}>
+              {trait.desc || '入场即生效的专属常驻被动能力。'}
+            </p>
+          </div>
+        )}
+
+        {/* 技能列表：采用参考图虚线分隔设计 */}
+        <div className="divide-y divide-dashed divide-slate-200/90 dark:divide-slate-800/90">
+          {filteredSkills.map((skill) => (
+            <SkillCard
+              key={skill.sid + skill.name}
+              skill={skill}
+              defaultElement={defaultElement}
+              compact={compact}
+            />
+          ))}
+        </div>
+
+        {filteredSkills.length === 0 && activeTab !== 'trait' && (
+          <div className="text-center py-4 text-xs text-slate-400 dark:text-slate-500">
+            暂无该分类技能
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface SkillCardProps {
+  skill: PetSkillInfo;
+  defaultElement: string;
   compact?: boolean;
 }
 
-function skillTypeIcon(type?: string) {
-  if (type === '攻击') return <Swords className="w-3 h-3" />;
-  if (type === '防御') return <Shield className="w-3 h-3" />;
-  if (type === '状态') return <Sparkles className="w-3 h-3" />;
-  return <Atom className="w-3 h-3" />;
-}
+const SkillCard: React.FC<SkillCardProps> = ({ skill, defaultElement, compact }) => {
+  const skillElement = skill.element || defaultElement;
+  const elementStyle = getElementColor(skillElement);
 
-function ElementBadge({ element }: { element?: string }) {
-  if (!element) return null;
-  const c = getElementColor(element);
   return (
-      <span
-          className="inline-flex items-center justify-center w-5 h-5 rounded-md text-white text-[10px] font-black shrink-0"
-          style={{ backgroundColor: c.bg, color: c.fg || '#fff' }}
-          title={element}
-      >
-        {element.slice(0, 1)}
-      </span>
-  );
-}
-
-function SkillRow({ skill }: { skill: PetSkillInfo }) {
-  const isAttack = skill.skill_type === '攻击';
-  return (
-      <div className="flex items-start gap-2.5 px-2.5 py-2 rounded-xl bg-[#F8FAFC] dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70">
-        <div className="w-9 h-9 rounded-lg bg-slate-900 dark:bg-slate-900 flex items-center justify-center text-white shrink-0 overflow-hidden">
-          <ElementBadge element={skill.element} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">{skill.name}</span>
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-amber-600 dark:text-amber-400">
-              <Star className="w-2.5 h-2.5 fill-current" />
-              {skill.energy_cost ?? '—'}
+    <div
+      id={`skill-row-${skill.sid || skill.name}`}
+      className={`group/skill relative transition-colors ${
+        compact ? 'py-1.5 first:pt-0.5 last:pb-0' : 'py-2 first:pt-1 last:pb-0'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-1.5 min-w-0">
+        {/* 左侧：技能名称与伤害类型 */}
+        <div className="flex items-center gap-1.5 min-w-0 shrink overflow-hidden">
+          <span
+            className={`font-black text-slate-800 dark:text-slate-100 tracking-tight truncate ${
+              compact ? 'text-xs' : 'text-sm'
+            }`}
+          >
+            {skill.name}
+          </span>
+          {skill.damage_kind && (
+            <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 shrink-0 leading-none">
+              {skill.damage_kind}
             </span>
-            {skill.element && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                  <ElementBadge element={skill.element} />
-                  {skill.element}
-                </span>
-            )}
-            {isAttack && skill.power != null && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-600 dark:text-rose-400">
-                  <Swords className="w-2.5 h-2.5" />
-                  {skill.power}
-                </span>
-            )}
-            {skill.damage_kind && (
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{skill.damage_kind}</span>
-            )}
-            {skill.skill_type && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-sky-600 dark:text-sky-400">
-                  {skillTypeIcon(skill.skill_type)}
-                  {skill.skill_type}
-                </span>
-            )}
+          )}
+        </div>
+
+        {/* 右侧：高度整合的现代游戏 HUD 规格条【★能耗 | 系别+威力】，彻底消除散乱药丸与突兀白圈 */}
+        <div
+          className="inline-flex items-center h-5 rounded-md overflow-hidden border border-slate-200/90 dark:border-slate-700/80 shadow-2xs shrink-0 select-none whitespace-nowrap"
+          title={`能量消耗: ${skill.energy_cost ?? 1} | ${skillElement}系技能，威力: ${
+            skill.power != null && skill.power > 0 ? skill.power : '无/变化'
+          }`}
+        >
+          {/* 能耗区：深色石墨黑底 + 晶亮金星 + 纯白数字 */}
+          <div className="h-full px-1.5 flex items-center gap-0.5 bg-slate-800 dark:bg-slate-850 text-white font-mono font-bold text-[10px] border-r border-slate-700/70 shrink-0">
+            <span className="text-amber-300 text-[9px] leading-none select-none">★</span>
+            <span className="leading-none">{skill.energy_cost ?? 1}</span>
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5 line-clamp-2">
-            {skill.desc || '暂无描述'}
-          </p>
+
+          {/* 系别+威力区：官方属性专属色 + 原生官方徽标(无突兀白圈) + 纯白/高对比度威力值 */}
+          <div
+            className="h-full px-1.5 flex items-center gap-1 font-mono font-bold text-[10px] shrink-0"
+            style={{
+              backgroundColor: elementStyle.bg,
+              color: elementStyle.fg || '#ffffff',
+            }}
+          >
+            <div className="shrink-0 flex items-center justify-center">
+              <ElementBadge element={skillElement} size="xs" />
+            </div>
+            <span className="leading-none tracking-tight drop-shadow-2xs">
+              {skill.power != null && skill.power > 0 ? skill.power : '—'}
+            </span>
+          </div>
         </div>
       </div>
-  );
-}
 
-export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({ pet, className = '', compact = false }) => {
-  const specialType = getPetSpecialType(pet);
-  const displayName = formatPetName(pet.name);
-  const hasData = pet.trait?.name || (pet.skills && pet.skills.length > 0);
-
-  return (
-      <div className={`bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden ${className}`}>
-        <div className="px-3 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-[#F5F9FF] dark:bg-slate-800/80">
-          <div className="w-7 h-7 rounded-lg bg-[#2B78C4] text-white flex items-center justify-center shrink-0">
-            <Atom className="w-4 h-4" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-black text-slate-800 dark:text-slate-100 truncate">
-              {displayName}
-            </div>
-            <div className="flex items-center gap-1.5">
-              {specialType && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-600 dark:text-amber-300">
-                    {specialType === 'boss' ? <Crown className="w-3 h-3" /> : <Layers className="w-3 h-3" />}
-                    {specialType === 'boss' ? '首领化' : '多形态'}
-                  </span>
-              )}
-              {pet.trait?.name && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400">
-                    <Sparkles className="w-3 h-3" />
-                    特性 · {pet.trait.name}
-                  </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className={`p-2.5 space-y-1.5 overflow-y-auto ${compact ? 'max-h-60' : 'max-h-72'}`}>
-          {!hasData && (
-              <div className="text-center text-xs text-slate-400 py-4">该精灵暂无可展示的技能数据</div>
-          )}
-          {pet.trait?.desc && (
-              <div className="px-2.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 text-[11px] text-emerald-800 dark:text-emerald-300 leading-snug">
-                <span className="font-black">特性 · {pet.trait.name}：</span>
-                {pet.trait.desc}
-              </div>
-          )}
-          {(pet.skills || []).map((skill) => (
-              <React.Fragment key={skill.sid + skill.name}>
-                <SkillRow skill={skill} />
-              </React.Fragment>
-          ))}
-        </div>
-      </div>
+      {/* 技能描述：排版整齐自然，不换行截断，字号紧凑 */}
+      <p
+        className={`text-slate-600 dark:text-slate-300 font-normal leading-snug ${
+          compact ? 'mt-0.5 text-[10px]' : 'mt-1 text-xs leading-relaxed'
+        }`}
+      >
+        {skill.desc || '对敌方精灵造成属性伤害与对战效果。'}
+      </p>
+    </div>
   );
 };

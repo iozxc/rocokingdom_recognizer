@@ -16,7 +16,7 @@ interface ElementBadgesProps {
 }
 
 /** 单个属性图标：优先显示官方图标，失败时回退彩色徽章。 */
-const ElementBadge: React.FC<{ element: string; size: 'xs' | 'sm' | 'md' | 'lg' }> = ({ element, size }) => {
+export const ElementBadge: React.FC<{ element: string; size: 'xs' | 'sm' | 'md' | 'lg' }> = ({ element, size }) => {
   const [failed, setFailed] = useState(false);
   const style = getElementColor(element);
   const px = size === 'lg' ? 30 : size === 'md' ? 24 : size === 'sm' ? 20 : 14;

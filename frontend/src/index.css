@@ -279,6 +279,9 @@ html.theme-switching *::after {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
 
 /* Highlight Target Pet Animation */
 @keyframes target-pulse {

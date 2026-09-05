@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Check, RotateCcw, Sparkles } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { X, Check, RotateCcw, Sparkles, Crown, Layers, Calendar, FileText, Info } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { MapConfig, PetItem, EncounterRecord } from '../types';
 import { sound } from '../services/sound';
@@ -7,8 +7,9 @@ import { IS_STATIC } from '../services/staticMode';
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
 import { PetSkillPanel } from './PetSkillPanel';
-import { formatPetName } from '../utils/petHelper';
+import { formatPetName, getPetSpecialType } from '../utils/petHelper';
 import { createSvgPetAvatar } from '../data/mockPets';
+import { getElementColor } from '../utils/elements';
 
 interface PetDetailModalProps {
   isOpen: boolean;
@@ -28,31 +29,52 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
   record,
   onToggleEncounter,
 }) => {
+  // 监听 ESC 键关闭
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !pet) return null;
 
   const isEncountered = !!record?.encountered;
   const displayName = formatPetName(pet.displayName || pet.name);
-  // 图片加载失败时兜底的通用头像（避免空白 / 无限重试）
+  const specialType = getPetSpecialType(pet);
+  const primaryElement = pet.elements?.[0] || '草';
+  const elementStyle = getElementColor(primaryElement);
+
+  // 图片加载失败时兜底的通用头像
   const fallbackAvatar = createSvgPetAvatar(
-      displayName,
-      '普',
-      (Number(pet.id) || 1) * 47 % 360,
-      '#7ABCF4',
-      '⭐'
+    displayName,
+    primaryElement.slice(0, 1),
+    (Number(pet.id) || 1) * 47 % 360,
+    elementStyle.bg,
+    '⭐'
   );
 
   const formatTime = (iso?: string): string => {
     if (!iso) return '未知';
     const date = new Date(iso);
     if (isNaN(date.getTime())) return iso;
-    return date.toLocaleString('zh-CN', { hour12: false });
+    return date.toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const handleToggle = () => {
     sound.playClick();
     if (!isEncountered) {
       sound.playEncounter();
-      confetti({ particleCount: 50, spread: 50 });
+      confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
     } else {
       sound.playToggleOff();
     }
@@ -61,120 +83,177 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
 
   return (
     <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
-        onWheel={(e) => e.stopPropagation()}
+      id="pet-detail-modal-overlay"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-950/65 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
+      onWheel={(e) => e.stopPropagation()}
     >
       <div
-        className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl p-6 overflow-hidden animate-in fade-in zoom-in-95 duration-200 transition-colors"
+        id="pet-detail-modal-container"
+        className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[92vh] animate-in zoom-in-95 duration-200 text-slate-800 dark:text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
+        {/* 顶部/右上角关闭按钮 */}
         <button
+          id="pet-detail-close-btn"
+          type="button"
           onClick={() => {
             sound.playClick();
             onClose();
           }}
-          className="absolute top-4 right-4 p-2 rounded-2xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-[#F5F9FF] dark:hover:bg-slate-800 transition-colors"
+          className="absolute top-3.5 right-3.5 z-20 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-white/80 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-xs cursor-pointer"
+          title="关闭 (Esc)"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Pet Visual Display */}
-        <div className="flex flex-col items-center text-center mt-2">
-          <div className="relative w-36 h-36 rounded-3xl bg-[#F5F9FF] dark:bg-slate-800 border-3 border-[#E6EEF8] dark:border-slate-700 p-4 shadow-inner flex items-center justify-center">
-            {IS_STATIC && pet.sprite ? (
+        {/* 左栏：精灵立绘卡片与图鉴遇见标记 (约 280px 宽度) */}
+        <div className="w-full md:w-[290px] shrink-0 p-5 md:p-6 flex flex-col items-center border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800 bg-gradient-to-b from-slate-50/80 via-white to-sky-50/30 dark:from-slate-800/40 dark:via-slate-900 dark:to-slate-900 overflow-y-auto">
+          {/* 精灵立绘框 */}
+          <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-3xl p-3 flex items-center justify-center group/sprite">
+            {/* 系别环境柔和光晕底纹 */}
+            <div
+              className="absolute inset-2 rounded-3xl opacity-20 blur-xl transition-all duration-300 group-hover/sprite:opacity-35"
+              style={{ backgroundColor: elementStyle.bg }}
+            />
+            <div className="relative z-10 w-full h-full rounded-2xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 p-3 shadow-sm flex items-center justify-center overflow-hidden">
+              {IS_STATIC && pet.sprite ? (
                 <PetSprite
-                    pet={pet}
-                    alt={displayName}
-                    className="w-full h-full object-contain"
+                  pet={pet}
+                  alt={displayName}
+                  className="w-full h-full object-contain transition-transform duration-300 group-hover/sprite:scale-110 select-none"
                 />
-            ) : (
+              ) : (
                 <img
-                    src={pet.url || fallbackAvatar}
-                    alt={displayName}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      const el = e.target as HTMLImageElement;
-                      if (!el.src.endsWith('svg+xml')) {
-                        (e.target as HTMLImageElement).src = fallbackAvatar;
-                      }
-                    }}
+                  src={pet.url || fallbackAvatar}
+                  alt={displayName}
+                  className="w-full h-full object-contain transition-transform duration-300 group-hover/sprite:scale-110 select-none"
+                  onError={(e) => {
+                    const el = e.target as HTMLImageElement;
+                    if (!el.src.endsWith('svg+xml')) {
+                      el.src = fallbackAvatar;
+                    }
+                  }}
                 />
-            )}
-            {/* Green Checkmark Badge at Bottom Left */}
-            {isEncountered && (
-              <div className="encountered-badge-check scale-120">
-                <Check className="w-4 h-4 text-white stroke-[3.5]" />
-              </div>
-            )}
-          </div>
+              )}
 
-          <div className="mt-4 text-center">
-            <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">
-              {displayName}
-            </h3>
-            {pet.id != null && (
-                <p className="text-xs font-bold text-[#7ABCF4] dark:text-sky-400 mt-1">
-                  图鉴编号 #{pet.id}
-                </p>
-            )}
-            {pet.elements && pet.elements.length > 0 && (
-                <div className="mt-2 flex justify-center">
-                  <ElementBadges elements={pet.elements} size="md" horizontal />
+              {/* 已遇见专属绿色浮标 */}
+              {isEncountered && (
+                <div
+                  id="pet-detail-encountered-badge"
+                  className="absolute bottom-2 left-2 flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white shadow-md ring-2 ring-white dark:ring-slate-800"
+                  title="已在图鉴中点亮遇见"
+                >
+                  <Check className="w-4 h-4 stroke-[3]" />
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* 名称与编号 */}
+          <div className="mt-3 text-center w-full">
+            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+              <h2 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+                {displayName}
+              </h2>
+              {specialType && (
+                <span
+                  className={`inline-flex items-center gap-0.5 text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                    specialType === 'boss'
+                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                      : 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30'
+                  }`}
+                >
+                  {specialType === 'boss' ? <Crown className="w-3 h-3" /> : <Layers className="w-3 h-3" />}
+                  {specialType === 'boss' ? '首领化' : '多形态'}
+                </span>
+              )}
+            </div>
+
+            {pet.id != null && (
+              <p className="text-xs font-bold text-sky-600 dark:text-sky-400 mt-1">
+                洛克图鉴编号 #{String(pet.id).padStart(3, '0')}
+              </p>
+            )}
+
+            {/* 属性展示 */}
+            {pet.elements && pet.elements.length > 0 && (
+              <div className="mt-2.5 flex justify-center">
+                <ElementBadges elements={pet.elements} size="md" horizontal />
+              </div>
             )}
           </div>
 
-          {/* 特性 + 技能展示 */}
-          {(pet.trait?.name || (pet.skills && pet.skills.length > 0)) && (
-              <div className="mt-4 w-full">
-                <PetSkillPanel pet={pet} />
-              </div>
-          )}
-
-          {/* 遇见信息：时间与置信度/备注（来自用户记录） */}
+          {/* 遇见记录详情（如果已记录） */}
           {isEncountered && record && (
-              <div className="mt-4 w-full rounded-2xl bg-[#F5F9FF] dark:bg-slate-800 border border-[#E6EEF8] dark:border-slate-700 p-3 space-y-2 text-left">
-                <div className="flex items-center justify-between gap-2 text-xs">
-                  <span className="text-slate-500 dark:text-slate-400 font-bold shrink-0">遇见时间</span>
-                  <span className="text-slate-800 dark:text-slate-100 font-black font-mono truncate">
-                    {formatTime(record.lastSeenAt)}
+            <div className="mt-4 w-full rounded-2xl bg-sky-50/60 dark:bg-slate-800/60 border border-sky-100 dark:border-slate-700/60 p-3 space-y-1.5 text-left text-xs">
+              <div className="flex items-center justify-between gap-1 text-slate-500 dark:text-slate-400 font-semibold">
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-sky-500" />
+                  遇见时间
+                </span>
+                <span className="font-mono text-slate-700 dark:text-slate-200 font-bold">
+                  {formatTime(record.lastSeenAt)}
+                </span>
+              </div>
+              {record.note && (
+                <div className="flex items-start justify-between gap-1 pt-1 border-t border-sky-100 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-semibold">
+                  <span className="flex items-center gap-1 shrink-0">
+                    <FileText className="w-3.5 h-3.5 text-sky-500" />
+                    标记备注
+                  </span>
+                  <span className="text-right text-slate-700 dark:text-slate-200 font-medium truncate max-w-[140px]">
+                    {record.note}
                   </span>
                 </div>
-                {record.note && (
-                    <div className="flex items-start justify-between gap-2 text-xs">
-                      <span className="text-slate-500 dark:text-slate-400 font-bold shrink-0">置信度/备注</span>
-                      <span className="text-slate-800 dark:text-slate-100 font-bold text-right">
-                        {record.note}
-                      </span>
-                    </div>
-                )}
-              </div>
+              )}
+            </div>
           )}
+
+          {/* 遇见状态快捷切换按钮 */}
+          <div className="mt-auto pt-4 w-full">
+            <button
+              id="pet-detail-toggle-encounter-btn"
+              type="button"
+              onClick={handleToggle}
+              className={`w-full py-2.5 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98 ${
+                isEncountered
+                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50'
+                  : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-emerald-500/25'
+              }`}
+            >
+              {isEncountered ? (
+                <>
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>取消【已遇见】标记</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-100" />
+                  <span>点亮图鉴 · 标记已遇见</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* 右栏：战斗技能与固有特性专属面板 (自适应伸展) */}
+        <div className="flex-1 min-w-0 p-4 md:p-5 flex flex-col overflow-hidden bg-white dark:bg-slate-900">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2.5 h-5 rounded-full bg-sky-500 shrink-0" />
+            <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 tracking-tight">
+              精灵专属特性与技能全览
+            </h3>
           </div>
 
-        {/* Action Toggle Button */}
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={handleToggle}
-            className={`w-full py-3 px-4 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-              isEncountered
-                ? 'roco-btn-secondary text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
-                : 'roco-btn-success'
-            }`}
-          >
-            {isEncountered ? (
-              <>
-                <RotateCcw className="w-4 h-4" />
-                <span>取消【已遇见】标记</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                <span>点亮图鉴 · 标记为【已遇见】</span>
-              </>
-            )}
-          </button>
+          <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
+            <PetSkillPanel
+              pet={pet}
+              compact={false}
+              showHeader={false}
+              className="border-0 shadow-none bg-transparent dark:bg-transparent flex-1"
+            />
+          </div>
         </div>
       </div>
     </div>
