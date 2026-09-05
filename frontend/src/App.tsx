@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef } from 'react';
 import { Header } from './components/Header';
 import { SubHeaderToolbar } from './components/SubHeaderToolbar';
 import { StatsBanner } from './components/StatsBanner';
@@ -53,7 +53,25 @@ export default function App() {
   });
   const statsBannerWrapRef = useRef<HTMLDivElement>(null);
   const petGridWrapRef = useRef<HTMLDivElement>(null);
-  const floatingSearchCacheRef = useRef({ visible: false, top: 0 });
+  const floatingSearchCacheRef = useRef({ visible: false, top: 0, latched: false });
+  // 记录「悬浮输入时」的滚动位置，筛选列表变短导致页面收缩时仍回到原处，避免闪回顶部
+  const searchScrollCaptureRef = useRef<number | null>(null);
+
+  const handleSearchChange = (q: string) => {
+    if (floatingSearch.visible) {
+      const y = window.scrollY;
+      if (y > 0) searchScrollCaptureRef.current = y;
+    }
+    setSearchQuery(q);
+  };
+
+  const handleSearchModeChange = (m: PetSearchMode) => {
+    if (floatingSearch.visible) {
+      const y = window.scrollY;
+      if (y > 0) searchScrollCaptureRef.current = y;
+    }
+    setSearchMode(m);
+  };
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({
     elements: [],
     specialTypes: [],
@@ -335,14 +353,24 @@ export default function App() {
       // header 可能随内容滚走（sticky 受外层影响），但高度基本恒定：
       // 悬浮栏始终固定在「页面顶部往下一行 header 高度」的位置
       const headerHeight = headerEl.getBoundingClientRect().height || 56;
-      // 滑到 petgrid 卡片区（其顶部滚到 header 下方）才显示悬浮搜索，回滚则收起
       const gridRect = gridWrap.getBoundingClientRect();
-      const visible =
+      const inputEl = bannerWrap ? document.getElementById('search-pet-input') : null;
+      const inputTop = inputEl ? inputEl.getBoundingClientRect().top : Number.MAX_SAFE_INTEGER;
+      const floatingInput = document.getElementById('floating-search-pet-input');
+      const floatingFocused = !!floatingInput && document.activeElement === floatingInput;
+      // 滑到 petgrid 卡片区（其顶部滚到 header 下方）才显示悬浮搜索
+      const gridReached =
           window.scrollY > 4 &&
           gridRect.top < headerHeight + 4 &&
           gridRect.bottom > headerHeight + 4;
-      const top = headerHeight + 8;
+      // 原搜索行重新回到视野
+      const bannerSearchVisible = inputTop >= headerHeight + 4;
       const cache = floatingSearchCacheRef.current;
+      // 一旦进入 petgrid 即锁定显示；回到顶部搜索行且悬浮框未聚焦时才收起
+      if (gridReached) cache.latched = true;
+      if (cache.latched && bannerSearchVisible && !floatingFocused) cache.latched = false;
+      const visible = cache.latched || floatingFocused || gridReached;
+      const top = headerHeight + 8;
       if (cache.visible !== visible || Math.abs(cache.top - top) > 0.5) {
         cache.visible = visible;
         cache.top = top;
@@ -356,12 +384,29 @@ export default function App() {
     update();
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
+    window.addEventListener('focusout', schedule);
+    window.addEventListener('focusin', schedule);
     return () => {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
+      window.removeEventListener('focusout', schedule);
+      window.removeEventListener('focusin', schedule);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
+
+  // 在悬浮搜索里输入时，页面筛选后高度骤降会被浏览器钳回顶部；
+  // 这里在下一帧绘制前把滚动位置恢复到原来的位置（若页面仍足够高）。
+  useLayoutEffect(() => {
+    const captured = searchScrollCaptureRef.current;
+    if (captured == null) return;
+    searchScrollCaptureRef.current = null;
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const target = Math.min(captured, maxScroll);
+    if (Math.abs(window.scrollY - target) > 1) {
+      window.scrollTo(0, target);
+    }
+  }, [searchQuery, searchMode]);
 
   // Current Map configuration
   const currentMap: MapConfig = useMemo(() => {
@@ -641,12 +686,12 @@ export default function App() {
                     totalMapPets={currentMapPets.length}
                     pets={currentMapPets}
                     searchMode={searchMode}
-                    onSearchModeChange={setSearchMode}
+                    onSearchModeChange={handleSearchModeChange}
                     percentage={currentMapStats.percentage}
                     filterMode={filterMode}
                     onFilterChange={(mode) => setFilterMode(mode)}
                     searchQuery={searchQuery}
-                    onSearchChange={(q) => setSearchQuery(q)}
+                    onSearchChange={handleSearchChange}
                     onResetEncounters={handleResetCurrentMap}
                     onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
                     dataUpdateAvailable={dataUpdateAvailable}
@@ -670,7 +715,7 @@ export default function App() {
                 )}
 
                 {/* Map Pets Grid */}
-                <div ref={petGridWrapRef}>
+                <div ref={petGridWrapRef} className={searchQuery.trim() ? 'min-h-[80vh]' : undefined}>
                 <PetGrid
                     currentMap={currentMap}
                     pets={currentMapPets}
@@ -709,8 +754,8 @@ export default function App() {
                       pets={currentMapPets}
                       searchQuery={searchQuery}
                       searchMode={searchMode}
-                      onSearchChange={setSearchQuery}
-                      onSearchModeChange={setSearchMode}
+                      onSearchChange={handleSearchChange}
+                      onSearchModeChange={handleSearchModeChange}
                       containerClassName="relative w-full"
                       inputId="floating-search-pet-input"
                   />

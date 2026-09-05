@@ -8,7 +8,7 @@ import webview
 from core.infra.logger import logger
 
 # 主窗口的默认配置尺寸；低分辨率屏幕下会自动降级为全屏
-_MAIN_WINDOW_WIDTH = 1650
+_MAIN_WINDOW_WIDTH = 1680
 _MAIN_WINDOW_HEIGHT = 1080
 _MAIN_WINDOW_MIN_WIDTH = 555
 _MAIN_WINDOW_MIN_HEIGHT = 300
