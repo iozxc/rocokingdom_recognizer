@@ -230,7 +230,7 @@ export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
               <p className={`text-slate-600 dark:text-slate-300 font-normal leading-snug ${
                 compact ? 'mt-0.5 text-[10.5px]' : 'mt-1 text-xs leading-relaxed'
               }`}>
-                {trait.desc || '入场即生效的专属常驻被动能力。'}
+                <GlossaryRichText text={trait.desc || '入场即生效的专属常驻被动能力。'} ids={trait.glossary} interactive={!compact} />
               </p>
             </div>
           </div>

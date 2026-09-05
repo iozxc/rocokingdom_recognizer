@@ -12,6 +12,8 @@ export interface SkillSuggestion {
   kind: 'skill' | 'trait';
   name: string;
   desc: string;
+  /** 命中的术语 id（对应 glossary.json），技能/特性可能为空。 */
+  termIds: string[];
   /** 当前关卡中拥有该技能/特性的精灵数量。 */
   petCount: number;
 }
@@ -20,7 +22,8 @@ function pushCatalogEntry(
     map: Map<string, SkillSuggestion>,
     kind: 'skill' | 'trait',
     name: string,
-    desc: string
+    desc: string,
+    termIds: string[]
 ): void {
   const key = `${kind}:${name}`;
   const prev = map.get(key);
@@ -30,8 +33,14 @@ function pushCatalogEntry(
     if ((desc || '').length > (prev.desc || '').length) {
       prev.desc = desc || '';
     }
+    // 术语 id 取并集，保证下拉候选里的术语标识完整
+    if (termIds && termIds.length > 0) {
+      const set = new Set(prev.termIds);
+      termIds.forEach((id) => set.add(id));
+      prev.termIds = Array.from(set);
+    }
   } else {
-    map.set(key, { kind, name, desc: desc || '', petCount: 1 });
+    map.set(key, { kind, name, desc: desc || '', termIds: termIds || [], petCount: 1 });
   }
 }
 
@@ -45,11 +54,11 @@ export function buildSkillCatalog(pets: PetItem[]): SkillSuggestion[] {
   for (const pet of pets) {
     const { trait, skills } = resolvePetSkillsAndTrait(pet);
     if (trait?.name) {
-      pushCatalogEntry(map, 'trait', trait.name, trait.desc || '');
+      pushCatalogEntry(map, 'trait', trait.name, trait.desc || '', trait.glossary || []);
     }
     for (const skill of skills) {
       if (skill?.name) {
-        pushCatalogEntry(map, 'skill', skill.name, skill.desc || '');
+        pushCatalogEntry(map, 'skill', skill.name, skill.desc || '', skill.glossary || []);
       }
     }
   }

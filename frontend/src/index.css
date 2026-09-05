@@ -373,3 +373,17 @@ html.theme-switching *::after {
 .custom-roco-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #7ABCF4;
 }
+
+
+/* 术语文本高亮：下划线 + 按术语名生成的强调色（.dark 下自动切亮色） */
+.term-text-hl {
+  color: var(--term-color, #b45309);
+  text-decoration: underline dotted;
+  text-decoration-color: var(--term-color, #b45309);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+}
+.dark .term-text-hl {
+  color: var(--term-color-dark, #fbbf24);
+  text-decoration-color: var(--term-color-dark, #fbbf24);
+}

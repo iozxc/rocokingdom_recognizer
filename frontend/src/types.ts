@@ -18,6 +18,7 @@ export interface PetTraitInfo {
   id?: string;
   name: string;
   desc?: string;
+  glossary?: string[]; // 命中的术语 id（对应 glossary.json）
   icon_url?: string;
 }
 

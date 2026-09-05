@@ -50,6 +50,7 @@ def _resolve_pet_info(meta, traits):
                 "id": tid,
                 "name": t.get("name"),
                 "desc": t.get("desc"),
+                "glossary": t.get("glossary") or [],
                 "icon_url": url_for("main.ts_icon_file", filename=t.get("icon_id") or tid, _external=True),
             }
 

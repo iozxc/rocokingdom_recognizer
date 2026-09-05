@@ -12,6 +12,7 @@ import {
     Sun,
     Moon,
     History,
+    Wand2,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, AdvancedFilterState, MapConfig } from '../types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
@@ -19,11 +20,13 @@ import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { themeService } from '../services/theme';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecialType } from '../utils/petHelper';
+import { PetSearchMode, buildSkillCatalog, filterSkillCatalog, petMatchesSkillQuery } from '../utils/skillSearch';
 import { ElementBadges } from './ElementBadges';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
 import { PetSprite } from './PetSprite';
 import { PetSpecialTag } from './PetSpecialTag';
 import { MiniPetSkillTip } from './MiniPetSkillTip';
+import { TermHighlightText } from './TermHighlightText';
 import { petKeyOf } from '../services/atlasCollector';
 
 interface ScannerMapGalleryModalProps {
@@ -72,6 +75,9 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     // 'all' for full gallery, or 1, 2, 3...
     const [selectedTab, setSelectedTab] = useState<'all' | number>(initialMapNum);
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
+    const [isSkillOpen, setIsSkillOpen] = useState(false);
+    const skillSearchInputRef = useRef<HTMLInputElement>(null);
     const [filterMode, setFilterMode] = useState<'all' | 'unencountered' | 'encountered'>('all');
     const [, setThemeTick] = useState(0);
     const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({
@@ -117,6 +123,23 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     const hideTip = () => {
         if (tipTimer.current) clearTimeout(tipTimer.current);
         setTipInfo(null);
+    };
+
+    const handleToggleSearchMode = () => {
+        sound.playClick();
+        const next: PetSearchMode = searchMode === 'skill' ? 'name' : 'skill';
+        setSearchMode(next);
+        setIsSkillOpen(next === 'skill');
+        // 激活后聚焦输入框：失焦时下拉可自然收起
+        if (next === 'skill') {
+            skillSearchInputRef.current?.focus();
+        }
+    };
+
+    const handlePickSkill = (name: string) => {
+        sound.playClick();
+        setSearchQuery(name);
+        setIsSkillOpen(false);
     };
 
     const handleToggleSkillHover = () => {
@@ -191,16 +214,21 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
             });
         }
 
-        // Filter by search
+        // Filter by search（技能/特性模式按技能/特性的名称或描述命中）
         if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase().trim();
-            list = list.filter(
-                (item) =>
-                    formatPetName(item.pet.name).toLowerCase().includes(q) ||
-                    item.pet.name.toLowerCase().includes(q) ||
-                    item.mapName.toLowerCase().includes(q) ||
-                    String(item.pet.id ?? '').includes(q)
-            );
+            if (searchMode === 'skill') {
+                const q = searchQuery.trim();
+                list = list.filter((item) => petMatchesSkillQuery(item.pet, q));
+            } else {
+                const q = searchQuery.toLowerCase().trim();
+                list = list.filter(
+                    (item) =>
+                        formatPetName(item.pet.name).toLowerCase().includes(q) ||
+                        item.pet.name.toLowerCase().includes(q) ||
+                        item.mapName.toLowerCase().includes(q) ||
+                        String(item.pet.id ?? '').includes(q)
+                );
+            }
         }
 
         // Filter by encounter mode
@@ -230,7 +258,29 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
         }
 
         return list;
-    }, [isOpen, selectedTab, searchQuery, filterMode, mapsPets, records, advancedFilters]);
+    }, [isOpen, selectedTab, searchQuery, searchMode, filterMode, mapsPets, records, advancedFilters]);
+
+    // 技能/特性搜索候选池：当前标签页（或全图）内的精灵列表
+    const skillPoolPets = useMemo(() => {
+        if (!isOpen) return [] as PetItem[];
+        let pool: PetItem[] = [];
+        if (selectedTab === 'all') {
+            galleryMaps.forEach((map) => {
+                const pets = mapsPets[map.id]?.items || FALLBACK_MAPS_DATA[map.id]?.items || [];
+                pool = pool.concat(pets);
+            });
+        } else {
+            const map = galleryMaps.find((m) => m.num === selectedTab) || galleryMaps[0];
+            pool = (mapsPets[map.id]?.items || FALLBACK_MAPS_DATA[map.id]?.items || []).slice();
+        }
+        return pool;
+    }, [isOpen, selectedTab, mapsPets, galleryMaps]);
+
+    const skillCatalog = useMemo(() => buildSkillCatalog(skillPoolPets), [skillPoolPets]);
+    const skillSuggestions = useMemo(
+        () => filterSkillCatalog(skillCatalog, searchQuery),
+        [skillCatalog, searchQuery]
+    );
 
     if (!isOpen) return null;
 
@@ -369,22 +419,119 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                 {/* Search Input and Status Switch */}
                 <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-[#F0F6FC] dark:border-slate-800">
                     <div className="relative flex-1 min-w-0">
-                        <Search className="w-3 h-3 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
+                        {searchMode === 'skill' ? (
+                            <Sparkles className="w-3 h-3 text-violet-500 dark:text-violet-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        ) : (
+                            <Search className="w-3 h-3 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        )}
                         <input
+                            ref={skillSearchInputRef}
                             type="text"
-                            placeholder="搜索精灵名、图鉴id..."
+                            placeholder={searchMode === 'skill' ? '搜索技能/特性（名称或描述）...' : '搜索精灵名、图鉴id...'}
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-6 pr-5 py-1 bg-[#F8FBFE] dark:bg-slate-800 border-2 border-[#D5E3F0] dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#7ABCF4] dark:focus:border-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                if (searchMode === 'skill') setIsSkillOpen(true);
+                            }}
+                            onFocus={() => {
+                                if (searchMode === 'skill') setIsSkillOpen(true);
+                            }}
+                            onBlur={() => {
+                                setTimeout(() => setIsSkillOpen(false), 150);
+                            }}
+                            className={`w-full pl-6 ${searchQuery ? 'pr-12' : 'pr-8'} py-1 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-100 focus:outline-none transition-all ${
+                                searchMode === 'skill'
+                                    ? 'bg-violet-50/70 dark:bg-slate-800 border-2 border-violet-400/70 dark:border-violet-500/60 focus:border-violet-500 dark:focus:border-violet-400 placeholder-violet-500/70 dark:placeholder-violet-300/70'
+                                    : 'bg-[#F8FBFE] dark:bg-slate-800 border-2 border-[#D5E3F0] dark:border-slate-700 placeholder-slate-400 dark:placeholder-slate-500 focus:border-[#7ABCF4] dark:focus:border-sky-500 focus:bg-white dark:focus:bg-slate-800'
+                            }`}
                         />
+                        {/* 技能/特性搜索激活按钮（默认关闭，点击后在输入框内切换搜索技能/特性） */}
+                        <button
+                            type="button"
+                            id="scanner-skill-search-toggle-btn"
+                            aria-pressed={searchMode === 'skill'}
+                            onClick={handleToggleSearchMode}
+                            title={
+                                searchMode === 'skill'
+                                    ? '当前为技能/特性搜索，点击切回精灵名/图鉴id搜索'
+                                    : '开启技能/特性搜索（可搜技能名、技能描述、特性名、特性描述）'
+                            }
+                            className={`absolute right-0.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md flex items-center justify-center transition-all cursor-pointer border ${
+                                searchMode === 'skill'
+                                    ? 'bg-violet-500/15 dark:bg-violet-500/25 border-violet-400/60 dark:border-violet-500/50 text-violet-600 dark:text-violet-300'
+                                    : 'bg-transparent border-transparent text-slate-400 hover:text-violet-500 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:border-violet-200 dark:hover:border-violet-500/30'
+                            }`}
+                        >
+                            <Wand2 className="w-3 h-3" />
+                        </button>
                         {searchQuery && (
                             <button
                                 type="button"
-                                onClick={() => setSearchQuery('')}
-                                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                onClick={() => {
+                                    sound.playClick();
+                                    setSearchQuery('');
+                                }}
+                                className="absolute right-7 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                                title="清空输入内容"
                             >
-                                <X className="w-3 h-3" />
+                                <X className="w-2.5 h-2.5" />
                             </button>
+                        )}
+
+                        {/* 技能/特性候选：列出当前可浏览精灵的全部技能与特性，输入时实时过滤 */}
+                        {searchMode === 'skill' && isSkillOpen && (
+                            <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-slate-800/95 backdrop-blur-md border border-violet-200 dark:border-violet-500/30 rounded-lg shadow-lg overflow-hidden">
+                                <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-600">
+                                    {skillSuggestions.length === 0 ? (
+                                        <div className="px-2.5 py-3 text-center text-[11px] text-slate-400">
+                                            未找到匹配的技能/特性，试试搜技能名、特性名或其描述关键词
+                                        </div>
+                                    ) : (
+                                        skillSuggestions.slice(0, 150).map((item) => (
+                                            <button
+                                                key={`${item.kind}:${item.name}`}
+                                                type="button"
+                                                onMouseDown={(e) => {
+                                                    e.preventDefault();
+                                                    handlePickSkill(item.name);
+                                                }}
+                                                className="w-full text-left px-2.5 py-1.5 flex items-center gap-2 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-colors cursor-pointer border-b border-slate-100 dark:border-slate-700/60 last:border-b-0"
+                                            >
+                                                <span
+                                                    className={`shrink-0 text-[8px] font-black px-1 py-0.5 rounded border ${
+                                                        item.kind === 'skill'
+                                                            ? 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-300/60 dark:border-sky-500/40'
+                                                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-300/60 dark:border-amber-500/40'
+                                                    }`}
+                                                >
+                                                    {item.kind === 'skill' ? '技能' : '特性'}
+                                                </span>
+                                                <span className="min-w-0 flex-1">
+                                                    <TermHighlightText
+                                                        text={item.name}
+                                                        ids={item.termIds}
+                                                        className="block text-[11px] font-black text-slate-700 dark:text-slate-200 truncate"
+                                                    />
+                                                    {item.desc && (
+                                                        <TermHighlightText
+                                                            text={item.desc}
+                                                            ids={item.termIds}
+                                                            className="block text-[9px] text-slate-400 dark:text-slate-500 truncate mt-0.5"
+                                                        />
+                                                    )}
+                                                </span>
+                                                <span className="shrink-0 text-[9px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                                    {item.petCount}只
+                                                </span>
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+                                <div className="px-2.5 py-1 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-700/60 text-[9px] text-slate-400 dark:text-slate-500 flex items-center justify-between gap-2">
+                                    <span>共 {skillSuggestions.length} 项技能/特性</span>
+                                    <span>点击填入精确技能名</span>
+                                </div>
+                            </div>
                         )}
                     </div>
 

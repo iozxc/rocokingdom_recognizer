@@ -4,6 +4,7 @@ import { MapConfig, PetItem, AdvancedFilterState } from '../types';
 import { sound } from '../services/sound';
 import { ConfirmDialog } from './ConfirmDialog';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
+import { TermHighlightText } from './TermHighlightText';
 import { PetSearchMode, buildSkillCatalog, filterSkillCatalog } from '../utils/skillSearch';
 
 interface StatsBannerProps {
@@ -347,13 +348,17 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                                     {item.kind === 'skill' ? '技能' : '特性'}
                                                 </span>
                                                 <span className="min-w-0 flex-1">
-                                                    <span className="block text-xs font-black text-slate-700 dark:text-slate-200 truncate">
-                                                        {item.name}
-                                                    </span>
+                                                    <TermHighlightText
+                                                        text={item.name}
+                                                        ids={item.termIds}
+                                                        className="block text-xs font-black text-slate-700 dark:text-slate-200 truncate"
+                                                    />
                                                     {item.desc && (
-                                                        <span className="block text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
-                                                            {item.desc}
-                                                        </span>
+                                                        <TermHighlightText
+                                                            text={item.desc}
+                                                            ids={item.termIds}
+                                                            className="block text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5"
+                                                        />
                                                     )}
                                                 </span>
                                                 <span className="shrink-0 text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">
