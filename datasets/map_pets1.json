@@ -4,7 +4,7 @@
       "id": 258,
       "name": "乌达_极夜",
       "seq": 2,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S496",
@@ -18,7 +18,7 @@
       "id": 258,
       "name": "乌达_极昼",
       "seq": 1,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S131",
@@ -32,7 +32,7 @@
       "id": 148,
       "name": "九尾狐",
       "seq": null,
-      "trait_id": "T070",
+      "trait_id": "T147",
       "active_skills": [
         "S148",
         "S272",
@@ -46,7 +46,7 @@
       "id": 304,
       "name": "书卷守护",
       "seq": null,
-      "trait_id": "T144",
+      "trait_id": "T303",
       "active_skills": [
         "S076",
         "S075",
@@ -60,7 +60,7 @@
       "id": 303,
       "name": "书魔虫",
       "seq": null,
-      "trait_id": "T144",
+      "trait_id": "T303",
       "active_skills": [
         "S076",
         "S075",
@@ -74,7 +74,7 @@
       "id": 113,
       "name": "仪使者",
       "seq": null,
-      "trait_id": "T030",
+      "trait_id": "T113",
       "active_skills": [
         "S223",
         "S544",
@@ -88,7 +88,7 @@
       "id": 114,
       "name": "仪式之星",
       "seq": null,
-      "trait_id": "T030",
+      "trait_id": "T113",
       "active_skills": [
         "S223",
         "S544",
@@ -102,7 +102,7 @@
       "id": 204,
       "name": "伊兰龙",
       "seq": 2,
-      "trait_id": "T092",
+      "trait_id": "T203",
       "active_skills": [
         "S275",
         "S274",
@@ -116,7 +116,7 @@
       "id": 71,
       "name": "伊贝儿",
       "seq": null,
-      "trait_id": "T010",
+      "trait_id": "T071",
       "active_skills": [
         "S115",
         "S108",
@@ -130,7 +130,7 @@
       "id": 203,
       "name": "伊雷龙",
       "seq": null,
-      "trait_id": "T092",
+      "trait_id": "T203",
       "active_skills": [
         "S279",
         "S274",
@@ -144,7 +144,7 @@
       "id": 311,
       "name": "光纤兽",
       "seq": null,
-      "trait_id": "T106",
+      "trait_id": "T310",
       "active_skills": [
         "S375",
         "S382",
@@ -158,7 +158,7 @@
       "id": 19,
       "name": "冬羽雀_夏天",
       "seq": 3,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -172,7 +172,7 @@
       "id": 19,
       "name": "冬羽雀_春天",
       "seq": 2,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -186,7 +186,7 @@
       "id": 19,
       "name": "冬羽雀_秋天",
       "seq": 4,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -200,7 +200,7 @@
       "id": 140,
       "name": "冰封怨灵",
       "seq": null,
-      "trait_id": "T045",
+      "trait_id": "T139",
       "active_skills": [
         "S451",
         "S268",
@@ -214,7 +214,7 @@
       "id": 351,
       "name": "凡雀",
       "seq": null,
-      "trait_id": "T049",
+      "trait_id": "T351",
       "active_skills": [
         "S054",
         "S064",
@@ -228,7 +228,7 @@
       "id": 77,
       "name": "刺盔虫_本来",
       "seq": 1,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -242,7 +242,7 @@
       "id": 77,
       "name": "刺盔虫_磨损",
       "seq": 2,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -256,7 +256,7 @@
       "id": 237,
       "name": "刺轮砣_上弦",
       "seq": 2,
-      "trait_id": "T140",
+      "trait_id": "T237",
       "active_skills": [
         "S186",
         "S330",
@@ -270,7 +270,7 @@
       "id": 237,
       "name": "刺轮砣_下弦",
       "seq": 1,
-      "trait_id": "T140",
+      "trait_id": "T237",
       "active_skills": [
         "S186",
         "S330",
@@ -284,7 +284,7 @@
       "id": 360,
       "name": "加油海葵",
       "seq": null,
-      "trait_id": "T170",
+      "trait_id": "T360",
       "active_skills": [
         "S181",
         "S387",
@@ -298,7 +298,7 @@
       "id": 78,
       "name": "千棘海针",
       "seq": 3,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S340",
         "S327",
@@ -312,7 +312,7 @@
       "id": 291,
       "name": "厉毒小萝",
       "seq": null,
-      "trait_id": "T111",
+      "trait_id": "T291",
       "active_skills": [
         "S323",
         "S496",
@@ -326,7 +326,7 @@
       "id": 320,
       "name": "双灯鱼",
       "seq": null,
-      "trait_id": "T037",
+      "trait_id": "T320",
       "active_skills": [
         "S310",
         "S297",
@@ -340,7 +340,7 @@
       "id": 379,
       "name": "叮叮卯",
       "seq": null,
-      "trait_id": "T181",
+      "trait_id": "T379",
       "active_skills": [
         "S343",
         "S024",
@@ -354,7 +354,7 @@
       "id": 266,
       "name": "可立鸡",
       "seq": null,
-      "trait_id": "T068",
+      "trait_id": "T266",
       "active_skills": [
         "S011",
         "S136",
@@ -368,7 +368,7 @@
       "id": 4,
       "name": "叶冕魔力猫",
       "seq": 2,
-      "trait_id": "T003",
+      "trait_id": "T002",
       "active_skills": [
         "S107",
         "S086",
@@ -382,7 +382,7 @@
       "id": 183,
       "name": "号儿鱼",
       "seq": null,
-      "trait_id": "T129",
+      "trait_id": "T183",
       "active_skills": [
         "S178",
         "S050",
@@ -396,7 +396,7 @@
       "id": 287,
       "name": "吸泥鸥",
       "seq": null,
-      "trait_id": "T114",
+      "trait_id": "T287",
       "active_skills": [
         "S011",
         "S210",
@@ -410,7 +410,7 @@
       "id": 195,
       "name": "呆小路",
       "seq": null,
-      "trait_id": "T011",
+      "trait_id": "T195",
       "active_skills": [
         "S438",
         "S092",
@@ -424,7 +424,7 @@
       "id": 137,
       "name": "呼呼猪",
       "seq": null,
-      "trait_id": "T043",
+      "trait_id": "T137",
       "active_skills": [
         "S054",
         "S210",
@@ -438,7 +438,7 @@
       "id": 13,
       "name": "咔咔壳_本来",
       "seq": 1,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -452,7 +452,7 @@
       "id": 13,
       "name": "咔咔壳_蜕皮",
       "seq": 2,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -466,7 +466,7 @@
       "id": 96,
       "name": "咔咔羽毛",
       "seq": null,
-      "trait_id": "T047",
+      "trait_id": "T096",
       "active_skills": [
         "S445",
         "S399",
@@ -480,7 +480,7 @@
       "id": 97,
       "name": "咔咔雀",
       "seq": null,
-      "trait_id": "T047",
+      "trait_id": "T096",
       "active_skills": [
         "S445",
         "S399",
@@ -494,7 +494,7 @@
       "id": 367,
       "name": "咕咕帽",
       "seq": null,
-      "trait_id": "T162",
+      "trait_id": "T367",
       "active_skills": [
         "S451",
         "S040",
@@ -508,7 +508,7 @@
       "id": 128,
       "name": "哭哭菇",
       "seq": null,
-      "trait_id": "T103",
+      "trait_id": "T128",
       "active_skills": [
         "S532",
         "S076",
@@ -522,7 +522,7 @@
       "id": 2,
       "name": "喵喵",
       "seq": null,
-      "trait_id": "T003",
+      "trait_id": "T002",
       "active_skills": [
         "S103",
         "S092",
@@ -536,7 +536,7 @@
       "id": 323,
       "name": "嗜光嗡嗡",
       "seq": null,
-      "trait_id": "T150",
+      "trait_id": "T323",
       "active_skills": [
         "S491",
         "S354",
@@ -550,7 +550,7 @@
       "id": 52,
       "name": "嘟嘟煲",
       "seq": null,
-      "trait_id": "T100",
+      "trait_id": "T052",
       "active_skills": [
         "S320",
         "S324",
@@ -564,7 +564,7 @@
       "id": 168,
       "name": "圆眼蜘蛛",
       "seq": null,
-      "trait_id": "T053",
+      "trait_id": "T168",
       "active_skills": [
         "S330",
         "S354",
@@ -578,7 +578,7 @@
       "id": 285,
       "name": "圣剑侍从",
       "seq": null,
-      "trait_id": "T113",
+      "trait_id": "T285",
       "active_skills": [
         "S503",
         "S523",
@@ -592,7 +592,7 @@
       "id": 286,
       "name": "圣剑骑士",
       "seq": 2,
-      "trait_id": "T113",
+      "trait_id": "T285",
       "active_skills": [
         "S127",
         "S528",
@@ -606,7 +606,7 @@
       "id": 10,
       "name": "圣水守护",
       "seq": 2,
-      "trait_id": "T031",
+      "trait_id": "T008",
       "active_skills": [
         "S172",
         "S170",
@@ -619,7 +619,7 @@
       "id": 280,
       "name": "墨鱿士",
       "seq": null,
-      "trait_id": "T159",
+      "trait_id": "T280",
       "active_skills": [
         "S451",
         "S433",
@@ -633,7 +633,7 @@
       "id": 126,
       "name": "多啦多",
       "seq": null,
-      "trait_id": "T099",
+      "trait_id": "T125",
       "active_skills": [
         "S319",
         "S213",
@@ -647,7 +647,7 @@
       "id": 125,
       "name": "多多",
       "seq": null,
-      "trait_id": "T099",
+      "trait_id": "T125",
       "active_skills": [
         "S319",
         "S213",
@@ -661,7 +661,7 @@
       "id": 264,
       "name": "多彩方方",
       "seq": null,
-      "trait_id": "T088",
+      "trait_id": "T263",
       "active_skills": [
         "S521",
         "S433",
@@ -675,7 +675,7 @@
       "id": 175,
       "name": "多菇丁",
       "seq": null,
-      "trait_id": "T118",
+      "trait_id": "T174",
       "active_skills": [
         "S227",
         "S224",
@@ -689,7 +689,7 @@
       "id": 142,
       "name": "大耳帽兜",
       "seq": null,
-      "trait_id": "T040",
+      "trait_id": "T142",
       "active_skills": [
         "S014",
         "S272",
@@ -703,7 +703,7 @@
       "id": 42,
       "name": "奇丽叶",
       "seq": null,
-      "trait_id": "T007",
+      "trait_id": "T041",
       "active_skills": [
         "S100",
         "S092",
@@ -717,7 +717,7 @@
       "id": 43,
       "name": "奇丽果",
       "seq": 2,
-      "trait_id": "T007",
+      "trait_id": "T041",
       "active_skills": [
         "S104",
         "S092",
@@ -731,7 +731,7 @@
       "id": 41,
       "name": "奇丽草",
       "seq": null,
-      "trait_id": "T007",
+      "trait_id": "T041",
       "active_skills": [
         "S100",
         "S092",
@@ -745,7 +745,7 @@
       "id": 200,
       "name": "奇梦咪",
       "seq": 2,
-      "trait_id": "T022",
+      "trait_id": "T198",
       "active_skills": [
         "S429",
         "S445",
@@ -759,7 +759,7 @@
       "id": 84,
       "name": "女王蜂",
       "seq": 2,
-      "trait_id": "T054",
+      "trait_id": "T082",
       "active_skills": [
         "S344",
         "S366",
@@ -773,7 +773,7 @@
       "id": 363,
       "name": "小丑兔",
       "seq": null,
-      "trait_id": "T172",
+      "trait_id": "T362",
       "active_skills": [
         "S494",
         "S324",
@@ -787,7 +787,7 @@
       "id": 362,
       "name": "小丑豆豆",
       "seq": null,
-      "trait_id": "T172",
+      "trait_id": "T362",
       "active_skills": [
         "S494",
         "S324",
@@ -801,7 +801,7 @@
       "id": 156,
       "name": "小勇狮",
       "seq": null,
-      "trait_id": "T147",
+      "trait_id": "T156",
       "active_skills": [
         "S391",
         "S133",
@@ -815,7 +815,7 @@
       "id": 85,
       "name": "小夜",
       "seq": null,
-      "trait_id": "T064",
+      "trait_id": "T085",
       "active_skills": [
         "S494",
         "S024",
@@ -829,7 +829,7 @@
       "id": 293,
       "name": "小帕尔",
       "seq": null,
-      "trait_id": "T062",
+      "trait_id": "T293",
       "active_skills": [
         "S491",
         "S479",
@@ -843,7 +843,7 @@
       "id": 163,
       "name": "小怂猫",
       "seq": null,
-      "trait_id": "T095",
+      "trait_id": "T163",
       "active_skills": [
         "S378",
         "S377",
@@ -857,7 +857,7 @@
       "id": 80,
       "name": "小星光_星光",
       "seq": 1,
-      "trait_id": "T082",
+      "trait_id": "T080",
       "active_skills": [
         "S306",
         "S297",
@@ -871,7 +871,7 @@
       "id": 80,
       "name": "小星光_月光",
       "seq": 2,
-      "trait_id": "T082",
+      "trait_id": "T080",
       "active_skills": [
         "S306",
         "S202",
@@ -885,7 +885,7 @@
       "id": 21,
       "name": "小灵菇",
       "seq": null,
-      "trait_id": "T077",
+      "trait_id": "T021",
       "active_skills": [
         "S458",
         "S463",
@@ -899,7 +899,7 @@
       "id": 54,
       "name": "小灵面",
       "seq": null,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -913,7 +913,7 @@
       "id": 116,
       "name": "小独角兽",
       "seq": null,
-      "trait_id": "T002",
+      "trait_id": "T116",
       "active_skills": [
         "S054",
         "S201",
@@ -927,7 +927,7 @@
       "id": 165,
       "name": "小狮鹫_崖间地",
       "seq": 1,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S064",
         "S400",
@@ -941,7 +941,7 @@
       "id": 165,
       "name": "小狮鹫_高山",
       "seq": 2,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S064",
         "S400",
@@ -955,7 +955,7 @@
       "id": 283,
       "name": "小甲虫",
       "seq": null,
-      "trait_id": "T059",
+      "trait_id": "T283",
       "active_skills": [
         "S356",
         "S076",
@@ -969,7 +969,7 @@
       "id": 132,
       "name": "小电企鹅",
       "seq": null,
-      "trait_id": "T166",
+      "trait_id": "T132",
       "active_skills": [
         "S299",
         "S297",
@@ -983,7 +983,7 @@
       "id": 308,
       "name": "小绒茧",
       "seq": null,
-      "trait_id": "T105",
+      "trait_id": "T307",
       "active_skills": [
         "S343",
         "S349",
@@ -997,7 +997,7 @@
       "id": 354,
       "name": "小雪人",
       "seq": null,
-      "trait_id": "T171",
+      "trait_id": "T354",
       "active_skills": [
         "S077",
         "S262",
@@ -1011,7 +1011,7 @@
       "id": 121,
       "name": "小黑猫",
       "seq": null,
-      "trait_id": "T125",
+      "trait_id": "T121",
       "active_skills": [
         "S081",
         "S058",
@@ -1025,7 +1025,7 @@
       "id": 371,
       "name": "小鼓象",
       "seq": null,
-      "trait_id": "T164",
+      "trait_id": "T371",
       "active_skills": [
         "S521",
         "S058",
@@ -1039,7 +1039,7 @@
       "id": 36,
       "name": "小鼠獭",
       "seq": null,
-      "trait_id": "T020",
+      "trait_id": "T036",
       "active_skills": [
         "S076",
         "S170",
@@ -1053,7 +1053,7 @@
       "id": 169,
       "name": "尖角蜘蛛",
       "seq": null,
-      "trait_id": "T053",
+      "trait_id": "T168",
       "active_skills": [
         "S323",
         "S354",
@@ -1067,7 +1067,7 @@
       "id": 338,
       "name": "布瓜蝌",
       "seq": null,
-      "trait_id": "T161",
+      "trait_id": "T338",
       "active_skills": [
         "S003",
         "S546",
@@ -1081,7 +1081,7 @@
       "id": 252,
       "name": "布鲁斯",
       "seq": null,
-      "trait_id": "T041",
+      "trait_id": "T252",
       "active_skills": [
         "S248",
         "S262",
@@ -1095,7 +1095,7 @@
       "id": 294,
       "name": "帕尔萨斯",
       "seq": null,
-      "trait_id": "T062",
+      "trait_id": "T293",
       "active_skills": [
         "S491",
         "S479",
@@ -1109,7 +1109,7 @@
       "id": 143,
       "name": "帽兜娃娃",
       "seq": null,
-      "trait_id": "T040",
+      "trait_id": "T142",
       "active_skills": [
         "S014",
         "S272",
@@ -1123,7 +1123,7 @@
       "id": 35,
       "name": "幻影荆棘",
       "seq": 2,
-      "trait_id": "T074",
+      "trait_id": "T035",
       "active_skills": [
         "S462",
         "S452",
@@ -1137,7 +1137,7 @@
       "id": 22,
       "name": "幻灵菇",
       "seq": null,
-      "trait_id": "T077",
+      "trait_id": "T021",
       "active_skills": [
         "S458",
         "S117",
@@ -1151,7 +1151,7 @@
       "id": 345,
       "name": "幽星光",
       "seq": null,
-      "trait_id": "T115",
+      "trait_id": "T345",
       "active_skills": [
         "S553",
         "S538",
@@ -1165,7 +1165,7 @@
       "id": 123,
       "name": "忽幽狸",
       "seq": null,
-      "trait_id": "T075",
+      "trait_id": "T123",
       "active_skills": [
         "S011",
         "S457",
@@ -1179,7 +1179,7 @@
       "id": 129,
       "name": "怖须菇",
       "seq": null,
-      "trait_id": "T103",
+      "trait_id": "T128",
       "active_skills": [
         "S532",
         "S076",
@@ -1193,7 +1193,7 @@
       "id": 30,
       "name": "恶魔叮",
       "seq": null,
-      "trait_id": "T060",
+      "trait_id": "T030",
       "active_skills": [
         "S402",
         "S479",
@@ -1207,7 +1207,7 @@
       "id": 131,
       "name": "恶魔狼王",
       "seq": 2,
-      "trait_id": "T061",
+      "trait_id": "T131",
       "active_skills": [
         "S483",
         "S471",
@@ -1221,7 +1221,7 @@
       "id": 47,
       "name": "护主犬",
       "seq": null,
-      "trait_id": "T069",
+      "trait_id": "T047",
       "active_skills": [
         "S493",
         "S131",
@@ -1235,7 +1235,7 @@
       "id": 50,
       "name": "抱枕松鼠",
       "seq": null,
-      "trait_id": "T017",
+      "trait_id": "T049",
       "active_skills": [
         "S076",
         "S075",
@@ -1249,7 +1249,7 @@
       "id": 205,
       "name": "拉特",
       "seq": null,
-      "trait_id": "T080",
+      "trait_id": "T205",
       "active_skills": [
         "S310",
         "S297",
@@ -1263,7 +1263,7 @@
       "id": 118,
       "name": "旋叶虫_金黄",
       "seq": 1,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S009",
@@ -1277,7 +1277,7 @@
       "id": 317,
       "name": "星尘虫",
       "seq": null,
-      "trait_id": "T058",
+      "trait_id": "T317",
       "active_skills": [
         "S356",
         "S076",
@@ -1291,7 +1291,7 @@
       "id": 267,
       "name": "晕晕鸡",
       "seq": null,
-      "trait_id": "T068",
+      "trait_id": "T266",
       "active_skills": [
         "S011",
         "S136",
@@ -1305,7 +1305,7 @@
       "id": 55,
       "name": "暗影灵面_睁眼",
       "seq": 1,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -1319,7 +1319,7 @@
       "id": 55,
       "name": "暗影灵面_闭眼",
       "seq": 2,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -1333,7 +1333,7 @@
       "id": 346,
       "name": "曜星光",
       "seq": null,
-      "trait_id": "T115",
+      "trait_id": "T345",
       "active_skills": [
         "S553",
         "S538",
@@ -1347,7 +1347,7 @@
       "id": 263,
       "name": "机械方方",
       "seq": null,
-      "trait_id": "T088",
+      "trait_id": "T263",
       "active_skills": [
         "S521",
         "S433",
@@ -1361,7 +1361,7 @@
       "id": 145,
       "name": "权杖-Ⅱ",
       "seq": null,
-      "trait_id": "T108",
+      "trait_id": "T145",
       "active_skills": [
         "S521",
         "S268",
@@ -1375,7 +1375,7 @@
       "id": 153,
       "name": "松仔",
       "seq": null,
-      "trait_id": "T149",
+      "trait_id": "T153",
       "active_skills": [
         "S011",
         "S119",
@@ -1389,7 +1389,7 @@
       "id": 154,
       "name": "松叶羊",
       "seq": null,
-      "trait_id": "T149",
+      "trait_id": "T153",
       "active_skills": [
         "S011",
         "S119",
@@ -1403,7 +1403,7 @@
       "id": 12,
       "name": "板板壳_本来",
       "seq": 1,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -1417,7 +1417,7 @@
       "id": 12,
       "name": "板板壳_蜕皮",
       "seq": 2,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -1431,7 +1431,7 @@
       "id": 325,
       "name": "柴渣虫",
       "seq": null,
-      "trait_id": "T110",
+      "trait_id": "T325",
       "active_skills": [
         "S137",
         "S108",
@@ -1445,7 +1445,7 @@
       "id": 438,
       "name": "栗鼠",
       "seq": null,
-      "trait_id": "T139",
+      "trait_id": "T438",
       "active_skills": [
         "S076",
         "S075",
@@ -1459,7 +1459,7 @@
       "id": 274,
       "name": "格兰种子",
       "seq": null,
-      "trait_id": "T013",
+      "trait_id": "T274",
       "active_skills": [
         "S077",
         "S099",
@@ -1473,7 +1473,7 @@
       "id": 275,
       "name": "格兰花",
       "seq": null,
-      "trait_id": "T013",
+      "trait_id": "T274",
       "active_skills": [
         "S077",
         "S099",
@@ -1487,7 +1487,7 @@
       "id": 57,
       "name": "梦游_旧睡衣",
       "seq": 1,
-      "trait_id": "T079",
+      "trait_id": "T057",
       "active_skills": [
         "S081",
         "S040",
@@ -1501,7 +1501,7 @@
       "id": 57,
       "name": "梦游_星星睡衣",
       "seq": 2,
-      "trait_id": "T079",
+      "trait_id": "T057",
       "active_skills": [
         "S081",
         "S040",
@@ -1515,7 +1515,7 @@
       "id": 192,
       "name": "棋契陛下",
       "seq": 3,
-      "trait_id": "T117",
+      "trait_id": "T192",
       "active_skills": [
         "S382",
         "S387",
@@ -1529,7 +1529,7 @@
       "id": 188,
       "name": "棋棋_白子",
       "seq": 1,
-      "trait_id": "T136",
+      "trait_id": "T188",
       "active_skills": [
         "S234",
         "S376",
@@ -1543,7 +1543,7 @@
       "id": 188,
       "name": "棋棋_黑子",
       "seq": 2,
-      "trait_id": "T136",
+      "trait_id": "T188",
       "active_skills": [
         "S234",
         "S376",
@@ -1557,7 +1557,7 @@
       "id": 32,
       "name": "毛毛",
       "seq": null,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -1571,7 +1571,7 @@
       "id": 199,
       "name": "气球猫",
       "seq": null,
-      "trait_id": "T022",
+      "trait_id": "T198",
       "active_skills": [
         "S438",
         "S433",
@@ -1585,7 +1585,7 @@
       "id": 159,
       "name": "水滴蛇",
       "seq": null,
-      "trait_id": "T148",
+      "trait_id": "T159",
       "active_skills": [
         "S369",
         "S387",
@@ -1599,7 +1599,7 @@
       "id": 8,
       "name": "水蓝蓝",
       "seq": null,
-      "trait_id": "T031",
+      "trait_id": "T008",
       "active_skills": [
         "S170",
         "S182",
@@ -1613,7 +1613,7 @@
       "id": 160,
       "name": "水蛇锁",
       "seq": null,
-      "trait_id": "T148",
+      "trait_id": "T159",
       "active_skills": [
         "S369",
         "S387",
@@ -1627,7 +1627,7 @@
       "id": 255,
       "name": "治愈兔",
       "seq": null,
-      "trait_id": "T071",
+      "trait_id": "T255",
       "active_skills": [
         "S438",
         "S126",
@@ -1641,7 +1641,7 @@
       "id": 228,
       "name": "波普鹿",
       "seq": 2,
-      "trait_id": "T087",
+      "trait_id": "T226",
       "active_skills": [
         "S291",
         "S412",
@@ -1655,7 +1655,7 @@
       "id": 9,
       "name": "波波拉",
       "seq": null,
-      "trait_id": "T031",
+      "trait_id": "T008",
       "active_skills": [
         "S170",
         "S182",
@@ -1669,7 +1669,7 @@
       "id": 171,
       "name": "波波螺_本来",
       "seq": 1,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -1683,7 +1683,7 @@
       "id": 171,
       "name": "波波螺_污染",
       "seq": 2,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -1697,7 +1697,7 @@
       "id": 76,
       "name": "海盔虫_本来",
       "seq": 1,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -1711,7 +1711,7 @@
       "id": 76,
       "name": "海盔虫_磨损",
       "seq": 2,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -1725,7 +1725,7 @@
       "id": 181,
       "name": "海豹战士",
       "seq": null,
-      "trait_id": "T094",
+      "trait_id": "T181",
       "active_skills": [
         "S170",
         "S372",
@@ -1739,7 +1739,7 @@
       "id": 172,
       "name": "消波螺_本来",
       "seq": 1,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -1753,7 +1753,7 @@
       "id": 172,
       "name": "消波螺_污染",
       "seq": 2,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -1767,7 +1767,7 @@
       "id": 107,
       "name": "深渊罗隐",
       "seq": 2,
-      "trait_id": "T025",
+      "trait_id": "T105",
       "active_skills": [
         "S223",
         "S212",
@@ -1781,7 +1781,7 @@
       "id": 5,
       "name": "火花",
       "seq": null,
-      "trait_id": "T066",
+      "trait_id": "T005",
       "active_skills": [
         "S128",
         "S136",
@@ -1795,7 +1795,7 @@
       "id": 394,
       "name": "火蛮人",
       "seq": null,
-      "trait_id": "T183",
+      "trait_id": "T393",
       "active_skills": [
         "S127",
         "S156",
@@ -1809,7 +1809,7 @@
       "id": 393,
       "name": "火豆丁",
       "seq": null,
-      "trait_id": "T183",
+      "trait_id": "T393",
       "active_skills": [
         "S127",
         "S156",
@@ -1823,7 +1823,7 @@
       "id": 147,
       "name": "灵狐",
       "seq": null,
-      "trait_id": "T070",
+      "trait_id": "T147",
       "active_skills": [
         "S148",
         "S272",
@@ -1837,7 +1837,7 @@
       "id": 369,
       "name": "炫光迪迪",
       "seq": null,
-      "trait_id": "T174",
+      "trait_id": "T369",
       "active_skills": [
         "S196",
         "S057",
@@ -1851,7 +1851,7 @@
       "id": 157,
       "name": "炽焰狮",
       "seq": null,
-      "trait_id": "T147",
+      "trait_id": "T156",
       "active_skills": [
         "S391",
         "S133",
@@ -1865,7 +1865,7 @@
       "id": 7,
       "name": "烈火战神",
       "seq": 2,
-      "trait_id": "T066",
+      "trait_id": "T005",
       "active_skills": [
         "S044",
         "S136",
@@ -1879,7 +1879,7 @@
       "id": 376,
       "name": "烈钻鸟",
       "seq": null,
-      "trait_id": "T073",
+      "trait_id": "T376",
       "active_skills": [
         "S077",
         "S128",
@@ -1893,7 +1893,7 @@
       "id": 365,
       "name": "烟花团",
       "seq": null,
-      "trait_id": "T163",
+      "trait_id": "T365",
       "active_skills": [
         "S494",
         "S126",
@@ -1907,7 +1907,7 @@
       "id": 6,
       "name": "焰火",
       "seq": null,
-      "trait_id": "T066",
+      "trait_id": "T005",
       "active_skills": [
         "S128",
         "S136",
@@ -1921,7 +1921,7 @@
       "id": 37,
       "name": "燕尾獭",
       "seq": null,
-      "trait_id": "T020",
+      "trait_id": "T036",
       "active_skills": [
         "S076",
         "S170",
@@ -1935,7 +1935,7 @@
       "id": 356,
       "name": "爆焰仔",
       "seq": null,
-      "trait_id": "T173",
+      "trait_id": "T356",
       "active_skills": [
         "S276",
         "S137",
@@ -1949,7 +1949,7 @@
       "id": 33,
       "name": "爬爬",
       "seq": null,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -1963,7 +1963,7 @@
       "id": 373,
       "name": "牵线木偶",
       "seq": null,
-      "trait_id": "T102",
+      "trait_id": "T373",
       "active_skills": [
         "S112",
         "S544",
@@ -1977,7 +1977,7 @@
       "id": 310,
       "name": "犀角鸟",
       "seq": null,
-      "trait_id": "T106",
+      "trait_id": "T310",
       "active_skills": [
         "S375",
         "S382",
@@ -1991,7 +1991,7 @@
       "id": 358,
       "name": "猴麦仔",
       "seq": null,
-      "trait_id": "T168",
+      "trait_id": "T358",
       "active_skills": [
         "S076",
         "S518",
@@ -2005,7 +2005,7 @@
       "id": 400,
       "name": "瑰眼仔",
       "seq": null,
-      "trait_id": "T063",
+      "trait_id": "T400",
       "active_skills": [
         "S356",
         "S488",
@@ -2019,7 +2019,7 @@
       "id": 300,
       "name": "画像守护",
       "seq": null,
-      "trait_id": "T142",
+      "trait_id": "T299",
       "active_skills": [
         "S054",
         "S080",
@@ -2033,7 +2033,7 @@
       "id": 299,
       "name": "画精灵",
       "seq": null,
-      "trait_id": "T142",
+      "trait_id": "T299",
       "active_skills": [
         "S054",
         "S080",
@@ -2047,7 +2047,7 @@
       "id": 25,
       "name": "石刺蜥_本来",
       "seq": 1,
-      "trait_id": "T027",
+      "trait_id": "T024",
       "active_skills": [
         "S230",
         "S209",
@@ -2061,7 +2061,7 @@
       "id": 111,
       "name": "石石",
       "seq": null,
-      "trait_id": "T028",
+      "trait_id": "T111",
       "active_skills": [
         "S223",
         "S224",
@@ -2075,7 +2075,7 @@
       "id": 24,
       "name": "石肤蜥_本来",
       "seq": 1,
-      "trait_id": "T027",
+      "trait_id": "T024",
       "active_skills": [
         "S230",
         "S209",
@@ -2089,7 +2089,7 @@
       "id": 24,
       "name": "石肤蜥_球球",
       "seq": 2,
-      "trait_id": "T027",
+      "trait_id": "T024",
       "active_skills": [
         "S230",
         "S209",
@@ -2103,7 +2103,7 @@
       "id": 39,
       "name": "矿晶虫",
       "seq": null,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -2117,7 +2117,7 @@
       "id": 166,
       "name": "神圣狮鹫_崖间地",
       "seq": 1,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S064",
         "S400",
@@ -2131,7 +2131,7 @@
       "id": 166,
       "name": "神圣狮鹫_高山",
       "seq": 2,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S064",
         "S400",
@@ -2145,7 +2145,7 @@
       "id": 115,
       "name": "祭礼巨像",
       "seq": 2,
-      "trait_id": "T030",
+      "trait_id": "T113",
       "active_skills": [
         "S537",
         "S535",
@@ -2159,7 +2159,7 @@
       "id": 335,
       "name": "粉星仔",
       "seq": null,
-      "trait_id": "T021",
+      "trait_id": "T335",
       "active_skills": [
         "S081",
         "S544",
@@ -2173,7 +2173,7 @@
       "id": 86,
       "name": "紫夜",
       "seq": null,
-      "trait_id": "T064",
+      "trait_id": "T085",
       "active_skills": [
         "S494",
         "S024",
@@ -2187,7 +2187,7 @@
       "id": 352,
       "name": "紫翎鹰",
       "seq": null,
-      "trait_id": "T049",
+      "trait_id": "T351",
       "active_skills": [
         "S054",
         "S193",
@@ -2201,7 +2201,7 @@
       "id": 256,
       "name": "红丝绒",
       "seq": null,
-      "trait_id": "T071",
+      "trait_id": "T255",
       "active_skills": [
         "S438",
         "S126",
@@ -2215,7 +2215,7 @@
       "id": 307,
       "name": "绒绒",
       "seq": null,
-      "trait_id": "T105",
+      "trait_id": "T307",
       "active_skills": [
         "S343",
         "S349",
@@ -2229,7 +2229,7 @@
       "id": 102,
       "name": "绿翼鸟",
       "seq": null,
-      "trait_id": "T098",
+      "trait_id": "T102",
       "active_skills": [
         "S077",
         "S009",
@@ -2243,7 +2243,7 @@
       "id": 49,
       "name": "绿耳松鼠",
       "seq": null,
-      "trait_id": "T017",
+      "trait_id": "T049",
       "active_skills": [
         "S076",
         "S075",
@@ -2257,7 +2257,7 @@
       "id": 229,
       "name": "缇塔",
       "seq": null,
-      "trait_id": "T130",
+      "trait_id": "T229",
       "active_skills": [
         "S503",
         "S529",
@@ -2271,7 +2271,7 @@
       "id": 244,
       "name": "翡翠水母",
       "seq": null,
-      "trait_id": "T039",
+      "trait_id": "T244",
       "active_skills": [
         "S319",
         "S182",
@@ -2285,7 +2285,7 @@
       "id": 401,
       "name": "耳翎瑰魅",
       "seq": null,
-      "trait_id": "T063",
+      "trait_id": "T400",
       "active_skills": [
         "S025",
         "S488",
@@ -2299,7 +2299,7 @@
       "id": 242,
       "name": "胆小鳗鱼",
       "seq": null,
-      "trait_id": "T085",
+      "trait_id": "T242",
       "active_skills": [
         "S303",
         "S170",
@@ -2313,7 +2313,7 @@
       "id": 234,
       "name": "脆筒甜甜",
       "seq": null,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -2327,7 +2327,7 @@
       "id": 196,
       "name": "舞动路路",
       "seq": null,
-      "trait_id": "T011",
+      "trait_id": "T195",
       "active_skills": [
         "S438",
         "S092",
@@ -2341,7 +2341,7 @@
       "id": 201,
       "name": "花怨鳗",
       "seq": null,
-      "trait_id": "T126",
+      "trait_id": "T201",
       "active_skills": [
         "S225",
         "S117",
@@ -2355,7 +2355,7 @@
       "id": 179,
       "name": "草头鸭",
       "seq": null,
-      "trait_id": "T006",
+      "trait_id": "T179",
       "active_skills": [
         "S375",
         "S118",
@@ -2369,7 +2369,7 @@
       "id": 398,
       "name": "莫比乌乌",
       "seq": null,
-      "trait_id": "T178",
+      "trait_id": "T398",
       "active_skills": [
         "S283",
         "S071",
@@ -2383,7 +2383,7 @@
       "id": 174,
       "name": "菇菇丁",
       "seq": null,
-      "trait_id": "T118",
+      "trait_id": "T174",
       "active_skills": [
         "S227",
         "S224",
@@ -2397,7 +2397,7 @@
       "id": 318,
       "name": "落星虫",
       "seq": null,
-      "trait_id": "T058",
+      "trait_id": "T317",
       "active_skills": [
         "S356",
         "S076",
@@ -2411,7 +2411,7 @@
       "id": 69,
       "name": "蒲公英",
       "seq": null,
-      "trait_id": "T004",
+      "trait_id": "T069",
       "active_skills": [
         "S325",
         "S431",
@@ -2425,7 +2425,7 @@
       "id": 119,
       "name": "蓬叶虫_枯叶",
       "seq": 2,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S009",
@@ -2439,7 +2439,7 @@
       "id": 119,
       "name": "蓬叶虫_金黄",
       "seq": 1,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S009",
@@ -2453,7 +2453,7 @@
       "id": 247,
       "name": "裘力",
       "seq": null,
-      "trait_id": "T101",
+      "trait_id": "T246",
       "active_skills": [
         "S077",
         "S323",
@@ -2467,7 +2467,7 @@
       "id": 246,
       "name": "裘洛",
       "seq": null,
-      "trait_id": "T101",
+      "trait_id": "T246",
       "active_skills": [
         "S077",
         "S323",
@@ -2481,7 +2481,7 @@
       "id": 239,
       "name": "豆丁鱼",
       "seq": null,
-      "trait_id": "T038",
+      "trait_id": "T239",
       "active_skills": [
         "S183",
         "S282",
@@ -2495,7 +2495,7 @@
       "id": 332,
       "name": "贝瑟",
       "seq": null,
-      "trait_id": "T089",
+      "trait_id": "T332",
       "active_skills": [
         "S521",
         "S126",
@@ -2509,7 +2509,7 @@
       "id": 65,
       "name": "蹦蹦果",
       "seq": 5,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S115",
         "S090",
@@ -2523,7 +2523,7 @@
       "id": 63,
       "name": "蹦蹦种子_彩玉球",
       "seq": 2,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -2537,7 +2537,7 @@
       "id": 63,
       "name": "蹦蹦种子_海神球",
       "seq": 1,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -2551,7 +2551,7 @@
       "id": 63,
       "name": "蹦蹦种子_短毛球",
       "seq": 3,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -2565,7 +2565,7 @@
       "id": 63,
       "name": "蹦蹦种子_象牙球",
       "seq": 4,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -2579,7 +2579,7 @@
       "id": 64,
       "name": "蹦蹦草_彩玉球",
       "seq": 2,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -2593,7 +2593,7 @@
       "id": 64,
       "name": "蹦蹦草_海神球",
       "seq": 1,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -2607,7 +2607,7 @@
       "id": 64,
       "name": "蹦蹦草_短毛球",
       "seq": 3,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -2621,7 +2621,7 @@
       "id": 64,
       "name": "蹦蹦草_象牙球",
       "seq": 4,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -2635,7 +2635,7 @@
       "id": 259,
       "name": "迷你乌_极夜",
       "seq": 2,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S496",
@@ -2649,7 +2649,7 @@
       "id": 259,
       "name": "迷你乌_极昼",
       "seq": 1,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S131",
@@ -2663,7 +2663,7 @@
       "id": 29,
       "name": "迷嶂布莱克",
       "seq": 2,
-      "trait_id": "T026",
+      "trait_id": "T027",
       "active_skills": [
         "S030",
         "S228",
@@ -2677,7 +2677,7 @@
       "id": 198,
       "name": "逗逗",
       "seq": null,
-      "trait_id": "T022",
+      "trait_id": "T198",
       "active_skills": [
         "S438",
         "S433",
@@ -2691,7 +2691,7 @@
       "id": 40,
       "name": "钻石蜗",
       "seq": 7,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S194",
         "S215",
@@ -2733,7 +2733,7 @@
       "id": 377,
       "name": "长尾火鸟",
       "seq": null,
-      "trait_id": "T073",
+      "trait_id": "T376",
       "active_skills": [
         "S077",
         "S128",
@@ -2747,7 +2747,7 @@
       "id": 105,
       "name": "阿米亚特",
       "seq": null,
-      "trait_id": "T025",
+      "trait_id": "T105",
       "active_skills": [
         "S011",
         "S019",
@@ -2761,7 +2761,7 @@
       "id": 106,
       "name": "阿米樱",
       "seq": null,
-      "trait_id": "T025",
+      "trait_id": "T105",
       "active_skills": [
         "S011",
         "S019",
@@ -2775,7 +2775,7 @@
       "id": 139,
       "name": "雪娃娃",
       "seq": null,
-      "trait_id": "T045",
+      "trait_id": "T139",
       "active_skills": [
         "S451",
         "S268",
@@ -2789,7 +2789,7 @@
       "id": 144,
       "name": "雪影冰灵",
       "seq": 2,
-      "trait_id": "T040",
+      "trait_id": "T142",
       "active_skills": [
         "S260",
         "S243",
@@ -2803,7 +2803,7 @@
       "id": 18,
       "name": "雪绒鸟_冬天",
       "seq": 1,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -2817,7 +2817,7 @@
       "id": 18,
       "name": "雪绒鸟_夏天",
       "seq": 3,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -2831,7 +2831,7 @@
       "id": 18,
       "name": "雪绒鸟_春天",
       "seq": 2,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -2845,7 +2845,7 @@
       "id": 18,
       "name": "雪绒鸟_秋天",
       "seq": 4,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -2859,7 +2859,7 @@
       "id": 253,
       "name": "雪顶布鲁斯",
       "seq": null,
-      "trait_id": "T041",
+      "trait_id": "T252",
       "active_skills": [
         "S248",
         "S262",
@@ -2873,7 +2873,7 @@
       "id": 20,
       "name": "霜翼领主",
       "seq": 5,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S415",
         "S402",
@@ -2887,7 +2887,7 @@
       "id": 48,
       "name": "风暴战犬",
       "seq": 2,
-      "trait_id": "T069",
+      "trait_id": "T047",
       "active_skills": [
         "S143",
         "S153",
@@ -2901,7 +2901,7 @@
       "id": 235,
       "name": "香草甜甜_樱桃",
       "seq": 1,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -2915,7 +2915,7 @@
       "id": 103,
       "name": "魔翼鸟",
       "seq": null,
-      "trait_id": "T098",
+      "trait_id": "T102",
       "active_skills": [
         "S077",
         "S009",
@@ -2929,7 +2929,7 @@
       "id": 122,
       "name": "黑猫密探",
       "seq": 2,
-      "trait_id": "T125",
+      "trait_id": "T121",
       "active_skills": [
         "S017",
         "S017",
@@ -2945,7 +2945,7 @@
       "id": 339,
       "name": "上岸蛙",
       "seq": null,
-      "trait_id": "T161",
+      "trait_id": "T338",
       "active_skills": [
         "S003",
         "S546",
@@ -2959,7 +2959,7 @@
       "id": 260,
       "name": "乌拉塔_极夜",
       "seq": 2,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S495",
@@ -2973,7 +2973,7 @@
       "id": 260,
       "name": "乌拉塔_极昼",
       "seq": 1,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S131",
@@ -2987,7 +2987,7 @@
       "id": 148,
       "name": "九尾狐",
       "seq": null,
-      "trait_id": "T070",
+      "trait_id": "T147",
       "active_skills": [
         "S148",
         "S272",
@@ -3001,7 +3001,7 @@
       "id": 176,
       "name": "九幽菇",
       "seq": null,
-      "trait_id": "T118",
+      "trait_id": "T174",
       "active_skills": [
         "S227",
         "S224",
@@ -3015,7 +3015,7 @@
       "id": 304,
       "name": "书卷守护",
       "seq": null,
-      "trait_id": "T144",
+      "trait_id": "T303",
       "active_skills": [
         "S076",
         "S075",
@@ -3029,7 +3029,7 @@
       "id": 114,
       "name": "仪式之星",
       "seq": null,
-      "trait_id": "T030",
+      "trait_id": "T113",
       "active_skills": [
         "S223",
         "S544",
@@ -3043,7 +3043,7 @@
       "id": 115,
       "name": "仪式巨像",
       "seq": 1,
-      "trait_id": "T030",
+      "trait_id": "T113",
       "active_skills": [
         "S223",
         "S544",
@@ -3057,7 +3057,7 @@
       "id": 204,
       "name": "伊兰亚龙",
       "seq": 1,
-      "trait_id": "T092",
+      "trait_id": "T203",
       "active_skills": [
         "S279",
         "S274",
@@ -3071,7 +3071,7 @@
       "id": 204,
       "name": "伊兰龙",
       "seq": 2,
-      "trait_id": "T092",
+      "trait_id": "T203",
       "active_skills": [
         "S275",
         "S274",
@@ -3085,7 +3085,7 @@
       "id": 71,
       "name": "伊贝儿",
       "seq": null,
-      "trait_id": "T010",
+      "trait_id": "T071",
       "active_skills": [
         "S115",
         "S108",
@@ -3099,7 +3099,7 @@
       "id": 72,
       "name": "伊贝粉粉",
       "seq": null,
-      "trait_id": "T010",
+      "trait_id": "T071",
       "active_skills": [
         "S115",
         "S108",
@@ -3113,7 +3113,7 @@
       "id": 203,
       "name": "伊雷龙",
       "seq": null,
-      "trait_id": "T092",
+      "trait_id": "T203",
       "active_skills": [
         "S279",
         "S274",
@@ -3127,7 +3127,7 @@
       "id": 311,
       "name": "光纤兽",
       "seq": null,
-      "trait_id": "T106",
+      "trait_id": "T310",
       "active_skills": [
         "S375",
         "S382",
@@ -3141,7 +3141,7 @@
       "id": 399,
       "name": "克莱因龙",
       "seq": null,
-      "trait_id": "T178",
+      "trait_id": "T398",
       "active_skills": [
         "S283",
         "S071",
@@ -3155,7 +3155,7 @@
       "id": 162,
       "name": "公平鸽",
       "seq": null,
-      "trait_id": "T124",
+      "trait_id": "T162",
       "active_skills": [
         "S081",
         "S074",
@@ -3169,7 +3169,7 @@
       "id": 59,
       "name": "兽花蕾",
       "seq": null,
-      "trait_id": "T123",
+      "trait_id": "T059",
       "active_skills": [
         "S197",
         "S092",
@@ -3183,7 +3183,7 @@
       "id": 4,
       "name": "叶冕魔力猫",
       "seq": 2,
-      "trait_id": "T003",
+      "trait_id": "T002",
       "active_skills": [
         "S107",
         "S086",
@@ -3197,7 +3197,7 @@
       "id": 19,
       "name": "冬羽雀_夏天",
       "seq": 3,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -3211,7 +3211,7 @@
       "id": 19,
       "name": "冬羽雀_春天",
       "seq": 2,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -3225,7 +3225,7 @@
       "id": 19,
       "name": "冬羽雀_秋天",
       "seq": 4,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S011",
         "S400",
@@ -3239,7 +3239,7 @@
       "id": 140,
       "name": "冰封怨灵",
       "seq": null,
-      "trait_id": "T045",
+      "trait_id": "T139",
       "active_skills": [
         "S451",
         "S268",
@@ -3253,7 +3253,7 @@
       "id": 254,
       "name": "冰钻布鲁斯",
       "seq": null,
-      "trait_id": "T041",
+      "trait_id": "T252",
       "active_skills": [
         "S248",
         "S262",
@@ -3267,7 +3267,7 @@
       "id": 353,
       "name": "凡鹰",
       "seq": null,
-      "trait_id": "T049",
+      "trait_id": "T351",
       "active_skills": [
         "S068",
         "S060",
@@ -3281,7 +3281,7 @@
       "id": 321,
       "name": "利灯鱼",
       "seq": null,
-      "trait_id": "T037",
+      "trait_id": "T320",
       "active_skills": [
         "S310",
         "S297",
@@ -3295,7 +3295,7 @@
       "id": 77,
       "name": "刺盔虫_本来",
       "seq": 1,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -3309,7 +3309,7 @@
       "id": 77,
       "name": "刺盔虫_磨损",
       "seq": 2,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -3323,7 +3323,7 @@
       "id": 237,
       "name": "刺轮砣_上弦",
       "seq": 2,
-      "trait_id": "T140",
+      "trait_id": "T237",
       "active_skills": [
         "S186",
         "S330",
@@ -3337,7 +3337,7 @@
       "id": 237,
       "name": "刺轮砣_下弦",
       "seq": 1,
-      "trait_id": "T140",
+      "trait_id": "T237",
       "active_skills": [
         "S186",
         "S330",
@@ -3351,7 +3351,7 @@
       "id": 360,
       "name": "加油海葵",
       "seq": null,
-      "trait_id": "T170",
+      "trait_id": "T360",
       "active_skills": [
         "S181",
         "S387",
@@ -3365,7 +3365,7 @@
       "id": 361,
       "name": "加油蟹_两只海葵",
       "seq": 1,
-      "trait_id": "T170",
+      "trait_id": "T360",
       "active_skills": [
         "S181",
         "S387",
@@ -3379,7 +3379,7 @@
       "id": 361,
       "name": "加油蟹_单只海葵",
       "seq": 2,
-      "trait_id": "T170",
+      "trait_id": "T360",
       "active_skills": [
         "S181",
         "S387",
@@ -3393,7 +3393,7 @@
       "id": 34,
       "name": "化蝶_喵喵",
       "seq": 4,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -3407,7 +3407,7 @@
       "id": 34,
       "name": "化蝶_奇丽花",
       "seq": 2,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -3421,7 +3421,7 @@
       "id": 34,
       "name": "化蝶_幽冥眼",
       "seq": 3,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -3435,7 +3435,7 @@
       "id": 34,
       "name": "化蝶_本来",
       "seq": 1,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -3449,7 +3449,7 @@
       "id": 78,
       "name": "千棘海针",
       "seq": 3,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S340",
         "S327",
@@ -3463,7 +3463,7 @@
       "id": 78,
       "name": "千棘盔_本来",
       "seq": 1,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -3477,7 +3477,7 @@
       "id": 78,
       "name": "千棘盔_磨损",
       "seq": 2,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -3491,7 +3491,7 @@
       "id": 180,
       "name": "卷毛鸭",
       "seq": null,
-      "trait_id": "T006",
+      "trait_id": "T179",
       "active_skills": [
         "S375",
         "S090",
@@ -3505,7 +3505,7 @@
       "id": 38,
       "name": "卷胡巨獭",
       "seq": null,
-      "trait_id": "T020",
+      "trait_id": "T036",
       "active_skills": [
         "S076",
         "S170",
@@ -3519,7 +3519,7 @@
       "id": 292,
       "name": "厉毒修萝",
       "seq": null,
-      "trait_id": "T111",
+      "trait_id": "T291",
       "active_skills": [
         "S340",
         "S478",
@@ -3533,7 +3533,7 @@
       "id": 291,
       "name": "厉毒小萝",
       "seq": null,
-      "trait_id": "T111",
+      "trait_id": "T291",
       "active_skills": [
         "S323",
         "S496",
@@ -3547,7 +3547,7 @@
       "id": 320,
       "name": "双灯鱼",
       "seq": null,
-      "trait_id": "T037",
+      "trait_id": "T320",
       "active_skills": [
         "S310",
         "S297",
@@ -3561,7 +3561,7 @@
       "id": 306,
       "name": "古卷匣魔像",
       "seq": null,
-      "trait_id": "T145",
+      "trait_id": "T306",
       "active_skills": [
         "S076",
         "S075",
@@ -3575,7 +3575,7 @@
       "id": 305,
       "name": "古卷执政官",
       "seq": null,
-      "trait_id": "T144",
+      "trait_id": "T303",
       "active_skills": [
         "S076",
         "S075",
@@ -3589,7 +3589,7 @@
       "id": 127,
       "name": "古啦多",
       "seq": null,
-      "trait_id": "T099",
+      "trait_id": "T125",
       "active_skills": [
         "S319",
         "S213",
@@ -3603,7 +3603,7 @@
       "id": 379,
       "name": "叮叮卯",
       "seq": null,
-      "trait_id": "T181",
+      "trait_id": "T379",
       "active_skills": [
         "S343",
         "S024",
@@ -3617,7 +3617,7 @@
       "id": 31,
       "name": "叮叮恶魔",
       "seq": 1,
-      "trait_id": "T060",
+      "trait_id": "T030",
       "active_skills": [
         "S402",
         "S478",
@@ -3631,7 +3631,7 @@
       "id": 183,
       "name": "号儿鱼",
       "seq": null,
-      "trait_id": "T129",
+      "trait_id": "T183",
       "active_skills": [
         "S178",
         "S050",
@@ -3645,7 +3645,7 @@
       "id": 287,
       "name": "吸泥鸥",
       "seq": null,
-      "trait_id": "T114",
+      "trait_id": "T287",
       "active_skills": [
         "S011",
         "S210",
@@ -3659,7 +3659,7 @@
       "id": 137,
       "name": "呼呼猪",
       "seq": null,
-      "trait_id": "T043",
+      "trait_id": "T137",
       "active_skills": [
         "S054",
         "S210",
@@ -3673,7 +3673,7 @@
       "id": 13,
       "name": "咔咔壳_本来",
       "seq": 1,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -3687,7 +3687,7 @@
       "id": 13,
       "name": "咔咔壳_蜕皮",
       "seq": 2,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -3701,7 +3701,7 @@
       "id": 97,
       "name": "咔咔雀",
       "seq": null,
-      "trait_id": "T047",
+      "trait_id": "T096",
       "active_skills": [
         "S445",
         "S399",
@@ -3715,7 +3715,7 @@
       "id": 98,
       "name": "咔咔鸟",
       "seq": null,
-      "trait_id": "T047",
+      "trait_id": "T096",
       "active_skills": [
         "S402",
         "S041",
@@ -3729,7 +3729,7 @@
       "id": 367,
       "name": "咕咕帽",
       "seq": null,
-      "trait_id": "T162",
+      "trait_id": "T367",
       "active_skills": [
         "S451",
         "S040",
@@ -3743,7 +3743,7 @@
       "id": 368,
       "name": "咕德帽帽",
       "seq": null,
-      "trait_id": "T162",
+      "trait_id": "T367",
       "active_skills": [
         "S451",
         "S040",
@@ -3757,7 +3757,7 @@
       "id": 323,
       "name": "嗜光嗡嗡",
       "seq": null,
-      "trait_id": "T150",
+      "trait_id": "T323",
       "active_skills": [
         "S491",
         "S354",
@@ -3771,7 +3771,7 @@
       "id": 173,
       "name": "嗜波螺_本来",
       "seq": 1,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -3785,7 +3785,7 @@
       "id": 173,
       "name": "嗜波螺_污染",
       "seq": 2,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -3799,7 +3799,7 @@
       "id": 52,
       "name": "嘟嘟煲",
       "seq": null,
-      "trait_id": "T100",
+      "trait_id": "T052",
       "active_skills": [
         "S320",
         "S324",
@@ -3813,7 +3813,7 @@
       "id": 53,
       "name": "嘟嘟锅",
       "seq": null,
-      "trait_id": "T100",
+      "trait_id": "T052",
       "active_skills": [
         "S320",
         "S324",
@@ -3827,7 +3827,7 @@
       "id": 272,
       "name": "噼啪鸟",
       "seq": null,
-      "trait_id": "T122",
+      "trait_id": "T272",
       "active_skills": [
         "S402",
         "S296",
@@ -3841,7 +3841,7 @@
       "id": 184,
       "name": "圆号鱼",
       "seq": null,
-      "trait_id": "T129",
+      "trait_id": "T183",
       "active_skills": [
         "S186",
         "S050",
@@ -3855,7 +3855,7 @@
       "id": 236,
       "name": "圣代甜甜_杨桃巧克力",
       "seq": 7,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3869,7 +3869,7 @@
       "id": 236,
       "name": "圣代甜甜_杨桃抹茶",
       "seq": 9,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3883,7 +3883,7 @@
       "id": 236,
       "name": "圣代甜甜_杨桃草莓",
       "seq": 8,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3897,7 +3897,7 @@
       "id": 236,
       "name": "圣代甜甜_樱桃巧克力",
       "seq": 1,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3911,7 +3911,7 @@
       "id": 236,
       "name": "圣代甜甜_樱桃抹茶",
       "seq": 3,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3925,7 +3925,7 @@
       "id": 236,
       "name": "圣代甜甜_樱桃草莓",
       "seq": 2,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3939,7 +3939,7 @@
       "id": 236,
       "name": "圣代甜甜_蓝莓巧克力",
       "seq": 4,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3953,7 +3953,7 @@
       "id": 236,
       "name": "圣代甜甜_蓝莓抹茶",
       "seq": 6,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3967,7 +3967,7 @@
       "id": 236,
       "name": "圣代甜甜_蓝莓草莓",
       "seq": 5,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -3981,7 +3981,7 @@
       "id": 286,
       "name": "圣剑-X",
       "seq": 1,
-      "trait_id": "T113",
+      "trait_id": "T285",
       "active_skills": [
         "S503",
         "S523",
@@ -3995,7 +3995,7 @@
       "id": 285,
       "name": "圣剑侍从",
       "seq": null,
-      "trait_id": "T113",
+      "trait_id": "T285",
       "active_skills": [
         "S503",
         "S523",
@@ -4009,7 +4009,7 @@
       "id": 286,
       "name": "圣剑骑士",
       "seq": 2,
-      "trait_id": "T113",
+      "trait_id": "T285",
       "active_skills": [
         "S127",
         "S528",
@@ -4023,7 +4023,7 @@
       "id": 10,
       "name": "圣水守护",
       "seq": 2,
-      "trait_id": "T031",
+      "trait_id": "T008",
       "active_skills": [
         "S172",
         "S170",
@@ -4036,7 +4036,7 @@
       "id": 280,
       "name": "墨鱿士",
       "seq": null,
-      "trait_id": "T159",
+      "trait_id": "T280",
       "active_skills": [
         "S451",
         "S433",
@@ -4050,7 +4050,7 @@
       "id": 230,
       "name": "声波缇塔",
       "seq": null,
-      "trait_id": "T130",
+      "trait_id": "T229",
       "active_skills": [
         "S503",
         "S529",
@@ -4064,7 +4064,7 @@
       "id": 439,
       "name": "壳栗丝鼠",
       "seq": null,
-      "trait_id": "T139",
+      "trait_id": "T438",
       "active_skills": [
         "S076",
         "S075",
@@ -4078,7 +4078,7 @@
       "id": 126,
       "name": "多啦多",
       "seq": null,
-      "trait_id": "T099",
+      "trait_id": "T125",
       "active_skills": [
         "S319",
         "S213",
@@ -4092,7 +4092,7 @@
       "id": 175,
       "name": "多菇丁",
       "seq": null,
-      "trait_id": "T118",
+      "trait_id": "T174",
       "active_skills": [
         "S227",
         "S224",
@@ -4106,7 +4106,7 @@
       "id": 42,
       "name": "奇丽叶",
       "seq": null,
-      "trait_id": "T007",
+      "trait_id": "T041",
       "active_skills": [
         "S100",
         "S092",
@@ -4120,7 +4120,7 @@
       "id": 43,
       "name": "奇丽果",
       "seq": 2,
-      "trait_id": "T007",
+      "trait_id": "T041",
       "active_skills": [
         "S104",
         "S092",
@@ -4134,7 +4134,7 @@
       "id": 43,
       "name": "奇丽花",
       "seq": 1,
-      "trait_id": "T007",
+      "trait_id": "T041",
       "active_skills": [
         "S100",
         "S092",
@@ -4148,7 +4148,7 @@
       "id": 200,
       "name": "奇梦咪",
       "seq": 2,
-      "trait_id": "T022",
+      "trait_id": "T198",
       "active_skills": [
         "S429",
         "S445",
@@ -4162,7 +4162,7 @@
       "id": 84,
       "name": "女王蜂",
       "seq": 2,
-      "trait_id": "T054",
+      "trait_id": "T082",
       "active_skills": [
         "S344",
         "S366",
@@ -4176,7 +4176,7 @@
       "id": 363,
       "name": "小丑兔",
       "seq": null,
-      "trait_id": "T172",
+      "trait_id": "T362",
       "active_skills": [
         "S494",
         "S324",
@@ -4190,7 +4190,7 @@
       "id": 364,
       "name": "小丑公爵",
       "seq": null,
-      "trait_id": "T172",
+      "trait_id": "T362",
       "active_skills": [
         "S494",
         "S324",
@@ -4204,7 +4204,7 @@
       "id": 163,
       "name": "小怂猫",
       "seq": null,
-      "trait_id": "T095",
+      "trait_id": "T163",
       "active_skills": [
         "S378",
         "S377",
@@ -4218,7 +4218,7 @@
       "id": 80,
       "name": "小星光_星光",
       "seq": 1,
-      "trait_id": "T082",
+      "trait_id": "T080",
       "active_skills": [
         "S306",
         "S297",
@@ -4232,7 +4232,7 @@
       "id": 80,
       "name": "小星光_月光",
       "seq": 2,
-      "trait_id": "T082",
+      "trait_id": "T080",
       "active_skills": [
         "S306",
         "S202",
@@ -4246,7 +4246,7 @@
       "id": 116,
       "name": "小独角兽",
       "seq": null,
-      "trait_id": "T002",
+      "trait_id": "T116",
       "active_skills": [
         "S054",
         "S201",
@@ -4260,7 +4260,7 @@
       "id": 283,
       "name": "小甲虫",
       "seq": null,
-      "trait_id": "T059",
+      "trait_id": "T283",
       "active_skills": [
         "S356",
         "S076",
@@ -4274,7 +4274,7 @@
       "id": 132,
       "name": "小电企鹅",
       "seq": null,
-      "trait_id": "T166",
+      "trait_id": "T132",
       "active_skills": [
         "S299",
         "S297",
@@ -4288,7 +4288,7 @@
       "id": 308,
       "name": "小绒茧",
       "seq": null,
-      "trait_id": "T105",
+      "trait_id": "T307",
       "active_skills": [
         "S343",
         "S349",
@@ -4302,7 +4302,7 @@
       "id": 354,
       "name": "小雪人",
       "seq": null,
-      "trait_id": "T171",
+      "trait_id": "T354",
       "active_skills": [
         "S077",
         "S262",
@@ -4316,7 +4316,7 @@
       "id": 121,
       "name": "小黑猫",
       "seq": null,
-      "trait_id": "T125",
+      "trait_id": "T121",
       "active_skills": [
         "S081",
         "S058",
@@ -4330,7 +4330,7 @@
       "id": 371,
       "name": "小鼓象",
       "seq": null,
-      "trait_id": "T164",
+      "trait_id": "T371",
       "active_skills": [
         "S521",
         "S058",
@@ -4344,7 +4344,7 @@
       "id": 149,
       "name": "尖嘴狐仙",
       "seq": null,
-      "trait_id": "T070",
+      "trait_id": "T147",
       "active_skills": [
         "S148",
         "S272",
@@ -4358,7 +4358,7 @@
       "id": 169,
       "name": "尖角蜘蛛",
       "seq": null,
-      "trait_id": "T053",
+      "trait_id": "T168",
       "active_skills": [
         "S323",
         "S354",
@@ -4372,7 +4372,7 @@
       "id": 20,
       "name": "岚鸟_冬天",
       "seq": 1,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S402",
         "S400",
@@ -4386,7 +4386,7 @@
       "id": 20,
       "name": "岚鸟_夏天",
       "seq": 3,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S402",
         "S400",
@@ -4400,7 +4400,7 @@
       "id": 20,
       "name": "岚鸟_春天",
       "seq": 2,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S402",
         "S400",
@@ -4414,7 +4414,7 @@
       "id": 20,
       "name": "岚鸟_秋天",
       "seq": 4,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S402",
         "S400",
@@ -4428,7 +4428,7 @@
       "id": 112,
       "name": "巨灵石",
       "seq": null,
-      "trait_id": "T028",
+      "trait_id": "T111",
       "active_skills": [
         "S451",
         "S224",
@@ -4442,7 +4442,7 @@
       "id": 372,
       "name": "巨鼓象",
       "seq": null,
-      "trait_id": "T164",
+      "trait_id": "T371",
       "active_skills": [
         "S521",
         "S058",
@@ -4456,7 +4456,7 @@
       "id": 338,
       "name": "布瓜蝌",
       "seq": null,
-      "trait_id": "T161",
+      "trait_id": "T338",
       "active_skills": [
         "S003",
         "S546",
@@ -4470,7 +4470,7 @@
       "id": 374,
       "name": "帅帅魔偶",
       "seq": null,
-      "trait_id": "T102",
+      "trait_id": "T373",
       "active_skills": [
         "S110",
         "S544",
@@ -4484,7 +4484,7 @@
       "id": 294,
       "name": "帕尔萨斯",
       "seq": null,
-      "trait_id": "T062",
+      "trait_id": "T293",
       "active_skills": [
         "S491",
         "S479",
@@ -4498,7 +4498,7 @@
       "id": 143,
       "name": "帽兜娃娃",
       "seq": null,
-      "trait_id": "T040",
+      "trait_id": "T142",
       "active_skills": [
         "S014",
         "S272",
@@ -4512,7 +4512,7 @@
       "id": 23,
       "name": "幻影灵菇",
       "seq": null,
-      "trait_id": "T077",
+      "trait_id": "T021",
       "active_skills": [
         "S458",
         "S117",
@@ -4526,7 +4526,7 @@
       "id": 35,
       "name": "幻影荆棘",
       "seq": 2,
-      "trait_id": "T074",
+      "trait_id": "T035",
       "active_skills": [
         "S462",
         "S452",
@@ -4540,7 +4540,7 @@
       "id": 22,
       "name": "幻灵菇",
       "seq": null,
-      "trait_id": "T077",
+      "trait_id": "T021",
       "active_skills": [
         "S458",
         "S117",
@@ -4554,7 +4554,7 @@
       "id": 56,
       "name": "幽冥眼_睁眼",
       "seq": 1,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -4568,7 +4568,7 @@
       "id": 56,
       "name": "幽冥眼_闭眼",
       "seq": 2,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -4582,7 +4582,7 @@
       "id": 35,
       "name": "幽影树",
       "seq": 1,
-      "trait_id": "T074",
+      "trait_id": "T035",
       "active_skills": [
         "S103",
         "S092",
@@ -4596,7 +4596,7 @@
       "id": 124,
       "name": "影狸",
       "seq": null,
-      "trait_id": "T075",
+      "trait_id": "T123",
       "active_skills": [
         "S340",
         "S457",
@@ -4610,7 +4610,7 @@
       "id": 123,
       "name": "忽幽狸",
       "seq": null,
-      "trait_id": "T075",
+      "trait_id": "T123",
       "active_skills": [
         "S011",
         "S457",
@@ -4624,7 +4624,7 @@
       "id": 164,
       "name": "怒目怂猫",
       "seq": null,
-      "trait_id": "T095",
+      "trait_id": "T163",
       "active_skills": [
         "S378",
         "S371",
@@ -4638,7 +4638,7 @@
       "id": 130,
       "name": "怖哭菇",
       "seq": null,
-      "trait_id": "T103",
+      "trait_id": "T128",
       "active_skills": [
         "S532",
         "S076",
@@ -4652,7 +4652,7 @@
       "id": 129,
       "name": "怖须菇",
       "seq": null,
-      "trait_id": "T103",
+      "trait_id": "T128",
       "active_skills": [
         "S532",
         "S076",
@@ -4666,7 +4666,7 @@
       "id": 30,
       "name": "恶魔叮",
       "seq": null,
-      "trait_id": "T060",
+      "trait_id": "T030",
       "active_skills": [
         "S402",
         "S479",
@@ -4680,7 +4680,7 @@
       "id": 131,
       "name": "恶魔狼王",
       "seq": 2,
-      "trait_id": "T061",
+      "trait_id": "T131",
       "active_skills": [
         "S483",
         "S471",
@@ -4694,7 +4694,7 @@
       "id": 47,
       "name": "护主犬",
       "seq": null,
-      "trait_id": "T069",
+      "trait_id": "T047",
       "active_skills": [
         "S493",
         "S131",
@@ -4708,7 +4708,7 @@
       "id": 50,
       "name": "抱枕松鼠",
       "seq": null,
-      "trait_id": "T017",
+      "trait_id": "T049",
       "active_skills": [
         "S076",
         "S075",
@@ -4722,7 +4722,7 @@
       "id": 205,
       "name": "拉特",
       "seq": null,
-      "trait_id": "T080",
+      "trait_id": "T205",
       "active_skills": [
         "S310",
         "S297",
@@ -4736,7 +4736,7 @@
       "id": 297,
       "name": "捕尘长绒",
       "seq": null,
-      "trait_id": "T154",
+      "trait_id": "T296",
       "active_skills": [
         "S213",
         "S356",
@@ -4750,7 +4750,7 @@
       "id": 178,
       "name": "斑枭",
       "seq": null,
-      "trait_id": "T133",
+      "trait_id": "T177",
       "active_skills": [
         "S402",
         "S399",
@@ -4764,7 +4764,7 @@
       "id": 409,
       "name": "星云旅者",
       "seq": null,
-      "trait_id": "T120",
+      "trait_id": "T409",
       "active_skills": [
         "S553",
         "S536",
@@ -4778,7 +4778,7 @@
       "id": 81,
       "name": "星光狮_星光",
       "seq": 1,
-      "trait_id": "T082",
+      "trait_id": "T080",
       "active_skills": [
         "S306",
         "S297",
@@ -4792,7 +4792,7 @@
       "id": 81,
       "name": "星光狮_月光",
       "seq": 2,
-      "trait_id": "T082",
+      "trait_id": "T080",
       "active_skills": [
         "S306",
         "S190",
@@ -4806,7 +4806,7 @@
       "id": 267,
       "name": "晕晕鸡",
       "seq": null,
-      "trait_id": "T068",
+      "trait_id": "T266",
       "active_skills": [
         "S011",
         "S136",
@@ -4820,7 +4820,7 @@
       "id": 40,
       "name": "晶石蜗_星彩榴石",
       "seq": 3,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -4834,7 +4834,7 @@
       "id": 40,
       "name": "晶石蜗_火山琉璃",
       "seq": 4,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -4848,7 +4848,7 @@
       "id": 40,
       "name": "晶石蜗_烧蓝黄金",
       "seq": 6,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -4862,7 +4862,7 @@
       "id": 40,
       "name": "晶石蜗_莲花刚玉",
       "seq": 2,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -4876,7 +4876,7 @@
       "id": 40,
       "name": "晶石蜗_蓝锥矿",
       "seq": 5,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -4890,7 +4890,7 @@
       "id": 40,
       "name": "晶石蜗_西瓜碧玺",
       "seq": 1,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -4904,7 +4904,7 @@
       "id": 55,
       "name": "暗影灵面_睁眼",
       "seq": 1,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -4918,7 +4918,7 @@
       "id": 55,
       "name": "暗影灵面_闭眼",
       "seq": 2,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -4932,7 +4932,7 @@
       "id": 347,
       "name": "暮星辰",
       "seq": null,
-      "trait_id": "T115",
+      "trait_id": "T345",
       "active_skills": [
         "S553",
         "S552",
@@ -4946,7 +4946,7 @@
       "id": 346,
       "name": "曜星光",
       "seq": null,
-      "trait_id": "T115",
+      "trait_id": "T345",
       "active_skills": [
         "S553",
         "S538",
@@ -4960,7 +4960,7 @@
       "id": 238,
       "name": "月亮砣_上弦",
       "seq": 2,
-      "trait_id": "T140",
+      "trait_id": "T237",
       "active_skills": [
         "S186",
         "S330",
@@ -4974,7 +4974,7 @@
       "id": 238,
       "name": "月亮砣_下弦",
       "seq": 1,
-      "trait_id": "T140",
+      "trait_id": "T237",
       "active_skills": [
         "S186",
         "S330",
@@ -4988,7 +4988,7 @@
       "id": 322,
       "name": "月牙雪熊",
       "seq": null,
-      "trait_id": "T112",
+      "trait_id": "T322",
       "active_skills": [
         "S532",
         "S244",
@@ -5002,7 +5002,7 @@
       "id": 87,
       "name": "朔夜伊芙",
       "seq": null,
-      "trait_id": "T064",
+      "trait_id": "T085",
       "active_skills": [
         "S494",
         "S024",
@@ -5016,7 +5016,7 @@
       "id": 264,
       "name": "多彩方方",
       "seq": null,
-      "trait_id": "T088",
+      "trait_id": "T263",
       "active_skills": [
         "S521",
         "S433",
@@ -5030,7 +5030,7 @@
       "id": 146,
       "name": "权杖-V",
       "seq": null,
-      "trait_id": "T108",
+      "trait_id": "T145",
       "active_skills": [
         "S521",
         "S268",
@@ -5044,7 +5044,7 @@
       "id": 145,
       "name": "权杖-Ⅱ",
       "seq": null,
-      "trait_id": "T108",
+      "trait_id": "T145",
       "active_skills": [
         "S521",
         "S268",
@@ -5058,7 +5058,7 @@
       "id": 154,
       "name": "松叶羊",
       "seq": null,
-      "trait_id": "T149",
+      "trait_id": "T153",
       "active_skills": [
         "S011",
         "S119",
@@ -5072,7 +5072,7 @@
       "id": 325,
       "name": "柴渣虫",
       "seq": null,
-      "trait_id": "T110",
+      "trait_id": "T325",
       "active_skills": [
         "S137",
         "S108",
@@ -5086,7 +5086,7 @@
       "id": 438,
       "name": "栗鼠",
       "seq": null,
-      "trait_id": "T139",
+      "trait_id": "T438",
       "active_skills": [
         "S076",
         "S075",
@@ -5100,7 +5100,7 @@
       "id": 276,
       "name": "格兰球",
       "seq": null,
-      "trait_id": "T013",
+      "trait_id": "T274",
       "active_skills": [
         "S077",
         "S099",
@@ -5114,7 +5114,7 @@
       "id": 275,
       "name": "格兰花",
       "seq": null,
-      "trait_id": "T013",
+      "trait_id": "T274",
       "active_skills": [
         "S077",
         "S099",
@@ -5128,7 +5128,7 @@
       "id": 58,
       "name": "梦悠悠_旧睡衣",
       "seq": 1,
-      "trait_id": "T079",
+      "trait_id": "T057",
       "active_skills": [
         "S081",
         "S040",
@@ -5142,7 +5142,7 @@
       "id": 58,
       "name": "梦悠悠_星星睡衣",
       "seq": 2,
-      "trait_id": "T079",
+      "trait_id": "T057",
       "active_skills": [
         "S081",
         "S040",
@@ -5156,7 +5156,7 @@
       "id": 200,
       "name": "梦想三三",
       "seq": 1,
-      "trait_id": "T022",
+      "trait_id": "T198",
       "active_skills": [
         "S438",
         "S433",
@@ -5170,7 +5170,7 @@
       "id": 57,
       "name": "梦游_旧睡衣",
       "seq": 1,
-      "trait_id": "T079",
+      "trait_id": "T057",
       "active_skills": [
         "S081",
         "S040",
@@ -5184,7 +5184,7 @@
       "id": 57,
       "name": "梦游_星星睡衣",
       "seq": 2,
-      "trait_id": "T079",
+      "trait_id": "T057",
       "active_skills": [
         "S081",
         "S040",
@@ -5198,7 +5198,7 @@
       "id": 192,
       "name": "棋契陛下",
       "seq": 3,
-      "trait_id": "T117",
+      "trait_id": "T192",
       "active_skills": [
         "S382",
         "S387",
@@ -5212,7 +5212,7 @@
       "id": 188,
       "name": "棋棋_白子",
       "seq": 1,
-      "trait_id": "T136",
+      "trait_id": "T188",
       "active_skills": [
         "S234",
         "S376",
@@ -5226,7 +5226,7 @@
       "id": 188,
       "name": "棋棋_黑子",
       "seq": 2,
-      "trait_id": "T136",
+      "trait_id": "T188",
       "active_skills": [
         "S234",
         "S376",
@@ -5240,7 +5240,7 @@
       "id": 191,
       "name": "棋祈督_白子",
       "seq": 1,
-      "trait_id": "T138",
+      "trait_id": "T191",
       "active_skills": [
         "S369",
         "S386",
@@ -5254,7 +5254,7 @@
       "id": 191,
       "name": "棋祈督_黑子",
       "seq": 2,
-      "trait_id": "T138",
+      "trait_id": "T191",
       "active_skills": [
         "S369",
         "S386",
@@ -5268,7 +5268,7 @@
       "id": 192,
       "name": "棋绮后_白子",
       "seq": 1,
-      "trait_id": "T117",
+      "trait_id": "T192",
       "active_skills": [
         "S369",
         "S386",
@@ -5282,7 +5282,7 @@
       "id": 192,
       "name": "棋绮后_黑子",
       "seq": 2,
-      "trait_id": "T117",
+      "trait_id": "T192",
       "active_skills": [
         "S369",
         "S386",
@@ -5296,7 +5296,7 @@
       "id": 189,
       "name": "棋骑士_白子",
       "seq": 1,
-      "trait_id": "T136",
+      "trait_id": "T188",
       "active_skills": [
         "S234",
         "S377",
@@ -5310,7 +5310,7 @@
       "id": 189,
       "name": "棋骑士_黑子",
       "seq": 2,
-      "trait_id": "T136",
+      "trait_id": "T188",
       "active_skills": [
         "S234",
         "S377",
@@ -5324,7 +5324,7 @@
       "id": 190,
       "name": "棋齐垒_白子",
       "seq": 1,
-      "trait_id": "T137",
+      "trait_id": "T190",
       "active_skills": [
         "S208",
         "S388",
@@ -5338,7 +5338,7 @@
       "id": 190,
       "name": "棋齐垒_黑子",
       "seq": 2,
-      "trait_id": "T137",
+      "trait_id": "T190",
       "active_skills": [
         "S208",
         "S388",
@@ -5352,7 +5352,7 @@
       "id": 269,
       "name": "武者鸡",
       "seq": null,
-      "trait_id": "T068",
+      "trait_id": "T266",
       "active_skills": [
         "S370",
         "S377",
@@ -5366,7 +5366,7 @@
       "id": 199,
       "name": "气球猫",
       "seq": null,
-      "trait_id": "T022",
+      "trait_id": "T198",
       "active_skills": [
         "S438",
         "S433",
@@ -5380,7 +5380,7 @@
       "id": 14,
       "name": "水泡壳_本来",
       "seq": 1,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -5394,7 +5394,7 @@
       "id": 14,
       "name": "水泡壳_蜕皮",
       "seq": 2,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -5408,7 +5408,7 @@
       "id": 10,
       "name": "水灵",
       "seq": 1,
-      "trait_id": "T031",
+      "trait_id": "T008",
       "active_skills": [
         "S170",
         "S182",
@@ -5422,7 +5422,7 @@
       "id": 160,
       "name": "水蛇锁",
       "seq": null,
-      "trait_id": "T148",
+      "trait_id": "T159",
       "active_skills": [
         "S369",
         "S387",
@@ -5436,7 +5436,7 @@
       "id": 228,
       "name": "波普鹿",
       "seq": 2,
-      "trait_id": "T087",
+      "trait_id": "T226",
       "active_skills": [
         "S291",
         "S412",
@@ -5450,7 +5450,7 @@
       "id": 9,
       "name": "波波拉",
       "seq": null,
-      "trait_id": "T031",
+      "trait_id": "T008",
       "active_skills": [
         "S170",
         "S182",
@@ -5464,7 +5464,7 @@
       "id": 288,
       "name": "泥吼牙",
       "seq": 1,
-      "trait_id": "T114",
+      "trait_id": "T287",
       "active_skills": [
         "S402",
         "S210",
@@ -5478,7 +5478,7 @@
       "id": 220,
       "name": "海枝枝_杏黄百合",
       "seq": 2,
-      "trait_id": "T119",
+      "trait_id": "T220",
       "active_skills": [
         "S455",
         "S460",
@@ -5492,7 +5492,7 @@
       "id": 220,
       "name": "海枝枝_洋红沙丁",
       "seq": 3,
-      "trait_id": "T119",
+      "trait_id": "T220",
       "active_skills": [
         "S455",
         "S460",
@@ -5506,7 +5506,7 @@
       "id": 220,
       "name": "海枝枝_碧蓝珊瑚",
       "seq": 1,
-      "trait_id": "T119",
+      "trait_id": "T220",
       "active_skills": [
         "S455",
         "S460",
@@ -5520,7 +5520,7 @@
       "id": 220,
       "name": "海枝枝_翠绿昆布",
       "seq": 4,
-      "trait_id": "T119",
+      "trait_id": "T220",
       "active_skills": [
         "S455",
         "S460",
@@ -5534,7 +5534,7 @@
       "id": 181,
       "name": "海豹战士",
       "seq": null,
-      "trait_id": "T094",
+      "trait_id": "T181",
       "active_skills": [
         "S170",
         "S372",
@@ -5548,7 +5548,7 @@
       "id": 182,
       "name": "海豹船长",
       "seq": null,
-      "trait_id": "T094",
+      "trait_id": "T181",
       "active_skills": [
         "S170",
         "S372",
@@ -5562,7 +5562,7 @@
       "id": 172,
       "name": "消波螺_本来",
       "seq": 1,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -5576,7 +5576,7 @@
       "id": 172,
       "name": "消波螺_污染",
       "seq": 2,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -5590,7 +5590,7 @@
       "id": 107,
       "name": "深渊罗隐",
       "seq": 2,
-      "trait_id": "T025",
+      "trait_id": "T105",
       "active_skills": [
         "S223",
         "S212",
@@ -5604,7 +5604,7 @@
       "id": 273,
       "name": "深蓝鲸",
       "seq": null,
-      "trait_id": "T036",
+      "trait_id": "T273",
       "active_skills": [
         "S170",
         "S182",
@@ -5618,7 +5618,7 @@
       "id": 281,
       "name": "混乱鱿彩",
       "seq": null,
-      "trait_id": "T159",
+      "trait_id": "T280",
       "active_skills": [
         "S451",
         "S433",
@@ -5632,7 +5632,7 @@
       "id": 161,
       "name": "游蛇魔使",
       "seq": null,
-      "trait_id": "T148",
+      "trait_id": "T159",
       "active_skills": [
         "S369",
         "S387",
@@ -5646,7 +5646,7 @@
       "id": 413,
       "name": "溯源钟",
       "seq": null,
-      "trait_id": "T146",
+      "trait_id": "T412",
       "active_skills": [
         "S521",
         "S550",
@@ -5660,7 +5660,7 @@
       "id": 395,
       "name": "火巨人",
       "seq": null,
-      "trait_id": "T183",
+      "trait_id": "T393",
       "active_skills": [
         "S127",
         "S156",
@@ -5674,7 +5674,7 @@
       "id": 7,
       "name": "火神",
       "seq": 1,
-      "trait_id": "T066",
+      "trait_id": "T005",
       "active_skills": [
         "S128",
         "S136",
@@ -5688,7 +5688,7 @@
       "id": 378,
       "name": "火羽",
       "seq": null,
-      "trait_id": "T073",
+      "trait_id": "T376",
       "active_skills": [
         "S402",
         "S128",
@@ -5702,7 +5702,7 @@
       "id": 394,
       "name": "火蛮人",
       "seq": null,
-      "trait_id": "T183",
+      "trait_id": "T393",
       "active_skills": [
         "S127",
         "S156",
@@ -5716,7 +5716,7 @@
       "id": 369,
       "name": "炫光迪迪",
       "seq": null,
-      "trait_id": "T174",
+      "trait_id": "T369",
       "active_skills": [
         "S196",
         "S057",
@@ -5730,7 +5730,7 @@
       "id": 158,
       "name": "炽心勇狮",
       "seq": null,
-      "trait_id": "T147",
+      "trait_id": "T156",
       "active_skills": [
         "S391",
         "S133",
@@ -5744,7 +5744,7 @@
       "id": 157,
       "name": "炽焰狮",
       "seq": null,
-      "trait_id": "T147",
+      "trait_id": "T156",
       "active_skills": [
         "S391",
         "S133",
@@ -5758,7 +5758,7 @@
       "id": 7,
       "name": "烈火战神",
       "seq": 2,
-      "trait_id": "T066",
+      "trait_id": "T005",
       "active_skills": [
         "S044",
         "S136",
@@ -5772,7 +5772,7 @@
       "id": 366,
       "name": "烟花伯爵",
       "seq": null,
-      "trait_id": "T163",
+      "trait_id": "T365",
       "active_skills": [
         "S494",
         "S126",
@@ -5786,7 +5786,7 @@
       "id": 365,
       "name": "烟花团",
       "seq": null,
-      "trait_id": "T163",
+      "trait_id": "T365",
       "active_skills": [
         "S494",
         "S126",
@@ -5800,7 +5800,7 @@
       "id": 6,
       "name": "焰火",
       "seq": null,
-      "trait_id": "T066",
+      "trait_id": "T005",
       "active_skills": [
         "S128",
         "S136",
@@ -5814,7 +5814,7 @@
       "id": 326,
       "name": "燃薪虫",
       "seq": null,
-      "trait_id": "T110",
+      "trait_id": "T325",
       "active_skills": [
         "S137",
         "S108",
@@ -5828,7 +5828,7 @@
       "id": 37,
       "name": "燕尾獭",
       "seq": null,
-      "trait_id": "T020",
+      "trait_id": "T036",
       "active_skills": [
         "S076",
         "S170",
@@ -5842,7 +5842,7 @@
       "id": 356,
       "name": "爆焰仔",
       "seq": null,
-      "trait_id": "T173",
+      "trait_id": "T356",
       "active_skills": [
         "S276",
         "S137",
@@ -5856,7 +5856,7 @@
       "id": 357,
       "name": "爆焰喷喷",
       "seq": null,
-      "trait_id": "T173",
+      "trait_id": "T356",
       "active_skills": [
         "S276",
         "S137",
@@ -5870,7 +5870,7 @@
       "id": 33,
       "name": "爬爬",
       "seq": null,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -5884,7 +5884,7 @@
       "id": 373,
       "name": "牵线木偶",
       "seq": null,
-      "trait_id": "T102",
+      "trait_id": "T373",
       "active_skills": [
         "S112",
         "S544",
@@ -5898,7 +5898,7 @@
       "id": 358,
       "name": "猴麦仔",
       "seq": null,
-      "trait_id": "T168",
+      "trait_id": "T358",
       "active_skills": [
         "S076",
         "S518",
@@ -5912,7 +5912,7 @@
       "id": 138,
       "name": "獠牙猪",
       "seq": null,
-      "trait_id": "T043",
+      "trait_id": "T137",
       "active_skills": [
         "S054",
         "S210",
@@ -5926,7 +5926,7 @@
       "id": 245,
       "name": "琉璃水母",
       "seq": null,
-      "trait_id": "T039",
+      "trait_id": "T244",
       "active_skills": [
         "S319",
         "S182",
@@ -5940,7 +5940,7 @@
       "id": 133,
       "name": "电企鹅",
       "seq": null,
-      "trait_id": "T166",
+      "trait_id": "T132",
       "active_skills": [
         "S299",
         "S297",
@@ -5954,7 +5954,7 @@
       "id": 300,
       "name": "画像守护",
       "seq": null,
-      "trait_id": "T142",
+      "trait_id": "T299",
       "active_skills": [
         "S054",
         "S080",
@@ -5968,7 +5968,7 @@
       "id": 302,
       "name": "画间沉铁兽",
       "seq": null,
-      "trait_id": "T143",
+      "trait_id": "T302",
       "active_skills": [
         "S054",
         "S370",
@@ -5982,7 +5982,7 @@
       "id": 301,
       "name": "画间法师手",
       "seq": null,
-      "trait_id": "T142",
+      "trait_id": "T299",
       "active_skills": [
         "S054",
         "S552",
@@ -5996,7 +5996,7 @@
       "id": 312,
       "name": "疾光千兽",
       "seq": null,
-      "trait_id": "T106",
+      "trait_id": "T310",
       "active_skills": [
         "S375",
         "S190",
@@ -6010,7 +6010,7 @@
       "id": 197,
       "name": "白发路路",
       "seq": null,
-      "trait_id": "T011",
+      "trait_id": "T195",
       "active_skills": [
         "S438",
         "S092",
@@ -6024,7 +6024,7 @@
       "id": 117,
       "name": "白金独角兽",
       "seq": 1,
-      "trait_id": "T002",
+      "trait_id": "T116",
       "active_skills": [
         "S054",
         "S201",
@@ -6038,7 +6038,7 @@
       "id": 167,
       "name": "皇家狮鹫_崖间地",
       "seq": 1,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S402",
         "S400",
@@ -6052,7 +6052,7 @@
       "id": 167,
       "name": "皇家狮鹫_高山",
       "seq": 2,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S402",
         "S400",
@@ -6066,7 +6066,7 @@
       "id": 26,
       "name": "石冠王蜥_本来",
       "seq": 1,
-      "trait_id": "T027",
+      "trait_id": "T024",
       "active_skills": [
         "S230",
         "S209",
@@ -6080,7 +6080,7 @@
       "id": 26,
       "name": "石冠王蜥_球球",
       "seq": 2,
-      "trait_id": "T027",
+      "trait_id": "T024",
       "active_skills": [
         "S230",
         "S209",
@@ -6094,7 +6094,7 @@
       "id": 25,
       "name": "石刺蜥_本来",
       "seq": 1,
-      "trait_id": "T027",
+      "trait_id": "T024",
       "active_skills": [
         "S230",
         "S209",
@@ -6108,7 +6108,7 @@
       "id": 111,
       "name": "石石",
       "seq": null,
-      "trait_id": "T028",
+      "trait_id": "T111",
       "active_skills": [
         "S223",
         "S224",
@@ -6122,7 +6122,7 @@
       "id": 39,
       "name": "矿晶虫",
       "seq": null,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -6136,7 +6136,7 @@
       "id": 166,
       "name": "神圣狮鹫_崖间地",
       "seq": 1,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S064",
         "S400",
@@ -6150,7 +6150,7 @@
       "id": 166,
       "name": "神圣狮鹫_高山",
       "seq": 2,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S064",
         "S400",
@@ -6164,7 +6164,7 @@
       "id": 115,
       "name": "祭礼巨像",
       "seq": 2,
-      "trait_id": "T030",
+      "trait_id": "T113",
       "active_skills": [
         "S537",
         "S535",
@@ -6178,7 +6178,7 @@
       "id": 282,
       "name": "秩序鱿墨",
       "seq": null,
-      "trait_id": "T160",
+      "trait_id": "T282",
       "active_skills": [
         "S463",
         "S429",
@@ -6192,7 +6192,7 @@
       "id": 324,
       "name": "窃光蚊",
       "seq": null,
-      "trait_id": "T150",
+      "trait_id": "T323",
       "active_skills": [
         "S491",
         "S502",
@@ -6206,7 +6206,7 @@
       "id": 265,
       "name": "立方人",
       "seq": null,
-      "trait_id": "T088",
+      "trait_id": "T263",
       "active_skills": [
         "S521",
         "S433",
@@ -6220,7 +6220,7 @@
       "id": 335,
       "name": "粉星仔",
       "seq": null,
-      "trait_id": "T021",
+      "trait_id": "T335",
       "active_skills": [
         "S081",
         "S544",
@@ -6234,7 +6234,7 @@
       "id": 336,
       "name": "粉耳星兔",
       "seq": null,
-      "trait_id": "T021",
+      "trait_id": "T335",
       "active_skills": [
         "S081",
         "S544",
@@ -6248,7 +6248,7 @@
       "id": 86,
       "name": "紫夜",
       "seq": null,
-      "trait_id": "T064",
+      "trait_id": "T085",
       "active_skills": [
         "S494",
         "S024",
@@ -6262,7 +6262,7 @@
       "id": 352,
       "name": "紫翎鹰",
       "seq": null,
-      "trait_id": "T049",
+      "trait_id": "T351",
       "active_skills": [
         "S054",
         "S193",
@@ -6276,7 +6276,7 @@
       "id": 256,
       "name": "红丝绒",
       "seq": null,
-      "trait_id": "T071",
+      "trait_id": "T255",
       "active_skills": [
         "S438",
         "S126",
@@ -6290,7 +6290,7 @@
       "id": 257,
       "name": "红绒十字",
       "seq": null,
-      "trait_id": "T071",
+      "trait_id": "T255",
       "active_skills": [
         "S438",
         "S126",
@@ -6304,7 +6304,7 @@
       "id": 268,
       "name": "绅士鸡",
       "seq": null,
-      "trait_id": "T121",
+      "trait_id": "T268",
       "active_skills": [
         "S378",
         "S377",
@@ -6318,7 +6318,7 @@
       "id": 309,
       "name": "绒仙子",
       "seq": null,
-      "trait_id": "T105",
+      "trait_id": "T307",
       "active_skills": [
         "S343",
         "S349",
@@ -6332,7 +6332,7 @@
       "id": 229,
       "name": "缇塔",
       "seq": null,
-      "trait_id": "T130",
+      "trait_id": "T229",
       "active_skills": [
         "S503",
         "S529",
@@ -6346,7 +6346,7 @@
       "id": 107,
       "name": "罗隐",
       "seq": 1,
-      "trait_id": "T025",
+      "trait_id": "T105",
       "active_skills": [
         "S491",
         "S229",
@@ -6360,7 +6360,7 @@
       "id": 244,
       "name": "翡翠水母",
       "seq": null,
-      "trait_id": "T039",
+      "trait_id": "T244",
       "active_skills": [
         "S319",
         "S182",
@@ -6374,7 +6374,7 @@
       "id": 401,
       "name": "耳翎瑰魅",
       "seq": null,
-      "trait_id": "T063",
+      "trait_id": "T400",
       "active_skills": [
         "S025",
         "S488",
@@ -6388,7 +6388,7 @@
       "id": 242,
       "name": "胆小鳗鱼",
       "seq": null,
-      "trait_id": "T085",
+      "trait_id": "T242",
       "active_skills": [
         "S303",
         "S170",
@@ -6402,7 +6402,7 @@
       "id": 196,
       "name": "舞动路路",
       "seq": null,
-      "trait_id": "T011",
+      "trait_id": "T195",
       "active_skills": [
         "S438",
         "S092",
@@ -6416,7 +6416,7 @@
       "id": 170,
       "name": "芋香巨角蛛",
       "seq": null,
-      "trait_id": "T053",
+      "trait_id": "T168",
       "active_skills": [
         "S323",
         "S354",
@@ -6444,7 +6444,7 @@
       "id": 201,
       "name": "花怨鳗",
       "seq": null,
-      "trait_id": "T126",
+      "trait_id": "T201",
       "active_skills": [
         "S225",
         "S117",
@@ -6458,7 +6458,7 @@
       "id": 179,
       "name": "草头鸭",
       "seq": null,
-      "trait_id": "T006",
+      "trait_id": "T179",
       "active_skills": [
         "S375",
         "S118",
@@ -6472,7 +6472,7 @@
       "id": 398,
       "name": "莫比乌乌",
       "seq": null,
-      "trait_id": "T178",
+      "trait_id": "T398",
       "active_skills": [
         "S283",
         "S071",
@@ -6486,7 +6486,7 @@
       "id": 79,
       "name": "菊花梨",
       "seq": null,
-      "trait_id": "T097",
+      "trait_id": "T079",
       "active_skills": [
         "S077",
         "S430",
@@ -6500,7 +6500,7 @@
       "id": 318,
       "name": "落星虫",
       "seq": null,
-      "trait_id": "T058",
+      "trait_id": "T317",
       "active_skills": [
         "S356",
         "S076",
@@ -6514,7 +6514,7 @@
       "id": 337,
       "name": "落陨星兔",
       "seq": null,
-      "trait_id": "T141",
+      "trait_id": "T337",
       "active_skills": [
         "S451",
         "S544",
@@ -6528,7 +6528,7 @@
       "id": 69,
       "name": "蒲公英",
       "seq": null,
-      "trait_id": "T004",
+      "trait_id": "T069",
       "active_skills": [
         "S325",
         "S431",
@@ -6542,7 +6542,7 @@
       "id": 119,
       "name": "蓬叶虫_枯叶",
       "seq": 2,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S009",
@@ -6556,7 +6556,7 @@
       "id": 119,
       "name": "蓬叶虫_金黄",
       "seq": 1,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S009",
@@ -6570,7 +6570,7 @@
       "id": 247,
       "name": "裘力",
       "seq": null,
-      "trait_id": "T101",
+      "trait_id": "T246",
       "active_skills": [
         "S077",
         "S323",
@@ -6584,7 +6584,7 @@
       "id": 248,
       "name": "裘卡",
       "seq": null,
-      "trait_id": "T101",
+      "trait_id": "T246",
       "active_skills": [
         "S340",
         "S323",
@@ -6598,7 +6598,7 @@
       "id": 95,
       "name": "记忆石",
       "seq": null,
-      "trait_id": "T024",
+      "trait_id": "T095",
       "active_skills": [
         "S234",
         "S233",
@@ -6612,7 +6612,7 @@
       "id": 334,
       "name": "贝古斯",
       "seq": null,
-      "trait_id": "T089",
+      "trait_id": "T332",
       "active_skills": [
         "S521",
         "S126",
@@ -6626,7 +6626,7 @@
       "id": 51,
       "name": "蹦床松鼠",
       "seq": null,
-      "trait_id": "T017",
+      "trait_id": "T049",
       "active_skills": [
         "S076",
         "S075",
@@ -6640,7 +6640,7 @@
       "id": 65,
       "name": "蹦蹦果",
       "seq": 5,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S115",
         "S090",
@@ -6654,7 +6654,7 @@
       "id": 65,
       "name": "蹦蹦花_彩玉球",
       "seq": 2,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -6668,7 +6668,7 @@
       "id": 65,
       "name": "蹦蹦花_海神球",
       "seq": 1,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -6682,7 +6682,7 @@
       "id": 65,
       "name": "蹦蹦花_短毛球",
       "seq": 3,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -6696,7 +6696,7 @@
       "id": 65,
       "name": "蹦蹦花_象牙球",
       "seq": 4,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -6710,7 +6710,7 @@
       "id": 64,
       "name": "蹦蹦草_彩玉球",
       "seq": 2,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -6724,7 +6724,7 @@
       "id": 64,
       "name": "蹦蹦草_海神球",
       "seq": 1,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -6738,7 +6738,7 @@
       "id": 64,
       "name": "蹦蹦草_短毛球",
       "seq": 3,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -6752,7 +6752,7 @@
       "id": 64,
       "name": "蹦蹦草_象牙球",
       "seq": 4,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -6766,7 +6766,7 @@
       "id": 259,
       "name": "迷你乌_极夜",
       "seq": 2,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S496",
@@ -6780,7 +6780,7 @@
       "id": 259,
       "name": "迷你乌_极昼",
       "seq": 1,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S131",
@@ -6794,7 +6794,7 @@
       "id": 29,
       "name": "迷嶂布莱克",
       "seq": 2,
-      "trait_id": "T026",
+      "trait_id": "T027",
       "active_skills": [
         "S030",
         "S228",
@@ -6808,7 +6808,7 @@
       "id": 402,
       "name": "邪眼巨魔",
       "seq": null,
-      "trait_id": "T063",
+      "trait_id": "T400",
       "active_skills": [
         "S133",
         "S488",
@@ -6822,7 +6822,7 @@
       "id": 206,
       "name": "酷拉",
       "seq": 1,
-      "trait_id": "T080",
+      "trait_id": "T205",
       "active_skills": [
         "S310",
         "S297",
@@ -6836,7 +6836,7 @@
       "id": 219,
       "name": "里拉鳐",
       "seq": null,
-      "trait_id": "T128",
+      "trait_id": "T219",
       "active_skills": [
         "S189",
         "S544",
@@ -6850,7 +6850,7 @@
       "id": 155,
       "name": "针叶巡林",
       "seq": null,
-      "trait_id": "T149",
+      "trait_id": "T153",
       "active_skills": [
         "S011",
         "S090",
@@ -6864,7 +6864,7 @@
       "id": 40,
       "name": "钻石蜗",
       "seq": 7,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S194",
         "S215",
@@ -6892,7 +6892,7 @@
       "id": 284,
       "name": "铠甲虫",
       "seq": null,
-      "trait_id": "T059",
+      "trait_id": "T283",
       "active_skills": [
         "S356",
         "S076",
@@ -6906,7 +6906,7 @@
       "id": 92,
       "name": "锤头鹳",
       "seq": null,
-      "trait_id": "T051",
+      "trait_id": "T092",
       "active_skills": [
         "S178",
         "S058",
@@ -6920,7 +6920,7 @@
       "id": 377,
       "name": "长尾火鸟",
       "seq": null,
-      "trait_id": "T073",
+      "trait_id": "T376",
       "active_skills": [
         "S077",
         "S128",
@@ -6934,7 +6934,7 @@
       "id": 243,
       "name": "闪电鳗鱼",
       "seq": null,
-      "trait_id": "T085",
+      "trait_id": "T242",
       "active_skills": [
         "S303",
         "S170",
@@ -6948,7 +6948,7 @@
       "id": 106,
       "name": "阿米樱",
       "seq": null,
-      "trait_id": "T025",
+      "trait_id": "T105",
       "active_skills": [
         "S011",
         "S019",
@@ -6962,7 +6962,7 @@
       "id": 319,
       "name": "陨星虫",
       "seq": null,
-      "trait_id": "T058",
+      "trait_id": "T317",
       "active_skills": [
         "S356",
         "S076",
@@ -6976,7 +6976,7 @@
       "id": 341,
       "name": "雅丹鬃",
       "seq": null,
-      "trait_id": "T107",
+      "trait_id": "T340",
       "active_skills": [
         "S081",
         "S126",
@@ -6990,7 +6990,7 @@
       "id": 144,
       "name": "雪影冰灵",
       "seq": 2,
-      "trait_id": "T040",
+      "trait_id": "T142",
       "active_skills": [
         "S260",
         "S243",
@@ -7004,7 +7004,7 @@
       "id": 144,
       "name": "雪影娃娃",
       "seq": 1,
-      "trait_id": "T040",
+      "trait_id": "T142",
       "active_skills": [
         "S014",
         "S272",
@@ -7018,7 +7018,7 @@
       "id": 355,
       "name": "雪怪",
       "seq": null,
-      "trait_id": "T171",
+      "trait_id": "T354",
       "active_skills": [
         "S077",
         "S262",
@@ -7032,7 +7032,7 @@
       "id": 141,
       "name": "雪灵",
       "seq": null,
-      "trait_id": "T045",
+      "trait_id": "T139",
       "active_skills": [
         "S451",
         "S268",
@@ -7046,7 +7046,7 @@
       "id": 253,
       "name": "雪顶布鲁斯",
       "seq": null,
-      "trait_id": "T041",
+      "trait_id": "T252",
       "active_skills": [
         "S248",
         "S262",
@@ -7060,7 +7060,7 @@
       "id": 20,
       "name": "霜翼领主",
       "seq": 5,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S415",
         "S402",
@@ -7074,7 +7074,7 @@
       "id": 370,
       "name": "霹雳迪迪",
       "seq": null,
-      "trait_id": "T174",
+      "trait_id": "T369",
       "active_skills": [
         "S196",
         "S304",
@@ -7088,7 +7088,7 @@
       "id": 359,
       "name": "音碟吼",
       "seq": null,
-      "trait_id": "T168",
+      "trait_id": "T358",
       "active_skills": [
         "S076",
         "S518",
@@ -7102,7 +7102,7 @@
       "id": 48,
       "name": "音速犬",
       "seq": 1,
-      "trait_id": "T069",
+      "trait_id": "T047",
       "active_skills": [
         "S493",
         "S131",
@@ -7116,7 +7116,7 @@
       "id": 48,
       "name": "风暴战犬",
       "seq": 2,
-      "trait_id": "T069",
+      "trait_id": "T047",
       "active_skills": [
         "S143",
         "S153",
@@ -7130,7 +7130,7 @@
       "id": 120,
       "name": "风滚暮虫_枯叶",
       "seq": 2,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S070",
@@ -7144,7 +7144,7 @@
       "id": 120,
       "name": "风滚暮虫_金黄",
       "seq": 1,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S070",
@@ -7158,7 +7158,7 @@
       "id": 380,
       "name": "飞飞钥",
       "seq": null,
-      "trait_id": "T181",
+      "trait_id": "T379",
       "active_skills": [
         "S343",
         "S024",
@@ -7172,7 +7172,7 @@
       "id": 235,
       "name": "香草甜甜_樱桃",
       "seq": 1,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -7186,7 +7186,7 @@
       "id": 4,
       "name": "魔力猫",
       "seq": 1,
-      "trait_id": "T003",
+      "trait_id": "T002",
       "active_skills": [
         "S103",
         "S092",
@@ -7200,7 +7200,7 @@
       "id": 104,
       "name": "魔眷鸟",
       "seq": null,
-      "trait_id": "T098",
+      "trait_id": "T102",
       "active_skills": [
         "S402",
         "S431",
@@ -7214,7 +7214,7 @@
       "id": 103,
       "name": "魔翼鸟",
       "seq": null,
-      "trait_id": "T098",
+      "trait_id": "T102",
       "active_skills": [
         "S077",
         "S009",
@@ -7228,7 +7228,7 @@
       "id": 94,
       "name": "魔草巫灵",
       "seq": null,
-      "trait_id": "T009",
+      "trait_id": "T093",
       "active_skills": [
         "S103",
         "S544",
@@ -7242,7 +7242,7 @@
       "id": 202,
       "name": "鳗尾兽",
       "seq": null,
-      "trait_id": "T126",
+      "trait_id": "T201",
       "active_skills": [
         "S225",
         "S117",
@@ -7256,7 +7256,7 @@
       "id": 11,
       "name": "鸭吉吉_蓬松",
       "seq": 1,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S013",
         "S024",
@@ -7270,7 +7270,7 @@
       "id": 11,
       "name": "鸭吉吉_急急急",
       "seq": 3,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S013",
         "S024",
@@ -7284,7 +7284,7 @@
       "id": 11,
       "name": "鸭吉吉_等一等",
       "seq": 4,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S081",
         "S024",
@@ -7298,7 +7298,7 @@
       "id": 11,
       "name": "鸭吉吉_起来鸭",
       "seq": 6,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S081",
         "S024",
@@ -7312,7 +7312,7 @@
       "id": 11,
       "name": "鸭吉吉_紧实",
       "seq": 2,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S081",
         "S024",
@@ -7326,7 +7326,7 @@
       "id": 122,
       "name": "黑猫密探",
       "seq": 2,
-      "trait_id": "T125",
+      "trait_id": "T121",
       "active_skills": [
         "S017",
         "S017",
@@ -7340,7 +7340,7 @@
       "id": 122,
       "name": "黑猫巫师",
       "seq": 1,
-      "trait_id": "T125",
+      "trait_id": "T121",
       "active_skills": [
         "S081",
         "S058",
@@ -7354,7 +7354,7 @@
       "id": 295,
       "name": "龙息帕尔",
       "seq": null,
-      "trait_id": "T062",
+      "trait_id": "T293",
       "active_skills": [
         "S491",
         "S479",
@@ -7368,7 +7368,7 @@
       "id": 241,
       "name": "龙鱼",
       "seq": null,
-      "trait_id": "T038",
+      "trait_id": "T239",
       "active_skills": [
         "S183",
         "S282",
@@ -7384,7 +7384,7 @@
       "id": 339,
       "name": "上岸蛙",
       "seq": null,
-      "trait_id": "T161",
+      "trait_id": "T338",
       "active_skills": [
         "S003",
         "S546",
@@ -7398,7 +7398,7 @@
       "id": 260,
       "name": "乌拉塔_极夜",
       "seq": 2,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S495",
@@ -7412,7 +7412,7 @@
       "id": 260,
       "name": "乌拉塔_极昼",
       "seq": 1,
-      "trait_id": "T156",
+      "trait_id": "T258",
       "active_skills": [
         "S493",
         "S131",
@@ -7426,7 +7426,7 @@
       "id": 176,
       "name": "九幽菇",
       "seq": null,
-      "trait_id": "T118",
+      "trait_id": "T174",
       "active_skills": [
         "S227",
         "S224",
@@ -7440,7 +7440,7 @@
       "id": 115,
       "name": "仪式巨像",
       "seq": 1,
-      "trait_id": "T030",
+      "trait_id": "T113",
       "active_skills": [
         "S223",
         "S544",
@@ -7454,7 +7454,7 @@
       "id": 204,
       "name": "伊兰亚龙",
       "seq": 1,
-      "trait_id": "T092",
+      "trait_id": "T203",
       "active_skills": [
         "S279",
         "S274",
@@ -7468,7 +7468,7 @@
       "id": 204,
       "name": "伊兰龙",
       "seq": 2,
-      "trait_id": "T092",
+      "trait_id": "T203",
       "active_skills": [
         "S275",
         "S274",
@@ -7482,7 +7482,7 @@
       "id": 72,
       "name": "伊贝粉粉",
       "seq": null,
-      "trait_id": "T010",
+      "trait_id": "T071",
       "active_skills": [
         "S115",
         "S108",
@@ -7496,7 +7496,7 @@
       "id": 399,
       "name": "克莱因龙",
       "seq": null,
-      "trait_id": "T178",
+      "trait_id": "T398",
       "active_skills": [
         "S283",
         "S071",
@@ -7510,7 +7510,7 @@
       "id": 162,
       "name": "公平鸽",
       "seq": null,
-      "trait_id": "T124",
+      "trait_id": "T162",
       "active_skills": [
         "S081",
         "S074",
@@ -7524,7 +7524,7 @@
       "id": 59,
       "name": "兽花蕾",
       "seq": null,
-      "trait_id": "T123",
+      "trait_id": "T059",
       "active_skills": [
         "S197",
         "S092",
@@ -7538,7 +7538,7 @@
       "id": 4,
       "name": "叶冕魔力猫",
       "seq": 2,
-      "trait_id": "T003",
+      "trait_id": "T002",
       "active_skills": [
         "S107",
         "S086",
@@ -7552,7 +7552,7 @@
       "id": 254,
       "name": "冰钻布鲁斯",
       "seq": null,
-      "trait_id": "T041",
+      "trait_id": "T252",
       "active_skills": [
         "S248",
         "S262",
@@ -7566,7 +7566,7 @@
       "id": 353,
       "name": "凡鹰",
       "seq": null,
-      "trait_id": "T049",
+      "trait_id": "T351",
       "active_skills": [
         "S068",
         "S060",
@@ -7580,7 +7580,7 @@
       "id": 321,
       "name": "利灯鱼",
       "seq": null,
-      "trait_id": "T037",
+      "trait_id": "T320",
       "active_skills": [
         "S310",
         "S297",
@@ -7594,7 +7594,7 @@
       "id": 361,
       "name": "加油蟹_两只海葵",
       "seq": 1,
-      "trait_id": "T170",
+      "trait_id": "T360",
       "active_skills": [
         "S181",
         "S387",
@@ -7608,7 +7608,7 @@
       "id": 361,
       "name": "加油蟹_单只海葵",
       "seq": 2,
-      "trait_id": "T170",
+      "trait_id": "T360",
       "active_skills": [
         "S181",
         "S387",
@@ -7622,7 +7622,7 @@
       "id": 34,
       "name": "化蝶_喵喵",
       "seq": 4,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -7636,7 +7636,7 @@
       "id": 34,
       "name": "化蝶_奇丽花",
       "seq": 2,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -7650,7 +7650,7 @@
       "id": 34,
       "name": "化蝶_幽冥眼",
       "seq": 3,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -7664,7 +7664,7 @@
       "id": 34,
       "name": "化蝶_本来",
       "seq": 1,
-      "trait_id": "T056",
+      "trait_id": "T032",
       "active_skills": [
         "S361",
         "S349",
@@ -7678,7 +7678,7 @@
       "id": 78,
       "name": "千棘海针",
       "seq": 3,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S340",
         "S327",
@@ -7692,7 +7692,7 @@
       "id": 78,
       "name": "千棘盔_本来",
       "seq": 1,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -7706,7 +7706,7 @@
       "id": 78,
       "name": "千棘盔_磨损",
       "seq": 2,
-      "trait_id": "T035",
+      "trait_id": "T076",
       "active_skills": [
         "S189",
         "S336",
@@ -7720,7 +7720,7 @@
       "id": 180,
       "name": "卷毛鸭",
       "seq": null,
-      "trait_id": "T006",
+      "trait_id": "T179",
       "active_skills": [
         "S375",
         "S090",
@@ -7734,7 +7734,7 @@
       "id": 38,
       "name": "卷胡巨獭",
       "seq": null,
-      "trait_id": "T020",
+      "trait_id": "T036",
       "active_skills": [
         "S076",
         "S170",
@@ -7748,7 +7748,7 @@
       "id": 292,
       "name": "厉毒修萝",
       "seq": null,
-      "trait_id": "T111",
+      "trait_id": "T291",
       "active_skills": [
         "S340",
         "S478",
@@ -7762,7 +7762,7 @@
       "id": 306,
       "name": "古卷匣魔像",
       "seq": null,
-      "trait_id": "T145",
+      "trait_id": "T306",
       "active_skills": [
         "S076",
         "S075",
@@ -7776,7 +7776,7 @@
       "id": 305,
       "name": "古卷执政官",
       "seq": null,
-      "trait_id": "T144",
+      "trait_id": "T303",
       "active_skills": [
         "S076",
         "S075",
@@ -7790,7 +7790,7 @@
       "id": 127,
       "name": "古啦多",
       "seq": null,
-      "trait_id": "T099",
+      "trait_id": "T125",
       "active_skills": [
         "S319",
         "S213",
@@ -7804,7 +7804,7 @@
       "id": 31,
       "name": "叮叮恶魔",
       "seq": 1,
-      "trait_id": "T060",
+      "trait_id": "T030",
       "active_skills": [
         "S402",
         "S478",
@@ -7818,7 +7818,7 @@
       "id": 98,
       "name": "咔咔鸟",
       "seq": null,
-      "trait_id": "T047",
+      "trait_id": "T096",
       "active_skills": [
         "S402",
         "S041",
@@ -7832,7 +7832,7 @@
       "id": 368,
       "name": "咕德帽帽",
       "seq": null,
-      "trait_id": "T162",
+      "trait_id": "T367",
       "active_skills": [
         "S451",
         "S040",
@@ -7846,7 +7846,7 @@
       "id": 173,
       "name": "嗜波螺_本来",
       "seq": 1,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -7860,7 +7860,7 @@
       "id": 173,
       "name": "嗜波螺_污染",
       "seq": 2,
-      "trait_id": "T127",
+      "trait_id": "T171",
       "active_skills": [
         "S230",
         "S170",
@@ -7874,7 +7874,7 @@
       "id": 53,
       "name": "嘟嘟锅",
       "seq": null,
-      "trait_id": "T100",
+      "trait_id": "T052",
       "active_skills": [
         "S320",
         "S324",
@@ -7888,7 +7888,7 @@
       "id": 272,
       "name": "噼啪鸟",
       "seq": null,
-      "trait_id": "T122",
+      "trait_id": "T272",
       "active_skills": [
         "S402",
         "S296",
@@ -7902,7 +7902,7 @@
       "id": 184,
       "name": "圆号鱼",
       "seq": null,
-      "trait_id": "T129",
+      "trait_id": "T183",
       "active_skills": [
         "S186",
         "S050",
@@ -7916,7 +7916,7 @@
       "id": 236,
       "name": "圣代甜甜_杨桃巧克力",
       "seq": 7,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -7930,7 +7930,7 @@
       "id": 236,
       "name": "圣代甜甜_杨桃抹茶",
       "seq": 9,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -7944,7 +7944,7 @@
       "id": 236,
       "name": "圣代甜甜_杨桃草莓",
       "seq": 8,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -7958,7 +7958,7 @@
       "id": 236,
       "name": "圣代甜甜_樱桃巧克力",
       "seq": 1,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -7972,7 +7972,7 @@
       "id": 236,
       "name": "圣代甜甜_樱桃抹茶",
       "seq": 3,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -7986,7 +7986,7 @@
       "id": 236,
       "name": "圣代甜甜_樱桃草莓",
       "seq": 2,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -8000,7 +8000,7 @@
       "id": 236,
       "name": "圣代甜甜_蓝莓巧克力",
       "seq": 4,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -8014,7 +8014,7 @@
       "id": 236,
       "name": "圣代甜甜_蓝莓抹茶",
       "seq": 6,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -8028,7 +8028,7 @@
       "id": 236,
       "name": "圣代甜甜_蓝莓草莓",
       "seq": 5,
-      "trait_id": "T044",
+      "trait_id": "T234",
       "active_skills": [
         "S077",
         "S256",
@@ -8042,7 +8042,7 @@
       "id": 286,
       "name": "圣剑-X",
       "seq": 1,
-      "trait_id": "T113",
+      "trait_id": "T285",
       "active_skills": [
         "S503",
         "S523",
@@ -8056,7 +8056,7 @@
       "id": 286,
       "name": "圣剑骑士",
       "seq": 2,
-      "trait_id": "T113",
+      "trait_id": "T285",
       "active_skills": [
         "S127",
         "S528",
@@ -8070,7 +8070,7 @@
       "id": 10,
       "name": "圣水守护",
       "seq": 2,
-      "trait_id": "T031",
+      "trait_id": "T008",
       "active_skills": [
         "S172",
         "S170",
@@ -8083,7 +8083,7 @@
       "id": 230,
       "name": "声波缇塔",
       "seq": null,
-      "trait_id": "T130",
+      "trait_id": "T229",
       "active_skills": [
         "S503",
         "S529",
@@ -8097,7 +8097,7 @@
       "id": 439,
       "name": "壳栗丝鼠",
       "seq": null,
-      "trait_id": "T139",
+      "trait_id": "T438",
       "active_skills": [
         "S076",
         "S075",
@@ -8111,7 +8111,7 @@
       "id": 43,
       "name": "奇丽果",
       "seq": 2,
-      "trait_id": "T007",
+      "trait_id": "T041",
       "active_skills": [
         "S104",
         "S092",
@@ -8125,7 +8125,7 @@
       "id": 43,
       "name": "奇丽花",
       "seq": 1,
-      "trait_id": "T007",
+      "trait_id": "T041",
       "active_skills": [
         "S100",
         "S092",
@@ -8139,7 +8139,7 @@
       "id": 200,
       "name": "奇梦咪",
       "seq": 2,
-      "trait_id": "T022",
+      "trait_id": "T198",
       "active_skills": [
         "S429",
         "S445",
@@ -8153,7 +8153,7 @@
       "id": 84,
       "name": "女王蜂",
       "seq": 2,
-      "trait_id": "T054",
+      "trait_id": "T082",
       "active_skills": [
         "S344",
         "S366",
@@ -8167,7 +8167,7 @@
       "id": 364,
       "name": "小丑公爵",
       "seq": null,
-      "trait_id": "T172",
+      "trait_id": "T362",
       "active_skills": [
         "S494",
         "S324",
@@ -8181,7 +8181,7 @@
       "id": 149,
       "name": "尖嘴狐仙",
       "seq": null,
-      "trait_id": "T070",
+      "trait_id": "T147",
       "active_skills": [
         "S148",
         "S272",
@@ -8195,7 +8195,7 @@
       "id": 20,
       "name": "岚鸟_冬天",
       "seq": 1,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S402",
         "S400",
@@ -8209,7 +8209,7 @@
       "id": 20,
       "name": "岚鸟_夏天",
       "seq": 3,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S402",
         "S400",
@@ -8223,7 +8223,7 @@
       "id": 20,
       "name": "岚鸟_春天",
       "seq": 2,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S402",
         "S400",
@@ -8237,7 +8237,7 @@
       "id": 20,
       "name": "岚鸟_秋天",
       "seq": 4,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S402",
         "S400",
@@ -8251,7 +8251,7 @@
       "id": 112,
       "name": "巨灵石",
       "seq": null,
-      "trait_id": "T028",
+      "trait_id": "T111",
       "active_skills": [
         "S451",
         "S224",
@@ -8265,7 +8265,7 @@
       "id": 372,
       "name": "巨鼓象",
       "seq": null,
-      "trait_id": "T164",
+      "trait_id": "T371",
       "active_skills": [
         "S521",
         "S058",
@@ -8279,7 +8279,7 @@
       "id": 374,
       "name": "帅帅魔偶",
       "seq": null,
-      "trait_id": "T102",
+      "trait_id": "T373",
       "active_skills": [
         "S110",
         "S544",
@@ -8293,7 +8293,7 @@
       "id": 23,
       "name": "幻影灵菇",
       "seq": null,
-      "trait_id": "T077",
+      "trait_id": "T021",
       "active_skills": [
         "S458",
         "S117",
@@ -8307,7 +8307,7 @@
       "id": 35,
       "name": "幻影荆棘",
       "seq": 2,
-      "trait_id": "T074",
+      "trait_id": "T035",
       "active_skills": [
         "S462",
         "S452",
@@ -8321,7 +8321,7 @@
       "id": 56,
       "name": "幽冥眼_睁眼",
       "seq": 1,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -8335,7 +8335,7 @@
       "id": 56,
       "name": "幽冥眼_闭眼",
       "seq": 2,
-      "trait_id": "T076",
+      "trait_id": "T054",
       "active_skills": [
         "S451",
         "S058",
@@ -8349,7 +8349,7 @@
       "id": 35,
       "name": "幽影树",
       "seq": 1,
-      "trait_id": "T074",
+      "trait_id": "T035",
       "active_skills": [
         "S103",
         "S092",
@@ -8363,7 +8363,7 @@
       "id": 124,
       "name": "影狸",
       "seq": null,
-      "trait_id": "T075",
+      "trait_id": "T123",
       "active_skills": [
         "S340",
         "S457",
@@ -8377,7 +8377,7 @@
       "id": 164,
       "name": "怒目怂猫",
       "seq": null,
-      "trait_id": "T095",
+      "trait_id": "T163",
       "active_skills": [
         "S378",
         "S371",
@@ -8391,7 +8391,7 @@
       "id": 130,
       "name": "怖哭菇",
       "seq": null,
-      "trait_id": "T103",
+      "trait_id": "T128",
       "active_skills": [
         "S532",
         "S076",
@@ -8405,7 +8405,7 @@
       "id": 131,
       "name": "恶魔狼王",
       "seq": 2,
-      "trait_id": "T061",
+      "trait_id": "T131",
       "active_skills": [
         "S483",
         "S471",
@@ -8419,7 +8419,7 @@
       "id": 297,
       "name": "捕尘长绒",
       "seq": null,
-      "trait_id": "T154",
+      "trait_id": "T296",
       "active_skills": [
         "S213",
         "S356",
@@ -8433,7 +8433,7 @@
       "id": 178,
       "name": "斑枭",
       "seq": null,
-      "trait_id": "T133",
+      "trait_id": "T177",
       "active_skills": [
         "S402",
         "S399",
@@ -8447,7 +8447,7 @@
       "id": 409,
       "name": "星云旅者",
       "seq": null,
-      "trait_id": "T120",
+      "trait_id": "T409",
       "active_skills": [
         "S553",
         "S536",
@@ -8461,7 +8461,7 @@
       "id": 81,
       "name": "星光狮_星光",
       "seq": 1,
-      "trait_id": "T082",
+      "trait_id": "T080",
       "active_skills": [
         "S306",
         "S297",
@@ -8475,7 +8475,7 @@
       "id": 81,
       "name": "星光狮_月光",
       "seq": 2,
-      "trait_id": "T082",
+      "trait_id": "T080",
       "active_skills": [
         "S306",
         "S190",
@@ -8489,7 +8489,7 @@
       "id": 40,
       "name": "晶石蜗_星彩榴石",
       "seq": 3,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -8503,7 +8503,7 @@
       "id": 40,
       "name": "晶石蜗_火山琉璃",
       "seq": 4,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -8517,7 +8517,7 @@
       "id": 40,
       "name": "晶石蜗_烧蓝黄金",
       "seq": 6,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -8531,7 +8531,7 @@
       "id": 40,
       "name": "晶石蜗_莲花刚玉",
       "seq": 2,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -8545,7 +8545,7 @@
       "id": 40,
       "name": "晶石蜗_蓝锥矿",
       "seq": 5,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -8559,7 +8559,7 @@
       "id": 40,
       "name": "晶石蜗_西瓜碧玺",
       "seq": 1,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S225",
         "S213",
@@ -8573,7 +8573,7 @@
       "id": 347,
       "name": "暮星辰",
       "seq": null,
-      "trait_id": "T115",
+      "trait_id": "T345",
       "active_skills": [
         "S553",
         "S552",
@@ -8587,7 +8587,7 @@
       "id": 238,
       "name": "月亮砣_上弦",
       "seq": 2,
-      "trait_id": "T140",
+      "trait_id": "T237",
       "active_skills": [
         "S186",
         "S330",
@@ -8601,7 +8601,7 @@
       "id": 238,
       "name": "月亮砣_下弦",
       "seq": 1,
-      "trait_id": "T140",
+      "trait_id": "T237",
       "active_skills": [
         "S186",
         "S330",
@@ -8615,7 +8615,7 @@
       "id": 322,
       "name": "月牙雪熊",
       "seq": null,
-      "trait_id": "T112",
+      "trait_id": "T322",
       "active_skills": [
         "S532",
         "S244",
@@ -8629,7 +8629,7 @@
       "id": 87,
       "name": "朔夜伊芙",
       "seq": null,
-      "trait_id": "T064",
+      "trait_id": "T085",
       "active_skills": [
         "S494",
         "S024",
@@ -8643,7 +8643,7 @@
       "id": 146,
       "name": "权杖-V",
       "seq": null,
-      "trait_id": "T108",
+      "trait_id": "T145",
       "active_skills": [
         "S521",
         "S268",
@@ -8657,7 +8657,7 @@
       "id": 276,
       "name": "格兰球",
       "seq": null,
-      "trait_id": "T013",
+      "trait_id": "T274",
       "active_skills": [
         "S077",
         "S099",
@@ -8671,7 +8671,7 @@
       "id": 58,
       "name": "梦悠悠_旧睡衣",
       "seq": 1,
-      "trait_id": "T079",
+      "trait_id": "T057",
       "active_skills": [
         "S081",
         "S040",
@@ -8685,7 +8685,7 @@
       "id": 58,
       "name": "梦悠悠_星星睡衣",
       "seq": 2,
-      "trait_id": "T079",
+      "trait_id": "T057",
       "active_skills": [
         "S081",
         "S040",
@@ -8699,7 +8699,7 @@
       "id": 200,
       "name": "梦想三三",
       "seq": 1,
-      "trait_id": "T022",
+      "trait_id": "T198",
       "active_skills": [
         "S438",
         "S433",
@@ -8713,7 +8713,7 @@
       "id": 192,
       "name": "棋契陛下",
       "seq": 3,
-      "trait_id": "T117",
+      "trait_id": "T192",
       "active_skills": [
         "S382",
         "S387",
@@ -8727,7 +8727,7 @@
       "id": 191,
       "name": "棋祈督_白子",
       "seq": 1,
-      "trait_id": "T138",
+      "trait_id": "T191",
       "active_skills": [
         "S369",
         "S386",
@@ -8741,7 +8741,7 @@
       "id": 191,
       "name": "棋祈督_黑子",
       "seq": 2,
-      "trait_id": "T138",
+      "trait_id": "T191",
       "active_skills": [
         "S369",
         "S386",
@@ -8755,7 +8755,7 @@
       "id": 192,
       "name": "棋绮后_白子",
       "seq": 1,
-      "trait_id": "T117",
+      "trait_id": "T192",
       "active_skills": [
         "S369",
         "S386",
@@ -8769,7 +8769,7 @@
       "id": 192,
       "name": "棋绮后_黑子",
       "seq": 2,
-      "trait_id": "T117",
+      "trait_id": "T192",
       "active_skills": [
         "S369",
         "S386",
@@ -8783,7 +8783,7 @@
       "id": 189,
       "name": "棋骑士_白子",
       "seq": 1,
-      "trait_id": "T136",
+      "trait_id": "T188",
       "active_skills": [
         "S234",
         "S377",
@@ -8797,7 +8797,7 @@
       "id": 189,
       "name": "棋骑士_黑子",
       "seq": 2,
-      "trait_id": "T136",
+      "trait_id": "T188",
       "active_skills": [
         "S234",
         "S377",
@@ -8811,7 +8811,7 @@
       "id": 190,
       "name": "棋齐垒_白子",
       "seq": 1,
-      "trait_id": "T137",
+      "trait_id": "T190",
       "active_skills": [
         "S208",
         "S388",
@@ -8825,7 +8825,7 @@
       "id": 190,
       "name": "棋齐垒_黑子",
       "seq": 2,
-      "trait_id": "T137",
+      "trait_id": "T190",
       "active_skills": [
         "S208",
         "S388",
@@ -8839,7 +8839,7 @@
       "id": 269,
       "name": "武者鸡",
       "seq": null,
-      "trait_id": "T068",
+      "trait_id": "T266",
       "active_skills": [
         "S370",
         "S377",
@@ -8853,7 +8853,7 @@
       "id": 14,
       "name": "水泡壳_本来",
       "seq": 1,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -8867,7 +8867,7 @@
       "id": 14,
       "name": "水泡壳_蜕皮",
       "seq": 2,
-      "trait_id": "T032",
+      "trait_id": "T012",
       "active_skills": [
         "S170",
         "S173",
@@ -8881,7 +8881,7 @@
       "id": 10,
       "name": "水灵",
       "seq": 1,
-      "trait_id": "T031",
+      "trait_id": "T008",
       "active_skills": [
         "S170",
         "S182",
@@ -8895,7 +8895,7 @@
       "id": 228,
       "name": "波普鹿",
       "seq": 2,
-      "trait_id": "T087",
+      "trait_id": "T226",
       "active_skills": [
         "S291",
         "S412",
@@ -8909,7 +8909,7 @@
       "id": 288,
       "name": "泥吼牙",
       "seq": 1,
-      "trait_id": "T114",
+      "trait_id": "T287",
       "active_skills": [
         "S402",
         "S210",
@@ -8923,7 +8923,7 @@
       "id": 220,
       "name": "海枝枝_杏黄百合",
       "seq": 2,
-      "trait_id": "T119",
+      "trait_id": "T220",
       "active_skills": [
         "S455",
         "S460",
@@ -8937,7 +8937,7 @@
       "id": 220,
       "name": "海枝枝_洋红沙丁",
       "seq": 3,
-      "trait_id": "T119",
+      "trait_id": "T220",
       "active_skills": [
         "S455",
         "S460",
@@ -8951,7 +8951,7 @@
       "id": 220,
       "name": "海枝枝_碧蓝珊瑚",
       "seq": 1,
-      "trait_id": "T119",
+      "trait_id": "T220",
       "active_skills": [
         "S455",
         "S460",
@@ -8965,7 +8965,7 @@
       "id": 220,
       "name": "海枝枝_翠绿昆布",
       "seq": 4,
-      "trait_id": "T119",
+      "trait_id": "T220",
       "active_skills": [
         "S455",
         "S460",
@@ -8979,7 +8979,7 @@
       "id": 182,
       "name": "海豹船长",
       "seq": null,
-      "trait_id": "T094",
+      "trait_id": "T181",
       "active_skills": [
         "S170",
         "S372",
@@ -8993,7 +8993,7 @@
       "id": 107,
       "name": "深渊罗隐",
       "seq": 2,
-      "trait_id": "T025",
+      "trait_id": "T105",
       "active_skills": [
         "S223",
         "S212",
@@ -9007,7 +9007,7 @@
       "id": 273,
       "name": "深蓝鲸",
       "seq": null,
-      "trait_id": "T036",
+      "trait_id": "T273",
       "active_skills": [
         "S170",
         "S182",
@@ -9021,7 +9021,7 @@
       "id": 281,
       "name": "混乱鱿彩",
       "seq": null,
-      "trait_id": "T159",
+      "trait_id": "T280",
       "active_skills": [
         "S451",
         "S433",
@@ -9035,7 +9035,7 @@
       "id": 161,
       "name": "游蛇魔使",
       "seq": null,
-      "trait_id": "T148",
+      "trait_id": "T159",
       "active_skills": [
         "S369",
         "S387",
@@ -9049,7 +9049,7 @@
       "id": 413,
       "name": "溯源钟",
       "seq": null,
-      "trait_id": "T146",
+      "trait_id": "T412",
       "active_skills": [
         "S521",
         "S550",
@@ -9063,7 +9063,7 @@
       "id": 395,
       "name": "火巨人",
       "seq": null,
-      "trait_id": "T183",
+      "trait_id": "T393",
       "active_skills": [
         "S127",
         "S156",
@@ -9077,7 +9077,7 @@
       "id": 7,
       "name": "火神",
       "seq": 1,
-      "trait_id": "T066",
+      "trait_id": "T005",
       "active_skills": [
         "S128",
         "S136",
@@ -9091,7 +9091,7 @@
       "id": 378,
       "name": "火羽",
       "seq": null,
-      "trait_id": "T073",
+      "trait_id": "T376",
       "active_skills": [
         "S402",
         "S128",
@@ -9105,7 +9105,7 @@
       "id": 158,
       "name": "炽心勇狮",
       "seq": null,
-      "trait_id": "T147",
+      "trait_id": "T156",
       "active_skills": [
         "S391",
         "S133",
@@ -9119,7 +9119,7 @@
       "id": 7,
       "name": "烈火战神",
       "seq": 2,
-      "trait_id": "T066",
+      "trait_id": "T005",
       "active_skills": [
         "S044",
         "S136",
@@ -9133,7 +9133,7 @@
       "id": 366,
       "name": "烟花伯爵",
       "seq": null,
-      "trait_id": "T163",
+      "trait_id": "T365",
       "active_skills": [
         "S494",
         "S126",
@@ -9147,7 +9147,7 @@
       "id": 326,
       "name": "燃薪虫",
       "seq": null,
-      "trait_id": "T110",
+      "trait_id": "T325",
       "active_skills": [
         "S137",
         "S108",
@@ -9161,7 +9161,7 @@
       "id": 357,
       "name": "爆焰喷喷",
       "seq": null,
-      "trait_id": "T173",
+      "trait_id": "T356",
       "active_skills": [
         "S276",
         "S137",
@@ -9175,7 +9175,7 @@
       "id": 138,
       "name": "獠牙猪",
       "seq": null,
-      "trait_id": "T043",
+      "trait_id": "T137",
       "active_skills": [
         "S054",
         "S210",
@@ -9189,7 +9189,7 @@
       "id": 245,
       "name": "琉璃水母",
       "seq": null,
-      "trait_id": "T039",
+      "trait_id": "T244",
       "active_skills": [
         "S319",
         "S182",
@@ -9203,7 +9203,7 @@
       "id": 133,
       "name": "电企鹅",
       "seq": null,
-      "trait_id": "T166",
+      "trait_id": "T132",
       "active_skills": [
         "S299",
         "S297",
@@ -9217,7 +9217,7 @@
       "id": 302,
       "name": "画间沉铁兽",
       "seq": null,
-      "trait_id": "T143",
+      "trait_id": "T302",
       "active_skills": [
         "S054",
         "S370",
@@ -9231,7 +9231,7 @@
       "id": 301,
       "name": "画间法师手",
       "seq": null,
-      "trait_id": "T142",
+      "trait_id": "T299",
       "active_skills": [
         "S054",
         "S552",
@@ -9245,7 +9245,7 @@
       "id": 312,
       "name": "疾光千兽",
       "seq": null,
-      "trait_id": "T106",
+      "trait_id": "T310",
       "active_skills": [
         "S375",
         "S190",
@@ -9259,7 +9259,7 @@
       "id": 197,
       "name": "白发路路",
       "seq": null,
-      "trait_id": "T011",
+      "trait_id": "T195",
       "active_skills": [
         "S438",
         "S092",
@@ -9273,7 +9273,7 @@
       "id": 117,
       "name": "白金独角兽",
       "seq": 1,
-      "trait_id": "T002",
+      "trait_id": "T116",
       "active_skills": [
         "S054",
         "S201",
@@ -9287,7 +9287,7 @@
       "id": 167,
       "name": "皇家狮鹫_崖间地",
       "seq": 1,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S402",
         "S400",
@@ -9301,7 +9301,7 @@
       "id": 167,
       "name": "皇家狮鹫_高山",
       "seq": 2,
-      "trait_id": "T050",
+      "trait_id": "T165",
       "active_skills": [
         "S402",
         "S400",
@@ -9315,7 +9315,7 @@
       "id": 26,
       "name": "石冠王蜥_本来",
       "seq": 1,
-      "trait_id": "T027",
+      "trait_id": "T024",
       "active_skills": [
         "S230",
         "S209",
@@ -9329,7 +9329,7 @@
       "id": 26,
       "name": "石冠王蜥_球球",
       "seq": 2,
-      "trait_id": "T027",
+      "trait_id": "T024",
       "active_skills": [
         "S230",
         "S209",
@@ -9343,7 +9343,7 @@
       "id": 115,
       "name": "祭礼巨像",
       "seq": 2,
-      "trait_id": "T030",
+      "trait_id": "T113",
       "active_skills": [
         "S537",
         "S535",
@@ -9357,7 +9357,7 @@
       "id": 282,
       "name": "秩序鱿墨",
       "seq": null,
-      "trait_id": "T160",
+      "trait_id": "T282",
       "active_skills": [
         "S463",
         "S429",
@@ -9371,7 +9371,7 @@
       "id": 324,
       "name": "窃光蚊",
       "seq": null,
-      "trait_id": "T150",
+      "trait_id": "T323",
       "active_skills": [
         "S491",
         "S502",
@@ -9385,7 +9385,7 @@
       "id": 265,
       "name": "立方人",
       "seq": null,
-      "trait_id": "T088",
+      "trait_id": "T263",
       "active_skills": [
         "S521",
         "S433",
@@ -9399,7 +9399,7 @@
       "id": 336,
       "name": "粉耳星兔",
       "seq": null,
-      "trait_id": "T021",
+      "trait_id": "T335",
       "active_skills": [
         "S081",
         "S544",
@@ -9413,7 +9413,7 @@
       "id": 257,
       "name": "红绒十字",
       "seq": null,
-      "trait_id": "T071",
+      "trait_id": "T255",
       "active_skills": [
         "S438",
         "S126",
@@ -9427,7 +9427,7 @@
       "id": 268,
       "name": "绅士鸡",
       "seq": null,
-      "trait_id": "T121",
+      "trait_id": "T268",
       "active_skills": [
         "S378",
         "S377",
@@ -9441,7 +9441,7 @@
       "id": 309,
       "name": "绒仙子",
       "seq": null,
-      "trait_id": "T105",
+      "trait_id": "T307",
       "active_skills": [
         "S343",
         "S349",
@@ -9455,7 +9455,7 @@
       "id": 107,
       "name": "罗隐",
       "seq": 1,
-      "trait_id": "T025",
+      "trait_id": "T105",
       "active_skills": [
         "S491",
         "S229",
@@ -9469,7 +9469,7 @@
       "id": 170,
       "name": "芋香巨角蛛",
       "seq": null,
-      "trait_id": "T053",
+      "trait_id": "T168",
       "active_skills": [
         "S323",
         "S354",
@@ -9497,7 +9497,7 @@
       "id": 79,
       "name": "菊花梨",
       "seq": null,
-      "trait_id": "T097",
+      "trait_id": "T079",
       "active_skills": [
         "S077",
         "S430",
@@ -9511,7 +9511,7 @@
       "id": 337,
       "name": "落陨星兔",
       "seq": null,
-      "trait_id": "T141",
+      "trait_id": "T337",
       "active_skills": [
         "S451",
         "S544",
@@ -9525,7 +9525,7 @@
       "id": 248,
       "name": "裘卡",
       "seq": null,
-      "trait_id": "T101",
+      "trait_id": "T246",
       "active_skills": [
         "S340",
         "S323",
@@ -9539,7 +9539,7 @@
       "id": 95,
       "name": "记忆石",
       "seq": null,
-      "trait_id": "T024",
+      "trait_id": "T095",
       "active_skills": [
         "S234",
         "S233",
@@ -9553,7 +9553,7 @@
       "id": 334,
       "name": "贝古斯",
       "seq": null,
-      "trait_id": "T089",
+      "trait_id": "T332",
       "active_skills": [
         "S521",
         "S126",
@@ -9567,7 +9567,7 @@
       "id": 51,
       "name": "蹦床松鼠",
       "seq": null,
-      "trait_id": "T017",
+      "trait_id": "T049",
       "active_skills": [
         "S076",
         "S075",
@@ -9581,7 +9581,7 @@
       "id": 65,
       "name": "蹦蹦果",
       "seq": 5,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S115",
         "S090",
@@ -9595,7 +9595,7 @@
       "id": 65,
       "name": "蹦蹦花_彩玉球",
       "seq": 2,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -9609,7 +9609,7 @@
       "id": 65,
       "name": "蹦蹦花_海神球",
       "seq": 1,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -9623,7 +9623,7 @@
       "id": 65,
       "name": "蹦蹦花_短毛球",
       "seq": 3,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -9637,7 +9637,7 @@
       "id": 65,
       "name": "蹦蹦花_象牙球",
       "seq": 4,
-      "trait_id": "T005",
+      "trait_id": "T063",
       "active_skills": [
         "S103",
         "S324",
@@ -9651,7 +9651,7 @@
       "id": 1,
       "name": "迪莫",
       "seq": 1,
-      "trait_id": "T104",
+      "trait_id": "T001",
       "active_skills": [
         "S192",
         "S207",
@@ -9665,7 +9665,7 @@
       "id": 29,
       "name": "迷嶂布莱克",
       "seq": 2,
-      "trait_id": "T026",
+      "trait_id": "T027",
       "active_skills": [
         "S030",
         "S228",
@@ -9679,7 +9679,7 @@
       "id": 402,
       "name": "邪眼巨魔",
       "seq": null,
-      "trait_id": "T063",
+      "trait_id": "T400",
       "active_skills": [
         "S133",
         "S488",
@@ -9693,7 +9693,7 @@
       "id": 206,
       "name": "酷拉",
       "seq": 1,
-      "trait_id": "T080",
+      "trait_id": "T205",
       "active_skills": [
         "S310",
         "S297",
@@ -9707,7 +9707,7 @@
       "id": 219,
       "name": "里拉鳐",
       "seq": null,
-      "trait_id": "T128",
+      "trait_id": "T219",
       "active_skills": [
         "S189",
         "S544",
@@ -9721,7 +9721,7 @@
       "id": 155,
       "name": "针叶巡林",
       "seq": null,
-      "trait_id": "T149",
+      "trait_id": "T153",
       "active_skills": [
         "S011",
         "S090",
@@ -9735,7 +9735,7 @@
       "id": 40,
       "name": "钻石蜗",
       "seq": 7,
-      "trait_id": "T001",
+      "trait_id": "T039",
       "active_skills": [
         "S194",
         "S215",
@@ -9749,7 +9749,7 @@
       "id": 284,
       "name": "铠甲虫",
       "seq": null,
-      "trait_id": "T059",
+      "trait_id": "T283",
       "active_skills": [
         "S356",
         "S076",
@@ -9763,7 +9763,7 @@
       "id": 92,
       "name": "锤头鹳",
       "seq": null,
-      "trait_id": "T051",
+      "trait_id": "T092",
       "active_skills": [
         "S178",
         "S058",
@@ -9777,7 +9777,7 @@
       "id": 243,
       "name": "闪电鳗鱼",
       "seq": null,
-      "trait_id": "T085",
+      "trait_id": "T242",
       "active_skills": [
         "S303",
         "S170",
@@ -9791,7 +9791,7 @@
       "id": 319,
       "name": "陨星虫",
       "seq": null,
-      "trait_id": "T058",
+      "trait_id": "T317",
       "active_skills": [
         "S356",
         "S076",
@@ -9805,7 +9805,7 @@
       "id": 341,
       "name": "雅丹鬃",
       "seq": null,
-      "trait_id": "T107",
+      "trait_id": "T340",
       "active_skills": [
         "S081",
         "S126",
@@ -9819,7 +9819,7 @@
       "id": 144,
       "name": "雪影冰灵",
       "seq": 2,
-      "trait_id": "T040",
+      "trait_id": "T142",
       "active_skills": [
         "S260",
         "S243",
@@ -9833,7 +9833,7 @@
       "id": 144,
       "name": "雪影娃娃",
       "seq": 1,
-      "trait_id": "T040",
+      "trait_id": "T142",
       "active_skills": [
         "S014",
         "S272",
@@ -9847,7 +9847,7 @@
       "id": 355,
       "name": "雪怪",
       "seq": null,
-      "trait_id": "T171",
+      "trait_id": "T354",
       "active_skills": [
         "S077",
         "S262",
@@ -9861,7 +9861,7 @@
       "id": 141,
       "name": "雪灵",
       "seq": null,
-      "trait_id": "T045",
+      "trait_id": "T139",
       "active_skills": [
         "S451",
         "S268",
@@ -9875,7 +9875,7 @@
       "id": 20,
       "name": "霜翼领主",
       "seq": 5,
-      "trait_id": "T046",
+      "trait_id": "T018",
       "active_skills": [
         "S415",
         "S402",
@@ -9889,7 +9889,7 @@
       "id": 370,
       "name": "霹雳迪迪",
       "seq": null,
-      "trait_id": "T174",
+      "trait_id": "T369",
       "active_skills": [
         "S196",
         "S304",
@@ -9903,7 +9903,7 @@
       "id": 359,
       "name": "音碟吼",
       "seq": null,
-      "trait_id": "T168",
+      "trait_id": "T358",
       "active_skills": [
         "S076",
         "S518",
@@ -9917,7 +9917,7 @@
       "id": 48,
       "name": "音速犬",
       "seq": 1,
-      "trait_id": "T069",
+      "trait_id": "T047",
       "active_skills": [
         "S493",
         "S131",
@@ -9931,7 +9931,7 @@
       "id": 48,
       "name": "风暴战犬",
       "seq": 2,
-      "trait_id": "T069",
+      "trait_id": "T047",
       "active_skills": [
         "S143",
         "S153",
@@ -9945,7 +9945,7 @@
       "id": 120,
       "name": "风滚暮虫_枯叶",
       "seq": 2,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S070",
@@ -9959,7 +9959,7 @@
       "id": 120,
       "name": "风滚暮虫_金黄",
       "seq": 1,
-      "trait_id": "T023",
+      "trait_id": "T118",
       "active_skills": [
         "S363",
         "S070",
@@ -9973,7 +9973,7 @@
       "id": 380,
       "name": "飞飞钥",
       "seq": null,
-      "trait_id": "T181",
+      "trait_id": "T379",
       "active_skills": [
         "S343",
         "S024",
@@ -9987,7 +9987,7 @@
       "id": 4,
       "name": "魔力猫",
       "seq": 1,
-      "trait_id": "T003",
+      "trait_id": "T002",
       "active_skills": [
         "S103",
         "S092",
@@ -10001,7 +10001,7 @@
       "id": 104,
       "name": "魔眷鸟",
       "seq": null,
-      "trait_id": "T098",
+      "trait_id": "T102",
       "active_skills": [
         "S402",
         "S431",
@@ -10015,7 +10015,7 @@
       "id": 94,
       "name": "魔草巫灵",
       "seq": null,
-      "trait_id": "T009",
+      "trait_id": "T093",
       "active_skills": [
         "S103",
         "S544",
@@ -10029,7 +10029,7 @@
       "id": 202,
       "name": "鳗尾兽",
       "seq": null,
-      "trait_id": "T126",
+      "trait_id": "T201",
       "active_skills": [
         "S225",
         "S117",
@@ -10043,7 +10043,7 @@
       "id": 11,
       "name": "鸭吉吉_蓬松",
       "seq": 1,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S013",
         "S024",
@@ -10057,7 +10057,7 @@
       "id": 11,
       "name": "鸭吉吉_急急急",
       "seq": 3,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S013",
         "S024",
@@ -10071,7 +10071,7 @@
       "id": 11,
       "name": "鸭吉吉_等一等",
       "seq": 4,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S081",
         "S024",
@@ -10085,7 +10085,7 @@
       "id": 11,
       "name": "鸭吉吉_起来鸭",
       "seq": 6,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S081",
         "S024",
@@ -10099,7 +10099,7 @@
       "id": 11,
       "name": "鸭吉吉_紧实",
       "seq": 2,
-      "trait_id": "T014",
+      "trait_id": "T011",
       "active_skills": [
         "S081",
         "S024",
@@ -10113,7 +10113,7 @@
       "id": 122,
       "name": "黑猫密探",
       "seq": 2,
-      "trait_id": "T125",
+      "trait_id": "T121",
       "active_skills": [
         "S017",
         "S017",
@@ -10127,7 +10127,7 @@
       "id": 122,
       "name": "黑猫巫师",
       "seq": 1,
-      "trait_id": "T125",
+      "trait_id": "T121",
       "active_skills": [
         "S081",
         "S058",
@@ -10141,7 +10141,7 @@
       "id": 295,
       "name": "龙息帕尔",
       "seq": null,
-      "trait_id": "T062",
+      "trait_id": "T293",
       "active_skills": [
         "S491",
         "S479",
@@ -10155,7 +10155,7 @@
       "id": 241,
       "name": "龙鱼",
       "seq": null,
-      "trait_id": "T038",
+      "trait_id": "T239",
       "active_skills": [
         "S183",
         "S282",
