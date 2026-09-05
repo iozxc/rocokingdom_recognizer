@@ -10,7 +10,9 @@
       "form_name": "迪莫",
       "elements": [
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 1,
@@ -20,7 +22,9 @@
       "elements": [
         "光",
         "草"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 1,
@@ -29,7 +33,9 @@
       "form_name": "圣光迪莫",
       "elements": [
         "光"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 1,
@@ -39,7 +45,9 @@
       "elements": [
         "光",
         "火"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 1,
@@ -49,7 +57,9 @@
       "elements": [
         "光",
         "水"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 2,
@@ -58,7 +68,9 @@
       "form_name": "喵喵",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 3,
@@ -67,7 +79,9 @@
       "form_name": "喵呜",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 4,
@@ -76,7 +90,9 @@
       "form_name": "魔力猫",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 4,
@@ -85,7 +101,9 @@
       "form_name": "叶冕魔力猫",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 4,
@@ -94,7 +112,9 @@
       "form_name": "武斗酷猫",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 5,
@@ -103,7 +123,9 @@
       "form_name": "火花",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 6,
@@ -112,7 +134,9 @@
       "form_name": "焰火",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 7,
@@ -121,7 +145,9 @@
       "form_name": "火神",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 7,
@@ -130,7 +156,9 @@
       "form_name": "烈火战神",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 8,
@@ -139,7 +167,9 @@
       "form_name": "水蓝蓝",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 9,
@@ -148,7 +178,9 @@
       "form_name": "波波拉",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 10,
@@ -157,7 +189,9 @@
       "form_name": "水灵",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 10,
@@ -166,7 +200,9 @@
       "form_name": "圣水守护",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 11,
@@ -175,7 +211,9 @@
       "form_name": "鸭吉吉_蓬松",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 11,
@@ -184,7 +222,9 @@
       "form_name": "鸭吉吉_紧实",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 11,
@@ -193,7 +233,9 @@
       "form_name": "鸭吉吉_急急急",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 11,
@@ -202,7 +244,9 @@
       "form_name": "鸭吉吉_等一等",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 11,
@@ -211,7 +255,9 @@
       "form_name": "鸭吉吉_燃了鸭",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 11,
@@ -220,7 +266,9 @@
       "form_name": "鸭吉吉_起来鸭",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 11,
@@ -229,7 +277,9 @@
       "form_name": "鸭吉吉国王",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 12,
@@ -238,7 +288,9 @@
       "form_name": "板板壳_本来",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 12,
@@ -247,7 +299,9 @@
       "form_name": "板板壳_蜕皮",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 13,
@@ -256,7 +310,9 @@
       "form_name": "咔咔壳_本来",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 13,
@@ -265,7 +321,9 @@
       "form_name": "咔咔壳_蜕皮",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 14,
@@ -274,7 +332,9 @@
       "form_name": "水泡壳_本来",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 14,
@@ -283,7 +343,9 @@
       "form_name": "水泡壳_蜕皮",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 15,
@@ -292,7 +354,9 @@
       "form_name": "锥尾羊",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 16,
@@ -301,7 +365,9 @@
       "form_name": "铃兰羊",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 17,
@@ -311,7 +377,9 @@
       "elements": [
         "幽",
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 18,
@@ -320,7 +388,9 @@
       "form_name": "雪绒鸟_冬天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 18,
@@ -329,7 +399,9 @@
       "form_name": "雪绒鸟_春天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 18,
@@ -338,7 +410,9 @@
       "form_name": "雪绒鸟_夏天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 18,
@@ -347,7 +421,9 @@
       "form_name": "雪绒鸟_秋天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 19,
@@ -356,7 +432,9 @@
       "form_name": "冬羽雀_冬天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 19,
@@ -365,7 +443,9 @@
       "form_name": "冬羽雀_春天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 19,
@@ -374,7 +454,9 @@
       "form_name": "冬羽雀_夏天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 19,
@@ -383,7 +465,9 @@
       "form_name": "冬羽雀_秋天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 20,
@@ -392,7 +476,9 @@
       "form_name": "岚鸟_冬天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 20,
@@ -401,7 +487,9 @@
       "form_name": "岚鸟_春天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 20,
@@ -410,7 +498,9 @@
       "form_name": "岚鸟_夏天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 20,
@@ -419,7 +509,9 @@
       "form_name": "岚鸟_秋天",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 20,
@@ -428,7 +520,9 @@
       "form_name": "霜翼领主",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 21,
@@ -437,7 +531,9 @@
       "form_name": "小灵菇",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 22,
@@ -447,7 +543,9 @@
       "elements": [
         "幽",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 23,
@@ -457,7 +555,9 @@
       "elements": [
         "幽",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 24,
@@ -466,7 +566,9 @@
       "form_name": "石肤蜥_本来",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 24,
@@ -475,7 +577,9 @@
       "form_name": "石肤蜥_球球",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 25,
@@ -484,7 +588,9 @@
       "form_name": "石刺蜥_本来",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 25,
@@ -493,7 +599,9 @@
       "form_name": "石刺蜥_球球",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 26,
@@ -502,7 +610,9 @@
       "form_name": "石冠王蜥_本来",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 26,
@@ -511,7 +621,9 @@
       "form_name": "石冠王蜥_球球",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 27,
@@ -520,7 +632,9 @@
       "form_name": "布是石",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 28,
@@ -529,7 +643,9 @@
       "form_name": "布是岩",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 29,
@@ -538,7 +654,9 @@
       "form_name": "布克棱岩",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 29,
@@ -547,7 +665,9 @@
       "form_name": "迷嶂布莱克",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 30,
@@ -557,7 +677,9 @@
       "elements": [
         "恶",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 31,
@@ -567,7 +689,9 @@
       "elements": [
         "恶",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 31,
@@ -576,7 +700,9 @@
       "form_name": "暗影恶魔",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 32,
@@ -586,7 +712,9 @@
       "elements": [
         "虫",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 33,
@@ -596,7 +724,9 @@
       "elements": [
         "虫",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 34,
@@ -606,7 +736,9 @@
       "elements": [
         "虫",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 34,
@@ -616,7 +748,9 @@
       "elements": [
         "虫",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 34,
@@ -626,7 +760,9 @@
       "elements": [
         "虫",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 34,
@@ -636,7 +772,9 @@
       "elements": [
         "虫",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 35,
@@ -646,7 +784,9 @@
       "elements": [
         "幽",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 35,
@@ -656,7 +796,9 @@
       "elements": [
         "幽",
         "草"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 36,
@@ -666,7 +808,9 @@
       "elements": [
         "普通",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 37,
@@ -676,7 +820,9 @@
       "elements": [
         "普通",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 38,
@@ -686,7 +832,9 @@
       "elements": [
         "普通",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 39,
@@ -696,7 +844,9 @@
       "elements": [
         "光",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 40,
@@ -706,7 +856,9 @@
       "elements": [
         "光",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 40,
@@ -716,7 +868,9 @@
       "elements": [
         "光",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 40,
@@ -726,7 +880,9 @@
       "elements": [
         "光",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 40,
@@ -736,7 +892,9 @@
       "elements": [
         "光",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 40,
@@ -746,7 +904,9 @@
       "elements": [
         "光",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 40,
@@ -756,7 +916,9 @@
       "elements": [
         "光",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 40,
@@ -766,7 +928,9 @@
       "elements": [
         "光",
         "地"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 41,
@@ -775,7 +939,9 @@
       "form_name": "奇丽草",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 42,
@@ -784,7 +950,9 @@
       "form_name": "奇丽叶",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 43,
@@ -793,7 +961,9 @@
       "form_name": "奇丽花",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 43,
@@ -802,7 +972,9 @@
       "form_name": "奇丽果",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 44,
@@ -811,7 +983,9 @@
       "form_name": "丢丢_草地",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 44,
@@ -821,7 +995,9 @@
       "elements": [
         "草",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 44,
@@ -831,7 +1007,9 @@
       "elements": [
         "草",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 44,
@@ -841,7 +1019,9 @@
       "elements": [
         "草",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 45,
@@ -850,7 +1030,9 @@
       "form_name": "卡卡虫_草地",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 45,
@@ -860,7 +1042,9 @@
       "elements": [
         "草",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 45,
@@ -870,7 +1054,9 @@
       "elements": [
         "草",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 45,
@@ -880,7 +1066,9 @@
       "elements": [
         "草",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 46,
@@ -889,7 +1077,9 @@
       "form_name": "卡瓦重_草地",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 46,
@@ -899,7 +1089,9 @@
       "elements": [
         "草",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 46,
@@ -909,7 +1101,9 @@
       "elements": [
         "草",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 46,
@@ -919,7 +1113,9 @@
       "elements": [
         "草",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 47,
@@ -928,7 +1124,9 @@
       "form_name": "护主犬",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 48,
@@ -937,7 +1135,9 @@
       "form_name": "音速犬",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 48,
@@ -946,7 +1146,9 @@
       "form_name": "风暴战犬",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 49,
@@ -955,7 +1157,9 @@
       "form_name": "绿耳松鼠",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 50,
@@ -964,7 +1168,9 @@
       "form_name": "抱枕松鼠",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 51,
@@ -973,7 +1179,9 @@
       "form_name": "蹦床松鼠",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 52,
@@ -982,7 +1190,9 @@
       "form_name": "嘟嘟煲",
       "elements": [
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 53,
@@ -991,7 +1201,9 @@
       "form_name": "嘟嘟锅",
       "elements": [
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 54,
@@ -1000,7 +1212,9 @@
       "form_name": "小灵面",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 55,
@@ -1009,7 +1223,9 @@
       "form_name": "暗影灵面_睁眼",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 55,
@@ -1018,7 +1234,9 @@
       "form_name": "暗影灵面_闭眼",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 56,
@@ -1027,7 +1245,9 @@
       "form_name": "幽冥眼_睁眼",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 56,
@@ -1036,7 +1256,9 @@
       "form_name": "幽冥眼_闭眼",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 57,
@@ -1045,7 +1267,9 @@
       "form_name": "梦游_旧睡衣",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 57,
@@ -1055,7 +1279,9 @@
       "elements": [
         "幽",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 58,
@@ -1064,7 +1290,9 @@
       "form_name": "梦悠悠_旧睡衣",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 58,
@@ -1074,7 +1302,9 @@
       "elements": [
         "幽",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 59,
@@ -1084,7 +1314,9 @@
       "elements": [
         "光",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 60,
@@ -1093,7 +1325,9 @@
       "form_name": "伏地兽",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 61,
@@ -1102,7 +1336,9 @@
       "form_name": "贪食鼹",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 62,
@@ -1111,7 +1347,9 @@
       "form_name": "巨噬针鼹",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 63,
@@ -1121,7 +1359,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 63,
@@ -1131,7 +1371,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 63,
@@ -1141,7 +1383,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 63,
@@ -1151,7 +1395,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 64,
@@ -1161,7 +1407,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 64,
@@ -1171,7 +1419,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 64,
@@ -1181,7 +1431,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 64,
@@ -1191,7 +1443,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 65,
@@ -1201,7 +1455,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 65,
@@ -1211,7 +1467,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 65,
@@ -1221,7 +1479,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 65,
@@ -1231,7 +1491,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 65,
@@ -1241,7 +1503,9 @@
       "elements": [
         "草",
         "毒"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 66,
@@ -1250,7 +1514,9 @@
       "form_name": "电咩咩",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 67,
@@ -1259,7 +1525,9 @@
       "form_name": "粉咩咩",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 68,
@@ -1268,7 +1536,9 @@
       "form_name": "电球咩咩",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 69,
@@ -1278,7 +1548,9 @@
       "elements": [
         "草",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 70,
@@ -1288,7 +1560,9 @@
       "elements": [
         "草",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 71,
@@ -1297,7 +1571,9 @@
       "form_name": "伊贝儿",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 72,
@@ -1306,7 +1582,9 @@
       "form_name": "伊贝粉粉",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 73,
@@ -1315,7 +1593,9 @@
       "form_name": "白发懒人",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 74,
@@ -1325,7 +1605,9 @@
       "elements": [
         "普通",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 75,
@@ -1335,7 +1617,9 @@
       "elements": [
         "普通",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 76,
@@ -1345,7 +1629,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 76,
@@ -1355,7 +1641,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 77,
@@ -1365,7 +1653,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 77,
@@ -1375,7 +1665,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 78,
@@ -1385,7 +1677,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 78,
@@ -1395,7 +1689,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 78,
@@ -1405,7 +1701,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 79,
@@ -1414,7 +1712,9 @@
       "form_name": "菊花梨",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 80,
@@ -1423,7 +1723,9 @@
       "form_name": "小星光_星光",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 80,
@@ -1433,7 +1735,9 @@
       "elements": [
         "电",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 81,
@@ -1442,7 +1746,9 @@
       "form_name": "星光狮_星光",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 81,
@@ -1452,7 +1758,9 @@
       "elements": [
         "电",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 82,
@@ -1462,7 +1770,9 @@
       "elements": [
         "虫",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 83,
@@ -1472,7 +1782,9 @@
       "elements": [
         "虫",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 84,
@@ -1482,7 +1794,9 @@
       "elements": [
         "虫",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 84,
@@ -1492,7 +1806,9 @@
       "elements": [
         "虫",
         "翼"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 85,
@@ -1501,7 +1817,9 @@
       "form_name": "小夜",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 86,
@@ -1510,7 +1828,9 @@
       "form_name": "紫夜",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 87,
@@ -1519,7 +1839,9 @@
       "form_name": "朔夜伊芙",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 88,
@@ -1529,7 +1851,9 @@
       "elements": [
         "翼",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 89,
@@ -1539,7 +1863,9 @@
       "elements": [
         "翼",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 90,
@@ -1549,7 +1875,9 @@
       "elements": [
         "翼",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 91,
@@ -1559,7 +1887,9 @@
       "elements": [
         "翼",
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 92,
@@ -1569,7 +1899,9 @@
       "elements": [
         "翼",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 93,
@@ -1579,7 +1911,9 @@
       "elements": [
         "草",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 94,
@@ -1589,7 +1923,9 @@
       "elements": [
         "草",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 95,
@@ -1598,7 +1934,9 @@
       "form_name": "记忆石",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 96,
@@ -1608,7 +1946,9 @@
       "elements": [
         "翼",
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 97,
@@ -1618,7 +1958,9 @@
       "elements": [
         "翼",
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 98,
@@ -1628,7 +1970,9 @@
       "elements": [
         "翼",
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 99,
@@ -1638,7 +1982,9 @@
       "elements": [
         "虫",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 100,
@@ -1648,7 +1994,9 @@
       "elements": [
         "虫",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 101,
@@ -1658,7 +2006,9 @@
       "elements": [
         "虫",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 102,
@@ -1668,7 +2018,9 @@
       "elements": [
         "萌",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 103,
@@ -1678,7 +2030,9 @@
       "elements": [
         "萌",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 104,
@@ -1688,7 +2042,9 @@
       "elements": [
         "萌",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 105,
@@ -1697,7 +2053,9 @@
       "form_name": "阿米亚特",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 106,
@@ -1706,7 +2064,9 @@
       "form_name": "阿米樱",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 107,
@@ -1716,7 +2076,9 @@
       "elements": [
         "地",
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 107,
@@ -1726,7 +2088,9 @@
       "elements": [
         "地",
         "恶"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 108,
@@ -1736,7 +2100,9 @@
       "elements": [
         "水",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 109,
@@ -1746,7 +2112,9 @@
       "elements": [
         "水",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 110,
@@ -1756,7 +2124,9 @@
       "elements": [
         "水",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 111,
@@ -1765,7 +2135,9 @@
       "form_name": "石石",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 112,
@@ -1775,7 +2147,9 @@
       "elements": [
         "地",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 113,
@@ -1785,7 +2159,9 @@
       "elements": [
         "地",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 114,
@@ -1795,7 +2171,9 @@
       "elements": [
         "地",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 115,
@@ -1805,7 +2183,9 @@
       "elements": [
         "地",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 115,
@@ -1815,7 +2195,9 @@
       "elements": [
         "地",
         "幻"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 116,
@@ -1824,7 +2206,9 @@
       "form_name": "小独角兽",
       "elements": [
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 117,
@@ -1833,7 +2217,9 @@
       "form_name": "白金独角兽",
       "elements": [
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 117,
@@ -1842,7 +2228,9 @@
       "form_name": "彩虹独角兽",
       "elements": [
         "光"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 118,
@@ -1852,7 +2240,9 @@
       "elements": [
         "普通",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 118,
@@ -1862,7 +2252,9 @@
       "elements": [
         "普通",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 119,
@@ -1872,7 +2264,9 @@
       "elements": [
         "普通",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 119,
@@ -1882,7 +2276,9 @@
       "elements": [
         "普通",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 120,
@@ -1892,7 +2288,9 @@
       "elements": [
         "普通",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 120,
@@ -1902,7 +2300,9 @@
       "elements": [
         "普通",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 120,
@@ -1912,7 +2312,9 @@
       "elements": [
         "普通",
         "虫"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 121,
@@ -1921,7 +2323,9 @@
       "form_name": "小黑猫",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 122,
@@ -1930,7 +2334,9 @@
       "form_name": "黑猫巫师",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 122,
@@ -1939,7 +2345,9 @@
       "form_name": "黑猫密探",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 123,
@@ -1949,7 +2357,9 @@
       "elements": [
         "幽",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 124,
@@ -1959,7 +2369,9 @@
       "elements": [
         "幽",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 125,
@@ -1969,7 +2381,9 @@
       "elements": [
         "毒",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 126,
@@ -1979,7 +2393,9 @@
       "elements": [
         "毒",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 127,
@@ -1989,7 +2405,9 @@
       "elements": [
         "毒",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 128,
@@ -1998,7 +2416,9 @@
       "form_name": "哭哭菇",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 129,
@@ -2007,7 +2427,9 @@
       "form_name": "怖须菇",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 130,
@@ -2016,7 +2438,9 @@
       "form_name": "怖哭菇",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 131,
@@ -2025,7 +2449,9 @@
       "form_name": "恶魔狼",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 131,
@@ -2034,7 +2460,9 @@
       "form_name": "恶魔狼王",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 132,
@@ -2044,7 +2472,9 @@
       "elements": [
         "冰",
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 133,
@@ -2054,7 +2484,9 @@
       "elements": [
         "冰",
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 134,
@@ -2063,7 +2495,9 @@
       "form_name": "雪豆丁",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 135,
@@ -2072,7 +2506,9 @@
       "form_name": "雪蛮人",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 136,
@@ -2081,7 +2517,9 @@
       "form_name": "雪巨人",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 137,
@@ -2091,7 +2529,9 @@
       "elements": [
         "冰",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 138,
@@ -2101,7 +2541,9 @@
       "elements": [
         "冰",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 139,
@@ -2110,7 +2552,9 @@
       "form_name": "雪娃娃",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 140,
@@ -2119,7 +2563,9 @@
       "form_name": "冰封怨灵",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 141,
@@ -2128,7 +2574,9 @@
       "form_name": "雪灵",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 142,
@@ -2138,7 +2586,9 @@
       "elements": [
         "冰",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 143,
@@ -2148,7 +2598,9 @@
       "elements": [
         "冰",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 144,
@@ -2158,7 +2610,9 @@
       "elements": [
         "冰",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 144,
@@ -2168,7 +2622,9 @@
       "elements": [
         "冰",
         "萌"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 145,
@@ -2177,7 +2633,9 @@
       "form_name": "权杖-Ⅱ",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 146,
@@ -2186,7 +2644,9 @@
       "form_name": "权杖-V",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 147,
@@ -2196,7 +2656,9 @@
       "elements": [
         "火",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 148,
@@ -2206,7 +2668,9 @@
       "elements": [
         "火",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 149,
@@ -2216,7 +2680,9 @@
       "elements": [
         "火",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 150,
@@ -2225,7 +2691,9 @@
       "form_name": "里奥",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 151,
@@ -2234,7 +2702,9 @@
       "form_name": "灵羽勇士",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 152,
@@ -2243,7 +2713,9 @@
       "form_name": "圣羽翼王",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 153,
@@ -2253,7 +2725,9 @@
       "elements": [
         "草",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 154,
@@ -2263,7 +2737,9 @@
       "elements": [
         "草",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 155,
@@ -2273,7 +2749,9 @@
       "elements": [
         "草",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 156,
@@ -2283,7 +2761,9 @@
       "elements": [
         "火",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 157,
@@ -2293,7 +2773,9 @@
       "elements": [
         "火",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 158,
@@ -2303,7 +2785,9 @@
       "elements": [
         "火",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 159,
@@ -2313,7 +2797,9 @@
       "elements": [
         "水",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 160,
@@ -2323,7 +2809,9 @@
       "elements": [
         "水",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 161,
@@ -2333,7 +2821,9 @@
       "elements": [
         "水",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 162,
@@ -2342,7 +2832,9 @@
       "form_name": "公平鸽",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 163,
@@ -2351,7 +2843,9 @@
       "form_name": "小怂猫",
       "elements": [
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 164,
@@ -2360,7 +2854,9 @@
       "form_name": "怒目怂猫",
       "elements": [
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 165,
@@ -2369,7 +2865,9 @@
       "form_name": "小狮鹫_崖间地",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 165,
@@ -2378,7 +2876,9 @@
       "form_name": "小狮鹫_高山",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 166,
@@ -2387,7 +2887,9 @@
       "form_name": "神圣狮鹫_崖间地",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 166,
@@ -2396,7 +2898,9 @@
       "form_name": "神圣狮鹫_高山",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 167,
@@ -2405,7 +2909,9 @@
       "form_name": "皇家狮鹫_崖间地",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 167,
@@ -2414,7 +2920,9 @@
       "form_name": "皇家狮鹫_高山",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 168,
@@ -2423,7 +2931,9 @@
       "form_name": "圆眼蜘蛛",
       "elements": [
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 169,
@@ -2433,7 +2943,9 @@
       "elements": [
         "虫",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 170,
@@ -2443,7 +2955,9 @@
       "elements": [
         "虫",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 171,
@@ -2453,7 +2967,9 @@
       "elements": [
         "地",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 171,
@@ -2463,7 +2979,9 @@
       "elements": [
         "地",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 172,
@@ -2473,7 +2991,9 @@
       "elements": [
         "地",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 172,
@@ -2483,7 +3003,9 @@
       "elements": [
         "地",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 173,
@@ -2493,7 +3015,9 @@
       "elements": [
         "地",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 173,
@@ -2503,7 +3027,9 @@
       "elements": [
         "地",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 174,
@@ -2513,7 +3039,9 @@
       "elements": [
         "地",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 175,
@@ -2523,7 +3051,9 @@
       "elements": [
         "地",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 176,
@@ -2533,7 +3063,9 @@
       "elements": [
         "地",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 177,
@@ -2542,7 +3074,9 @@
       "form_name": "斑斑",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 178,
@@ -2551,7 +3085,9 @@
       "form_name": "斑枭",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 179,
@@ -2560,7 +3096,9 @@
       "form_name": "草头鸭",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 180,
@@ -2570,7 +3108,9 @@
       "elements": [
         "草",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 181,
@@ -2580,7 +3120,9 @@
       "elements": [
         "武",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 182,
@@ -2590,7 +3132,9 @@
       "elements": [
         "武",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 183,
@@ -2599,7 +3143,9 @@
       "form_name": "号儿鱼",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 184,
@@ -2608,7 +3154,9 @@
       "form_name": "圆号鱼",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 185,
@@ -2618,7 +3166,9 @@
       "elements": [
         "水",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 186,
@@ -2628,7 +3178,9 @@
       "elements": [
         "水",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 187,
@@ -2638,7 +3190,9 @@
       "elements": [
         "水",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 188,
@@ -2648,7 +3202,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 188,
@@ -2658,7 +3214,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 189,
@@ -2668,7 +3226,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 189,
@@ -2678,7 +3238,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 190,
@@ -2688,7 +3250,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 190,
@@ -2698,7 +3262,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 191,
@@ -2708,7 +3274,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 191,
@@ -2718,7 +3286,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 192,
@@ -2728,7 +3298,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 192,
@@ -2738,7 +3310,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 192,
@@ -2748,7 +3322,9 @@
       "elements": [
         "武",
         "地"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 193,
@@ -2757,7 +3333,9 @@
       "form_name": "奔波鼠",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 194,
@@ -2766,7 +3344,9 @@
       "form_name": "流浪鼠",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 195,
@@ -2776,7 +3356,9 @@
       "elements": [
         "草",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 196,
@@ -2786,7 +3368,9 @@
       "elements": [
         "草",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 197,
@@ -2796,7 +3380,9 @@
       "elements": [
         "草",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 198,
@@ -2805,7 +3391,9 @@
       "form_name": "逗逗",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 199,
@@ -2814,7 +3402,9 @@
       "form_name": "气球猫",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 200,
@@ -2823,7 +3413,9 @@
       "form_name": "梦想三三",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 200,
@@ -2832,7 +3424,9 @@
       "form_name": "奇梦咪",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 201,
@@ -2842,7 +3436,9 @@
       "elements": [
         "地",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 202,
@@ -2852,7 +3448,9 @@
       "elements": [
         "地",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 203,
@@ -2861,7 +3459,9 @@
       "form_name": "伊雷龙",
       "elements": [
         "龙"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 204,
@@ -2870,7 +3470,9 @@
       "form_name": "伊兰亚龙",
       "elements": [
         "龙"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 204,
@@ -2879,7 +3481,9 @@
       "form_name": "伊兰龙",
       "elements": [
         "龙"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 205,
@@ -2888,7 +3492,9 @@
       "form_name": "拉特",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 206,
@@ -2897,7 +3503,9 @@
       "form_name": "酷拉",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 206,
@@ -2906,7 +3514,9 @@
       "form_name": "风暴酷拉",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 207,
@@ -2915,7 +3525,9 @@
       "form_name": "闪电环",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 208,
@@ -2924,7 +3536,9 @@
       "form_name": "刺电环",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 209,
@@ -2933,7 +3547,9 @@
       "form_name": "荆棘电环",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 210,
@@ -2943,7 +3559,9 @@
       "elements": [
         "机械",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 211,
@@ -2953,7 +3571,9 @@
       "elements": [
         "机械",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 212,
@@ -2962,7 +3582,9 @@
       "form_name": "古钟蛇",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 213,
@@ -2971,7 +3593,9 @@
       "form_name": "寒音蛇",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 214,
@@ -2980,7 +3604,9 @@
       "form_name": "矮脚爬爬",
       "elements": [
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 215,
@@ -2990,7 +3616,9 @@
       "elements": [
         "虫",
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 216,
@@ -2999,7 +3627,9 @@
       "form_name": "火尾瓦特",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 217,
@@ -3008,7 +3638,9 @@
       "form_name": "火尾战士",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 218,
@@ -3017,7 +3649,9 @@
       "form_name": "烈火守护",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 219,
@@ -3026,7 +3660,9 @@
       "form_name": "里拉鳐",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 220,
@@ -3036,7 +3672,9 @@
       "elements": [
         "水",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 220,
@@ -3046,7 +3684,9 @@
       "elements": [
         "水",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 220,
@@ -3056,7 +3696,9 @@
       "elements": [
         "水",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 220,
@@ -3066,7 +3708,9 @@
       "elements": [
         "水",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 221,
@@ -3076,7 +3720,9 @@
       "elements": [
         "机械",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 222,
@@ -3086,7 +3732,9 @@
       "elements": [
         "机械",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 223,
@@ -3096,7 +3744,9 @@
       "elements": [
         "机械",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 224,
@@ -3106,7 +3756,9 @@
       "elements": [
         "龙",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 225,
@@ -3116,7 +3768,9 @@
       "elements": [
         "龙",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 226,
@@ -3125,7 +3779,9 @@
       "form_name": "电动长颈鹿",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 227,
@@ -3134,7 +3790,9 @@
       "form_name": "奔乐鹿",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 228,
@@ -3143,7 +3801,9 @@
       "form_name": "爵士鹿",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 228,
@@ -3152,7 +3812,9 @@
       "form_name": "波普鹿",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 229,
@@ -3161,7 +3823,9 @@
       "form_name": "缇塔",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 230,
@@ -3170,7 +3834,9 @@
       "form_name": "声波缇塔",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 231,
@@ -3179,7 +3845,9 @@
       "form_name": "小鹬",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 232,
@@ -3188,7 +3856,9 @@
       "form_name": "鄙目鹬",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 233,
@@ -3197,7 +3867,9 @@
       "form_name": "高脚鹬",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 233,
@@ -3206,7 +3878,9 @@
       "form_name": "高帽鹬者",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 234,
@@ -3215,7 +3889,9 @@
       "form_name": "脆筒甜甜",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 235,
@@ -3224,7 +3900,9 @@
       "form_name": "香草甜甜_樱桃",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 235,
@@ -3233,7 +3911,9 @@
       "form_name": "香草甜甜_蓝莓",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 235,
@@ -3242,7 +3922,9 @@
       "form_name": "香草甜甜_杨桃",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3251,7 +3933,9 @@
       "form_name": "圣代甜甜_樱桃巧克力",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3260,7 +3944,9 @@
       "form_name": "圣代甜甜_樱桃草莓",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3269,7 +3955,9 @@
       "form_name": "圣代甜甜_樱桃抹茶",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3278,7 +3966,9 @@
       "form_name": "圣代甜甜_蓝莓巧克力",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3287,7 +3977,9 @@
       "form_name": "圣代甜甜_蓝莓草莓",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3296,7 +3988,9 @@
       "form_name": "圣代甜甜_蓝莓抹茶",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3305,7 +3999,9 @@
       "form_name": "圣代甜甜_杨桃巧克力",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3314,7 +4010,9 @@
       "form_name": "圣代甜甜_杨桃草莓",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 236,
@@ -3323,7 +4021,9 @@
       "form_name": "圣代甜甜_杨桃抹茶",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 237,
@@ -3333,7 +4033,9 @@
       "elements": [
         "毒",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 237,
@@ -3343,7 +4045,9 @@
       "elements": [
         "毒",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 238,
@@ -3353,7 +4057,9 @@
       "elements": [
         "毒",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 238,
@@ -3363,7 +4069,9 @@
       "elements": [
         "毒",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 239,
@@ -3373,7 +4081,9 @@
       "elements": [
         "水",
         "龙"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 240,
@@ -3383,7 +4093,9 @@
       "elements": [
         "水",
         "龙"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 241,
@@ -3393,7 +4105,9 @@
       "elements": [
         "水",
         "龙"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 242,
@@ -3403,7 +4117,9 @@
       "elements": [
         "电",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 243,
@@ -3413,7 +4129,9 @@
       "elements": [
         "电",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 244,
@@ -3423,7 +4141,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 245,
@@ -3433,7 +4153,9 @@
       "elements": [
         "水",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 246,
@@ -3442,7 +4164,9 @@
       "form_name": "裘洛",
       "elements": [
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 247,
@@ -3451,7 +4175,9 @@
       "form_name": "裘力",
       "elements": [
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 248,
@@ -3460,7 +4186,9 @@
       "form_name": "裘卡",
       "elements": [
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 249,
@@ -3469,7 +4197,9 @@
       "form_name": "可爱猿",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 250,
@@ -3478,7 +4208,9 @@
       "form_name": "炽热猿",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 251,
@@ -3487,7 +4219,9 @@
       "form_name": "火焰猿",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 252,
@@ -3496,7 +4230,9 @@
       "form_name": "布鲁斯",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 253,
@@ -3505,7 +4241,9 @@
       "form_name": "雪顶布鲁斯",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 254,
@@ -3514,7 +4252,9 @@
       "form_name": "冰钻布鲁斯",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 255,
@@ -3524,7 +4264,9 @@
       "elements": [
         "火",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 256,
@@ -3534,7 +4276,9 @@
       "elements": [
         "火",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 257,
@@ -3544,7 +4288,9 @@
       "elements": [
         "火",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 258,
@@ -3554,7 +4300,9 @@
       "elements": [
         "恶",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 258,
@@ -3564,7 +4312,9 @@
       "elements": [
         "恶",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 259,
@@ -3574,7 +4324,9 @@
       "elements": [
         "恶",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 259,
@@ -3584,7 +4336,9 @@
       "elements": [
         "恶",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 260,
@@ -3594,7 +4348,9 @@
       "elements": [
         "恶",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 260,
@@ -3604,7 +4360,9 @@
       "elements": [
         "恶",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 261,
@@ -3614,7 +4372,9 @@
       "elements": [
         "机械",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 262,
@@ -3624,7 +4384,9 @@
       "elements": [
         "机械",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 263,
@@ -3633,7 +4395,9 @@
       "form_name": "机械方方",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 264,
@@ -3642,7 +4406,9 @@
       "form_name": "多彩方方",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 265,
@@ -3651,7 +4417,9 @@
       "form_name": "立方人",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 266,
@@ -3660,7 +4428,9 @@
       "form_name": "可立鸡",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 267,
@@ -3669,7 +4439,9 @@
       "form_name": "晕晕鸡",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 268,
@@ -3679,7 +4451,9 @@
       "elements": [
         "火",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 269,
@@ -3689,7 +4463,9 @@
       "elements": [
         "火",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 270,
@@ -3699,7 +4475,9 @@
       "elements": [
         "地",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 271,
@@ -3709,7 +4487,9 @@
       "elements": [
         "地",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 272,
@@ -3719,7 +4499,9 @@
       "elements": [
         "电",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 273,
@@ -3728,7 +4510,9 @@
       "form_name": "深蓝鲸",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 274,
@@ -3737,7 +4521,9 @@
       "form_name": "格兰种子",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 275,
@@ -3746,7 +4532,9 @@
       "form_name": "格兰花",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 276,
@@ -3755,7 +4543,9 @@
       "form_name": "格兰球",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 277,
@@ -3764,7 +4554,9 @@
       "form_name": "地鼠_枯水期",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 277,
@@ -3773,7 +4565,9 @@
       "form_name": "地鼠_储水期",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 278,
@@ -3782,7 +4576,9 @@
       "form_name": "遁鼠_枯水期",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 278,
@@ -3791,7 +4587,9 @@
       "form_name": "遁鼠_储水期",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 279,
@@ -3800,7 +4598,9 @@
       "form_name": "遁地鼠_枯水期",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 279,
@@ -3809,7 +4609,9 @@
       "form_name": "遁地鼠_储水期",
       "elements": [
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 280,
@@ -3818,7 +4620,9 @@
       "form_name": "墨鱿士",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 281,
@@ -3828,7 +4632,9 @@
       "elements": [
         "幽",
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 282,
@@ -3838,7 +4644,9 @@
       "elements": [
         "幽",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 283,
@@ -3847,7 +4655,9 @@
       "form_name": "小甲虫",
       "elements": [
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 284,
@@ -3856,7 +4666,9 @@
       "form_name": "铠甲虫",
       "elements": [
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 285,
@@ -3865,7 +4677,9 @@
       "form_name": "圣剑侍从",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 286,
@@ -3874,7 +4688,9 @@
       "form_name": "圣剑-X",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 286,
@@ -3883,7 +4699,9 @@
       "form_name": "圣剑骑士",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 287,
@@ -3893,7 +4711,9 @@
       "elements": [
         "地",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 288,
@@ -3903,7 +4723,9 @@
       "elements": [
         "地",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 288,
@@ -3913,7 +4735,9 @@
       "elements": [
         "地",
         "翼"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 289,
@@ -3923,7 +4747,9 @@
       "elements": [
         "龙",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 290,
@@ -3933,7 +4759,9 @@
       "elements": [
         "龙",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 291,
@@ -3943,7 +4771,9 @@
       "elements": [
         "毒",
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 292,
@@ -3953,7 +4783,9 @@
       "elements": [
         "毒",
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 293,
@@ -3962,7 +4794,9 @@
       "form_name": "小帕尔",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 294,
@@ -3971,7 +4805,9 @@
       "form_name": "帕尔萨斯",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 295,
@@ -3980,7 +4816,9 @@
       "form_name": "龙息帕尔",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 296,
@@ -3990,7 +4828,9 @@
       "elements": [
         "虫",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 297,
@@ -4000,7 +4840,9 @@
       "elements": [
         "虫",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 298,
@@ -4010,7 +4852,9 @@
       "elements": [
         "虫",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 299,
@@ -4019,7 +4863,9 @@
       "form_name": "画精灵",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 300,
@@ -4028,7 +4874,9 @@
       "form_name": "画像守护",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 301,
@@ -4038,7 +4886,9 @@
       "elements": [
         "普通",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 302,
@@ -4048,7 +4898,9 @@
       "elements": [
         "普通",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 303,
@@ -4057,7 +4909,9 @@
       "form_name": "书魔虫",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 304,
@@ -4066,7 +4920,9 @@
       "form_name": "书卷守护",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 305,
@@ -4076,7 +4932,9 @@
       "elements": [
         "普通",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 306,
@@ -4086,7 +4944,9 @@
       "elements": [
         "普通",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 307,
@@ -4096,7 +4956,9 @@
       "elements": [
         "光",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 308,
@@ -4106,7 +4968,9 @@
       "elements": [
         "光",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 309,
@@ -4116,7 +4980,9 @@
       "elements": [
         "光",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 310,
@@ -4125,7 +4991,9 @@
       "form_name": "犀角鸟",
       "elements": [
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 311,
@@ -4134,7 +5002,9 @@
       "form_name": "光纤兽",
       "elements": [
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 312,
@@ -4143,7 +5013,9 @@
       "form_name": "疾光千兽",
       "elements": [
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 313,
@@ -4152,7 +5024,9 @@
       "form_name": "果冻",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 314,
@@ -4162,7 +5036,9 @@
       "elements": [
         "水",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 315,
@@ -4172,7 +5048,9 @@
       "elements": [
         "水",
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 316,
@@ -4182,7 +5060,9 @@
       "elements": [
         "水",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 317,
@@ -4191,7 +5071,9 @@
       "form_name": "星尘虫",
       "elements": [
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 318,
@@ -4200,7 +5082,9 @@
       "form_name": "落星虫",
       "elements": [
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 319,
@@ -4209,7 +5093,9 @@
       "form_name": "陨星虫",
       "elements": [
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 320,
@@ -4219,7 +5105,9 @@
       "elements": [
         "水",
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 321,
@@ -4229,7 +5117,9 @@
       "elements": [
         "水",
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 322,
@@ -4239,7 +5129,9 @@
       "elements": [
         "冰",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 323,
@@ -4249,7 +5141,9 @@
       "elements": [
         "恶",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 324,
@@ -4259,7 +5153,9 @@
       "elements": [
         "恶",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 325,
@@ -4269,7 +5165,9 @@
       "elements": [
         "火",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 326,
@@ -4279,7 +5177,9 @@
       "elements": [
         "火",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 327,
@@ -4288,7 +5188,9 @@
       "form_name": "空空颅",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 328,
@@ -4297,7 +5199,9 @@
       "form_name": "夜宿颅",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 329,
@@ -4306,7 +5210,9 @@
       "form_name": "夜枭",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 329,
@@ -4315,7 +5221,9 @@
       "form_name": "暗夜颅主",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": true,
+      "forms": false
     },
     {
       "id": 330,
@@ -4325,7 +5233,9 @@
       "elements": [
         "电",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 331,
@@ -4335,7 +5245,9 @@
       "elements": [
         "电",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 332,
@@ -4345,7 +5257,9 @@
       "elements": [
         "机械",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 333,
@@ -4355,7 +5269,9 @@
       "elements": [
         "机械",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 334,
@@ -4365,7 +5281,9 @@
       "elements": [
         "机械",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 335,
@@ -4374,7 +5292,9 @@
       "form_name": "粉星仔",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 336,
@@ -4383,7 +5303,9 @@
       "form_name": "粉耳星兔",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 337,
@@ -4393,7 +5315,9 @@
       "elements": [
         "幻",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 338,
@@ -4402,7 +5326,9 @@
       "form_name": "布瓜蝌",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 339,
@@ -4411,7 +5337,9 @@
       "form_name": "上岸蛙",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 340,
@@ -4420,7 +5348,9 @@
       "form_name": "火红尾",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 341,
@@ -4429,7 +5359,9 @@
       "form_name": "雅丹鬃",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 342,
@@ -4438,7 +5370,9 @@
       "form_name": "春团",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 343,
@@ -4447,7 +5381,9 @@
       "form_name": "春兔",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 344,
@@ -4456,7 +5392,9 @@
       "form_name": "春花兔",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 345,
@@ -4465,7 +5403,9 @@
       "form_name": "幽星光",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 346,
@@ -4475,7 +5415,9 @@
       "elements": [
         "幻",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 347,
@@ -4485,7 +5427,9 @@
       "elements": [
         "幻",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 348,
@@ -4494,7 +5438,9 @@
       "form_name": "钨丝贝贝",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 349,
@@ -4503,7 +5449,9 @@
       "form_name": "辉光幕机",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 350,
@@ -4512,7 +5460,9 @@
       "form_name": "机幕方舟",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 351,
@@ -4521,7 +5471,9 @@
       "form_name": "凡雀",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 352,
@@ -4530,7 +5482,9 @@
       "form_name": "紫翎鹰",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 353,
@@ -4539,7 +5493,9 @@
       "form_name": "凡鹰",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 354,
@@ -4548,7 +5504,9 @@
       "form_name": "小雪人",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 355,
@@ -4557,7 +5515,9 @@
       "form_name": "雪怪",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 356,
@@ -4567,7 +5527,9 @@
       "elements": [
         "火",
         "龙"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 357,
@@ -4577,7 +5539,9 @@
       "elements": [
         "火",
         "龙"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 358,
@@ -4587,7 +5551,9 @@
       "elements": [
         "普通",
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 359,
@@ -4597,7 +5563,9 @@
       "elements": [
         "普通",
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 360,
@@ -4607,7 +5575,9 @@
       "elements": [
         "水",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 361,
@@ -4617,7 +5587,9 @@
       "elements": [
         "水",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 361,
@@ -4627,7 +5599,9 @@
       "elements": [
         "水",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": true
     },
     {
       "id": 362,
@@ -4636,7 +5610,9 @@
       "form_name": "小丑豆豆",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 363,
@@ -4645,7 +5621,9 @@
       "form_name": "小丑兔",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 364,
@@ -4654,7 +5632,9 @@
       "form_name": "小丑公爵",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 365,
@@ -4664,7 +5644,9 @@
       "elements": [
         "火",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 366,
@@ -4674,7 +5656,9 @@
       "elements": [
         "火",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 367,
@@ -4683,7 +5667,9 @@
       "form_name": "咕咕帽",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 368,
@@ -4692,7 +5678,9 @@
       "form_name": "咕德帽帽",
       "elements": [
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 369,
@@ -4702,7 +5690,9 @@
       "elements": [
         "电",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 370,
@@ -4712,7 +5702,9 @@
       "elements": [
         "电",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 371,
@@ -4721,7 +5713,9 @@
       "form_name": "小鼓象",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 372,
@@ -4730,7 +5724,9 @@
       "form_name": "巨鼓象",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 373,
@@ -4739,7 +5735,9 @@
       "form_name": "牵线木偶",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 374,
@@ -4748,7 +5746,9 @@
       "form_name": "帅帅魔偶",
       "elements": [
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 375,
@@ -4757,7 +5757,9 @@
       "form_name": "学院呱呱",
       "elements": [
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 376,
@@ -4767,7 +5769,9 @@
       "elements": [
         "火",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 377,
@@ -4777,7 +5781,9 @@
       "elements": [
         "火",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 378,
@@ -4787,7 +5793,9 @@
       "elements": [
         "火",
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 379,
@@ -4797,7 +5805,9 @@
       "elements": [
         "机械",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 380,
@@ -4807,7 +5817,9 @@
       "elements": [
         "机械",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 381,
@@ -4817,7 +5829,9 @@
       "elements": [
         "恶",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 382,
@@ -4827,7 +5841,9 @@
       "elements": [
         "恶",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 383,
@@ -4837,7 +5853,9 @@
       "elements": [
         "恶",
         "地"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 384,
@@ -4846,7 +5864,9 @@
       "form_name": "森豆丁",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 385,
@@ -4855,7 +5875,9 @@
       "form_name": "森蛮人",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 386,
@@ -4864,7 +5886,9 @@
       "form_name": "森巨人",
       "elements": [
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 387,
@@ -4873,7 +5897,9 @@
       "form_name": "霹雳宝宝",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 388,
@@ -4882,7 +5908,9 @@
       "form_name": "雷鸣小子",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 389,
@@ -4891,7 +5919,9 @@
       "form_name": "雷神之子",
       "elements": [
         "电"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 390,
@@ -4900,7 +5930,9 @@
       "form_name": "雪灵兽",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 391,
@@ -4909,7 +5941,9 @@
       "form_name": "幻雪兽",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 392,
@@ -4918,7 +5952,9 @@
       "form_name": "饮雪狂兽",
       "elements": [
         "冰"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 393,
@@ -4927,7 +5963,9 @@
       "form_name": "火豆丁",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 394,
@@ -4936,7 +5974,9 @@
       "form_name": "火蛮人",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 395,
@@ -4945,7 +5985,9 @@
       "form_name": "火巨人",
       "elements": [
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 396,
@@ -4954,7 +5996,9 @@
       "form_name": "友爱天天",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 397,
@@ -4963,7 +6007,9 @@
       "form_name": "友爱星飞",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 398,
@@ -4973,7 +6019,9 @@
       "elements": [
         "龙",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 399,
@@ -4983,7 +6031,9 @@
       "elements": [
         "龙",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 400,
@@ -4993,7 +6043,9 @@
       "elements": [
         "恶",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 401,
@@ -5003,7 +6055,9 @@
       "elements": [
         "恶",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 402,
@@ -5013,7 +6067,9 @@
       "elements": [
         "恶",
         "虫"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 403,
@@ -5022,7 +6078,9 @@
       "form_name": "觅觅蝠",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 404,
@@ -5031,7 +6089,9 @@
       "form_name": "翻翻蝠",
       "elements": [
         "翼"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 405,
@@ -5041,7 +6101,9 @@
       "elements": [
         "翼",
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 406,
@@ -5051,7 +6113,9 @@
       "elements": [
         "恶",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 407,
@@ -5061,7 +6125,9 @@
       "elements": [
         "恶",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 408,
@@ -5071,7 +6137,9 @@
       "elements": [
         "恶",
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 409,
@@ -5081,7 +6149,9 @@
       "elements": [
         "翼",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 410,
@@ -5090,7 +6160,9 @@
       "form_name": "点点",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 411,
@@ -5099,7 +6171,9 @@
       "form_name": "珀尔鼬",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 412,
@@ -5109,7 +6183,9 @@
       "elements": [
         "机械",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 413,
@@ -5119,7 +6195,9 @@
       "elements": [
         "机械",
         "幻"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 414,
@@ -5129,7 +6207,9 @@
       "elements": [
         "普通",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 415,
@@ -5139,7 +6219,9 @@
       "elements": [
         "普通",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 416,
@@ -5149,7 +6231,9 @@
       "elements": [
         "普通",
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 417,
@@ -5159,7 +6243,9 @@
       "elements": [
         "普通",
         "幽"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 418,
@@ -5168,7 +6254,9 @@
       "form_name": "咬咬小子",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 419,
@@ -5177,7 +6265,9 @@
       "form_name": "胡桃王子",
       "elements": [
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 420,
@@ -5187,7 +6277,9 @@
       "elements": [
         "幻",
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 421,
@@ -5197,7 +6289,9 @@
       "elements": [
         "幻",
         "机械"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 422,
@@ -5206,7 +6300,9 @@
       "form_name": "蝴蝶陶陶",
       "elements": [
         "萌"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 423,
@@ -5216,7 +6312,9 @@
       "elements": [
         "萌",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 424,
@@ -5226,7 +6324,9 @@
       "elements": [
         "萌",
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 425,
@@ -5236,7 +6336,9 @@
       "elements": [
         "草",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 426,
@@ -5246,7 +6348,9 @@
       "elements": [
         "草",
         "火"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 427,
@@ -5255,7 +6359,9 @@
       "form_name": "十字蝌蚪",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 428,
@@ -5264,7 +6370,9 @@
       "form_name": "十字蛙",
       "elements": [
         "水"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 429,
@@ -5274,7 +6382,9 @@
       "elements": [
         "水",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 430,
@@ -5283,7 +6393,9 @@
       "form_name": "卡波",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 431,
@@ -5292,7 +6404,9 @@
       "form_name": "卡拉波斯",
       "elements": [
         "恶"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 432,
@@ -5302,7 +6416,9 @@
       "elements": [
         "火",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 433,
@@ -5312,7 +6428,9 @@
       "elements": [
         "火",
         "光"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 434,
@@ -5322,7 +6440,9 @@
       "elements": [
         "幽",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 435,
@@ -5332,7 +6452,9 @@
       "elements": [
         "幽",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 436,
@@ -5342,7 +6464,9 @@
       "elements": [
         "萌",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 437,
@@ -5352,7 +6476,9 @@
       "elements": [
         "萌",
         "武"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 438,
@@ -5361,7 +6487,9 @@
       "form_name": "栗鼠",
       "elements": [
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 439,
@@ -5370,7 +6498,9 @@
       "form_name": "壳栗丝鼠",
       "elements": [
         "毒"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 440,
@@ -5380,7 +6510,9 @@
       "elements": [
         "冰",
         "草"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 441,
@@ -5389,7 +6521,9 @@
       "form_name": "宝藏小狐",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     },
     {
       "id": 442,
@@ -5398,7 +6532,9 @@
       "form_name": "宝藏沙狐",
       "elements": [
         "普通"
-      ]
+      ],
+      "leader": false,
+      "forms": false
     }
   ]
 }
