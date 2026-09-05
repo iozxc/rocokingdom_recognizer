@@ -36,6 +36,7 @@ import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect'
 import { IS_STATIC } from './services/staticMode';
 import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState } from './types';
 import { isPetEncounteredInRecords } from './utils/petHelper';
+import { PetSearchMode } from './utils/skillSearch';
 
 export default function App() {
   const [activeStageNum, setActiveStageNum] = useState<number>(1);
@@ -43,6 +44,7 @@ export default function App() {
   const [records, setRecords] = useState<Record<string, EncounterRecord>>({});
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({
     elements: [],
     specialTypes: [],
@@ -581,6 +583,9 @@ export default function App() {
                     currentMap={currentMap}
                     encounteredCount={currentMapStats.encounteredCount}
                     totalMapPets={currentMapPets.length}
+                    pets={currentMapPets}
+                    searchMode={searchMode}
+                    onSearchModeChange={setSearchMode}
                     percentage={currentMapStats.percentage}
                     filterMode={filterMode}
                     onFilterChange={(mode) => setFilterMode(mode)}
@@ -616,6 +621,7 @@ export default function App() {
                     filterMode={filterMode}
                     onFilterChange={(mode) => setFilterMode(mode)}
                     searchQuery={searchQuery}
+                    searchMode={searchMode}
                     onOpenPetDetail={(pet) => setDetailPet(pet)}
                     onOpenFeedback={IS_STATIC ? undefined : (type) => {
                       setFeedbackInitialType(type);

@@ -22,6 +22,7 @@ import { BatchRecognizerCard } from '../BatchRecognizerCard';
 import { createSvgPetAvatar } from '../../data/mockPets';
 import { fetchTrialAtlas, syncTrialAtlas, syncTrialAtlasKeepalive, petKeyOf, TrialAtlas, AtlasEntry, wilsonLower } from '../../services/atlasCollector';
 import { isPetEncounteredInRecords } from '../../utils/petHelper';
+import { PetSearchMode } from '../../utils/skillSearch';
 import { PLATFORM, IS_STATIC } from '../../services/staticMode';
 import { updateStore } from '../../services/updateStore';
 
@@ -40,6 +41,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const [records, setRecords] = useState<Record<string, EncounterRecord>>(() => fireStorage.getAll());
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
   const [loaded, setLoaded] = useState<boolean>(initialPets !== null);
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
@@ -623,6 +625,9 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               currentMap={currentMap}
               encounteredCount={currentMapStats.encounteredCount}
               totalMapPets={currentMapStats.totalMapPets}
+              pets={currentMapPets}
+              searchMode={searchMode}
+              onSearchModeChange={setSearchMode}
               percentage={currentMapStats.percentage}
               filterMode={filterMode}
               onFilterChange={(mode) => setFilterMode(mode)}
@@ -656,6 +661,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               filterMode={filterMode}
               onFilterChange={(mode) => setFilterMode(mode)}
               searchQuery={searchQuery}
+              searchMode={searchMode}
               advancedFilters={advancedFilters}
               communityAtlas={showAtlasVote ? (communityAtlas ?? undefined) : undefined}
               minAgreeRatio={showAtlasVote ? minAgreeRatio : 0}

@@ -4,6 +4,7 @@ import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState } from '../typ
 import { sound } from '../services/sound';
 import { IS_STATIC } from '../services/staticMode';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecialType } from '../utils/petHelper';
+import { PetSearchMode, petMatchesSkillQuery } from '../utils/skillSearch';
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
 import { PetSpecialTag } from './PetSpecialTag';
@@ -19,6 +20,8 @@ interface PetGridProps {
   filterMode: 'all' | 'encountered' | 'unencountered';
   onFilterChange?: (mode: 'all' | 'encountered' | 'unencountered') => void;
   searchQuery: string;
+  /** 搜索模式：'name'=精灵名/图鉴id（默认），'skill'=技能/特性搜索。 */
+  searchMode?: PetSearchMode;
   onOpenPetDetail?: (pet: PetItem) => void;
   onOpenFeedback?: (type: string, pet: PetItem) => void;
   advancedFilters: AdvancedFilterState;
@@ -45,6 +48,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
   filterMode,
   onFilterChange,
   searchQuery,
+  searchMode = 'name',
   onOpenPetDetail,
   onOpenFeedback,
   advancedFilters,
@@ -170,13 +174,19 @@ export const PetGrid: React.FC<PetGridProps> = ({
       }
 
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const cleanName = formatPetName(pet.name).toLowerCase();
-        const baseName = getBasePetName(pet.name).toLowerCase();
-        const rawName = pet.name.toLowerCase();
-        const idMatch = String(pet.id ?? '').includes(q);
-        const matchesSearch = cleanName.includes(q) || rawName.includes(q) || baseName.includes(q) || idMatch;
-        if (!matchesSearch) return false;
+        const q = searchQuery.trim();
+        if (searchMode === 'skill') {
+          // 技能/特性搜索：命中该精灵任一技能名/描述或特性名/描述即保留
+          if (!petMatchesSkillQuery(pet, q)) return false;
+        } else {
+          const lower = q.toLowerCase();
+          const cleanName = formatPetName(pet.name).toLowerCase();
+          const baseName = getBasePetName(pet.name).toLowerCase();
+          const rawName = pet.name.toLowerCase();
+          const idMatch = String(pet.id ?? '').includes(lower);
+          const matchesSearch = cleanName.includes(lower) || rawName.includes(lower) || baseName.includes(lower) || idMatch;
+          if (!matchesSearch) return false;
+        }
       }
 
       // Elements Filter
@@ -197,7 +207,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
 
       return true;
     });
-  }, [pets, records, currentMap.id, filterMode, searchQuery, advancedFilters, minAgreeRatio, communityAtlas]);
+  }, [pets, records, currentMap.id, filterMode, searchQuery, searchMode, advancedFilters, minAgreeRatio, communityAtlas]);
 
 
   return (
