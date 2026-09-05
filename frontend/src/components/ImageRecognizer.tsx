@@ -21,6 +21,7 @@ import { api } from '../services/api';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { formatPetName } from '../utils/petHelper';
+import { ThresholdSlider } from './ThresholdSlider';
 import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 import { ElementBadges } from './ElementBadges';
 
@@ -322,19 +323,18 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-48">
                   <span className="text-xs text-slate-400 font-bold">0.1</span>
-                  <input
-                      type="range"
-                      id="threshold-slider"
-                      min="0.1"
-                      max="0.99"
-                      step="0.05"
+                  <ThresholdSlider
                       value={threshold}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
+                      onChange={(val) => {
                         setThreshold(val);
                         storage.setThreshold('predict_threshold', val);
                       }}
-                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#7ABCF4]"
+                      min={0.1}
+                      max={0.99}
+                      step={0.05}
+                      accent="#7ABCF4"
+                      className="flex-1"
+                      showValue={false}
                   />
                   <span className="text-xs text-slate-400 font-bold">0.99</span>
                 </div>

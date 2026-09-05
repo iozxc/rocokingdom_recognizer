@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Header } from './components/Header';
 import { SubHeaderToolbar } from './components/SubHeaderToolbar';
 import { StatsBanner } from './components/StatsBanner';
+import { PetSearchBox } from './components/PetSearchBox';
 import { BatchRecognizerCard } from './components/BatchRecognizerCard';
 import { SinglePetRecognizerModal } from './components/SinglePetRecognizerModal';
 import { PetGrid } from './components/PetGrid';
@@ -45,6 +46,14 @@ export default function App() {
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
+  // 下滑浏览结果时，把搜索框固定在 header 下方（搜索行滚出可视区即显示）
+  const [floatingSearch, setFloatingSearch] = useState<{ visible: boolean; top: number }>({
+    visible: false,
+    top: 0,
+  });
+  const statsBannerWrapRef = useRef<HTMLDivElement>(null);
+  const petGridWrapRef = useRef<HTMLDivElement>(null);
+  const floatingSearchCacheRef = useRef({ visible: false, top: 0 });
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({
     elements: [],
     specialTypes: [],
@@ -307,6 +316,52 @@ export default function App() {
       }
     };
   }, [refreshRecords, fetchIconsData, triggerScanSyncEffect]);
+
+  // 监听滚动：当页面搜索行滚出 header 下方时显示悬浮搜索栏
+  useEffect(() => {
+    let rafId = 0;
+    const update = () => {
+      rafId = 0;
+      const bannerWrap = statsBannerWrapRef.current;
+      const gridWrap = petGridWrapRef.current;
+      const headerEl = document.querySelector('header');
+      if (!bannerWrap || !gridWrap || !headerEl) {
+        if (floatingSearchCacheRef.current.visible) {
+          floatingSearchCacheRef.current.visible = false;
+          setFloatingSearch((prev) => (prev.visible ? { ...prev, visible: false } : prev));
+        }
+        return;
+      }
+      // header 可能随内容滚走（sticky 受外层影响），但高度基本恒定：
+      // 悬浮栏始终固定在「页面顶部往下一行 header 高度」的位置
+      const headerHeight = headerEl.getBoundingClientRect().height || 56;
+      // 滑到 petgrid 卡片区（其顶部滚到 header 下方）才显示悬浮搜索，回滚则收起
+      const gridRect = gridWrap.getBoundingClientRect();
+      const visible =
+          window.scrollY > 4 &&
+          gridRect.top < headerHeight + 4 &&
+          gridRect.bottom > headerHeight + 4;
+      const top = headerHeight + 8;
+      const cache = floatingSearchCacheRef.current;
+      if (cache.visible !== visible || Math.abs(cache.top - top) > 0.5) {
+        cache.visible = visible;
+        cache.top = top;
+        setFloatingSearch({ visible, top });
+      }
+    };
+    const schedule = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   // Current Map configuration
   const currentMap: MapConfig = useMemo(() => {
@@ -579,6 +634,7 @@ export default function App() {
           ) : (
               <>
                 {/* Map Banner & Stats */}
+                <div ref={statsBannerWrapRef}>
                 <StatsBanner
                     currentMap={currentMap}
                     encounteredCount={currentMapStats.encounteredCount}
@@ -597,6 +653,7 @@ export default function App() {
                     advancedFilters={advancedFilters}
                     onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
                 />
+                </div>
 
                 {/* Pet Image Recognition Module (BatchRecognizerCard: 3 columns layout + ? help button) */}
                 {!IS_STATIC && (
@@ -613,6 +670,7 @@ export default function App() {
                 )}
 
                 {/* Map Pets Grid */}
+                <div ref={petGridWrapRef}>
                 <PetGrid
                     currentMap={currentMap}
                     pets={currentMapPets}
@@ -629,9 +687,37 @@ export default function App() {
                     }}
                     advancedFilters={advancedFilters}
                 />
+                </div>
               </>
           )}
         </main>
+
+        {/* 下滑浏览搜索结果时：搜索框悬浮固定在 header 下方（丝滑滑入/淡出） */}
+        {view === 'assistant' && (
+            <div
+                aria-hidden={!floatingSearch.visible}
+                className={`fixed left-0 right-0 z-40 px-3 sm:px-6 transition-[opacity,transform] duration-300 ease-out will-change-transform ${
+                    floatingSearch.visible
+                        ? 'translate-y-0 opacity-100'
+                        : '-translate-y-3 opacity-0 pointer-events-none invisible'
+                }`}
+                style={{ top: floatingSearch.top }}
+            >
+              <div className="mx-auto w-full max-w-3xl">
+                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-[#7ABCF4]/60 dark:border-slate-700 rounded-2xl shadow-lg p-2">
+                  <PetSearchBox
+                      pets={currentMapPets}
+                      searchQuery={searchQuery}
+                      searchMode={searchMode}
+                      onSearchChange={setSearchQuery}
+                      onSearchModeChange={setSearchMode}
+                      containerClassName="relative w-full"
+                      inputId="floating-search-pet-input"
+                  />
+                </div>
+              </div>
+            </div>
+        )}
 
         {/* Footer */}
         <footer className="mt-12 text-center text-xs text-slate-400">

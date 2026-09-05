@@ -28,6 +28,7 @@ import {
 import { ImageZoom } from './ImageZoom';
 import { collectAtlasObservation } from '../services/atlasCollector';
 import confetti from 'canvas-confetti';
+import { ThresholdSlider } from './ThresholdSlider';
 import {
   MapConfig,
   PetItem,
@@ -554,7 +555,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                导入含精灵图标或名字的截图，本地视觉模型离线计算并提供候选（数据仅在本地运算不上传）
+                导入含精灵图标或名字的截图，本地视觉模型离线计算并提供候选
               </p>
             </div>
           </div>
@@ -634,14 +635,15 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
               <div className="flex items-center gap-2">
                 <Sliders className="w-3.5 h-3.5 text-[#7ABCF4] dark:text-sky-400" />
                 <span className="font-bold">识别门槛:</span>
-                <input
-                    type="range"
-                    min="0.1"
-                    max="0.95"
-                    step="0.05"
+                <ThresholdSlider
                     value={threshold}
-                    onChange={(e) => handleThresholdChange(parseFloat(e.target.value))}
-                    className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg accent-[#7ABCF4] cursor-pointer"
+                    onChange={handleThresholdChange}
+                    min={0.1}
+                    max={0.95}
+                    step={0.05}
+                    accent="#7ABCF4"
+                    className="w-28 sm:w-36"
+                    showValue={false}
                 />
                 <span className="font-mono font-black text-[#2B78C4] dark:text-sky-300">{Math.round(threshold * 100)}%</span>
               </div>

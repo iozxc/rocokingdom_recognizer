@@ -1,5 +1,5 @@
 {
-  "version": "1.4.5",
+  "version": "1.4.6",
   "files": [
     {
       "name": "datasets/datasets.db",
@@ -9,14 +9,14 @@
     },
     {
       "name": "datasets/map_pets1.json",
-      "md5": "099a5bf10936732a9d665a346dbd706c",
-      "size": 74505,
+      "md5": "5b6b712dc5f246c5800721940f109f10",
+      "size": 196207,
       "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/map_pets1.json"
     },
     {
       "name": "datasets/roco_all_pets_info.json",
-      "md5": "a086efd2609c82e50359195c40d33ab8",
-      "size": 91059,
+      "md5": "bd19a7bcca8f6013e60beabaf670ffe0",
+      "size": 116441,
       "url": "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/roco_all_pets_info.json"
     },
     {

@@ -387,3 +387,47 @@ html.theme-switching *::after {
   color: var(--term-color-dark, #fbbf24);
   text-decoration-color: var(--term-color-dark, #fbbf24);
 }
+
+/* 饱满的识别门槛滑动输入：轨道 + 滑块（兼容 WebKit / Firefox） */
+.threshold-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+  --slider-track: #e2e8f0;
+}
+.dark .threshold-slider {
+  --slider-track: #475569;
+}
+.threshold-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 3px solid var(--slider-accent, #7ABCF4);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.threshold-slider::-webkit-slider-thumb:hover,
+.threshold-slider::-webkit-slider-thumb:active {
+  transform: scale(1.12);
+}
+.threshold-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 3px solid var(--slider-accent, #7ABCF4);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.threshold-slider::-moz-range-thumb:hover,
+.threshold-slider::-moz-range-thumb:active {
+  transform: scale(1.12);
+}

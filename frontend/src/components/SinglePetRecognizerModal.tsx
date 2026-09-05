@@ -21,6 +21,7 @@ import { MapConfig, PetItem, PredictResult, PredictCandidateItem, EncounterRecor
 import { api } from '../services/api';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
+import { ThresholdSlider } from './ThresholdSlider';
 import { formatPetName } from '../utils/petHelper';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { RecognitionSamplesHint } from './RecognitionSamplesHint';
@@ -333,18 +334,18 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                     <span className="font-black text-slate-700 dark:text-slate-200">识别门槛:</span>
                     <span className="font-mono font-black text-[#2D6613] dark:text-emerald-300">{Math.round(threshold * 100)}%</span>
                   </div>
-                  <input
-                      type="range"
-                      min="0.1"
-                      max="0.99"
-                      step="0.05"
+                  <ThresholdSlider
                       value={threshold}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
+                      onChange={(val) => {
                         setThreshold(val);
                         storage.setThreshold('predict_threshold', val);
                       }}
-                      className="w-40 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#95D151]"
+                      min={0.1}
+                      max={0.99}
+                      step={0.05}
+                      accent="#95D151"
+                      className="w-40"
+                      showValue={false}
                   />
                 </div>
             )}

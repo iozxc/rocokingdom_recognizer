@@ -242,7 +242,7 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2.5 h-5 rounded-full bg-sky-500 shrink-0" />
             <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 tracking-tight">
-              精灵专属特性与技能全览
+              特性&技能全览
             </h3>
           </div>
 
