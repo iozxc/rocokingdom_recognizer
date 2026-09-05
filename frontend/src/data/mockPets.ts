@@ -1,4 +1,5 @@
 import { MapConfig, PetItem } from '../types';
+import { buildMockSkillData } from './petSkillMock';
 
 export const MAP_CONFIGS: MapConfig[] = [
   {
@@ -70,7 +71,7 @@ export const createSvgPetAvatar = (
 };
 
 // Fallback catalog for all 3 maps
-export const FALLBACK_MAPS_DATA: Record<string, { count: number; items: PetItem[] }> = {
+const RAW_FALLBACK_MAPS_DATA: Record<string, { count: number; items: PetItem[] }> = {
   map1: {
     count: 8,
     items: [
@@ -255,6 +256,20 @@ export const FALLBACK_MAPS_DATA: Record<string, { count: number; items: PetItem[
     ],
   },
 };
+
+export const FALLBACK_MAPS_DATA: Record<string, { count: number; items: PetItem[] }> =
+    Object.fromEntries(
+        Object.entries(RAW_FALLBACK_MAPS_DATA).map(([mapKey, value]) => [
+          mapKey,
+          {
+            count: value.count,
+            items: value.items.map((item, index) => ({
+              ...item,
+              ...buildMockSkillData(index),
+            })),
+          },
+        ])
+    );
 
 // Preset sample images for immediate test recognition without needing local files
 export const SAMPLE_TEST_PRESETS = [
