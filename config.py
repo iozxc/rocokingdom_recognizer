@@ -39,7 +39,6 @@ def _meta(key: str):
     return v or None
 
 
-# --- 路径处理核心逻辑 ---
 def get_resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
@@ -48,11 +47,8 @@ def get_resource_path(relative_path):
 
 def get_external_path(filename):
     if hasattr(sys, '_MEIPASS'):
-        # 打包后：sys.executable 是 .exe 的完整路径
-        # os.path.dirname(sys.executable) 就是 .exe 所在的文件夹
         base_path = os.path.dirname(sys.executable)
     else:
-        # 开发环境：当前 py 文件所在的文件夹
         base_path = os.path.dirname(os.path.abspath(__file__))
 
     return os.path.normpath(os.path.join(base_path, filename))
@@ -62,7 +58,7 @@ def is_dev_environment() -> bool:
     return not hasattr(sys, "_MEIPASS")
 
 
-APP_VERSION = _env("ROCO_APP_VERSION", "1.4.7")
+APP_VERSION = _env("ROCO_APP_VERSION", "1.4.6")
 MAX_DELTA_UPDATE_SIZE = int(_env("ROCO_MAX_DELTA_UPDATE_SIZE", str(90 * 1024 * 1024)))
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
