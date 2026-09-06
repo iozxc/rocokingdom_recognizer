@@ -171,7 +171,8 @@ export const TermHighlightText: React.FC<TermHighlightTextProps> = ({
         <span
             key={`${match.term.id}-${index}`}
             className="term-text-hl"
-            title={`${match.term.name}：${match.term.desc}`}
+            // interactive 模式已用自定义有框弹层展示术语描述，不再附加原生 title 提示，避免悬停时出现两套描述
+            title={interactive ? undefined : `${match.term.name}：${match.term.desc}`}
             onMouseEnter={(e) => {
               if (!interactive) return;
               const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
