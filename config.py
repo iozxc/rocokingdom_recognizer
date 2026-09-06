@@ -62,7 +62,7 @@ def is_dev_environment() -> bool:
     return not hasattr(sys, "_MEIPASS")
 
 
-APP_VERSION = _env("ROCO_APP_VERSION", "1.4.6")
+APP_VERSION = _env("ROCO_APP_VERSION", "1.4.7")
 MAX_DELTA_UPDATE_SIZE = int(_env("ROCO_MAX_DELTA_UPDATE_SIZE", str(90 * 1024 * 1024)))
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
