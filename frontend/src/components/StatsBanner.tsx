@@ -178,7 +178,9 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
             <div className="border-t border-[#E6EEF8] dark:border-slate-800 relative z-10" />
 
             {/* Bottom Row: Filter Tabs & Search Controls */}
-            <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 sm:gap-3 pt-0.5">
+            {/* 注意：不要给这一行加 z-index。搜索候选下拉用 z-40，若给父级加 z-index 会形成
+                stacking context，把下拉锁死在较低层级，导致被下方 pet 卡片的系别图标（z-10/z-20）盖住。 */}
+            <div className="relative flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 sm:gap-3 pt-0.5">
                 {/* Filter Mode Buttons */}
                 <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#F5F9FF] dark:bg-slate-800 rounded-xl border border-[#E2E8F0] dark:border-slate-700 w-full md:w-auto overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0">
                     <button
