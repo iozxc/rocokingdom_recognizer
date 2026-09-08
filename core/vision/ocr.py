@@ -152,7 +152,7 @@ class OCREngine:
         """针对单图优化：优先定位正下方名字"""
         logger.debug(f"recognize_single_bottom_text: {image_path}")
 
-        blacklist = ["额外", "掉落", "获取", "碎片", "额", "外", "掉", "落", "碎", "片", "夕"]
+        blacklist = ["额外", "掉落", "获取", "碎片"]
 
         if not os.path.exists(image_path):
             logger.warning(f"recognize_single_bottom_text: 文件不存在 {image_path}")
