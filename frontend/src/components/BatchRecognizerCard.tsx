@@ -23,6 +23,7 @@ import {
   X,
   Eye,
   Maximize2,
+  ArrowLeftRight,
   Image as ImageIcon,
 } from 'lucide-react';
 import { ImageZoom } from './ImageZoom';
@@ -332,6 +333,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           filename: activeFilename,
           score: activeScore,
           view_url: activeViewUrl,
+          crop_image: raw.crop_image,
           reason: raw.reason,
           matchedPet,
           candidates: processedCandidates,
@@ -1112,6 +1114,24 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
                           {/* Main Selected Pet Display */}
                           <div className="flex flex-col items-center text-center my-1">
+                            <div className="flex items-end justify-center gap-1.5 w-full">
+                              {item.crop_image && (
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <div className="w-16 h-16 rounded-lg bg-[#F5F9FF] dark:bg-slate-800 p-1 border border-dashed border-[#7ABCF4] dark:border-sky-500 flex items-center justify-center overflow-hidden">
+                                    <ImageZoom src={item.crop_image} alt="截图裁剪实图" trigger="hover" className="w-full h-full" imgClassName="w-full h-full object-contain" />
+                                  </div>
+                                  <span className="text-[8px] font-bold text-sky-600 dark:text-sky-400 leading-none mt-0.5">截图实图</span>
+                                </div>
+                              )}
+                              {item.crop_image && (
+                                <div className="flex flex-col gap-0.5 shrink-0">
+                                  <div className="w-16 h-16 flex items-center justify-center">
+                                    <ArrowLeftRight className="w-4 h-4 text-slate-300 dark:text-slate-600" />
+                                  </div>
+                                  <div className="h-[10px]" />
+                                </div>
+                              )}
+                              <div className="flex flex-col items-center gap-0.5">
                             <div className="relative w-16 h-16 rounded-xl bg-white dark:bg-slate-900 p-1 border border-[#E6EEF8] dark:border-slate-700 shadow-inner flex items-center justify-center">
                               {isMatched && item.matchedPet ? (
                                   <ImageZoom
@@ -1142,6 +1162,11 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                               )}
                             </div>
 
+                                {item.crop_image && (
+                                  <span className="text-[8px] font-bold leading-none text-slate-400 dark:text-slate-500 mt-0.5">图鉴候选</span>
+                                )}
+                              </div>
+                            </div>
                             {/* Current Chosen Pet Name */}
                             <div className="mt-1.5 w-full">
                               {isMatched && item.matchedPet ? (
@@ -1205,7 +1230,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                               <div className="mt-2 pt-2 border-t border-slate-100/90 dark:border-slate-700/90 w-full space-y-1">
                                 <div className="flex items-center justify-between text-[10px] font-black text-slate-500 dark:text-slate-400 mb-1 px-0.5">
                                   <span>所有预测候选 ({item.candidates.length})</span>
-                                  <span className="text-[9px] text-slate-400 font-normal">点击直接切换</span>
+                                  <span className="text-[9px] text-slate-400 font-normal">{item.crop_image ? "点击与左侧截图比对" : "点击直接切换"}</span>
                                 </div>
 
                                 <div className="space-y-1 max-h-64 overflow-y-auto pr-0.5 custom-scrollbar">

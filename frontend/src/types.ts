@@ -101,6 +101,8 @@ export interface BatchInitApiRawItem {
   score?: number;
   view_url?: string;
   match_path?: string;
+  /** 后端从整图中实际裁剪出的该槽位小图（data URI），用于与图鉴候选并排核对 */
+  crop_image?: string;
   reason?: string;
 }
 
@@ -120,6 +122,8 @@ export interface BatchInitReviewItem {
   score?: number;
   view_url?: string;
   match_path?: string;
+  /** 后端从整图中实际裁剪出的该槽位小图（data URI），用于与图鉴候选并排核对 */
+  crop_image?: string;
   reason?: string;
   matchedPet?: PetItem;
   isChecked: boolean; // 是否勾选为“对的”并准备批量遇见

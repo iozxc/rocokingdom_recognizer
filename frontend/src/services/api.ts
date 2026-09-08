@@ -625,6 +625,7 @@ export class ApiService {
               score: rawScore,
               view_url: viewUrl,
               match_path: primaryCandidate?.match_path || raw.match_path,
+              crop_image: typeof raw.crop_image === 'string' && raw.crop_image.startsWith('data:') ? raw.crop_image : undefined,
               candidates: candidates.length > 0 ? candidates : undefined,
               reason: raw.reason || (status === 'unmatched' ? '未找到匹配程度足够高的图标' : undefined),
             };

@@ -1,3 +1,5 @@
+import base64
+import io
 import os
 import tempfile
 
@@ -18,6 +20,19 @@ from core.infra.logger import logger
 from core.auth.service import is_authorized
 
 bp = Blueprint("predict", __name__)
+
+
+def _pil_to_data_uri(img, fmt="PNG"):
+    """把裁剪出的 PIL 小图编码成 data URI(base64)，随识别结果一次性回传，
+    供前端与图鉴候选并排核对，无需为裁剪图另开静态资源或临时文件。"""
+    try:
+        buf = io.BytesIO()
+        img.save(buf, format=fmt, optimize=True)
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+        return f"data:image/{fmt.lower()};base64,{b64}"
+    except Exception:
+        logger.warning("裁剪图 data URI 编码失败，已跳过 crop_image", exc_info=True)
+        return None
 
 
 def ocr_top_k_match(image, stage_num, top_k=6, trial_key="grass"):
@@ -288,6 +303,11 @@ def predict_batch():
 
             # D. 注入 view_url 并封装
             res_item = {"index": i}
+            # 回传该槽位从用户整图中实际裁剪出的小图，供前端与候选图鉴图并排核对多形态
+            if i < num_pil:
+                crop_uri = _pil_to_data_uri(pil_icons[i])
+                if crop_uri:
+                    res_item["crop_image"] = crop_uri
             if final_candidates:
                 # 检查最高置信度是否满足你的 80% 要求 (可选)
                 # if final_candidates[0]['score'] < 0.8: ...
