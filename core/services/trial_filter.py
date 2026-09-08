@@ -53,11 +53,20 @@ def allowed_pet_names(trial_key, map_name=None):
     return allowed
 
 
+def filter_candidates_by_allowed(candidates, allowed):
+    """用已算好的白名单集合过滤候选（供批量场景复用，避免每次重复扫描目录）。
+
+    - allowed 为 None 表示不限制，原样返回；
+    - allowed 为 set 时只保留展示名在白名单内的候选。
+    """
+    if not candidates or allowed is None:
+        return candidates
+    return [c for c in candidates if _pet_name(c) in allowed]
+
+
 def filter_candidates_by_trial(candidates, trial_key, map_name=None):
     """把识别候选按试炼/地图白名单过滤；无白名单时原样返回。"""
     if not candidates:
         return candidates
     allowed = allowed_pet_names(trial_key, map_name)
-    if allowed is None:
-        return candidates
-    return [c for c in candidates if _pet_name(c) in allowed]
+    return filter_candidates_by_allowed(candidates, allowed)

@@ -5,6 +5,54 @@ from PIL import Image
 from core.infra.logger import logger
 
 
+def _sort_components_row_major(comps):
+    """把连通域按“从左到右、从上到下”的阅读顺序排序。
+
+    直接按 bbox 的 (y, x) 排序并不可靠：同一排图标的 bbox 顶部高度往往略有差异
+    （有的精灵头顶有高出来的装饰/名字牌），会把同一排的列顺序打乱。
+    这里先按中心 y 聚类成“行”，行内再按中心 x 升序，得到与截图一致的网格顺序。
+    """
+    if len(comps) <= 1:
+        return comps
+
+    items = [(y + h / 2.0, x + w / 2.0, (x, y, w, h, area)) for (x, y, w, h, area) in comps]
+    items.sort(key=lambda t: (t[0], t[1]))
+
+    heights = [c[3] for c in comps]
+    heights_sorted = sorted(heights)
+    median_h = heights_sorted[len(heights_sorted) // 2] if heights_sorted else 0.0
+
+    gaps = [
+        items[i + 1][0] - items[i][0]
+        for i in range(len(items) - 1)
+        if items[i + 1][0] > items[i][0]
+    ]
+    median_gap = float(np.median(gaps)) if gaps else 0.0
+
+    # 容差：同行内中心 y 波动一般远小于行间距。取行高一半与行距一半的较大者，
+    # 避免同一排因 ±10px 的高度差被拆成两行，同时仍能区分相邻两排。
+    tolerance = max(median_h * 0.6, median_gap * 0.45)
+
+    rows = []
+    for cy, cx, comp in items:
+        placed = False
+        for row in rows:
+            if abs(cy - row["mean_y"]) <= tolerance:
+                row["items"].append((cy, cx, comp))
+                row["mean_y"] = sum(item[0] for item in row["items"]) / len(row["items"])
+                placed = True
+                break
+        if not placed:
+            rows.append({"mean_y": cy, "items": [(cy, cx, comp)]})
+
+    rows.sort(key=lambda r: r["mean_y"])
+    ordered = []
+    for row in rows:
+        row["items"].sort(key=lambda t: t[1])
+        ordered.extend(comp for _, _, comp in row["items"])
+    return ordered
+
+
 def segment_icons(image_bytes, total_count=999):
     """
     将上传的图片二进制流切割成独立的小图标
@@ -68,7 +116,7 @@ def segment_icons(image_bytes, total_count=999):
         and c[2] >= ref_w * 0.45
         and c[3] >= ref_h * 0.45
     ]
-    comps.sort(key=lambda c: (c[1], c[0]))  # 按行、列排，保证输出稳定
+    comps = _sort_components_row_major(comps)  # 按行聚类、行内按 x 排序，与截图网格顺序一致
 
     extracted_icons = []
     for x, y, w, h, _area in comps:

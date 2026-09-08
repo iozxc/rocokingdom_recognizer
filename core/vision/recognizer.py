@@ -121,32 +121,39 @@ class ImageRecognizer:
         logger.debug(f"ImageRecognizer特征提取: 维度={len(feature)}, 耗时={elapsed:.1f}ms")
         return feature
 
-    def get_feature_batch(self, img_pils):
-        """批量提取多张 PIL 图的特征（单次 ONNX 推理），比逐张 get_feature 快很多。
+    def get_feature_batch(self, img_pils, batch_size=32):
+        """批量提取多张 PIL 图的特征（分块 ONNX 推理），比逐张 get_feature 快很多。
 
         返回 (N, D) 的 L2 归一化特征数组，顺序与输入一致。配合 match_from_feature 使用，
         可在一次推理内得到多张图的候选结果。
+
+        batch_size 用于控制单次 ONNX 推理的输入张数，避免一次堆叠过多图标导致内存尖峰
+        （518x518 输入时尤其明显）；对批量截图识别也更友好。
         """
         t0 = time.perf_counter()
         if not img_pils:
             return np.zeros((0, 0), dtype=np.float32)
         sz = self.input_size
-        batch_list = []
-        for img in img_pils:
-            arr = np.array(img)
-            img_bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
-            img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-            img_resized = cv2.resize(img_rgb, (sz, sz), interpolation=cv2.INTER_LINEAR)
-            img_float = img_resized.astype(np.float32) / 255.0
-            img_norm = (img_float - self.mean) / self.std
-            batch_list.append(img_norm.transpose(2, 0, 1))
-        batch = np.stack(batch_list, axis=0).astype(np.float32)  # (N,3,sz,sz)
-        ort_inputs = {self.session.get_inputs()[0].name: batch}
-        ort_outs = self.session.run(None, ort_inputs)
-        feats = ort_outs[0].reshape(batch.shape[0], -1)
-        norms = np.linalg.norm(feats, axis=1, keepdims=True)
-        norms[norms == 0] = 1.0
-        feats = feats / norms
+        all_feats = []
+        for start in range(0, len(img_pils), batch_size):
+            chunk = img_pils[start:start + batch_size]
+            batch_list = []
+            for img in chunk:
+                arr = np.array(img)
+                img_bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+                img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+                img_resized = cv2.resize(img_rgb, (sz, sz), interpolation=cv2.INTER_LINEAR)
+                img_float = img_resized.astype(np.float32) / 255.0
+                img_norm = (img_float - self.mean) / self.std
+                batch_list.append(img_norm.transpose(2, 0, 1))
+            batch = np.stack(batch_list, axis=0).astype(np.float32)  # (N,3,sz,sz)
+            ort_inputs = {self.session.get_inputs()[0].name: batch}
+            ort_outs = self.session.run(None, ort_inputs)
+            feats = ort_outs[0].reshape(batch.shape[0], -1)
+            norms = np.linalg.norm(feats, axis=1, keepdims=True)
+            norms[norms == 0] = 1.0
+            all_feats.append(feats / norms)
+        feats = np.concatenate(all_feats, axis=0)
         elapsed = (time.perf_counter() - t0) * 1000
         logger.debug(f"ImageRecognizer批量特征提取: N={len(img_pils)}, 维度={feats.shape[1]}, 耗时={elapsed:.1f}ms")
         return feats
@@ -163,7 +170,12 @@ class ImageRecognizer:
         # 先取足够多的原始候选，去重后再截 top_k。
         pool_k = max(top_k * 4, 24)
         pool_k = min(pool_k, len(db["features"]))
-        indices = np.argsort(similarities)[::-1][:pool_k]
+        # 只取前 pool_k 个最大相似度：用 argpartition 避免对全量特征库排序。
+        if pool_k < len(similarities):
+            part_idx = np.argpartition(similarities, -pool_k)[-pool_k:]
+            indices = part_idx[np.argsort(similarities[part_idx])[::-1]]
+        else:
+            indices = np.argsort(similarities)[::-1]
 
         if len(indices) > 0:
             max_sim = float(similarities[indices[0]])

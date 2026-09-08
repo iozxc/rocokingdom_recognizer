@@ -8,7 +8,11 @@ import config
 from core.api.response import error, success
 from core.services.icon_catalog import icon_catalog
 from core.services.trials import get_trial
-from core.services.trial_filter import filter_candidates_by_trial
+from core.services.trial_filter import (
+    allowed_pet_names,
+    filter_candidates_by_allowed,
+    filter_candidates_by_trial,
+)
 from core.infra.utils import get_top_k_matches, get_icon_file_name, fuse_ocr_feat
 from core.infra.logger import logger
 from core.auth.service import is_authorized
@@ -206,21 +210,40 @@ def predict_batch():
         batch_results = []
         map_name = f"map{stage_num}"
 
+        # 只取一次识别器与白名单，避免循环内重复懒加载模型 / 重复扫描图标目录
+        recognizer = models.get_icon_recognizer()
+        if num_pil and recognizer is None:
+            logger.warning(f"试炼 {trial_key} 的图标特征库不可用，本次批量特征匹配将全部跳过")
+        allowed_names = allowed_pet_names(trial_key, map_name)
+
+        # 所有图标一次性/分块提取特征（单次 ONNX 推理），随后逐槽仅做特征检索，
+        # 避免每个图标单独 preprocess + onnx session.run 的开销。
+        feat_matrix = None
+        if num_pil and recognizer is not None:
+            try:
+                feat_matrix = recognizer.get_feature_batch(pil_icons)
+                logger.debug(f"[/init_batch] 批量特征提取完成: N={num_pil}, shape={feat_matrix.shape}")
+            except Exception as e:
+                logger.error(f"[/init_batch] 批量特征提取失败，回退为逐图标匹配: {e}", exc_info=True)
+                feat_matrix = None
+
         for i in range(total_detected):
             # A. 获取图像块进行特征匹配（如果 i 超过了分割块数量，则不进行图像匹配）
             feat_results = []
             if i < num_pil:
                 icon_img = pil_icons[i]
-                recognizer = models.get_icon_recognizer()
                 if recognizer is None:
                     logger.warning(f"试炼 {trial_key} 的图标特征库不可用，跳过特征匹配")
                 else:
                     # 全图鉴匹配时多取候选，白名单过滤后仍能凑够 topk
                     match_pool_k = max(top_k * 4, 24)
-                    raw_feat, err = recognizer.match(icon_img, threshold, top_k=match_pool_k)
-                    feat_results = filter_candidates_by_trial(
-                        raw_feat, trial_key, map_name=map_name
-                    )
+                    if feat_matrix is not None:
+                        raw_feat, err = recognizer.match_from_feature(
+                            feat_matrix[i], threshold, top_k=match_pool_k
+                        )
+                    else:
+                        raw_feat, err = recognizer.match(icon_img, threshold, top_k=match_pool_k)
+                    feat_results = filter_candidates_by_allowed(raw_feat, allowed_names)
 
             # B. 获取 OCR 文字进行模糊匹配
             ocr_match_results = []
@@ -241,10 +264,8 @@ def predict_batch():
                             "seq_tag": bool(m.get('seq_tag', False)),
                         })
 
-            # B'  OCR 结果也按当前 map 白名单过滤
-            ocr_match_results = filter_candidates_by_trial(
-                ocr_match_results, trial_key, map_name=map_name
-            )
+            # B'  OCR 结果也按当前 map 白名单过滤（复用一次性算好的白名单）
+            ocr_match_results = filter_candidates_by_allowed(ocr_match_results, allowed_names)
 
             # C. 合并与去重 (按文件名去重，保留最高分)
             ocr_match_results = fuse_ocr_feat(ocr_match_results, feat_results)
