@@ -76,15 +76,18 @@ class ImageRecognizer:
             if img_bgr is None:
                 raise RuntimeError(f"preprocess: 文件读取失败 {img}")
         elif isinstance(img, Image.Image):
-            arr = np.array(img)
+            # PIL 已按 RGB 理解；convert("RGB") 同时兼容 RGBA 等模式，
+            # 避免 RGB->BGR->RGB 的两次无谓转换。
+            arr = np.array(img.convert("RGB"))
             if arr.dtype == object:
                 raise RuntimeError("preprocess: PIL对象无效，np.array得到object数组")
-            img_bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+            img_rgb = arr
         else:
             raise TypeError(f"preprocess: 不支持的输入类型 {type(img)}, 需要str路径或PIL.Image")
 
-        # 1. 统一转为 RGB 格式
-        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        # 1. 统一转为 RGB 格式（文件路径由 imdecode 读出时为 BGR）
+        if isinstance(img, str):
+            img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
         # 2. Resize (根据模型输入尺寸：resnet=224, dino=518)
         sz = self.input_size
@@ -121,7 +124,7 @@ class ImageRecognizer:
         logger.debug(f"ImageRecognizer特征提取: 维度={len(feature)}, 耗时={elapsed:.1f}ms")
         return feature
 
-    def get_feature_batch(self, img_pils, batch_size=32):
+    def get_feature_batch(self, img_pils, batch_size=16):
         """批量提取多张 PIL 图的特征（分块 ONNX 推理），比逐张 get_feature 快很多。
 
         返回 (N, D) 的 L2 归一化特征数组，顺序与输入一致。配合 match_from_feature 使用，
@@ -139,9 +142,8 @@ class ImageRecognizer:
             chunk = img_pils[start:start + batch_size]
             batch_list = []
             for img in chunk:
-                arr = np.array(img)
-                img_bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
-                img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+                # 直接按 RGB resize（PIL 输入），省去 RGB->BGR->RGB 两次转换
+                img_rgb = np.array(img.convert("RGB"))
                 img_resized = cv2.resize(img_rgb, (sz, sz), interpolation=cv2.INTER_LINEAR)
                 img_float = img_resized.astype(np.float32) / 255.0
                 img_norm = (img_float - self.mean) / self.std

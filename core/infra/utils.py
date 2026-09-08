@@ -1,4 +1,3 @@
-import config
 from difflib import SequenceMatcher
 
 import os
@@ -10,7 +9,7 @@ from PIL import Image
 
 from core.infra.icon_names import sprite_to_file
 from core.infra.logger import logger
-from core.infra.pet_path import format_display_name, split_pet_filename
+from core.infra.pet_path import split_pet_filename
 
 
 _ID_PREFIX_RE = re.compile(r"^\d+_(.*)$")

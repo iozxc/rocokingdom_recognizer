@@ -78,10 +78,3 @@ def sort_key(filename: str):
     pid = info["id"] if info["id"] is not None else (1 << 30)
     seq = info["seq"] if info["seq"] is not None else 0
     return (pid, seq, info["name"] or "")
-
-
-def sort_key_for_part(part_id, seq, name=""):
-    """给定 id/seq/name 构造排序键（供无具体文件名时使用）。"""
-    return (int(part_id) if part_id is not None else (1 << 30),
-            int(seq) if seq is not None else 0,
-            name or "")

@@ -1,5 +1,4 @@
-import pygetwindow as gw
-from flask import Blueprint, request
+from flask import Blueprint
 
 import config
 from core.api.response import error, success
@@ -9,6 +8,8 @@ bp = Blueprint("follow", __name__)
 
 
 def find_roco_window():
+    # 延迟导入：pygetwindow 只在真正检查游戏窗口时加载，缩短后端启动时间
+    import pygetwindow as gw
     logger.debug("查找洛克王国游戏窗口...")
     windows = gw.getWindowsWithTitle(config.GAME_WINDOW_TITLE)
     if windows and len(windows) > 0:

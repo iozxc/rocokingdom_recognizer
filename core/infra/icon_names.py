@@ -2,7 +2,6 @@
 import json
 import re
 
-import config
 from core.infra.logger import logger
 from core.infra.pet_path import format_display_name, split_pet_filename, sort_key
 from core.services.trials import get_trial_or_default, trial_has_map_pets_file

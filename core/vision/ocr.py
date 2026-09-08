@@ -6,7 +6,6 @@ from PIL import Image
 from rapidocr_onnxruntime import RapidOCR  # 导入 RapidOCR
 
 import config
-from config import get_resource_path
 from core.infra.logger import logger
 from core.vision.ocr_corrections import correct_ocr_text
 

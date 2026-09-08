@@ -20,12 +20,6 @@ from core.auth.service import is_authorized
 bp = Blueprint("predict", __name__)
 
 
-def f(image):
-    from core.vision.ocr import ocr
-    ocr_names = ocr().recognize_bottom_text(image)
-    return ocr_names
-
-
 def ocr_top_k_match(image, stage_num, top_k=6, trial_key="grass"):
     from core.vision.ocr import ocr
     logger.debug(f"OCR top-k匹配开始: stage_num={stage_num}, top_k={top_k}")

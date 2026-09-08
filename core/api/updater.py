@@ -4,9 +4,7 @@ import subprocess
 import shutil
 import time
 
-import py7zr
 import requests
-from py7zr.exceptions import UnsupportedCompressionMethodError
 
 import config
 from flask import Blueprint, request
@@ -487,6 +485,9 @@ def apply_update():
     成功时启动 update.ps1 并退出进程；失败时返回错误信息字符串。
     """
     logger.info("开始应用更新：解压并准备安装脚本")
+    # 延迟导入 py7zr：更新属于低频操作，避免后端启动时加载 7z 解压库
+    import py7zr
+    from py7zr.exceptions import UnsupportedCompressionMethodError
     try:
         if updater.mode == "delta":
             if not os.path.exists(delta_zip):
