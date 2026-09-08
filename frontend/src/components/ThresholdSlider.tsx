@@ -28,7 +28,7 @@ export const ThresholdSlider: React.FC<ThresholdSliderProps> = ({
   onChange,
   min = 0.1,
   max = 0.99,
-  step = 0.05,
+  step = 0.01,
   accent = '#7ABCF4',
   className = 'w-32',
   showValue = true,
