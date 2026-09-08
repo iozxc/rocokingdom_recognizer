@@ -35,6 +35,32 @@ def _pil_to_data_uri(img, fmt="PNG"):
         return None
 
 
+def _has_cjk(text):
+    """精灵名均为中文；用于剔除 OCR 把圆形/纹理误判成 'O'/'Ua' 这类假名字。"""
+    return any('\u4e00' <= ch <= '\u9fa5' for ch in (text or ""))
+
+
+def _segment_looks_bad(pil_icons, expect_n, flat_aspect=2.5):
+    """只识别原连通域分割“明确失败”的强信号，宁可漏兜底也不可误伤正确结果。
+
+    - 一块都没切出（且确实有名字）-> empty；
+    - 切出块数已 >= 名字数：说明分割充分，一律视为正常，绝不兜底覆盖；
+    - 块数 < 名字数（有头像漏切/粘连）且存在宽高比 >= flat_aspect 的严重扁条
+      （多只被粘连成一条的铁证；正常单个头像宽高比仅 1.0~1.4）-> merged_flat。
+    绝不能用“块数 != 名字数”当失败理由：纯头像网格 OCR 会误检出字母，
+    图标也可能本就没有名字，数量天然可能不等。
+    """
+    if not pil_icons:
+        return "empty" if expect_n > 0 else None
+    if len(pil_icons) >= expect_n:
+        return None
+    for im in pil_icons:
+        w, h = im.size
+        if min(w, h) > 0 and max(w, h) / float(min(w, h)) >= flat_aspect:
+            return "merged_flat"
+    return None
+
+
 def ocr_top_k_match(image, stage_num, top_k=6, trial_key="grass"):
     from core.vision.ocr import ocr
     logger.debug(f"OCR top-k匹配开始: stage_num={stage_num}, top_k={top_k}")
@@ -199,19 +225,48 @@ def predict_batch():
     temp_path = None
     try:
         from core.vision.ocr import ocr
-        from core.vision.processor import segment_icons
+        from core.vision.processor import segment_icons, segment_icons_by_name_anchors
         from core.services.recognizers import models
         with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
             temp_path = tmp.name
             file.save(temp_path)
 
-        ocr_names = ocr().recognize_bottom_text(temp_path)
+        bottom_items = ocr().recognize_bottom_items(temp_path)
+        ocr_names = [b['text'] for b in bottom_items]
         logger.debug(f"[/init_batch] OCR识别名字列表: {ocr_names}")
 
         with open(temp_path, 'rb') as f:
             image_bytes = f.read()
         pil_icons = segment_icons(image_bytes, total_count)
         logger.debug(f"[/init_batch] 图标分割数量: {len(pil_icons)}")
+
+        # 名字锚定兜底（可用 config.ENABLE_NAME_ANCHOR_FALLBACK 一键关闭，关闭后与原逻辑完全一致）。
+        # 铁律：只在原连通域分割“明确失败”时救场，且兜底结果只增不减——
+        # 绝不允许把原算法切对的多块覆盖成更少块。
+        # 1) 只采用中文名字项，剔除 OCR 在纯头像图上把图案误判成 'O'/'Ua' 之类假文字；
+        anchor_items = [b for b in bottom_items if _has_cjk(b.get('text', ''))]
+        if getattr(config, 'ENABLE_NAME_ANCHOR_FALLBACK', True) and 1 <= len(anchor_items) <= 3:
+            bad_reason = _segment_looks_bad(pil_icons, len(anchor_items))
+            if bad_reason:
+                anchored_icons = segment_icons_by_name_anchors(image_bytes, anchor_items)
+                # 2) 只增不减 + 数量对齐名字 + 每块近正方，任一不满足就保留原算法结果
+                anchors_square = all(
+                    min(im.size) > 0 and max(im.size) / float(min(im.size)) <= 1.5
+                    for im in anchored_icons
+                )
+                if (len(anchored_icons) == len(anchor_items)
+                        and len(anchored_icons) >= len(pil_icons)
+                        and anchors_square):
+                    logger.info(
+                        f"[/init_batch] 原连通域分割失败({bad_reason}, 原{len(pil_icons)}块)，"
+                        f"名字锚定兜底切割 {len(anchored_icons)} 块"
+                    )
+                    pil_icons = anchored_icons
+                else:
+                    logger.debug(
+                        f"[/init_batch] 名字锚定未通过只增不减/近正方校验"
+                        f"(锚定{len(anchored_icons)} 原{len(pil_icons)} 名字{len(anchor_items)})，保留原分割"
+                    )
 
         num_ocr = len(ocr_names)
         num_pil = len(pil_icons)

@@ -91,62 +91,72 @@ class OCREngine:
         logger.debug(f"OCR底层推理: 原始结果={len(formatted_results)}条, 耗时={elapsed:.1f}ms")
         return formatted_results
 
-    def recognize_bottom_text(self, image_path, y_tolerance=30, min_confidence=0.3):
-        """精确提取最底部的名字行"""
-        logger.debug(f"recognize_bottom_text: {image_path}")
+    def recognize_bottom_items(self, image_input, y_tolerance=30, min_confidence=0.3):
+        """提取最底部名字行，返回带像素坐标的名字项（供"名字锚定切割"反推头像位置）。
 
+        返回: [{"text", "cx", "cy", "nw", "nh", "x0","y0","x1","y1"}, ...]，行内按 x 升序。
+        坐标基于输入图像素；blacklist 过滤"额外掉落/碎片"等噪声；复用同一次整图 OCR，不重复推理。
+        """
+        logger.debug(f"recognize_bottom_items: {image_input}")
         blacklist = ["额外", "掉落", "获取", "碎片", "额外掉落", "额外获取"]
 
-        if not os.path.exists(image_path):
-            logger.warning(f"recognize_bottom_text: 文件不存在 {image_path}")
-            return []
-
-        # 调用 RapidOCR
-        results = self._do_ocr(image_path)
+        results = self._do_ocr(image_input)
         if not results:
-            logger.debug("recognize_bottom_text: OCR无结果")
+            logger.debug("recognize_bottom_items: OCR无结果")
             return []
 
         blocks = []
         for box, text, conf in results:
-            if conf < min_confidence: continue
-
+            if conf < min_confidence:
+                continue
             clean_raw = re.sub(r'\s+', '', text)
             if any(noise in clean_raw for noise in blacklist):
                 continue
-
-            # 计算重心 (box 格式为 4 个坐标点)
-            center_x = (box[0][0] + box[1][0]) / 2
-            center_y = (box[0][1] + box[2][1]) / 2
-
+            xs = [p[0] for p in box]
+            ys = [p[1] for p in box]
+            x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
             cleaned = re.sub(r'[^\u4e00-\u9fa5a-zA-Z0-9]', '', clean_raw)
             if cleaned:
-                blocks.append({"text": cleaned, "x": center_x, "y": center_y})
+                blocks.append({
+                    "text": cleaned,
+                    "cx": (x0 + x1) / 2.0, "cy": (y0 + y1) / 2.0,
+                    "nw": x1 - x0, "nh": y1 - y0,
+                    "x0": x0, "y0": y0, "x1": x1, "y1": y1,
+                })
 
-        logger.debug(f"recognize_bottom_text: 过滤后有效块={len(blocks)}")
+        logger.debug(f"recognize_bottom_items: 过滤后有效块={len(blocks)}")
+        if not blocks:
+            return []
 
-        if not blocks: return []
-
-        # 按 Y 聚类（从下往上）
+        # 按 Y 聚类（从下往上），取最底部一行
         lines = []
-        blocks.sort(key=lambda b: b['y'], reverse=True)
+        blocks.sort(key=lambda b: b['cy'], reverse=True)
         for b in blocks:
-            found_line = False
             for line in lines:
-                avg_y = sum(item['y'] for item in line) / len(line)
-                if abs(b['y'] - avg_y) < y_tolerance:
+                avg_y = sum(it['cy'] for it in line) / len(line)
+                if abs(b['cy'] - avg_y) < y_tolerance:
                     line.append(b)
-                    found_line = True
                     break
-            if not found_line:
+            else:
                 lines.append([b])
 
         target_line = lines[0]
-        target_line.sort(key=lambda b: b['x'])
-        result = [b['text'] for b in target_line]
-        result = [correct_ocr_text(t) for t in result]
-        logger.debug(f"recognize_bottom_text: 聚类行数={len(lines)}, 底部行结果={result}")
-        return result
+        target_line.sort(key=lambda b: b['cx'])
+        for b in target_line:
+            b['text'] = correct_ocr_text(b['text'])
+        logger.debug(
+            f"recognize_bottom_items: 聚类行数={len(lines)}, "
+            f"底部行={[b['text'] for b in target_line]}"
+        )
+        return target_line
+
+    def recognize_bottom_text(self, image_path, y_tolerance=30, min_confidence=0.3):
+        """精确提取最底部的名字行（仅文本，顺序与 recognize_bottom_items 一致）。"""
+        if not os.path.exists(image_path):
+            logger.warning(f"recognize_bottom_text: 文件不存在 {image_path}")
+            return []
+        items = self.recognize_bottom_items(image_path, y_tolerance, min_confidence)
+        return [b['text'] for b in items]
 
     def recognize_single_bottom_text(self, image_path, y_tolerance=30, min_confidence=0.3):
         """针对单图优化：优先定位正下方名字"""

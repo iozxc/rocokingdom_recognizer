@@ -135,3 +135,65 @@ def segment_icons(image_bytes, total_count=999):
         f"segment_icons: 分割完成, 有效图标={len(extracted_icons)}"
     )
     return extracted_icons
+
+
+def segment_icons_by_name_anchors(image_bytes, name_items, k_diam=4.2, k_gap=0.13,
+                                  pad=5, nh_tol=0.35):
+    """名字锚定几何切割：复杂背景"圆形头像 + 下方居中名字"界面的兜底分割。
+
+    不做前景分割、不依赖任何检测模型，只利用这类 UI 的硬几何约束，由 OCR 名字框反推头像：
+      - 头像中心 x = 名字框中心 x（名字水平居中于头像）；
+      - 尺度取"同行名字字高"中位数（同字号，不受名字字数多少影响）：头像直径 D ≈ k_diam * 字高；
+      - 头像中心 y = 名字中心 y 上移 (D/2 + k_gap*D + 字高/2)。
+    返回 List[PIL.Image]，顺序与 name_items 完全一致（即与 OCR 名字一一对齐）。
+    """
+    if not name_items:
+        return []
+
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img is None:
+        logger.warning("segment_icons_by_name_anchors: 图片解码失败，返回空列表")
+        return []
+    img_h, img_w = img.shape[:2]
+
+    nh_sorted = sorted(float(it.get("nh", 0) or 0) for it in name_items)
+    nh_med = nh_sorted[len(nh_sorted) // 2]
+    if nh_med <= 0:
+        logger.debug("segment_icons_by_name_anchors: 名字字高异常，返回空列表")
+        return []
+
+    # 丢弃字高离群的噪声文字块，保留与同行主字号一致的名字
+    items = [it for it in name_items
+             if abs(float(it.get("nh", 0)) - nh_med) <= nh_tol * nh_med]
+    if not items:
+        items = list(name_items)
+
+    diam = k_diam * nh_med
+    half = diam / 2.0
+    logger.debug(
+        f"segment_icons_by_name_anchors: 名字数={len(name_items)}, 采用={len(items)}, "
+        f"字高中位={nh_med:.1f}, 推算头像直径={diam:.1f}"
+    )
+
+    extracted = []
+    for it in items:
+        cx = float(it["cx"])
+        name_cy = float(it["cy"])
+        nh = float(it.get("nh", nh_med))
+        head_cy = name_cy - (half + k_gap * diam + nh / 2.0)
+
+        x1 = int(round(cx - half - pad))
+        x2 = int(round(cx + half + pad))
+        y1 = int(round(head_cy - half - pad))
+        y2 = int(round(head_cy + half + pad))
+        x1, x2 = max(0, x1), min(img_w, x2)
+        y1, y2 = max(0, y1), min(img_h, y2)
+        if x2 <= x1 or y2 <= y1:
+            continue
+
+        icon_bgr = img[y1:y2, x1:x2]
+        extracted.append(Image.fromarray(cv2.cvtColor(icon_bgr, cv2.COLOR_BGR2RGB)))
+
+    logger.debug(f"segment_icons_by_name_anchors: 切割完成, 输出图标={len(extracted)}")
+    return extracted

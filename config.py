@@ -272,4 +272,6 @@ REC_MODEL = get_resource_path(os.path.join("onnx", "ch_PP-OCRv4_rec_infer.onnx")
 DEFAULT_THRESHOLD = 0.9
 DEFAULT_TOPK = 6
 
+ENABLE_NAME_ANCHOR_FALLBACK = _env("ROCO_ENABLE_ANCHOR_FALLBACK", "1") != "0"
+
 LOG_LEVEL = getattr(logging, _env("ROCO_LOG_LEVEL", "DEBUG").upper(), logging.DEBUG)
