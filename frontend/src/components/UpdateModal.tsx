@@ -119,6 +119,20 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         return null;
     })();
 
+    // 分包边界刻度：例如 50/40/10 -> 进度条在 50%、90% 处画刻度
+    const partBytes = updateStore.getPartBytes();
+    const totalPartBytes = partBytes.reduce((sum, v) => sum + v, 0);
+    const partMarkers: number[] = [];
+    {
+        let acc = 0;
+        for (const b of partBytes) {
+            acc += b;
+            if (acc < totalPartBytes && totalPartBytes > 0) {
+                partMarkers.push(Math.round((acc / totalPartBytes) * 100));
+            }
+        }
+    }
+
     // Helper to format status display label
     const getStatusText = (status: string, percentage: number, speed?: number) => {
         if (status === 'downloading') {
@@ -430,26 +444,42 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                     downloadStatus.startsWith('verifying') ||
                                     downloadStatus === 'ready') && (
                                     <div className="space-y-2 animate-in fade-in duration-150">
-                                        <div className="w-full h-3.5 bg-[#E9F2FA] dark:bg-slate-800 rounded-full overflow-hidden border border-[#BCD7F2] dark:border-slate-700 p-0.5">
+                                        <div className="relative w-full h-3.5 bg-[#E9F2FA] dark:bg-slate-800 rounded-full overflow-hidden border border-[#BCD7F2] dark:border-slate-700 p-0.5">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-300 ${
                                                     downloadStatus === 'ready'
-                                                        ? 'bg-[#22C55E] dark:bg-emerald-500 w-full'
+                                                        ? 'bg-[#22C55E] dark:bg-emerald-500'
                                                         : downloadStatus === 'stopped'
                                                             ? 'bg-amber-500'
                                                             : downloadStatus.startsWith('verifying') || downloadStatus === 'merging'
-                                                                ? 'bg-gradient-to-r from-amber-500 to-indigo-600 w-full animate-pulse'
+                                                                ? 'bg-gradient-to-r from-amber-500 to-indigo-600'
                                                                 : 'bg-gradient-to-r from-[#7ABCF4] to-[#2B78C4] dark:from-sky-400 dark:to-blue-600'
                                                 }`}
                                                 style={{
-                                                    width:
-                                                        downloadStatus === 'ready' ||
-                                                        downloadStatus.startsWith('verifying') ||
-                                                        downloadStatus === 'merging'
-                                                            ? '100%'
-                                                            : `${percentage}%`,
+                                                    width: downloadStatus === 'ready' ? '100%' : `${percentage}%`,
                                                 }}
                                             />
+                                            {/* 分包刻度：暂停后进度会回到最近一个已过刻度 */}
+                                            {partMarkers.map((pct) => (
+                                                <span
+                                                    key={pct}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: 2,
+                                                        bottom: 2,
+                                                        left: `calc(${pct}% )`,
+                                                        width: 2,
+                                                        borderRadius: 1,
+                                                        background:
+                                                            percentage >= pct
+                                                                ? 'rgba(255,255,255,0.9)'
+                                                                : 'rgba(100,116,139,0.55)',
+                                                        transform: 'translateX(-1px)',
+                                                        pointerEvents: 'none',
+                                                        zIndex: 5,
+                                                    }}
+                                                />
+                                            ))}
                                         </div>
 
                                         {/* Progress details: Status on left, Byte counts and percentage on right */}

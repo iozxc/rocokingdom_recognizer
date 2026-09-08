@@ -52,6 +52,10 @@ updater = UpdateManager()
 
 # 下载互斥锁：同一时刻只允许一个下载线程（避免快速双击/重复请求交错写同一文件）
 _download_lock = threading.Lock()
+# 当前下载线程引用：暂停时等待其处理完当前分片再返回
+_download_thread = None
+# 当前下载中的流式响应：暂停时主动 close，避免线程一直卡在网络读取上
+_current_download_response = None
 
 
 def verify_md5(file_path, expected_md5):
@@ -104,7 +108,9 @@ def build_download_plan():
                 match = d
                 break
 
-    if match and os.path.exists(config.MANIFEST_JSON):
+    if match:
+        # 增量包命中即优先使用（不再要求本地 file_manifest.json：
+        # delta 包自包含变更文件/removed.txt，不需要外部清单参与下载决策）
         url = match["url"].rstrip("/")
         name = url.rsplit("/", 1)[-1]
         logger.info(
@@ -119,7 +125,7 @@ def build_download_plan():
     base_url = auto_update.get("base_url", "")
     if not files:
         return None
-    logger.info("增量包不适用（版本不匹配或缺少本地文件清单），回退整包更新")
+    logger.info("增量包不适用（版本不匹配或缺少全量下载地址），回退整包更新")
     return "full", base_url, files
 
 
@@ -131,7 +137,9 @@ def real_download_logic():
     try:
         _real_download_logic()
     finally:
+        global _download_thread
         _download_lock.release()
+        _download_thread = None
 
 
 def _real_download_logic():
@@ -194,15 +202,21 @@ def _real_download_logic():
                 file_size_map[file_item['name']] = file_item["size"]
 
         finished_part_bytes = 0
+        disk_done_bytes = 0
         for file_item in files:
             fname = file_item['name']
             fpath = os.path.join(temp_dir, fname)
             fsize = file_size_map[fname]
-            if os.path.exists(fpath) and os.path.getsize(fpath) == fsize:
-                finished_part_bytes += fsize
-        updater.progress = finished_part_bytes
-        if finished_part_bytes > 0:
-            logger.info(f"断点续传: 已完成 {finished_part_bytes / 1024 / 1024:.1f} MB / {updater.total_bytes / 1024 / 1024:.1f} MB")
+            if os.path.exists(fpath):
+                existing = os.path.getsize(fpath)
+                # disk_done 用于“断点续传开始时”的真实已下载总量（含未完成分片）
+                disk_done_bytes += min(existing, fsize)
+                # 注意：不要在这里把完整分片累加进 finished_part_bytes，
+                # 否则下面跳过完整分片时又会加一次，导致进度翻倍。
+        # 续传/重启后存在本地分片时，进度=磁盘上真实已下载字节，避免界面短暂回退/显示偏小
+        updater.progress = disk_done_bytes
+        if updater.progress > 0:
+            logger.info(f"断点续传: 已完成 {updater.progress / 1024 / 1024:.1f} MB / {updater.total_bytes / 1024 / 1024:.1f} MB")
 
         # 速度统计初始化，使用当前已下载字节，避免恢复瞬间速度异常
         updater.speed_bps = 0
@@ -240,7 +254,8 @@ def _real_download_logic():
                     return
                 updater.status = "downloading"
                 finished_part_bytes += this_file_total_size
-                updater.progress = finished_part_bytes
+                # 进度只增不减：避免“已完成分包”重复累加时进度回跳
+                updater.progress = max(updater.progress, finished_part_bytes)
                 continue
 
             logger.info(f"开始下载分片 [{i+1}/{len(files)}]: {file_name} "
@@ -252,12 +267,14 @@ def _real_download_logic():
             if existing_size > 0:
                 headers["Range"] = f"bytes={existing_size}-"
 
+            global _current_download_response
             response = requests.get(
                 download_url,
                 stream=True,
                 headers=headers,
                 timeout=15
             )
+            _current_download_response = response
             if response.status_code not in (200, 206):
                 response.raise_for_status()
 
@@ -271,6 +288,9 @@ def _real_download_logic():
                 resume_offset = 0
 
             open_mode = "ab" if resume_offset > 0 else "wb"
+            if open_mode == "wb" and existing_size > 0:
+                # 服务器不支持 Range：旧的半截分片会被覆盖，进度同步回到“已完成分片”
+                updater.progress = finished_part_bytes
             with open(save_path, open_mode) as f:
                 current_file_downloaded = resume_offset
 
@@ -284,7 +304,10 @@ def _real_download_logic():
                         f.close()
                         updater.status = "paused"
                         updater.speed_bps = 0
-                        logger.info("下载已暂停")
+                        # 回到“上一已完成分包”的刻度：当前半截分包在无 Range 续传时需重下，
+                        # 进度不应停留在包含该半截分包的虚高值
+                        updater.progress = finished_part_bytes
+                        logger.info("下载已暂停（进度回到上一分包刻度）")
                         return
 
                     chunk_len = len(data)
@@ -311,6 +334,7 @@ def _real_download_logic():
             if updater.pause_requested:
                 updater.speed_bps = 0
                 updater.status = "paused"
+                updater.progress = finished_part_bytes
                 return
 
             updater.status = f"verifying_{i + 1}"
@@ -325,6 +349,14 @@ def _real_download_logic():
             finished_part_bytes += this_file_total_size
             updater.progress = finished_part_bytes
             logger.info(f"分片下载完成 [{i+1}/{len(files)}]: {file_name}")
+
+            # 当前分片已完整下载并校验通过后才响应暂停：
+            # 已完成的包保留，下次续传从下一个分片开始（不支持 Range 的源也不会从头重下已完成的包）
+            if updater.pause_requested:
+                updater.speed_bps = 0
+                updater.status = "paused"
+                logger.info(f"已暂停：第 {i + 1} 个分片已完成，剩余分片未开始")
+                return
 
         # 全部完成
         updater.status = "merging"
@@ -344,6 +376,12 @@ def _real_download_logic():
         logger.info("所有分包下载、校验并合并完成！")
 
     except requests.exceptions.RequestException as e:
+        # 用户点击暂停后主动关闭了响应流，会走到这里：按“已暂停”处理而不是报错
+        if updater.pause_requested:
+            updater.status = "paused"
+            updater.speed_bps = 0
+            logger.info("下载已暂停（响应流已中断）")
+            return
         updater.status = "error"
         updater.error_msg = f"网络连接失败: {str(e)}"
         updater.speed_bps = 0
@@ -353,6 +391,8 @@ def _real_download_logic():
         updater.error_msg = f"更新失败: {str(e)}"
         updater.speed_bps = 0
         logger.error(f"更新下载异常: {e}", exc_info=True)
+    finally:
+        _current_download_response = None
 
 def _build_backup_block(exe_name):
     """生成 PS1 备份/回滚片段：整包更新前把旧 libs/exe 改名为 .bak。"""
@@ -629,7 +669,28 @@ def start_download_api():
 
     # 前端设置里选择的更新方式：auto=自动增量（默认），full=强制整包
     mode = (request.args.get("mode") or "auto").lower()
-    updater.force_full = mode == "full"
+
+    # 断点续传时，先看“用户当前选择的更新方式”与“暂停前实际下载方式”是否一致：
+    # - 一致：继续断点续传；
+    # - 不一致（例如增量暂停后切到全量）：清掉旧分片，按新方式重新下载，避免“刻度变了但总大小没变”。
+    requested_full = mode == "full"
+    if updater.status == "paused" and updater.total_bytes > 0:
+        old_mode = updater.mode
+        updater.force_full = requested_full
+        plan = build_download_plan()
+        new_mode = plan[0] if plan else None
+        if old_mode and new_mode and old_mode != new_mode:
+            logger.info(
+                f"[API] 更新方式已从 {old_mode} 改为 {new_mode}，清空旧分片并重新下载"
+            )
+            handle_cleanup("update_temp")
+            updater.total_bytes = 0
+            updater.progress = 0
+            updater.speed_bps = 0
+        else:
+            logger.info(f"[API] 断点续传，沿用暂停前模式 {old_mode or 'unknown'}")
+    else:
+        updater.force_full = requested_full
     logger.info(f"[API] 更新方式: {mode}, force_full={updater.force_full}")
 
     if updater.status == "downloading":
@@ -637,7 +698,9 @@ def start_download_api():
         return {"status": "downloading"}
 
     # 开启新线程下载，防止阻塞 Flask 响应
+    global _download_thread
     thread = threading.Thread(target=real_download_logic)
+    _download_thread = thread
     thread.start()
 
     return {"status": "downloading"}
@@ -740,6 +803,14 @@ def stop_download():
     """停止下载信号"""
     logger.info("[API] 请求暂停下载")
     updater.pause_requested = True
+    # 立即返回（不做长 join）：下载线程会在下个分片时截断并保留已写字节；
+    # 已完成的分片始终保留，续传只可能重下“当前未完成”的分片。
+    # 主动断开流式响应可让下载线程更快从网络读取中退出。
+    if _current_download_response is not None:
+        try:
+            _current_download_response.close()
+        except Exception:
+            pass
     return {"status": "stopped"}
 
 @bp.route('/api/delete_download', methods=['GET'])

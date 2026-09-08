@@ -161,6 +161,17 @@ class UpdateStore {
     } catch {
       /* 忽略 */
     }
+    // 后端暂停会主动断开下载流并尽快落盘 paused；
+    // 这里等待后端状态真正变为非下载态，避免“前端显示已暂停但实际还在下”导致继续下载时跳动。
+    const waitUntil = Date.now() + 3000;
+    while (Date.now() < waitUntil) {
+      await this.refreshProgressNow();
+      const s = this.state.downloadStatus;
+      const stillBusy =
+          s === 'downloading' || s === 'merging' || (typeof s === 'string' && s.startsWith('verifying'));
+      if (!stillBusy) break;
+      await new Promise((r) => setTimeout(r, 150));
+    }
     this.setState({ downloadStatus: 'stopped', speedBps: 0 });
     this.stopPolling();
   }
@@ -185,10 +196,9 @@ class UpdateStore {
     return api.installUpdate();
   }
 
-  getPackageSize = (): { bytes: number; isDelta: boolean } | null => {
+  getPartBytes = (): number[] => {
     const d = this.state.updateData;
-    if (!d?.has_update) return null;
-    // 用户已选“全量更新”时，不再优先展示/估算增量包
+    if (!d?.has_update) return [];
     const mode = this.getUpdateModePref();
     const deltas = d.deltas && d.deltas.length > 0 ? d.deltas : d.delta ? [d.delta] : [];
     if (mode !== 'full') {
@@ -196,13 +206,20 @@ class UpdateStore {
         (x) => x.base_version === d.current_version && x.url && typeof x.size === 'number' && x.size > 0
       );
       if (match) {
-        return { bytes: match.size as number, isDelta: true };
+        return [match.size as number];
       }
     }
     const files = d.auto_update?.files || [];
-    const total = files.reduce((s, f) => s + (f.size || 0), 0);
-    if (total > 0) return { bytes: total, isDelta: false };
-    return null;
+    return files.map((f) => f.size || 0).filter((v) => v > 0);
+  };
+
+  getPackageSize = (): { bytes: number; isDelta: boolean } | null => {
+    const parts = this.getPartBytes();
+    const d = this.state.updateData;
+    if (!d?.has_update || parts.length === 0) return null;
+    const total = parts.reduce((sum, v) => sum + v, 0);
+    const mode = this.getUpdateModePref();
+    return { bytes: total, isDelta: mode !== 'full' && parts.length === 1 };
   };
 
   getEstimateBps = (): number => {
