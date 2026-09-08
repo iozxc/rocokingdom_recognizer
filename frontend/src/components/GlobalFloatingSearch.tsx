@@ -16,8 +16,6 @@ import {
   ChevronLeft,
   Database,
   ListFilter,
-  Minimize2,
-  Maximize2,
   Flame,
 } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, FloatingButtonsMode } from '../types';
@@ -87,9 +85,6 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
   const [floatingMode, setFloatingMode] = useState<FloatingButtonsMode>(() => {
     return storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal');
   });
-  const [isSimplified, setIsSimplified] = useState<boolean>(() => {
-    return storage.getSetting<boolean>('isSimplifiedFABs', true);
-  });
   // 火系共创图鉴相关按钮（任一个回调存在即启用）
   const hasFireAtlas = !!onOpenFireAtlas || !!onToggleAtlasMode;
 
@@ -110,9 +105,6 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
       if (settings.floatingButtonsMode) {
         setFloatingMode(settings.floatingButtonsMode);
       }
-      if (typeof settings.isSimplifiedFABs === 'boolean') {
-        setIsSimplified(settings.isSimplifiedFABs);
-      }
     });
     return () => unsubscribe();
   }, []);
@@ -121,13 +113,6 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
     sound.playClick();
     setIsFABCollapsed(collapsed);
     storage.setSetting('isFABCollapsed', collapsed);
-  };
-
-  const handleToggleSimplified = () => {
-    sound.playClick();
-    const next = !isSimplified;
-    setIsSimplified(next);
-    storage.setSetting('isSimplifiedFABs', next);
   };
 
   // Global Shortcut listener (Ctrl+K, Cmd+K, or '/')
@@ -285,7 +270,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
               )}
 
                {/* 4. 数据管理（web 版：导入/导出，精简模式下隐藏） */}
-              {!isSimplified && onOpenDataManage && (
+              {onOpenDataManage && (
                   <button
                       type="button"
                       id="global-compact-data-fab"
@@ -317,7 +302,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
               {/* 火系共创图鉴相关按钮 */}
               {hasFireAtlas && (
                   <>
-                    {!isSimplified && onOpenFireAtlas && (
+                    {onOpenFireAtlas && (
                         <button
                             type="button"
                             id="global-compact-fire-atlas-fab"
@@ -369,23 +354,6 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                     <div className="flex items-center gap-1 p-1 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl border-2 border-white dark:border-slate-700 shadow-md shadow-slate-900/5 self-end">
                       <button
                           type="button"
-                          id="global-floating-simplified-toggle-btn"
-                          onClick={handleToggleSimplified}
-                          className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
-                              isSimplified
-                                  ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs hover:bg-[#68AEEB]'
-                                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-600 border-slate-200/80 dark:border-slate-600'
-                          }`}
-                          title={isSimplified ? '当前为精简模式（已隐藏数据管理与共创图鉴），点击还原' : '点击开启精简模式（隐藏数据管理与共创图鉴）'}
-                      >
-                        {isSimplified ? (
-                            <Maximize2 className="w-3.5 h-3.5" />
-                        ) : (
-                            <Minimize2 className="w-3.5 h-3.5" />
-                        )}
-                      </button>
-                      <button
-                          type="button"
                           id="global-floating-collapse-fab"
                           onClick={() => handleToggleCollapse(true)}
                           className="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
@@ -418,7 +386,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                     )}
 
                     {/* 4. 数据管理（web 版：导入/导出，精简模式下隐藏） */}
-                    {!isSimplified && onOpenDataManage && (
+                    {onOpenDataManage && (
                         <button
                             id="global-floating-data-fab"
                             type="button"
@@ -441,7 +409,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                     {/* 火系共创图鉴相关按钮 */}
                     {hasFireAtlas && (
                         <>
-                          {!isSimplified && onOpenFireAtlas && (
+                          {onOpenFireAtlas && (
                               <button
                                   id="global-floating-fire-atlas-fab"
                                   type="button"
