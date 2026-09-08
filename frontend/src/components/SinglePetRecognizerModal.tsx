@@ -342,7 +342,7 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                       }}
                       min={0.1}
                       max={0.99}
-                      step={0.05}
+                      step={0.01}
                       accent="#95D151"
                       className="w-40"
                       showValue={false}

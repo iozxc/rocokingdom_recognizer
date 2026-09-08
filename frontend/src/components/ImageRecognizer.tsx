@@ -331,7 +331,7 @@ export const ImageRecognizer: React.FC<ImageRecognizerProps> = ({
                       }}
                       min={0.1}
                       max={0.99}
-                      step={0.05}
+                      step={0.01}
                       accent="#7ABCF4"
                       className="flex-1"
                       showValue={false}
