@@ -678,8 +678,7 @@ export default function App() {
                 encounteredCount={currentMapStats.encounteredCount}
                 totalCount={currentMapPets.length}
                 showFollow={!IS_STATIC}
-                onOpenSingleRecognizer={IS_STATIC ? undefined : () => guardRecognition(() => setIsSingleRecognizerOpen(true))}
-                onOpenBatchInit={IS_STATIC ? undefined : () => guardRecognition(() => setIsBatchInitOpen(true))}
+                onOpenDataManage={() => setIsDataManageOpen(true)}
                 onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
             />
         )}
@@ -865,7 +864,7 @@ export default function App() {
         )}
 
         {/* Global Floating Actions Component on the bottom right（单个识别/批量导入已整合进首页识别，不再重复展示） */}
-        {view === 'assistant' && (
+        {view === 'assistant' && floatingMode !== 'hidden' && (
             <GlobalFloatingSearch
                 isOpen={isGlobalSearchOpen}
                 onOpenChange={(open) => setIsGlobalSearchOpen(open)}

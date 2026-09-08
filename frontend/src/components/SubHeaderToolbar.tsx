@@ -2,12 +2,9 @@ import React from 'react';
 import {
     Sparkles,
     Search,
-    Layers,
-    Filter,
+    Database,
     Check,
     EyeOff,
-    Command,
-    HelpCircle,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { openFollowScanner } from '../services/followScanner';
@@ -17,8 +14,7 @@ interface SubHeaderToolbarProps {
     onFilterChange: (mode: 'all' | 'encountered' | 'unencountered') => void;
     encounteredCount: number;
     totalCount: number;
-    onOpenSingleRecognizer?: () => void;
-    onOpenBatchInit?: () => void;
+    onOpenDataManage?: () => void;
     onOpenGlobalSearch?: () => void;
     showFollow?: boolean;
 }
@@ -28,8 +24,7 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                                                                       onFilterChange,
                                                                       encounteredCount,
                                                                       totalCount,
-                                                                      onOpenSingleRecognizer,
-                                                                      onOpenBatchInit,
+                                                                      onOpenDataManage,
                                                                       onOpenGlobalSearch,
                                                                       showFollow = true,
                                                                   }) => {
@@ -117,37 +112,20 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                         </button>
                     )}
 
-                    {/* 2. 单个识别 */}
-                    {onOpenSingleRecognizer && (
+                    {/* 2. 数据管理 */}
+                    {onOpenDataManage && (
                         <button
                             type="button"
-                            id="sub-header-single-btn"
+                            id="sub-header-data-btn"
                             onClick={() => {
-                                sound.playClick();
-                                onOpenSingleRecognizer();
+                              sound.playClick();
+                              onOpenDataManage();
                             }}
                             className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                            title="单个识别"
+                            title="数据管理（导入导出/多账号）"
                         >
-                            <Sparkles className="w-3.5 h-3.5 text-[#2D6613] dark:text-emerald-400" />
-                            <span>单个识别</span>
-                        </button>
-                    )}
-
-                    {/* 3. 批量初始化 */}
-                    {onOpenBatchInit && (
-                        <button
-                            type="button"
-                            id="sub-header-batch-btn"
-                            onClick={() => {
-                                sound.playClick();
-                                onOpenBatchInit();
-                            }}
-                            className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                            title="批量导入"
-                        >
-                            <Layers className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-                            <span>批量导入</span>
+                          <Database className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span>数据管理</span>
                         </button>
                     )}
 
