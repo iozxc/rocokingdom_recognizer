@@ -6,6 +6,7 @@ import {
   AlertCircle,
   RefreshCw,
   Sliders,
+  SlidersHorizontal,
   Award,
   Check,
   Edit3,
@@ -30,6 +31,7 @@ import { ImageZoom } from './ImageZoom';
 import { collectAtlasObservation } from '../services/atlasCollector';
 import confetti from 'canvas-confetti';
 import { ThresholdSlider } from './ThresholdSlider';
+import { HintTooltip } from './HintTooltip';
 import {
   MapConfig,
   PetItem,
@@ -57,6 +59,8 @@ interface BatchRecognizerCardProps {
       items: Array<{ mapId: string; filename: string; note?: string }>
   ) => void;
   onSelectMap?: (mapNum: number) => void;
+  /** 识别进行中状态上报，供父级锁定顶部 / 悬浮的地图切换。 */
+  onScanningChange?: (scanning: boolean) => void;
 }
 
 export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
@@ -67,6 +71,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                                                           isEncountered,
                                                                           onBatchEncounterSuccess,
                                                                           onSelectMap,
+                                                                          onScanningChange,
                                                                         }) => {
   const [selectedMapNum, setSelectedMapNum] = useState<number>(currentMap.num);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -76,6 +81,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
+
+  // 识别参数小弹窗（识别门槛 / 候选数量收进此处，正常使用无需展开）
+  const [showRecogSettings, setShowRecogSettings] = useState<boolean>(false);
+  const recogSettingsRef = useRef<HTMLDivElement>(null);
 
   // Lightbox modal for original image high-res preview
   const [showOriginalImageLightbox, setShowOriginalImageLightbox] = useState<boolean>(false);
@@ -96,6 +105,31 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const reviewSectionRef = useRef<HTMLDivElement>(null);
   const gameViewRef = useRef<HTMLDivElement>(null);
+
+  // 识别参数弹窗：点击外部或按 Esc 关闭
+  useEffect(() => {
+    if (!showRecogSettings) return;
+    const onDown = (e: MouseEvent) => {
+      if (recogSettingsRef.current && !recogSettingsRef.current.contains(e.target as Node)) {
+        setShowRecogSettings(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowRecogSettings(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [showRecogSettings]);
+
+  // 把识别进行中状态上报给父级（卸载时恢复为 false，避免父状态卡住）
+  useEffect(() => {
+    onScanningChange?.(isScanning);
+    return () => onScanningChange?.(false);
+  }, [isScanning]);
 
   // Sync when currentMap changes from outside
   useEffect(() => {
@@ -603,9 +637,17 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         {/* Target Map Selector & Threshold Bar */}
         <div className="mt-4 p-4 sm:p-5 bg-[#F5F9FF] dark:bg-slate-800/80 rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pb-3.5 border-b border-[#E2EAF4] dark:border-slate-700">
-            {/* Target Map Selector */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-full">
-              <span className="text-xs font-black text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0">目标地图:</span>
+            {/* Target Map Selector（标签置于横向滚动容器之外，避免悬停气泡被 overflow 裁剪） */}
+            <HintTooltip
+                side="bottom"
+                content="只在所选地图的精灵图鉴范围内匹配，过滤掉其它地图的结果，识别更准。"
+                className="shrink-0 cursor-help self-center"
+            >
+              <span className="text-xs font-black text-slate-700 dark:text-slate-200 whitespace-nowrap flex items-center gap-0.5">
+                目标地图:<Info className="w-3 h-3 text-slate-400" />
+              </span>
+            </HintTooltip>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden min-w-0 flex-1">
               {MAP_CONFIGS.map((map) => {
                 const isSelected = selectedMapNum === map.num;
                 const mapPets = allMapsPets[`map${map.num}`]?.items || [];
@@ -621,7 +663,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           setSelectedMapNum(map.num);
                           if (onSelectMap) onSelectMap(map.num);
                         }}
-                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1 sm:gap-1.5 border-2 whitespace-nowrap shrink-0 cursor-pointer ${
+                        disabled={isScanning}
+                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1 sm:gap-1.5 border-2 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                             isSelected
                                 ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs'
                                 : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#E2E8F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500'
@@ -636,43 +679,88 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
               })}
             </div>
 
-            {/* 识别门槛 + 候选数量(top-k) */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600 dark:text-slate-300">
-              <div className="flex items-center gap-2">
-                <Sliders className="w-3.5 h-3.5 text-[#7ABCF4] dark:text-sky-400" />
-                <span className="font-bold">识别门槛:</span>
-                <ThresholdSlider
-                    value={threshold}
-                    onChange={handleThresholdChange}
-                    min={0.1}
-                    max={0.95}
-                    step={0.05}
-                    accent="#7ABCF4"
-                    className="w-28 sm:w-36"
-                    showValue={false}
-                />
-                <span className="font-mono font-black text-[#2B78C4] dark:text-sky-300">{Math.round(threshold * 100)}%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="w-3.5 h-3.5 text-amber-500" />
-                <span className="font-bold">候选数量 (Top-K):</span>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5, 6].map((k) => (
-                      <button
-                          key={k}
-                          type="button"
-                          onClick={() => handleTopKChange(k)}
-                          className={`px-1.5 py-0.5 rounded-md text-[11px] font-black cursor-pointer border transition-colors ${
-                              topK === k
-                                  ? 'bg-amber-400 text-amber-950 border-amber-500'
-                                  : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-600 hover:border-slate-400'
-                          }`}
-                      >
-                        {k}
-                      </button>
-                  ))}
-                </div>
-              </div>
+            {/* 识别专业参数（识别门槛 / 候选数量）收进小弹窗，正常使用无需调整 */}
+            <div className="relative shrink-0" ref={recogSettingsRef}>
+              <button
+                  type="button"
+                  onClick={() => { sound.playClick(); setShowRecogSettings((v) => !v); }}
+                  disabled={isScanning}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black border-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      showRecogSettings
+                          ? 'bg-[#7ABCF4] text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs'
+                          : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#E2E8F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500'
+                  }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>识别参数</span>
+                <span className="hidden sm:inline font-mono text-[10px] opacity-80">
+                  门槛{Math.round(threshold * 100)}% · TopK {topK}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showRecogSettings ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showRecogSettings && (
+                  <div className="absolute right-0 top-full mt-2 z-50 w-72 rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl p-4 space-y-4">
+                    {/* 识别门槛 */}
+                    <div>
+                      <div className="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-200 mb-2">
+                        <Sliders className="w-3.5 h-3.5 text-[#7ABCF4] dark:text-sky-400" />
+                        <HintTooltip
+                            side="bottom"
+                            content="相似度达到该比例才算匹配。调高更严格、误判少但可能漏；调低更宽松、能找回边缘结果但可能混入不太像的。多数截图保持默认即可。"
+                            className="cursor-help"
+                        >
+                          <span className="font-bold flex items-center gap-0.5 underline decoration-dotted decoration-slate-300 underline-offset-2">
+                            识别门槛<Info className="w-3 h-3 text-slate-400" />
+                          </span>
+                        </HintTooltip>
+                        <span className="ml-auto font-mono font-black text-[#2B78C4] dark:text-sky-300">{Math.round(threshold * 100)}%</span>
+                      </div>
+                      <ThresholdSlider
+                          value={threshold}
+                          onChange={handleThresholdChange}
+                          min={0.1}
+                          max={0.95}
+                          step={0.05}
+                          accent="#7ABCF4"
+                          className="w-full"
+                          showValue={false}
+                      />
+                    </div>
+                    {/* 候选数量 */}
+                    <div>
+                      <div className="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-200 mb-2">
+                        <Award className="w-3.5 h-3.5 text-amber-500" />
+                        <HintTooltip
+                            side="bottom"
+                            content="每个检测图位最多保留几个最相似的图鉴候选，供你逐个点选比对。越多越不容易漏掉正确答案，但列表更长。"
+                            className="cursor-help"
+                        >
+                          <span className="font-bold flex items-center gap-0.5 underline decoration-dotted decoration-slate-300 underline-offset-2">
+                            候选数量(Top-K)<Info className="w-3 h-3 text-slate-400" />
+                          </span>
+                        </HintTooltip>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5, 6].map((k) => (
+                            <button
+                                key={k}
+                                type="button"
+                                disabled={isScanning}
+                                onClick={() => handleTopKChange(k)}
+                                className={`flex-1 px-1.5 py-1 rounded-md text-[11px] font-black cursor-pointer border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    topK === k
+                                        ? 'bg-amber-400 text-amber-950 border-amber-500'
+                                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-200 border-slate-200 dark:border-slate-600 hover:border-slate-400'
+                                }`}
+                            >
+                              {k}
+                            </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+              )}
             </div>
           </div>
 
@@ -832,11 +920,15 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       <div className="mt-3 space-y-2.5">
                         <div className="p-2.5 rounded-xl bg-[#F8FBFE] dark:bg-slate-900 border border-[#E6EEF8] dark:border-slate-700 text-xs">
                           <div className="flex items-center justify-between text-slate-600 dark:text-slate-300 mb-1">
-                            <span className="font-bold">识别目标地图:</span>
+                            <HintTooltip side="top" content="只在该地图图鉴范围内匹配，可在上方“目标地图”行切换。" className="cursor-help">
+                              <span className="font-bold flex items-center gap-0.5">识别目标地图<Info className="w-3 h-3 text-slate-400" /></span>
+                            </HintTooltip>
                             <span className="font-black text-[#1E5B99] dark:text-sky-300">{targetMap.num}、{targetMap.name.replace('记忆中的', '')}</span>
                           </div>
                           <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                            <span className="font-bold">识别门槛:</span>
+                            <HintTooltip side="top" content="相似度达到该比例才算匹配，可在右上角“识别参数”里调整。" className="cursor-help">
+                              <span className="font-bold flex items-center gap-0.5">识别门槛<Info className="w-3 h-3 text-slate-400" /></span>
+                            </HintTooltip>
                             <span className="font-mono font-black text-[#2B78C4] dark:text-sky-300">{Math.round(threshold * 100)}%</span>
                           </div>
                         </div>
@@ -874,7 +966,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       <button
                           type="button"
                           onClick={handleClearUpload}
-                          className="w-full py-1.5 px-3 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                          disabled={isScanning}
+                          className="w-full py-1.5 px-3 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 text-xs font-bold transition-colors flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
                       >
                         <Trash2 className="w-3 h-3 text-rose-400" />
                         <span>放弃当前截图</span>

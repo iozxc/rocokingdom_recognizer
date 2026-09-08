@@ -36,6 +36,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const safeMaps = maps && maps.length > 0 ? maps : FIRE_MAP_CONFIGS;
   const initialPets = getCachedFirePets();
   const [activeStageNum, setActiveStageNum] = useState<number>(1);
+  // 批量识别进行中：锁定顶部 / 悬浮的地图切换
+  const [isBatchScanning, setIsBatchScanning] = useState<boolean>(false);
   const [pokedex, setPokedex] = useState<FirePokedexEntry[]>(initialPets ?? []);
   const [fireMapPets, setFireMapPets] = useState<Record<string, Record<string, { id?: number; name?: string; seq?: number | null }>>>({});
   const [records, setRecords] = useState<Record<string, EncounterRecord>>(() => fireStorage.getAll());
@@ -589,6 +591,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenHub={onBack}
             mapsConfig={safeMaps}
+            mapNavDisabled={isBatchScanning}
             devBadge
             rightStatus={<AuthBadge />}
         />
@@ -649,6 +652,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
                     isEncountered={(mapId, filename) => isPetEncounteredInRecords(fireStorage.getAll(), mapId, filename)}
                     onBatchEncounterSuccess={handleFireBatchEncounterSuccess}
                     onSelectMap={(num) => setActiveStageNum(num)}
+                    onScanningChange={setIsBatchScanning}
                 />
               </div>
           )}
@@ -690,6 +694,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               setActiveStageNum((prev) => (prev % safeMaps.length) + 1);
             }}
             mapsConfig={safeMaps}
+            mapSwitchDisabled={isBatchScanning}
             advancedFilters={advancedFilters}
             onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
         />

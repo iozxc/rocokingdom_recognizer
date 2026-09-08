@@ -33,6 +33,8 @@ interface HeaderProps {
     onOpenHub?: () => void;
     showMapNav?: boolean;
     mapsConfig?: MapConfig[];
+    /** 批量识别进行中：禁用顶部地图切换。 */
+    mapNavDisabled?: boolean;
     devBadge?: boolean;
     rightStatus?: React.ReactNode;
     centerStatus?: React.ReactNode;
@@ -55,6 +57,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                   onOpenHub,
                                                   showMapNav = true,
                                                   mapsConfig,
+                                                  mapNavDisabled = false,
                                                   devBadge,
                                                   rightStatus,
                                                   centerStatus,
@@ -161,7 +164,8 @@ export const Header: React.FC<HeaderProps> = ({
                                             sound.playClick();
                                             onSelectMap(map.num);
                                         }}
-                                        className={`px-2 lg:px-2.5 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer shrink min-w-0 ${
+                                        disabled={mapNavDisabled}
+                                        className={`px-2 lg:px-2.5 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer shrink min-w-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                                             isActive
                                                 ? 'bg-white dark:bg-sky-500 text-[#2B78C4] dark:text-white shadow-sm scale-[1.02]'
                                                 : 'text-white/90 dark:text-slate-300 hover:text-white hover:bg-white/20 dark:hover:bg-white/10'

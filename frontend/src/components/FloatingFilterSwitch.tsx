@@ -15,6 +15,8 @@ interface FloatingFilterSwitchProps {
     onFilterChange: (mode: 'all' | 'encountered' | 'unencountered') => void;
     onCycleMap?: () => void;
     mapsConfig?: MapConfig[];
+    /** 批量识别进行中：禁用左下角地图切换。 */
+    mapSwitchDisabled?: boolean;
     advancedFilters?: AdvancedFilterState;
     onAdvancedFilterChange?: (filters: AdvancedFilterState) => void;
 }
@@ -27,6 +29,7 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                                                               onFilterChange,
                                                                               onCycleMap,
                                                                               mapsConfig,
+                                                                              mapSwitchDisabled,
                                                                               advancedFilters,
                                                                               onAdvancedFilterChange,
                                                                           }) => {
@@ -96,7 +99,8 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                         sound.playClick();
                         if (onCycleMap) onCycleMap();
                     }}
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-white text-xs font-black shadow-xl shadow-slate-900/15 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                    disabled={mapSwitchDisabled}
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-white text-xs font-black shadow-xl shadow-slate-900/15 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     style={{ backgroundColor: currentMap.themeColor }}
                     title={`当前: ${currentMap.name} (${encounteredCount}/${totalCount}) - 点击切换到【${nextMap.name}】`}
                 >
@@ -228,7 +232,8 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
                                     onCycleMap();
                                 }
                             }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl text-white text-xs font-black shadow-xs transition-all duration-200 hover:brightness-110 active:scale-95 cursor-pointer group"
+                            disabled={mapSwitchDisabled}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl text-white text-xs font-black shadow-xs transition-all duration-200 hover:brightness-110 active:scale-95 cursor-pointer group disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
                             style={{ backgroundColor: currentMap.themeColor }}
                             title={`点击切换地图: 当前【${currentMap.name}】 ➜ 下一张【${nextMap.name}】`}
                         >

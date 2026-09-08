@@ -42,6 +42,8 @@ import { PetSearchMode } from './utils/skillSearch';
 
 export default function App() {
   const [activeStageNum, setActiveStageNum] = useState<number>(1);
+  // 首页批量识别进行中：锁定顶部 / 悬浮的地图切换
+  const [isBatchScanning, setIsBatchScanning] = useState<boolean>(false);
   const [mapsData, setMapsData] = useState<Record<string, { count: number; items: PetItem[] }>>({});
   const [records, setRecords] = useState<Record<string, EncounterRecord>>({});
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
@@ -661,6 +663,7 @@ export default function App() {
             }}
             showMapNav={view === 'assistant'}
             mapsConfig={activeTrialMaps}
+            mapNavDisabled={isBatchScanning}
             rightStatus={IS_STATIC ? undefined : <AuthBadge />}
         />
 
@@ -727,6 +730,7 @@ export default function App() {
                         isEncountered={isPetEncountered}
                         onBatchEncounterSuccess={handleBatchEncounterSuccess}
                         onSelectMap={(num) => setActiveStageNum(num)}
+                        onScanningChange={setIsBatchScanning}
                     />
                 )}
 
@@ -854,6 +858,7 @@ export default function App() {
                   setActiveStageNum((prev) => (prev % MAP_CONFIGS.length) + 1);
                 }}
                 mapsConfig={activeTrialMaps}
+                mapSwitchDisabled={isBatchScanning}
                 advancedFilters={advancedFilters}
                 onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
             />
