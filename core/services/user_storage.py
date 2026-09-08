@@ -194,6 +194,20 @@ class UserStorage:
             raise
         return result
 
+    def get_payload(self) -> dict:
+        """返回当前完整数据的一份深拷贝（用于账号快照）。"""
+        return json.loads(json.dumps(self.load()))
+
+    def set_payload(self, payload: dict) -> dict:
+        """用一份完整账号数据整体替换当前数据并落盘（多账号切换用）。"""
+        data = dict(payload or {})
+        data.setdefault("encounteredPets", {})
+        data.setdefault("encounteredPets2", {})
+        data.setdefault("thresholds", {})
+        data.setdefault("appSettings", {})
+        result = self._persist(data)
+        return result
+
     def _persist(self, payload: dict) -> dict:
         """落盘并刷新内存缓存与版本号（不打印日志，供 load/save 复用）。
 

@@ -941,6 +941,37 @@ export class ApiService {
     }
   }
 
+  // ---------- 多账号管理（磁盘持久化，重启保留） ----------
+  private accountResolve = (resBody: any) => {
+    if (resBody && resBody.status === 'success') return resBody.data ?? {};
+    return resBody?.data ?? {};
+  };
+
+  public async accountList(): Promise<{ accounts: any[]; current: string }> {
+    const res = await axios.get<any>(`${this.apiBase}/api/accounts`, { timeout: 5000 });
+    return this.accountResolve(res.data);
+  }
+
+  public async accountCreate(name: string): Promise<any> {
+    const res = await axios.post<any>(`${this.apiBase}/api/accounts/create`, { name }, { timeout: 5000 });
+    return this.accountResolve(res.data);
+  }
+
+  public async accountRename(oldName: string, newName: string): Promise<any> {
+    const res = await axios.post<any>(`${this.apiBase}/api/accounts/rename`, { old_name: oldName, new_name: newName }, { timeout: 5000 });
+    return this.accountResolve(res.data);
+  }
+
+  public async accountSwitch(name: string): Promise<any> {
+    const res = await axios.post<any>(`${this.apiBase}/api/accounts/switch`, { name }, { timeout: 5000 });
+    return this.accountResolve(res.data);
+  }
+
+  public async accountDelete(name: string): Promise<any> {
+    const res = await axios.post<any>(`${this.apiBase}/api/accounts/delete`, { name }, { timeout: 5000 });
+    return this.accountResolve(res.data);
+  }
+
   /**
    * 4. 发起手动/自动下载更新
    * GET /api/start_download

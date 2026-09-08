@@ -36,6 +36,80 @@ def api_post_storage():
         return error(str(e), 500)
 
 
+@bp.route("/api/accounts", methods=["GET"])
+def api_accounts_list():
+    """列出本地账号与当前激活账号。"""
+    try:
+        from core.services.account_store import current_account, list_accounts
+        accounts = list_accounts()
+        return success(data={"accounts": accounts, "current": current_account()})
+    except Exception as e:
+        logger.error(f"[GET /api/accounts] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
+@bp.route("/api/accounts/create", methods=["POST"])
+def api_account_create():
+    try:
+        from core.services.account_store import create_account
+        data = request.get_json(silent=True) or {}
+        name = str(data.get("name") or "").strip()
+        if not name:
+            return error("账号名称不能为空", 400)
+        created = create_account(name)
+        return success(data=created)
+    except Exception as e:
+        logger.error(f"[POST /api/accounts/create] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
+@bp.route("/api/accounts/rename", methods=["POST"])
+def api_account_rename():
+    try:
+        from core.services.account_store import rename_account
+        data = request.get_json(silent=True) or {}
+        old_name = str(data.get("old_name") or "").strip()
+        new_name = str(data.get("new_name") or "").strip()
+        if not old_name or not new_name:
+            return error("参数不完整", 400)
+        result = rename_account(old_name, new_name)
+        return success(data=result)
+    except ValueError as e:
+        return error(str(e), 400)
+    except Exception as e:
+        logger.error(f"[POST /api/accounts/rename] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
+@bp.route("/api/accounts/switch", methods=["POST"])
+def api_account_switch():
+    try:
+        from core.services.account_store import switch_account
+        data = request.get_json(silent=True) or {}
+        name = str(data.get("name") or "").strip()
+        if not switch_account(name):
+            return error("账号不存在", 404)
+        return success(data={"name": name})
+    except Exception as e:
+        logger.error(f"[POST /api/accounts/switch] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
+@bp.route("/api/accounts/delete", methods=["POST"])
+def api_account_delete():
+    try:
+        from core.services.account_store import delete_account
+        data = request.get_json(silent=True) or {}
+        name = str(data.get("name") or "").strip()
+        if not name:
+            return error("账号名称不能为空", 400)
+        result = delete_account(name)
+        return success(data=result)
+    except Exception as e:
+        logger.error(f"[POST /api/accounts/delete] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
 @bp.route("/api/map_storage/<version>", methods=["GET"])
 def api_get_map_storage(version):
     try:

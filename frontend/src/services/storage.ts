@@ -614,6 +614,11 @@ export class StorageService {
     }
   }
 
+  public async refreshFromServer(): Promise<void> {
+    // 多账号切换后：从后端重新拉取当前账号数据并通知 UI
+    await this.fetchRemote();
+  }
+
   public getIsSyncing(): boolean {
     return this.isSyncing;
   }
