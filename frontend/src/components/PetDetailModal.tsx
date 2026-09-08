@@ -110,13 +110,13 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
         {/* 左栏：精灵立绘卡片与图鉴遇见标记 (约 280px 宽度) */}
         <div className="w-full md:w-[290px] shrink-0 p-5 md:p-6 flex flex-col items-center border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800 bg-gradient-to-b from-slate-50/80 via-white to-sky-50/30 dark:from-slate-800/40 dark:via-slate-900 dark:to-slate-900 overflow-y-auto">
           {/* 精灵立绘框 */}
-          <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-3xl p-3 flex items-center justify-center group/sprite">
+          <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-3xl p-2 flex items-center justify-center group/sprite">
             {/* 系别环境柔和光晕底纹 */}
             <div
               className="absolute inset-2 rounded-3xl opacity-20 blur-xl transition-all duration-300 group-hover/sprite:opacity-35"
               style={{ backgroundColor: elementStyle.bg }}
             />
-            <div className="relative z-10 w-full h-full rounded-2xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 p-3 shadow-sm flex items-center justify-center overflow-hidden">
+            <div className="relative z-10 w-full h-full rounded-2xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 p-2 shadow-sm flex items-center justify-center overflow-hidden">
               {IS_STATIC && pet.sprite ? (
                 <PetSprite
                   pet={pet}
@@ -197,14 +197,14 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
                 </span>
               </div>
               {record.note && (
-                <div className="flex items-start justify-between gap-1 pt-1 border-t border-sky-100 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-semibold">
-                  <span className="flex items-center gap-1 shrink-0">
-                    <FileText className="w-3.5 h-3.5 text-sky-500" />
-                    标记备注
-                  </span>
-                  <span className="text-right text-slate-700 dark:text-slate-200 font-medium truncate max-w-[140px]">
+                <div className="pt-1.5 border-t border-sky-100 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-semibold">
+                  <div className="flex items-center gap-1">
+                    <FileText className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                    <span>标记备注</span>
+                  </div>
+                  <p className="mt-1 text-slate-700 dark:text-slate-200 font-medium leading-relaxed break-words whitespace-pre-wrap">
                     {record.note}
-                  </span>
+                  </p>
                 </div>
               )}
             </div>

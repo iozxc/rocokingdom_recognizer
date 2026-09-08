@@ -212,7 +212,7 @@ export class FireStorageService {
     return record;
   }
 
-  public toggleEncountered(mapId: string, filename: string): boolean {
+  public toggleEncountered(mapId: string, filename: string, note?: string): boolean {
     const key = `${mapId}_${filename}`;
     const now = new Date().toISOString();
     const wasEncountered = this.isEncountered(mapId, filename);
@@ -225,6 +225,7 @@ export class FireStorageService {
         count: this.records[key]?.count || 0,
         firstSeenAt: this.records[key]?.firstSeenAt || now,
         lastSeenAt: now,
+        note: this.records[key]?.note,
         vote: this.records[key]?.vote,
       };
     } else {
@@ -237,6 +238,8 @@ export class FireStorageService {
         count: (existing?.count || 0) + 1,
         firstSeenAt: existing?.firstSeenAt || now,
         lastSeenAt: now,
+        // 点亮时若还没有备注则写入本次来源备注；已有备注则保留
+        note: existing?.note ?? note,
         vote: existing?.vote,
       };
     }

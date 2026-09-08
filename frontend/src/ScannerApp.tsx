@@ -830,7 +830,7 @@ export const ScannerApp: React.FC = () => {
     if (isFire) {
       // 火系：fireStorage + 点亮=赞同（与首页一致；取消点亮保留赞同票）
       const wasLit = fireStorage.isEncountered(mapKey, petName);
-      fireStorage.toggleEncountered(mapKey, petName);
+      fireStorage.toggleEncountered(mapKey, petName, '跟随识别');
       setRecords(fireStorage.getAll());
       if (!wasLit) {
         sound.playEncounter();
@@ -845,7 +845,7 @@ export const ScannerApp: React.FC = () => {
     }
 
     const wasEncountered = storage.isEncountered(mapKey, petName);
-    storage.toggleEncountered(mapKey, petName);
+    storage.toggleEncountered(mapKey, petName, '跟随识别');
 
     if (!wasEncountered) {
       sound.playEncounter();
@@ -895,7 +895,7 @@ export const ScannerApp: React.FC = () => {
       else { newVote = 'disagree'; }                                     // 5
     }
     if (newLit !== isLit) {
-      fireStorage.toggleEncountered(mapId, encName);
+      fireStorage.toggleEncountered(mapId, encName, '社区赞同');
     }
     fireStorage.updateVote(mapId, encName, newVote === 'none' ? undefined : newVote);
     setRecords(fireStorage.getAll());
@@ -1699,7 +1699,7 @@ export const ScannerApp: React.FC = () => {
                 return;
               }
               const wasEnc = storage.isEncountered(mapId, filename);
-              storage.toggleEncountered(mapId, filename);
+              storage.toggleEncountered(mapId, filename, '跟随识别点亮图鉴');
               const level = storage.getSetting<EffectLevel>('effectLevel', 0);
               if (!wasEnc) {
                 sound.playEncounter();

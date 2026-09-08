@@ -496,10 +496,10 @@ export default function App() {
     }
   };
 
-  // Toggle Encounter (from grid click)
+  // Toggle Encounter (from grid click / history / global search)
   const handleToggleEncounter = (mapId: string, filename: string) => {
     const isCurrentlyEncountered = isPetEncountered(mapId, filename);
-    storage.toggleEncountered(mapId, filename);
+    storage.toggleEncountered(mapId, filename, '手动');
     refreshRecords();
     if (!isCurrentlyEncountered) {
       sound.playEncounter();
@@ -512,7 +512,7 @@ export default function App() {
 
   // 详情弹窗内的点亮/取消（弹窗自己播放音效与动效，这里只落库刷新）
   const handleDetailToggleEncounter = (mapId: string, filename: string) => {
-    storage.toggleEncountered(mapId, filename);
+    storage.toggleEncountered(mapId, filename, '详情页点亮图鉴');
     refreshRecords();
   };
 

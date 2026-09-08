@@ -266,7 +266,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
 
   const handleToggleEncounter = (mapId: string, filename: string) => {
     const wasLit = fireStorage.isEncountered(mapId, filename);
-    fireStorage.toggleEncountered(mapId, filename);
+    fireStorage.toggleEncountered(mapId, filename, '手动');
     // 点亮 = 默认赞同（写入 vote）；取消点亮保留 vote（toggleEncountered 已保留）
     if (!wasLit) fireStorage.updateVote(mapId, filename, 'agree');
     setRecords(fireStorage.getAll());
@@ -464,7 +464,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       else { newVote = 'disagree'; }                                     // 5
     }
     if (newLit !== isLit) {
-      fireStorage.toggleEncountered(mapId, encName);
+      fireStorage.toggleEncountered(mapId, encName, '社区赞同');
     }
     fireStorage.updateVote(mapId, encName, newVote === 'none' ? undefined : newVote);
     setRecords(fireStorage.getAll());
@@ -746,7 +746,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             currentMap={currentMap}
             record={detailPet ? records[`${currentMap.id}_${detailPet.name}`] : undefined}
             onToggleEncounter={(mapId, filename) => {
-              fireStorage.toggleEncountered(mapId, filename);
+              fireStorage.toggleEncountered(mapId, filename, '详情页');
             }}
         />
 

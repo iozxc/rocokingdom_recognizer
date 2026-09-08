@@ -428,7 +428,7 @@ export class StorageService {
     return updatedCount;
   }
 
-  public toggleEncountered(mapId: string, filename: string): boolean {
+  public toggleEncountered(mapId: string, filename: string, note?: string): boolean {
     const key = this.getKey(mapId, filename);
     const now = new Date().toISOString();
     const isCurrentlyEnc = this.isEncountered(mapId, filename);
@@ -473,6 +473,8 @@ export class StorageService {
         count: (existing?.count || 0) + 1,
         firstSeenAt: existing?.firstSeenAt || now,
         lastSeenAt: now,
+        // 点亮时若还没有备注则写入本次来源备注；已有备注（如批量识别详情）则保留
+        note: existing?.note ?? note,
       };
 
       matchingKeys.forEach((mKey) => {

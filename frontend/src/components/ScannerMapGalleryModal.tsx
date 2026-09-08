@@ -158,7 +158,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
         if (onToggleEncounter) {
             onToggleEncounter(mapId, filename);
         } else {
-            storage.toggleEncountered(mapId, filename);
+            storage.toggleEncountered(mapId, filename, '跟随识别【查图鉴】');
         }
     };
 
