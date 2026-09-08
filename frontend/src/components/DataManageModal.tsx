@@ -221,9 +221,37 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     sound.playClick();
     try {
       const text = await file.text();
+      const parsed = JSON.parse(text);
+
+      // 纯前端多账号存档：一次性导入整套账号
+      if (IS_STATIC && parsed && parsed.app === 'roco-multi-account' && Array.isArray(parsed.accounts)) {
+        saveLocalCurrent(currentAccount);
+        const existing = readLocalAccounts();
+        const listMap = new Map(existing.map((a) => [a.name, a]));
+        let importedCount = 0;
+        parsed.accounts.forEach((a: any) => {
+          if (!a || !a.name || !a.payload) return;
+          listMap.set(a.name, { name: a.name, payload: a.payload, updatedAt: a.updatedAt || new Date().toISOString() });
+          importedCount += 1;
+        });
+        const list = Array.from(listMap.values());
+        writeLocalAccounts(list);
+        setAccounts(list);
+        const importCurrent = parsed.current && list.some((a) => a.name === parsed.current) ? parsed.current : currentAccount;
+        if (importCurrent !== currentAccount) {
+          try { localStorage.setItem(CURRENT_ACCOUNT_KEY, importCurrent); } catch { /* 忽略 */ }
+          const target = list.find((a) => a.name === importCurrent);
+          if (target) storage.importData(JSON.stringify(target.payload));
+        }
+        setCurrentAccount(importCurrent);
+        setMessage(`导入成功：共 ${importedCount} 个账号${importCurrent !== currentAccount ? `，已切换到「${importCurrent}」` : ''}`);
+        setMsgType('ok');
+        return;
+      }
+
       const ok = storage.importData(text);
       if (ok) {
-        setMessage('导入成功！图鉴点亮记录与设置已更新。'); setMsgType('ok');
+        setMessage('导入成功！当前账号图鉴点亮记录与设置已更新。'); setMsgType('ok');
       } else {
         setMessage('导入失败：文件不是有效的 roco_user_data.json。'); setMsgType('err');
       }
@@ -232,6 +260,36 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const downloadJsonFile = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportAllAccounts = async () => {
+    if (!IS_STATIC) {
+      setMessage('桌面版多账号在 accounts/ 目录中，请直接备份该目录'); setMsgType('ok'); return;
+    }
+    sound.playClick();
+    saveLocalCurrent(currentAccount); // 确保最新数据已写回当前账号
+    const list = readLocalAccounts();
+    const archive = {
+      app: 'roco-multi-account',
+      version: 1,
+      current: currentAccount,
+      exportedAt: new Date().toISOString(),
+      accounts: list,
+    };
+    downloadJsonFile(`roco_accounts_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(archive, null, 2));
+    setMessage('已导出全部账号（含当前账号最新数据）'); setMsgType('ok');
   };
 
   const handleCreateAccount = async () => {
@@ -390,6 +448,14 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                 <span className="text-xs font-black">导入数据</span>
               </button>
             </div>
+
+            {IS_STATIC && (
+                <button type="button" onClick={handleExportAllAccounts}
+                        className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border-2 border-dashed border-[#95D151]/70 dark:border-emerald-700/70 bg-emerald-50/60 dark:bg-emerald-950/30 hover:bg-emerald-100/70 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-black transition-colors cursor-pointer">
+                  <Download className="w-4 h-4" />
+                  导出全部账号
+                </button>
+            )}
 
             {/* 多账号管理 */}
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
