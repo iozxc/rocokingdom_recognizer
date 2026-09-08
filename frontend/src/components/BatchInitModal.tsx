@@ -622,7 +622,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                       type="range"
                       min="0.1"
                       max="0.95"
-                      step="0.05"
+                      step="0.01"
                       value={threshold}
                       onChange={(e) => handleThresholdChange(parseFloat(e.target.value))}
                       className="w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg accent-[#7ABCF4] cursor-pointer"
