@@ -68,9 +68,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [followTopMost, setFollowTopMost] = useState<boolean>(() => {
     return storage.getSetting<boolean>('followTopMost', true);
   });
-  const [isSimplifiedFABs, setIsSimplifiedFABs] = useState<boolean>(() => {
-    return storage.getSetting<boolean>('isSimplifiedFABs', true);
-  });
   const [debugImageCap, setDebugImageCap] = useState<number>(() => {
     return storage.getSetting<number>('debugImageCap', 0);
   });
@@ -92,7 +89,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (typeof settings.hideUpdateDot === 'boolean') setHideUpdateDot(settings.hideUpdateDot);
       if (typeof settings.showHints === 'boolean') setShowHints(settings.showHints);
       if (typeof settings.followTopMost === 'boolean') setFollowTopMost(settings.followTopMost);
-      if (typeof settings.isSimplifiedFABs === 'boolean') setIsSimplifiedFABs(settings.isSimplifiedFABs);
       if (typeof settings.debugImageCap === 'number') setDebugImageCap(settings.debugImageCap);
     });
     return () => unsubscribe();
@@ -120,7 +116,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setHideUpdateDot(storage.getSetting<boolean>('hideUpdateDot', false));
     setShowHints(storage.getSetting<boolean>('showHints', false));
     setFollowTopMost(storage.getSetting<boolean>('followTopMost', true));
-    setIsSimplifiedFABs(storage.getSetting<boolean>('isSimplifiedFABs', true));
     setDebugImageCap(storage.getSetting<number>('debugImageCap', 0));
     setView('main');
   }, [isOpen]);
@@ -263,13 +258,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     const next = !showHints;
     setShowHints(next);
     storage.setSetting('showHints', next);
-  };
-
-  const handleToggleSimplifiedFABs = () => {
-    sound.playClick();
-    const next = !isSimplifiedFABs;
-    setIsSimplifiedFABs(next);
-    storage.setSetting('isSimplifiedFABs', next);
   };
 
   const handleToggleFollowTopMost = () => {
@@ -486,24 +474,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                       <LayoutGrid className="w-3.5 h-3.5 text-[#7ABCF4]" />
                       <span>界面</span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">快捷面板精简模式</div>
-                        <div className="text-[10px] text-slate-400">默认隐藏数据管理等次要入口</div>
-                      </div>
-                      <button
-                          type="button"
-                          id="settings-simplified-fabs-switch-btn"
-                          onClick={handleToggleSimplifiedFABs}
-                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isSimplifiedFABs ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
-                          title={isSimplifiedFABs ? '点击关闭精简模式' : '点击开启精简模式'}
-                      >
-                        <span
-                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isSimplifiedFABs ? 'translate-x-4' : 'translate-x-0'}`}
-                        />
-                      </button>
                     </div>
 
                     <div className="flex items-center justify-between">
