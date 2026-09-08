@@ -264,6 +264,8 @@ export interface AppSettings {
   debugImageCap?: number; // debug 截图保留上限（张），0 = 关闭不保存（默认 100）
   fireSettings?: FireSettings; // 火系徽章试炼专属设置
   showPetSkillHover?: boolean; // petgrid 卡片 hover 时是否展示精灵技能面板（默认开启）
+  showHomeScrollbar?: boolean; // 首页自定义滚动条是否显示（默认关闭）
+  homeScrollbarWidth?: number; // 首页自定义滚动条宽度 px（默认 10）
   [key: string]: unknown;
 }
 

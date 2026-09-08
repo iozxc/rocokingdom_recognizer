@@ -45,6 +45,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [showPetSkillHover, setShowPetSkillHover] = useState<boolean>(() => {
     return storage.getSetting<boolean>('showPetSkillHover', true);
   });
+  const [showHomeScrollbar, setShowHomeScrollbar] = useState<boolean>(() => {
+    return storage.getSetting<boolean>('showHomeScrollbar', false);
+  });
+  const [homeScrollbarWidth, setHomeScrollbarWidth] = useState<number>(() => {
+    return storage.getSetting<number>('homeScrollbarWidth', 10);
+  });
   const [updateMode, setUpdateMode] = useState<'auto' | 'full'>(() => {
     return storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
   });
@@ -79,6 +85,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (settings.captureMode === 'hwnd' || settings.captureMode === 'grab') setCaptureMode(settings.captureMode);
       if (typeof settings.showRecognitionSamples === 'boolean') setShowSamples(settings.showRecognitionSamples);
       if (typeof settings.showPetSkillHover === 'boolean') setShowPetSkillHover(settings.showPetSkillHover);
+      if (typeof settings.showHomeScrollbar === 'boolean') setShowHomeScrollbar(settings.showHomeScrollbar);
+      if (typeof settings.homeScrollbarWidth === 'number') setHomeScrollbarWidth(settings.homeScrollbarWidth);
       if (settings.updateMode === 'auto' || settings.updateMode === 'full') setUpdateMode(settings.updateMode);
       if (typeof settings.autoCheckUpdate === 'boolean') setAutoCheckUpdate(settings.autoCheckUpdate);
       if (typeof settings.hideUpdateDot === 'boolean') setHideUpdateDot(settings.hideUpdateDot);
@@ -102,6 +110,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     }
     setShowSamples(storage.getSetting<boolean>('showRecognitionSamples', true));
     setShowPetSkillHover(storage.getSetting<boolean>('showPetSkillHover', true));
+    setShowHomeScrollbar(storage.getSetting<boolean>('showHomeScrollbar', false));
+    setHomeScrollbarWidth(storage.getSetting<number>('homeScrollbarWidth', 10));
     const savedUpdateMode = storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
     if (savedUpdateMode === 'auto' || savedUpdateMode === 'full') {
       setUpdateMode(savedUpdateMode);
@@ -207,6 +217,19 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     const next = !showPetSkillHover;
     setShowPetSkillHover(next);
     storage.setSetting('showPetSkillHover', next);
+  };
+
+  const handleToggleHomeScrollbar = () => {
+    sound.playClick();
+    const next = !showHomeScrollbar;
+    setShowHomeScrollbar(next);
+    storage.setSetting('showHomeScrollbar', next);
+  };
+
+  const handleHomeScrollbarWidthChange = (value: number) => {
+    const clamped = Math.max(4, Math.min(16, Math.round(value) || 10));
+    setHomeScrollbarWidth(clamped);
+    storage.setSetting('homeScrollbarWidth', clamped);
   };
 
   const handleDebugCapChange = (value: number) => {
@@ -500,6 +523,49 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                         />
                       </button>
                     </div>
+
+                    {/* 首页滚动条设置 */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">首页滚动条</div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">显示自定义滚动条</div>
+                          <div className="text-[10px] text-slate-400">在首页右侧显示精致滚动条，不触及顶部标题栏（默认关闭）</div>
+                        </div>
+                        <button
+                            type="button"
+                            id="system-home-scrollbar-switch-btn"
+                            onClick={handleToggleHomeScrollbar}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showHomeScrollbar ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                            title={showHomeScrollbar ? '点击关闭首页滚动条' : '点击开启首页滚动条'}
+                        >
+                          <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showHomeScrollbar ? 'translate-x-4' : 'translate-x-0'}`}
+                          />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">滚动条宽度</div>
+                          <div className="text-[10px] text-slate-400">可调范围 4 ~ 16 像素</div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <input
+                              type="number"
+                              min={4}
+                              max={16}
+                              step={1}
+                              disabled={!showHomeScrollbar}
+                              value={homeScrollbarWidth}
+                              onChange={(e) => handleHomeScrollbarWidthChange(parseInt(e.target.value || '10', 10))}
+                              className="w-16 h-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 text-xs font-mono font-black text-slate-700 dark:text-slate-200 text-right focus:outline-none focus:border-sky-400 disabled:opacity-50"
+                          />
+                          <span className="text-[10px] text-slate-400 font-mono">px</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* 声音 */}
@@ -724,6 +790,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   移至顶栏
                 </button>
               </div>
+
             </div>
 
             {/* Section 3: 截图方式（web 版隐藏） */}

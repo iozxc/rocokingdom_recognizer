@@ -19,6 +19,7 @@ import { DataUpdateModal } from './components/DataUpdateModal';
 import { DownloadAppModal } from './components/DownloadAppModal';
 import { DataManageModal } from './components/DataManageModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
+import { HomeScrollbar } from './components/HomeScrollbar';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
 import { AuthBadge } from './components/AuthBadge';
@@ -111,6 +112,12 @@ export default function App() {
   });
   const [floatingMode, setFloatingMode] = useState<FloatingButtonsMode>(() => {
     return storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal');
+  });
+  const [showHomeScrollbar, setShowHomeScrollbar] = useState<boolean>(() => {
+    return storage.getSetting<boolean>('showHomeScrollbar', false);
+  });
+  const [homeScrollbarWidth, setHomeScrollbarWidth] = useState<number>(() => {
+    return storage.getSetting<number>('homeScrollbarWidth', 10);
   });
 
   // Modal States
@@ -270,6 +277,12 @@ export default function App() {
       }
       if (newSettings.floatingButtonsMode) {
         setFloatingMode(newSettings.floatingButtonsMode);
+      }
+      if (typeof newSettings.showHomeScrollbar === 'boolean') {
+        setShowHomeScrollbar(newSettings.showHomeScrollbar);
+      }
+      if (typeof newSettings.homeScrollbarWidth === 'number') {
+        setHomeScrollbarWidth(newSettings.homeScrollbarWidth);
       }
       if (typeof newSettings.activeStageNum === 'number' && [1, 2, 3].includes(newSettings.activeStageNum)) {
         setActiveStageNum(newSettings.activeStageNum);
@@ -650,6 +663,9 @@ export default function App() {
             mapsConfig={activeTrialMaps}
             rightStatus={IS_STATIC ? undefined : <AuthBadge />}
         />
+
+        {/* 首页自定义滚动条（设置里开启后显示，始终位于 Header 下方，不触及 Header） */}
+        <HomeScrollbar visible={showHomeScrollbar && !isAnyModalOpen} width={homeScrollbarWidth} />
 
         {/* Sub-Header Toolbar: Displayed only when floating buttons are in 'hidden' mode */}
         {view === 'assistant' && floatingMode === 'hidden' && (
