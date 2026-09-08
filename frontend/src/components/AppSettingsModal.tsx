@@ -491,7 +491,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">快捷面板精简模式</div>
-                        <div className="text-[10px] text-slate-400">默认隐藏单个识别、批量导入与数据管理</div>
+                        <div className="text-[10px] text-slate-400">默认隐藏数据管理等次要入口</div>
                       </div>
                       <button
                           type="button"

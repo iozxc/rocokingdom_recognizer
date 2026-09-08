@@ -41,8 +41,6 @@ interface GlobalFloatingSearchProps {
   records: Record<string, EncounterRecord>;
   onNavigateToPet: (mapNum: number, petName: string) => void;
   onToggleEncounter: (mapId: string, filename: string) => void;
-  onOpenBatchInit?: () => void;
-  onOpenSingleRecognizer?: () => void;
   onOpenDataManage?: () => void;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -62,8 +60,6 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                                                             records,
                                                                             onNavigateToPet,
                                                                             onToggleEncounter,
-                                                                            onOpenBatchInit,
-                                                                            onOpenSingleRecognizer,
                                                                             onOpenDataManage,
                                                                             isOpen: controlledIsOpen,
             onOpenChange,
@@ -288,38 +284,6 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   </button>
               )}
 
-              {/* 2. 单个识别 Icon（精简模式下隐藏） */}
-              {!isSimplified && onOpenSingleRecognizer && (
-                  <button
-                      type="button"
-                      id="global-compact-single-fab"
-                      onClick={() => {
-                        sound.playClick();
-                        onOpenSingleRecognizer();
-                      }}
-                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#95D151] to-[#689F38] hover:from-[#84C242] hover:to-[#558B2F] text-white flex items-center justify-center shadow-xl shadow-emerald-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                      title="单个精灵智能识别"
-                  >
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </button>
-              )}
-
-              {/* 3. 批量初始化 Icon（精简模式下隐藏） */}
-              {!isSimplified && onOpenBatchInit && (
-                  <button
-                      type="button"
-                      id="global-compact-batch-fab"
-                      onClick={() => {
-                        sound.playClick();
-                        onOpenBatchInit();
-                      }}
-                      className="w-11 h-11 rounded-full bg-gradient-to-r from-[#FEE061] to-[#F59E0B] hover:from-[#FDD835] hover:to-[#D97706] text-[#854D0E] flex items-center justify-center shadow-xl shadow-amber-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                      title="整页图鉴智能批量初始化导入"
-                  >
-                    <Layers className="w-5 h-5" />
-                  </button>
-              )}
-
                {/* 4. 数据管理（web 版：导入/导出，精简模式下隐藏） */}
               {!isSimplified && onOpenDataManage && (
                   <button
@@ -394,7 +358,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                       id="global-floating-expand-fab"
                       onClick={() => handleToggleCollapse(false)}
                       className="w-10 h-10 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white flex items-center justify-center shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95 border-2 border-white dark:border-slate-700"
-                      title="展开右侧快捷功能悬浮栏 (搜索与批量初始化)"
+                      title="展开右侧快捷功能悬浮栏 (跟随识别 / 数据管理 / 全域图鉴搜索)"
                   >
                     <Search className="w-5 h-5" />
                   </button>
@@ -412,7 +376,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                   ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs hover:bg-[#68AEEB]'
                                   : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-600 border-slate-200/80 dark:border-slate-600'
                           }`}
-                          title={isSimplified ? '当前为精简模式（已隐藏单个识别、批量导入、数据管理、共创图鉴），点击还原' : '点击开启精简模式（隐藏单个识别、批量导入、数据管理、共创图鉴）'}
+                          title={isSimplified ? '当前为精简模式（已隐藏数据管理与共创图鉴），点击还原' : '点击开启精简模式（隐藏数据管理与共创图鉴）'}
                       >
                         {isSimplified ? (
                             <Maximize2 className="w-3.5 h-3.5" />
@@ -449,50 +413,6 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
 
                           <span className="text-xs sm:text-sm font-bold tracking-wide">
                     跟随识别
-                  </span>
-                        </button>
-                    )}
-
-                    {/* 2. 单个识别（精简模式下隐藏） */}
-                    {!isSimplified && onOpenSingleRecognizer && (
-                        <button
-                            id="global-floating-single-recognizer-fab"
-                            type="button"
-                            onClick={() => {
-                              sound.playClick();
-                              onOpenSingleRecognizer();
-                            }}
-                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#95D151] to-[#689F38] hover:from-[#84C242] hover:to-[#558B2F] text-white font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-                            title="单个识别"
-                        >
-                          <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-white shadow-2xs">
-                            <Sparkles className="w-3.5 h-3.5" />
-                          </div>
-
-                          <span className="text-xs sm:text-sm font-bold tracking-wide">
-                    单个识别
-                  </span>
-                        </button>
-                    )}
-
-                    {/* 3. 批量初始化（精简模式下隐藏） */}
-                    {!isSimplified && onOpenBatchInit && (
-                        <button
-                            id="global-floating-batch-init-fab"
-                            type="button"
-                            onClick={() => {
-                              sound.playClick();
-                              onOpenBatchInit();
-                            }}
-                            className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#FEE061] to-[#F59E0B] hover:from-[#FDD835] hover:to-[#D97706] text-[#854D0E] font-bold rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-                            title="批量导入"
-                        >
-                          <div className="w-6 h-6 rounded-full bg-white/40 flex items-center justify-center text-[#854D0E] shadow-2xs">
-                            <Layers className="w-3.5 h-3.5" />
-                          </div>
-
-                          <span className="text-xs sm:text-sm font-bold tracking-wide">
-                    批量导入
                   </span>
                         </button>
                     )}

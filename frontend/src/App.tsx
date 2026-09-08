@@ -864,7 +864,7 @@ export default function App() {
             />
         )}
 
-        {/* Global Floating Actions Component on the bottom right (4 buttons: 跟随识别, 单个精灵图鉴智能识别, 批量识别, 全域图鉴搜索) */}
+        {/* Global Floating Actions Component on the bottom right（单个识别/批量导入已整合进首页识别，不再重复展示） */}
         {view === 'assistant' && (
             <GlobalFloatingSearch
                 isOpen={isGlobalSearchOpen}
@@ -875,8 +875,6 @@ export default function App() {
                 onToggleEncounter={handleToggleEncounter}
                 searchOnly={IS_STATIC}
                 onOpenDataManage={() => setIsDataManageOpen(true)}
-                onOpenSingleRecognizer={IS_STATIC ? undefined : () => guardRecognition(() => setIsSingleRecognizerOpen(true))}
-                onOpenBatchInit={IS_STATIC ? undefined : () => guardRecognition(() => setIsBatchInitOpen(true))}
                 mapsConfig={activeTrialMaps}
                 followTrialKey={activeTrialKey === 'fire' ? 'fire' : 'grass'}
             />
