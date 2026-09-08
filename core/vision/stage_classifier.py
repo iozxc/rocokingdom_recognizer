@@ -19,21 +19,29 @@ from PIL import Image
 
 
 class StageClassifier:
-    def __init__(self, onnx_model_path, database_path=None):
+    def __init__(self, onnx_model_path, database_path=None, session=None):
         """
         :param onnx_model_path: 特征提取 ONNX 模型路径（如 dino_backbone.onnx）
         :param database_path: 关卡标题特征库 pkl 路径
+        :param session: 可复用的 ONNX InferenceSession；传入时不再重复加载同一份 DINO 模型
         """
         logger.info(f"初始化StageClassifier: 模型={onnx_model_path}, 特征库={database_path}")
 
-        # 1. 加载 ONNX 模型
-        if not os.path.exists(onnx_model_path):
-            logger.error(f"ONNX模型文件缺失: {onnx_model_path}")
-            raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
-
-        # 优化选项：仅使用 CPU 运行
-        self.session = ort.InferenceSession(onnx_model_path, sess_options=create_session_options(), providers=['CPUExecutionProvider'])
-        logger.info("StageClassifier ONNX模型加载成功 (CPU)")
+        # 1. 加载 ONNX 模型（支持复用外层已创建的同骨干 session）
+        if session is not None:
+            self.session = session
+            logger.info("StageClassifier 复用已加载的 DINO 会话")
+        else:
+            if not os.path.exists(onnx_model_path):
+                logger.error(f"ONNX模型文件缺失: {onnx_model_path}")
+                raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
+            # 优化选项：仅使用 CPU 运行
+            self.session = ort.InferenceSession(
+                onnx_model_path,
+                sess_options=create_session_options(),
+                providers=['CPUExecutionProvider'],
+            )
+            logger.info("StageClassifier ONNX模型加载成功 (CPU)")
 
         # 从 ONNX 输入推断输入尺寸（resnet=224, dino=518 自动适配）
         self.input_size = 224
@@ -75,24 +83,21 @@ class StageClassifier:
         if img is None:
             raise ValueError("preprocess: 输入图像为 None")
 
-        img_bgr = None
         if isinstance(img, str):
-            # 如果是路径，读取图片；如果是 PIL 对象，转为 numpy
+            # 文件路径由 imdecode 读出时为 BGR，统一转成 RGB
             img_data = np.fromfile(img, dtype=np.uint8)
-            img_bgr = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
-            if img_bgr is None:
+            img_rgb = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
+            if img_rgb is None:
                 raise RuntimeError(f"preprocess: 文件读取失败 {img}")
+            img_rgb = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2RGB)
         elif isinstance(img, Image.Image):
-            # PIL Image 转 numpy (RGB)
-            arr = np.array(img)
+            # PIL 已按 RGB 理解，直接转 numpy，避免 RGB->BGR->RGB 两次无谓转换
+            arr = np.array(img.convert("RGB"))
             if arr.dtype == object:
                 raise RuntimeError("preprocess: PIL对象无效，np.array得到object数组")
-            img_bgr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+            img_rgb = arr
         else:
             raise TypeError(f"preprocess: 不支持的输入类型 {type(img)}, 需要str路径或PIL.Image")
-
-        # 1. 统一转为 RGB 格式
-        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
         # 2. 保持长宽比缩放 + 居中 pad 到输入尺寸(防标题等长条图变形)。
         #    resnet=224, dino=518 自动适配；与 title 特征库生成时的 pad_resize 一致。

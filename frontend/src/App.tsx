@@ -248,14 +248,14 @@ export default function App() {
 
     // 拉取后端可见的试炼列表（火系仅开发环境返回）
     api.getTrials().then((res) => {
-      if (Array.isArray(res.trials)) {
-        setTrials(res.trials);
+      const fetchedTrials = Array.isArray(res.trials) ? res.trials : [];
+      setTrials(fetchedTrials);
+      // 仅当本次响应里真的包含可见的火系试炼时才预热全图鉴；
+      // 生产后端会过滤掉 dev_only 火系，因此不再启动时白白拉一遍火系图鉴
+      if (!IS_STATIC && fetchedTrials.some((t) => t.key === 'fire')) {
+        getFireTrialPetsCached().catch(() => {});
       }
     });
-    // 预热火系全图鉴，进入火系试炼时不闪加载页
-    if (!IS_STATIC) {
-      getFireTrialPetsCached().catch(() => {});
-    }
     // 启动时异步检测图鉴数据是否需要更新（不阻塞界面）
     if (!IS_STATIC) {
       api.checkDataUpdates()

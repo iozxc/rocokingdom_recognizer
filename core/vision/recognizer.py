@@ -12,22 +12,30 @@ from PIL import Image
 
 
 class ImageRecognizer:
-    def __init__(self, onnx_model_path, database_path=None):
+    def __init__(self, onnx_model_path, database_path=None, session=None):
         """
         使用 ONNX Runtime 初始化识别器
         :param onnx_model_path: feature_extractor.onnx 的路径
         :param database_path: features_db.pkl (NumPy 格式) 的路径
+        :param session: 可复用的 ONNX InferenceSession；传入时不再重复加载同一份 DINO 模型
         """
         logger.info(f"初始化ImageRecognizer: 模型={onnx_model_path}, 特征库={database_path}")
 
-        # 1. 加载 ONNX 模型
-        if not os.path.exists(onnx_model_path):
-            logger.error(f"ONNX模型文件缺失: {onnx_model_path}")
-            raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
-
-        # 仅使用 CPU 运行
-        self.session = ort.InferenceSession(onnx_model_path, sess_options=create_session_options(), providers=['CPUExecutionProvider'])
-        logger.info("ImageRecognizer ONNX模型加载成功 (CPU)")
+        # 1. 加载 ONNX 模型（支持复用外层已创建的同骨干 session，避免同一模型常驻两份）
+        if session is not None:
+            self.session = session
+            logger.info("ImageRecognizer 复用已加载的 DINO 会话")
+        else:
+            if not os.path.exists(onnx_model_path):
+                logger.error(f"ONNX模型文件缺失: {onnx_model_path}")
+                raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
+            # 仅使用 CPU 运行
+            self.session = ort.InferenceSession(
+                onnx_model_path,
+                sess_options=create_session_options(),
+                providers=['CPUExecutionProvider'],
+            )
+            logger.info("ImageRecognizer ONNX模型加载成功 (CPU)")
 
         # 3. 从 ONNX 输入推断输入尺寸（resnet=224, dino=518 均自动适配）
         self.input_size = 224

@@ -2,6 +2,7 @@ import json
 import os
 import re
 import time
+import threading
 
 from flask import Blueprint, Response, current_app, request, send_from_directory, url_for
 
@@ -20,6 +21,12 @@ ICONS = {}
 ICON_FILE_CACHE = {}
 TS_ICON_CACHE = {}
 _TRAITS_CACHE = None
+
+# chat.json 内存缓存：避免每次请求都同步联网阻塞 waitress 线程
+_CHAT_RESOURCE_CACHE = {"data": None, "expires_at": 0.0}
+_CHAT_RESOURCE_LOCK = threading.Lock()
+_CHAT_REFRESHING = False
+_CHAT_CACHE_TTL = 600  # 10 分钟
 
 
 def _load_traits_skills():
@@ -203,38 +210,108 @@ def api_app_agreement_accept():
         return error(str(e), 500)
 
 
+def _fetch_chat_json():
+    """并发尝试两个远端地址拉取 chat.json，校验为合法 JSON 后返回 bytes。"""
+    import concurrent.futures
+    import requests
+    t = int(time.time())
+    urls = [
+        f'https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t={t}',
+        f'https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t={t}',
+    ]
+
+    def _get(url):
+        try:
+            r = requests.get(url, timeout=4, headers={'Cache-Control': 'no-cache', 'User-Agent': 'Mozilla/5.0'})
+            if r.status_code == 200 and r.content:
+                return r.content
+        except Exception:
+            pass
+        return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+        futures = [ex.submit(_get, u) for u in urls]
+        for fut in concurrent.futures.as_completed(futures):
+            data = fut.result()
+            if not data:
+                continue
+            try:
+                json.loads(data)
+            except Exception:
+                continue
+            return data
+    return None
+
+
+def _write_chat_local(content: bytes, safe_path: str):
+    """尽力把远程 chat.json 落到本地，作为离线缓存；只读目录失败则忽略。"""
+    try:
+        os.makedirs(os.path.dirname(safe_path), exist_ok=True)
+        with open(safe_path, 'wb') as f:
+            f.write(content)
+    except Exception:
+        pass
+
+
+def _update_chat_cache(content: bytes):
+    global _CHAT_RESOURCE_CACHE
+    with _CHAT_RESOURCE_LOCK:
+        _CHAT_RESOURCE_CACHE["data"] = content
+        _CHAT_RESOURCE_CACHE["expires_at"] = time.time() + _CHAT_CACHE_TTL
+
+
+def _chat_json_response(data: bytes):
+    return Response(data, mimetype='application/json; charset=utf-8')
+
+
 @bp.route('/api/resources/<path:filename>', methods=['GET'])
 def api_resources_file(filename):
     """读取 resources 目录下的资源文件。对于 chat.json 等动态配置，优先从 Gitee raw 拉取最新配置，失败时回退本地。"""
+    global _CHAT_REFRESHING
     try:
         base = os.path.normpath(config.get_resource_path('resources'))
         safe = os.path.normpath(os.path.join(base, filename))
         if not safe.startswith(base):
             return error('非法资源路径', 400)
 
-        # 对于 chat.json 等需要动态修改生效的配置文件，优先请求 Gitee 远程仓库获取最新内容
+        # 对于 chat.json：先命中内存缓存（TTL 10 分钟），过期/无缓存时异步刷新，
+        # 避免每次请求都同步联网阻塞 waitress 线程。
         if filename.lower() == 'chat.json':
+            with _CHAT_RESOURCE_LOCK:
+                cache = _CHAT_RESOURCE_CACHE
+                if cache["data"] and time.time() < cache["expires_at"]:
+                    return _chat_json_response(cache["data"])
+                stale = cache["data"]
+                refreshing = _CHAT_REFRESHING
+
+            # 有旧缓存：先返回旧内容，后台刷新；避免请求卡在网络上
+            if stale is not None:
+                if not refreshing:
+                    with _CHAT_RESOURCE_LOCK:
+                        _CHAT_REFRESHING = True
+                    def _bg_refresh():
+                        global _CHAT_REFRESHING
+                        try:
+                            content = _fetch_chat_json()
+                            if content:
+                                _write_chat_local(content, safe)
+                                _update_chat_cache(content)
+                                logger.debug("chat.json 后台刷新成功")
+                        except Exception as e:
+                            logger.warning(f"chat.json 后台刷新失败: {e}")
+                        finally:
+                            with _CHAT_RESOURCE_LOCK:
+                                _CHAT_REFRESHING = False
+                    threading.Thread(target=_bg_refresh, daemon=True).start()
+                return _chat_json_response(stale)
+
+            # 无任何缓存：同步拉一次（正常情况只在冷启动第一次发生）
             try:
-                import requests
-                t = int(time.time())
-                urls = [
-                    f'https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t={t}',
-                    f'https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t={t}',
-                ]
-                for u in urls:
-                    try:
-                        r = requests.get(u, timeout=4, headers={'Cache-Control': 'no-cache', 'User-Agent': 'Mozilla/5.0'})
-                        if r.status_code == 200 and r.content:
-                            # 成功获取最新远程配置，同时同步写入本地文件作为离线缓存
-                            if os.path.exists(base):
-                                try:
-                                    with open(safe, 'wb') as f:
-                                        f.write(r.content)
-                                except Exception:
-                                    pass
-                            return Response(r.content, mimetype='application/json; charset=utf-8')
-                    except Exception:
-                        continue
+                content = _fetch_chat_json()
+                if content:
+                    _write_chat_local(content, safe)
+                    _update_chat_cache(content)
+                    return _chat_json_response(content)
             except Exception as e:
                 logger.warning(f"动态获取远程 chat.json 失败，回退本地文件: {e}")
 
@@ -259,6 +336,13 @@ def api_resources_file(filename):
         return error(str(e), 500)
 
 
+def _icon_response(data: bytes) -> Response:
+    """图标响应：图片内容不可变，加一年强缓存，避免组件重挂载反复请求。"""
+    resp = Response(data, mimetype='image/png')
+    resp.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    return resp
+
+
 def _serve_icon(filename, map_name=None):
     """从缓存/datasets.db 返回图片二进制流；兼容旧命名（精灵名）反查。"""
     global ICON_FILE_CACHE
@@ -268,7 +352,7 @@ def _serve_icon(filename, map_name=None):
 
         # 缓存命中直接返回
         if db_path in ICON_FILE_CACHE:
-            return Response(ICON_FILE_CACHE[db_path], mimetype='image/png')
+            return _icon_response(ICON_FILE_CACHE[db_path])
 
         db = get_db()
         row = db.execute("SELECT data FROM icons WHERE path = ?", (db_path,)).fetchone()
@@ -286,14 +370,14 @@ def _serve_icon(filename, map_name=None):
             if mapped:
                 db_path = mapped[:-4] if mapped.lower().endswith('.png') else mapped
                 if db_path in ICON_FILE_CACHE:
-                    return Response(ICON_FILE_CACHE[db_path], mimetype='image/png')
+                    return _icon_response(ICON_FILE_CACHE[db_path])
                 row = db.execute("SELECT data FROM icons WHERE path = ?",
                                  (db_path,)).fetchone()
 
         if row:
             # 未命中，查询后存入缓存
             ICON_FILE_CACHE[db_path] = row[0]
-            return Response(row[0], mimetype='image/png')
+            return _icon_response(row[0])
         else:
             logger.warning(f"[GET /icons] 图标不存在: {db_path}")
             return "Icon Not Found", 404
