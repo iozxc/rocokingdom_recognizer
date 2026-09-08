@@ -1,6 +1,8 @@
 import logging
 import os
 import sys
+import shutil
+import tempfile
 
 
 def _env(name: str, default):
@@ -45,13 +47,67 @@ def get_resource_path(relative_path):
     return os.path.join(os.path.abspath("."), relative_path)
 
 
+_WRITABLE_CHECK_CACHE = {}
+
+
+def _dir_writable(path: str) -> bool:
+    """检查目录是否真正可写（尝试创建临时文件），并缓存结果。"""
+    key = os.path.normpath(path)
+    if key in _WRITABLE_CHECK_CACHE:
+        return _WRITABLE_CHECK_CACHE[key]
+    try:
+        os.makedirs(path, exist_ok=True)
+        fd, probe = tempfile.mkstemp(dir=path, prefix=".roco_write_test_")
+        try:
+            os.close(fd)
+        finally:
+            try:
+                os.remove(probe)
+            except OSError:
+                pass
+        _WRITABLE_CHECK_CACHE[key] = True
+        return True
+    except Exception:
+        _WRITABLE_CHECK_CACHE[key] = False
+        return False
+
+
 def get_external_path(filename):
+    """返回需要“运行时写入”的文件路径。
+
+    默认仍写到程序/项目目录（保持原逻辑）；
+    仅当该目录没有写权限时，才迁移到 %LOCALAPPDATA% 下的 RocoKingdomRecognizer 目录，
+    避免标准账户装到 Program Files 后写数据失败。
+    """
     if hasattr(sys, '_MEIPASS'):
         base_path = os.path.dirname(sys.executable)
     else:
         base_path = os.path.dirname(os.path.abspath(__file__))
 
-    return os.path.normpath(os.path.join(base_path, filename))
+    preferred = os.path.normpath(os.path.join(base_path, filename))
+    parent = os.path.dirname(preferred) or "."
+    if _dir_writable(parent):
+        return preferred
+
+    # 无写权限：迁移到 %LOCALAPPDATA% 下的 RocoKingdomRecognizer
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if not local_app_data:
+        local_app_data = os.path.join(os.path.expanduser("~"), "AppData", "Local")
+    fallback_base = os.path.join(local_app_data, "RocoKingdomRecognizer")
+    try:
+        os.makedirs(fallback_base, exist_ok=True)
+    except OSError:
+        pass
+    fallback = os.path.normpath(os.path.join(fallback_base, filename))
+
+    # 首次从旧目录切到 %LOCALAPPDATA% 时，若旧文件存在且新位置还没有，
+    # 自动把旧数据复制过去，避免“更新后图鉴/设置好像丢了”。
+    if os.path.isfile(preferred) and not os.path.isfile(fallback):
+        try:
+            shutil.copy2(preferred, fallback)
+        except OSError:
+            pass
+    return fallback
 
 
 def is_dev_environment() -> bool:
