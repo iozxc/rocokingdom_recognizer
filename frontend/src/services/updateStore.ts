@@ -188,12 +188,16 @@ class UpdateStore {
   getPackageSize = (): { bytes: number; isDelta: boolean } | null => {
     const d = this.state.updateData;
     if (!d?.has_update) return null;
+    // 用户已选“全量更新”时，不再优先展示/估算增量包
+    const mode = this.getUpdateModePref();
     const deltas = d.deltas && d.deltas.length > 0 ? d.deltas : d.delta ? [d.delta] : [];
-    const match = deltas.find(
-      (x) => x.base_version === d.current_version && x.url && typeof x.size === 'number' && x.size > 0
-    );
-    if (match) {
-      return { bytes: match.size as number, isDelta: true };
+    if (mode !== 'full') {
+      const match = deltas.find(
+        (x) => x.base_version === d.current_version && x.url && typeof x.size === 'number' && x.size > 0
+      );
+      if (match) {
+        return { bytes: match.size as number, isDelta: true };
+      }
     }
     const files = d.auto_update?.files || [];
     const total = files.reduce((s, f) => s + (f.size || 0), 0);

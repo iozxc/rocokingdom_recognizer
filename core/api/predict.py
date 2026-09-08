@@ -66,10 +66,17 @@ def predict():
         return error("No image", 400)
 
     file = request.files.get('image')
-    stage_num = request.form.get('stage_num', 1)
     trial_key = request.form.get('trial', 'grass')
-    threshold = float(request.form.get('threshold', config.DEFAULT_THRESHOLD))
-    top_k = int(request.form.get('top_k', config.DEFAULT_TOPK))
+
+    # 参数解析：非法参数明确返回 400，而不是走到 500
+    try:
+        stage_num = int(request.form.get('stage_num', 1))
+        threshold = float(request.form.get('threshold', config.DEFAULT_THRESHOLD))
+        top_k = int(request.form.get('top_k', config.DEFAULT_TOPK))
+    except (TypeError, ValueError):
+        logger.warning(f"[/predict] 参数格式非法: stage_num={request.form.get('stage_num')}, "
+                       f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}")
+        return error("参数格式错误", 400)
 
     if get_trial(trial_key) is None:
         return error(f"未知的徽章试炼: {trial_key}", 400)
@@ -78,6 +85,7 @@ def predict():
         logger.warning("[/predict] image文件为空")
         return error("No image uploaded", 400)
 
+    temp_path = None
     try:
         from core.services.recognizers import models
         with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
@@ -121,9 +129,6 @@ def predict():
 
         final_list = final_list[:top_k]
 
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
         if final_list:
             map_name = f"map{stage_num}"
             for res in final_list:
@@ -146,6 +151,13 @@ def predict():
     except Exception as e:
         logger.error(f"[/predict] 处理异常: {e}", exc_info=True)
         return error(str(e), 500)
+    finally:
+        # 统一清理临时文件：任何提前 return / 异常都不会泄漏
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception as e:
+                logger.warning(f"[/predict] 临时文件清理失败: {e}")
 
 @bp.route('/init_batch', methods=['POST'])
 def predict_batch():

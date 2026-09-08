@@ -384,7 +384,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                           onClick={() => handleSelectUpdateMode('auto')}
                           className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${updateMode === 'auto' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
                       >
-                        自动增量
+                        增量更新
                       </button>
                       <button
                           type="button"

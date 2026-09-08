@@ -50,6 +50,9 @@ class UpdateManager:
 
 updater = UpdateManager()
 
+# 下载互斥锁：同一时刻只允许一个下载线程（避免快速双击/重复请求交错写同一文件）
+_download_lock = threading.Lock()
+
 
 def verify_md5(file_path, expected_md5):
     """校验文件的 MD5 值"""
@@ -121,6 +124,19 @@ def build_download_plan():
 
 
 def real_download_logic():
+    """下载入口：互斥锁保证同一时间只有一个下载线程。"""
+    if not _download_lock.acquire(blocking=False):
+        logger.info("已有下载任务进行中，忽略本次重复请求")
+        return
+    try:
+        _real_download_logic()
+    finally:
+        _download_lock.release()
+
+
+def _real_download_logic():
+    # 在覆盖状态前记录是否处于“暂停续传”（否则 is_resume 恒为 False 的死代码）
+    was_paused = updater.status == "paused" and updater.total_bytes > 0
     updater.status = "downloading"
     updater.error_msg = ""
     updater.stop_requested = False
@@ -147,7 +163,7 @@ def real_download_logic():
             os.makedirs(temp_dir)
 
         file_size_map = {}
-        is_resume = updater.status == "paused" and updater.total_bytes > 0
+        is_resume = was_paused
 
         logger.info(f"下载模式: {'断点续传' if is_resume else '全新下载'}")
 
@@ -245,9 +261,18 @@ def real_download_logic():
             if response.status_code not in (200, 206):
                 response.raise_for_status()
 
-            open_mode = "ab" if existing_size > 0 else "wb"
+            # 仅服务器返回 206（接受 Range）才追加续传；
+            # 若服务器忽略 Range 返回 200 完整内容，则必须从头覆盖，避免完整包拼到残片后损坏。
+            if response.status_code == 206 and existing_size > 0:
+                resume_offset = existing_size
+            else:
+                if existing_size > 0 and response.status_code == 200:
+                    logger.warning(f"服务器不支持 Range，分片 {file_name} 重新下载")
+                resume_offset = 0
+
+            open_mode = "ab" if resume_offset > 0 else "wb"
             with open(save_path, open_mode) as f:
-                current_file_downloaded = existing_size
+                current_file_downloaded = resume_offset
 
                 for data in response.iter_content(chunk_size=65536):
                     if updater.stop_requested:
@@ -310,7 +335,8 @@ def real_download_logic():
             for file_item in files:
                 part_path = os.path.join(temp_dir, file_item['name'])
                 with open(part_path, "rb") as infile:
-                    outfile.write(infile.read())
+                    # 分块拷贝，避免整分片一次性读入内存
+                    shutil.copyfileobj(infile, outfile, 1024 * 1024)
 
         shutil.rmtree(temp_dir)
         updater.progress = updater.total_bytes
@@ -328,19 +354,33 @@ def real_download_logic():
         updater.speed_bps = 0
         logger.error(f"更新下载异常: {e}", exc_info=True)
 
+def _build_backup_block(exe_name):
+    """生成 PS1 备份/回滚片段：整包更新前把旧 libs/exe 改名为 .bak。"""
+    lines = [
+        "if (Test-Path -LiteralPath 'libs.bak') { Remove-Item -LiteralPath 'libs.bak' -Recurse -Force -ErrorAction SilentlyContinue }",
+        "if (Test-Path -LiteralPath '" + exe_name + ".bak') { Remove-Item -LiteralPath '" + exe_name + ".bak' -Force -ErrorAction SilentlyContinue }",
+        "if (Test-Path -LiteralPath 'libs') { Rename-Item -LiteralPath 'libs' -NewName 'libs.bak' -Force -ErrorAction SilentlyContinue }",
+        "if (Test-Path -LiteralPath '" + exe_name + "') { Rename-Item -LiteralPath '" + exe_name + "' -NewName '" + exe_name + ".bak' -Force -ErrorAction SilentlyContinue }",
+        "function Restore-Backup {",
+        "    Remove-Item -LiteralPath 'libs' -Recurse -Force -ErrorAction SilentlyContinue",
+        "    Remove-Item -LiteralPath '" + exe_name + "' -Force -ErrorAction SilentlyContinue",
+        "    if (Test-Path -LiteralPath 'libs.bak') { Rename-Item -LiteralPath 'libs.bak' -NewName 'libs' -Force -ErrorAction SilentlyContinue }",
+        "    if (Test-Path -LiteralPath '" + exe_name + ".bak') { Rename-Item -LiteralPath '" + exe_name + ".bak' -NewName '" + exe_name + "' -Force -ErrorAction SilentlyContinue }",
+        "}",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+
 def create_update_ps1(update_mode="full"):
     """生成 PowerShell 更新脚本：自定义美观窗口（无黑框 cmd），整包/增量通用。"""
     exe_name = config.APP_EXE_NAME
     exe_stem = os.path.splitext(exe_name)[0]
     ps1_path = os.path.abspath("update.ps1")
 
-    # 整包更新：先清掉旧 exe/libs，避免残留旧文件
-    clear_old = (
-        f"Remove-Item -LiteralPath 'libs' -Recurse -Force -ErrorAction SilentlyContinue\n"
-        f"Remove-Item -LiteralPath '{exe_name}' -Force -ErrorAction SilentlyContinue"
-        if update_mode == "full"
-        else ""
-    )
+    # 整包更新：先备份旧 libs/exe 到 .bak，拷贝失败时回滚；
+    # 不在拷贝前删除旧文件，避免更新中断导致应用“变砖”。
+    clear_old = _build_backup_block(exe_name) if update_mode == "full" else ""
 
     template = r"""$ErrorActionPreference = 'SilentlyContinue'
 Add-Type -AssemblyName System.Windows.Forms
@@ -348,9 +388,16 @@ Add-Type -AssemblyName System.Drawing
 
 Set-Location -LiteralPath $PSScriptRoot
 
+# 等 HTTP 响应返回后再结束旧进程，避免前端点击“确认安装”后收不到反馈
+Start-Sleep -Milliseconds 2000
+
 # ---- 结束残留进程 ----
 Stop-Process -Name '{{EXE_STEM}}' -Force -ErrorAction SilentlyContinue
-Stop-Process -Name 'msedgewebview2' -Force -ErrorAction SilentlyContinue
+# 只结束“本安装目录派生的” WebView2 子进程，避免按进程名误杀其它应用的 msedgewebview2
+$webRoot = [regex]::Escape($PSScriptRoot)
+Get-CimInstance Win32_Process -Filter "Name = 'msedgewebview2.exe'" |
+    Where-Object { $_.CommandLine -and $_.CommandLine -match $webRoot } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 
 # ---- 更新窗口 ----
 $form = $null
@@ -419,17 +466,23 @@ function Set-Progress([string]$text, [int]$pct) {
 
 Set-Progress '正在结束旧进程...' 8
 
-# ---- 应用新文件（整包先清旧文件，增量只覆盖变更）----
+# ---- 应用新文件（整包：备份旧版 -> 拷贝新版 -> 失败回滚；增量只覆盖变更）----
 Set-Progress '正在应用更新文件...' 25
+{{CLEAR_OLD}}
 $copied = $false
 for ($i = 0; $i -lt 10; $i++) {
-{{CLEAR_OLD}}
     Copy-Item -Path 'new_version_files\*' -Destination '.' -Recurse -Force -ErrorAction SilentlyContinue
-    if (Test-Path -LiteralPath '{{EXE_NAME}}') {
+    if ((Test-Path -LiteralPath '{{EXE_NAME}}') -and (Test-Path -LiteralPath 'libs')) {
         $copied = $true
         break
     }
     Start-Sleep -Milliseconds 600
+}
+
+# 拷贝/校验失败：回滚到旧版本（仅整包更新定义了 Restore-Backup），
+# 避免“新 exe 已在但 libs 缺失/损坏”
+if (-not $copied -and (Get-Command Restore-Backup -ErrorAction SilentlyContinue)) {
+    Restore-Backup
 }
 
 # ---- 删除本版本移除的旧文件（增量包携带 removed.txt）----
@@ -452,6 +505,12 @@ Remove-Item -LiteralPath 'RocoKingdomRecognizer_delta.7z' -Force -ErrorAction Si
 Remove-Item -LiteralPath 'RocoKingdomReg_Update_Package.7z' -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath 'RocoKingdomRecognizer.7z' -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath 'update.bat' -Force -ErrorAction SilentlyContinue
+
+# ---- 更新成功：清理备份 ----
+if ($copied) {
+    Remove-Item -LiteralPath 'libs.bak' -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath '{{EXE_NAME}}.bak' -Force -ErrorAction SilentlyContinue
+}
 
 # ---- 启动应用 ----
 Set-Progress '正在启动应用...' 95
@@ -531,7 +590,8 @@ def apply_update():
         except Exception as e:
             logger.error(f"启动更新脚本失败: {e}", exc_info=True)
             return f"启动更新脚本失败: {e}"
-        os._exit(0)  # 强制关闭当前 Python 进程
+        # 不在这里 os._exit：先让 HTTP 响应返回给前端，再由 apply_update_api
+        # 延迟退出进程，避免前端“确认安装后无反馈/请求被掐断”。
 
     except UnsupportedCompressionMethodError as e:
         # 典型场景：更新包用 7-Zip 的 Zstandard 或高压缩模式（BCJ2）打包，
@@ -644,15 +704,35 @@ def get_progress():
         "error": updater.error_msg
     }
 
+def _exit_process_after(delay_seconds: float = 1.2):
+    """延迟退出当前 Python 进程，给 Flask 足够时间把响应 flush 给前端。"""
+    time.sleep(delay_seconds)
+    os._exit(0)
+
+
 @bp.route('/api/apply_update', methods=['GET'])
 def apply_update_api():
     """开始安装"""
     logger.info("[API] 请求应用更新（安装）")
+
+    # 防重复安装：安装已启动时不再重复执行更新脚本
+    if updater.status == "install":
+        logger.info("[API] 已处于安装流程，忽略重复确认")
+        return {"status": "install"}
+
+    if updater.status != "ready":
+        logger.warning(f"[API] 安装包未就绪，当前状态={updater.status}")
+        return {"status": "error", "message": "安装包未就绪，请先完成下载"}
+
+    updater.status = "install"
     error_msg = apply_update()
     if error_msg:
         updater.status = "error"
         updater.error_msg = error_msg
         return {"status": "error", "message": error_msg}
+
+    # 先返回响应，再让进程延迟退出，确保前端能收到“安装已启动”的反馈
+    threading.Thread(target=_exit_process_after, args=(1.2,), daemon=True).start()
     return {"status": "install"}
 
 @bp.route('/api/stop_download', methods=['GET'])

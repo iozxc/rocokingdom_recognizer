@@ -8,7 +8,7 @@ import {
     AlertCircle,
     Download,
     Info,
-    ArrowDownCircle,
+    ArrowUpCircle,
     Check,
     Loader2,
     Pause,
@@ -241,7 +241,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                 <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
-                            <ArrowDownCircle className="w-4 h-4 text-[#FEE061]" />
+                            <ArrowUpCircle className="w-4 h-4 text-[#FEE061]" />
                         </div>
                         <div>
                             <h3 className="text-base font-black tracking-tight">检查版本更新</h3>
@@ -299,11 +299,15 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                                 当前 v{updateData.current_version || '未知'}
                                             </span>
-                                            {(updateData.delta?.url || (updateData.deltas?.length ?? 0) > 0) && (
+                                            {updateStore.getUpdateModePref() === 'full' ? (
+                                                <span className="text-[11px] font-black px-1.5 py-0.5 rounded-md bg-[#E1F0FE] dark:bg-sky-950/70 text-[#1E5B99] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
+                                                    全量更新
+                                                </span>
+                                            ) : (updateData.delta?.url || (updateData.deltas?.length ?? 0) > 0) ? (
                                                 <span className="text-[11px] font-black px-1.5 py-0.5 rounded-md bg-[#E1F0FE] dark:bg-sky-950/70 text-[#1E5B99] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
                                                     增量更新
                                                 </span>
-                                            )}
+                                            ) : null}
                                         </div>
                                         <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">建议更新以获得最新图鉴识别支持与功能修复</p>
                                     </div>
