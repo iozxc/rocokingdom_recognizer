@@ -520,19 +520,23 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const alreadyEncounteredCount = reviewItems.filter((i) => i.status === 'matched' && i.isAlreadyEncountered).length;
   const unmatchedCount = reviewItems.filter((i) => i.status === 'unmatched').length;
 
-  // 动态计算响应式网格列数（和批量导入弹窗保持一致的高效紧凑排版）
-  const getDynamicGridClass = (count: number) => {
+  // 卡片宽度随【结果区容器自身宽度】弹性变化（非固定像素、不看整个窗口）：
+  // 祖先用 @container 建立容器查询上下文，这里按“结果容器宽度”选每行列数上限 N，
+  // calc 把容器宽均分给 N 列（扣 N-1 个 gap=0.75rem）。阈值按单卡最小约 217px 仍可读标定，
+  // 不受 Windows 缩放 / 侧栏 / 外层 padding 影响：容器够宽就能排到 6 列（最多 6）。
+  // 配合 flex-wrap + justify-center：排满正好铺满；不足一行（1~2 个）整组水平居中、单卡不拉满。
+  const getCardBasisClass = (count: number) => {
     if (count <= 3) {
-      return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
+      return 'w-full @[480px]:w-[calc((100%_-_0.75rem)/2)] @[700px]:w-[calc((100%_-_1.5rem)/3)]';
     }
     if (count === 4) {
-      return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
+      return 'w-full @[480px]:w-[calc((100%_-_0.75rem)/2)] @[700px]:w-[calc((100%_-_1.5rem)/3)] @[920px]:w-[calc((100%_-_2.25rem)/4)]';
     }
     if (count === 5) {
-      return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+      return 'w-full @[480px]:w-[calc((100%_-_0.75rem)/2)] @[700px]:w-[calc((100%_-_1.5rem)/3)] @[920px]:w-[calc((100%_-_2.25rem)/4)] @[1140px]:w-[calc((100%_-_3rem)/5)]';
     }
-    // 仅 1600px 以上才排 6 列，1280~1600 保持 5 列，避免卡片被压窄导致候选换行出滚动条
-    return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6!';
+    // 最多 6 列：结果容器 >=1360px 即排 6 列（单卡约 217px），1140~1360 为 5 列，再窄依次降级
+    return 'w-full @[480px]:w-[calc((100%_-_0.75rem)/2)] @[700px]:w-[calc((100%_-_1.5rem)/3)] @[920px]:w-[calc((100%_-_2.25rem)/4)] @[1140px]:w-[calc((100%_-_3rem)/5)] @[1360px]:w-[calc((100%_-_3.75rem)/6)]';
   };
 
   return (
@@ -1049,7 +1053,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
               </div>
 
               {/* Items Review Grid - identical responsive compact layout as BatchInitModal */}
-              <div className={`grid gap-3 ${getDynamicGridClass(filteredItems.length)}`}>
+              <div className="@container flex flex-wrap justify-center gap-3">
                 {filteredItems.map((item) => {
                   const isMatched = item.status === 'matched';
                   const scorePercent = item.score ? (item.score * 100).toFixed(1) : '0';
@@ -1061,7 +1065,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       <div
                           key={item.index}
                           onClick={() => handleToggleCheck(item.index)}
-                          className={`relative rounded-2xl border-3 p-3 transition-colors duration-150 flex flex-col justify-between cursor-pointer select-none group/card hover:shadow-md ${
+                          className={`relative rounded-2xl border-3 p-3 transition-colors duration-150 flex flex-col justify-between cursor-pointer select-none group/card hover:shadow-md ${getCardBasisClass(filteredItems.length)} ${
                               item.isChecked
                                   ? 'border-[#95D151] bg-[#F9FEF8] dark:bg-emerald-950/40 shadow-xs ring-2 ring-[#95D151]/30'
                                   : item.status === 'unmatched'
