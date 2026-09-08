@@ -20,8 +20,8 @@ from core.services.user_storage import user_storage
 DEBUG_CAP_KEY = "debugImageCap"
 
 
-def get_debug_cap(default: int = 100) -> int:
-    """读取用户设置里的 debug 截图保留上限（0 = 关闭，不保存），异常回退 default。"""
+def get_debug_cap(default: int = 0) -> int:
+    """读取用户设置里的 debug 截图保留上限（0 = 关闭，不保存），默认关闭。"""
     try:
         val = user_storage.get_app_settings().get(DEBUG_CAP_KEY)
         if isinstance(val, int) and not isinstance(val, bool) and 0 <= val <= 9999:

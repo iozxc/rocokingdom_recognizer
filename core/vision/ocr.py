@@ -7,6 +7,7 @@ from rapidocr_onnxruntime import RapidOCR  # 导入 RapidOCR
 
 import config
 from core.infra.logger import logger
+from core.infra.ort_session import get_ort_intra_threads
 from core.vision.ocr_corrections import correct_ocr_text
 
 # 彻底移除对 torch 和 ssl 的依赖
@@ -57,7 +58,9 @@ class OCREngine:
             self.engine = RapidOCR(
                 det_model_path=det_model_path,
                 cls_model_path=cls_model_path,
-                rec_model_path=rec_model_path
+                rec_model_path=rec_model_path,
+                intra_op_num_threads=get_ort_intra_threads(),
+                inter_op_num_threads=1,
             )
             logger.info("RapidOCR引擎初始化成功")
         except Exception as e:

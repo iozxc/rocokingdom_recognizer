@@ -13,6 +13,7 @@ import cv2
 import os
 import pickle
 from core.infra.logger import logger
+from core.infra.ort_session import create_session_options
 import time
 from PIL import Image
 
@@ -31,7 +32,7 @@ class StageClassifier:
             raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
 
         # 优化选项：仅使用 CPU 运行
-        self.session = ort.InferenceSession(onnx_model_path, providers=['CPUExecutionProvider'])
+        self.session = ort.InferenceSession(onnx_model_path, sess_options=create_session_options(), providers=['CPUExecutionProvider'])
         logger.info("StageClassifier ONNX模型加载成功 (CPU)")
 
         # 从 ONNX 输入推断输入尺寸（resnet=224, dino=518 自动适配）

@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFont  # 增加了 ImageDraw 和 ImageFont
 import config
 from core.infra.logger import logger
 from core.infra.capture import clean_debug_folder, debug_enabled
+from core.infra.ort_session import create_session_options
 
 # --- 配置 ---
 MODEL_PATH = config.SCANNER_MODEL if config.SCANNER_MODEL.endswith(".onnx") else config.SCANNER_MODEL.replace(".pt", ".onnx")
@@ -32,7 +33,7 @@ class YOLOv8ORT:
             providers = ['CPUExecutionProvider']
 
         logger.info(f"ONNX Runtime 推理后端: {providers[0]}")
-        self.session = ort.InferenceSession(model_path, providers=providers)
+        self.session = ort.InferenceSession(model_path, sess_options=create_session_options(), providers=providers)
         self.input_name = self.session.get_inputs()[0].name
         self.output_names = [o.name for o in self.session.get_outputs()]
 

@@ -72,7 +72,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     return storage.getSetting<boolean>('isSimplifiedFABs', true);
   });
   const [debugImageCap, setDebugImageCap] = useState<number>(() => {
-    return storage.getSetting<number>('debugImageCap', 100);
+    return storage.getSetting<number>('debugImageCap', 0);
   });
   const [isAgreementOpen, setIsAgreementOpen] = useState<boolean>(false);
 
@@ -121,7 +121,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setShowHints(storage.getSetting<boolean>('showHints', false));
     setFollowTopMost(storage.getSetting<boolean>('followTopMost', true));
     setIsSimplifiedFABs(storage.getSetting<boolean>('isSimplifiedFABs', true));
-    setDebugImageCap(storage.getSetting<number>('debugImageCap', 100));
+    setDebugImageCap(storage.getSetting<number>('debugImageCap', 0));
     setView('main');
   }, [isOpen]);
 
