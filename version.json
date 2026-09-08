@@ -1,69 +1,69 @@
 {
-  "version": "1.4.6",
+  "version": "1.4.7",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.4.6 更新公告】\n\n注意：自 1.4.2 版本起，后续所有版本均需完成来源认证并阅读用户协议后方可使用。\n\n【功能新增】\n1、精灵新增技能与特性：鼠标悬浮卡片和详情页都能看，支持按攻击/状态/防御分类。\n2、搜索框新增「技能/特性搜索」：可按技能名、技能描述、特性名、特性描述搜索。\n\n【优化】\n3、优化跟随识别速度。\n\n【注意】\n更新前请先确认自己的图鉴个数。若更新后出现精灵对不上号的情况，通常是命名调整所致，请以最新图鉴为准。\n\n【更新方式】\n自动更新：启动旧版本后按提示点击 “立即更新” 即可。\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。",
+  "update_log": "【v1.4.7 更新公告】\n\n【功能新增】\n1、首页识别功能现在会把经过拆分的原图放入识别结果里以供对比。\n2、增加了多账号管理功能\n3、增加滚动条及滚动条开关、粗细设置（默认为关）\n4、增加了部分术语的说明（threshold、candidates、topk等）\n\n【优化&修复】\n5、优化了APP的整体性能（启动速度、识别速度、更新可靠性等）\n6、优化了首屏识别结果的布局，在少数识别的情况下现在会居中显示\n7、修复了首屏识别出的结果没有对应上位置的问题\n8、修复了app在某些路径下权限不足的问题\n9、移除了右下角部分按钮（删除了单个识别和批量识别）\n\n【补充】\n鼠标放在识别出的候选图片上可以展示大图，跟随识别同理。\n\n【更新方式】\n自动更新：启动旧版本后按提示点击 “立即更新” 即可。\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。",
   "auto_update": {
-    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.6/",
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "a3517357dd269aaaaa1440682a9af28d",
+        "md5": "63f576b860097d2bf5e790e8680563fd",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "d6e97ad8edc479547006949cb98bb75a",
+        "md5": "2fa26b82c31605c6e873dbc41ffe21aa",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "01159a9f87939ca2ea4a00cccf0460d9",
-        "size": 55438583
+        "md5": "d77977aa010a9a35b8cdafc9fc1cdfd2",
+        "size": 55440710
       }
     ]
   },
   "deltas": [
     {
+      "base_version": "1.4.6",
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.6.7z",
+      "md5": "d9adde65f87f8955c0910ca4266b208d",
+      "size": 19913048,
+      "changed": 7,
+      "removed": 1
+    },
+    {
       "base_version": "1.4.5",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.6/RocoKingdomRecognizer_delta_1.4.5.7z",
-      "md5": "032ac8107aa5f6e5f818d4d753a8180e",
-      "size": 43671430,
-      "changed": 17,
-      "removed": 0
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.5.7z",
+      "md5": "11d0965dd586dc39850fda1265d46298",
+      "size": 43699333,
+      "changed": 18,
+      "removed": 1
     },
     {
       "base_version": "1.4.4",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.6/RocoKingdomRecognizer_delta_1.4.4.7z",
-      "md5": "4b1baa10cab103caa8ecedb2a7a869d9",
-      "size": 43671632,
-      "changed": 19,
-      "removed": 0
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.4.7z",
+      "md5": "cbe096f00d1d4352a2f7969ee45bf116",
+      "size": 43699669,
+      "changed": 20,
+      "removed": 1
     },
     {
       "base_version": "1.4.3",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.6/RocoKingdomRecognizer_delta_1.4.3.7z",
-      "md5": "1a1086bfbafb90037fc86057eb40eefe",
-      "size": 45176551,
-      "changed": 21,
-      "removed": 0
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.3.7z",
+      "md5": "60c82ad49f7cc63fce8d11ad3792b068",
+      "size": 45206355,
+      "changed": 22,
+      "removed": 1
     },
     {
       "base_version": "1.4.2",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.6/RocoKingdomRecognizer_delta_1.4.2.7z",
-      "md5": "48e549ef7cae725f2c3b928db7dfd7ca",
-      "size": 60845856,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.2.7z",
+      "md5": "6e4ff664a248cce9340a62b245430156",
+      "size": 60869561,
       "changed": 26,
-      "removed": 0
-    },
-    {
-      "base_version": "1.4.1",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.6/RocoKingdomRecognizer_delta_1.4.1.7z",
-      "md5": "e7aa4293c92cd5122e08322576219307",
-      "size": 60994223,
-      "changed": 27,
       "removed": 0
     }
   ]
