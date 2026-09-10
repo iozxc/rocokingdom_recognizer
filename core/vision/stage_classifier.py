@@ -1,11 +1,8 @@
-"""【徽章试炼】关卡判定——关卡标题图像分类器（≠ 开放世界大地图识别）。
+"""【徽章试炼】关卡判定——关卡标题图像分类器。
 
 徽章试炼每个关卡（图1-3，map1/map2/map3）顶部有关卡标题；本模块对该标题
 图像提特征并与标题特征库比对，判定当前是第几关，作为标题 OCR + 特征字
 （core/infra/capture.match_scene_unique_char）识别失败时的回退方案。
-
-注意：本模块与开放世界跑图的小地图定位（core/vision/world_localizer.py，
-开放世界大地图识别）完全是两回事——这里分类的是试炼关卡标题，不是大世界位置。
 """
 import onnxruntime as ort
 import numpy as np

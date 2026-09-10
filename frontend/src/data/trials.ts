@@ -39,26 +39,6 @@ export const FIRE_MAP_CONFIGS: MapConfig[] = [
 ];
 
 /**
- * 地图感知的本地兜底地图配置：正常由后端 /api/trials 下发，
- * 后端不可用或字段缺失时才使用这里。
- * 注意：地图感知是开放世界跑图工具（按小地图定位玩家世界坐标），
- * 不是徽章试炼；这里只是复用 Trial/MapConfig 的展示结构，
- * trialKey 'map' 仅为前端内部伪 key，后端 config.TRIALS 中并不存在该试炼。
- */
-export const WORLD_MAP_CONFIG: MapConfig[] = [
-  {
-    id: 'map1',
-    num: 1,
-    name: '世界实时地图',
-    description: '实时感知你在洛克王国世界中的位置、朝向与周围刷新的精灵。',
-    themeColor: '#7ABCF4',
-    bgGradient: 'from-sky-500/20 via-blue-400/10 to-cyan-500/20',
-    badgeBg: 'bg-sky-500/15 text-sky-700 border-sky-400',
-    iconName: 'Map',
-  },
-];
-
-/**
  * 根据后端下发的试炼列表解析某个试炼的地图展示配置；
  * 后端未下发时按试炼 key 回退到本地默认配置。
  */
@@ -69,9 +49,6 @@ export function resolveTrialMaps(trials: Trial[], trialKey: string): MapConfig[]
   }
   if (trialKey === 'fire') {
     return FIRE_MAP_CONFIGS;
-  }
-  if (trialKey === 'map') {
-    return WORLD_MAP_CONFIG;
   }
   return MAP_CONFIGS;
 }

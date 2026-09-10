@@ -114,29 +114,10 @@ def is_dev_environment() -> bool:
     return not hasattr(sys, "_MEIPASS")
 
 
-APP_VERSION = _env("ROCO_APP_VERSION", "1.4.7")
+APP_VERSION = _env("ROCO_APP_VERSION", "1.4.8")
 MAX_DELTA_UPDATE_SIZE = int(_env("ROCO_MAX_DELTA_UPDATE_SIZE", str(90 * 1024 * 1024)))
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
-MAP_LOCALIZE_ENABLED = _env("ROCO_MAP_LOCALIZE_ENABLED", "1") == "1"
-MAP_LOCALIZE_REFERENCE = _env(
-    "ROCO_MAP_LOCALIZE_REFERENCE",
-    get_resource_path(os.path.join("static", "mapdata", "level_13_4064_4095_4064_4095.png")),
-)
-MAP_LOCALIZE_MIN_SCORE = float(_env("ROCO_MAP_LOCALIZE_MIN_SCORE", "0.34"))
-MAP_LOCALIZE_DEBUG = _env("ROCO_MAP_LOCALIZE_DEBUG", "0") == "1"
-MAP_LOCALIZE_INIT_MIN = float(_env("ROCO_MAP_LOCALIZE_INIT_MIN", "0.5"))
-MAP_LOCALIZE_MAX_JUMP = float(_env("ROCO_MAP_LOCALIZE_MAX_JUMP", "180"))
-MAP_LOCALIZE_TRACK_CONF_MIN = float(_env("ROCO_MAP_LOCALIZE_TRACK_CONF_MIN", "0.52"))
-MAP_LOCALIZE_SIM_CHANGE = float(_env("ROCO_MAP_LOCALIZE_SIM_CHANGE", "0.62"))
-MAP_LOCALIZE_INIT_CONFIRM_FRAMES = int(_env("ROCO_MAP_LOCALIZE_INIT_CONFIRM_FRAMES", "2"))
-MAP_LOCALIZE_PENDING_LIMIT = int(_env("ROCO_MAP_LOCALIZE_PENDING_LIMIT", "3"))
-MAP_LOCALIZE_CANDIDATE_KEEP = int(_env("ROCO_MAP_LOCALIZE_CANDIDATE_KEEP", "4"))
-MAP_MONITOR_INTERVAL = float(_env("ROCO_MAP_MONITOR_INTERVAL", "1.5"))
-MAP_SAVE_CAPTURE = _env("ROCO_MAP_SAVE_CAPTURE", "1") == "1"
-MAP_CAPTURE_DIR = _env("ROCO_MAP_CAPTURE_DIR",
-                       get_resource_path(os.path.join("debug", "map_capture")))
-MAP_CAPTURE_MAX = int(_env("ROCO_MAP_CAPTURE_MAX", "100"))
 APP_EXE_NAME = _env("ROCO_APP_EXE_NAME", "RocoKingdomRecognizer.exe")
 UPDATE_CHECK_URL = _env(
     "ROCO_UPDATE_CHECK_URL",
@@ -253,7 +234,6 @@ RENAMES_JSON = get_resource_path(os.path.join('datasets', 'pet_renames.json'))
 OCR_CORRECTIONS_JSON = get_resource_path(os.path.join('datasets', 'ocr_corrections.json'))
 DATA_MANIFEST_JSON = get_resource_path(os.path.join("datasets", "data_manifest.json"))
 DATA_JSON = get_external_path('roco_user_data.json')
-MAP_DATA_JSON = get_external_path('roco_user_mapdata.json')
 MANIFEST_JSON = get_resource_path('file_manifest.json')
 TRAITS_SKILLS_JSON = get_resource_path('traits_skills.json')
 

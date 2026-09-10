@@ -1,10 +1,14 @@
 """桌面窗口管理：主窗口与“跟随识别”子窗口的创建、关闭、移动与自适应。"""
 import ctypes
+import json
+import os
+import tempfile
 import threading
 
 import pygetwindow as gw
 import webview
 
+import config
 from core.infra.logger import logger
 
 # 主窗口的默认配置尺寸；低分辨率屏幕下会自动降级为全屏
@@ -12,6 +16,8 @@ _MAIN_WINDOW_WIDTH = 1680
 _MAIN_WINDOW_HEIGHT = 1080
 _MAIN_WINDOW_MIN_WIDTH = 555
 _MAIN_WINDOW_MIN_HEIGHT = 300
+_MAIN_WINDOW_STATE_FILE = "window_state.json"
+_MAIN_WINDOW_STATE_KEY = "mainWindow"
 
 
 def _get_screen_size():
@@ -24,6 +30,88 @@ def _get_screen_size():
     except Exception as e:
         logger.warning(f"读取屏幕分辨率失败，使用默认 1920x1080: {e}")
     return 1920, 1080
+
+
+def _get_virtual_screen_bounds():
+    """返回整个虚拟桌面的 (左, 上, 宽, 高)，用于多显示器坐标校验。"""
+    try:
+        user32 = ctypes.windll.user32
+        left = int(user32.GetSystemMetrics(76))    # SM_XVIRTUALSCREEN
+        top = int(user32.GetSystemMetrics(77))     # SM_YVIRTUALSCREEN
+        width = int(user32.GetSystemMetrics(78))   # SM_CXVIRTUALSCREEN
+        height = int(user32.GetSystemMetrics(79))  # SM_CYVIRTUALSCREEN
+        if width > 0 and height > 0:
+            return left, top, width, height
+    except Exception as e:
+        logger.warning(f"读取虚拟桌面范围失败，使用主显示器: {e}")
+
+    width, height = _get_screen_size()
+    return 0, 0, width, height
+
+
+def _load_main_window_geometry():
+    """读取并校验上一次的主窗口位置、大小；无效或越界时返回 None。"""
+    try:
+        path = config.get_external_path(_MAIN_WINDOW_STATE_FILE)
+        if not os.path.isfile(path):
+            return None
+
+        with open(path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        state = payload.get(_MAIN_WINDOW_STATE_KEY, {}) if isinstance(payload, dict) else {}
+        if not isinstance(state, dict):
+            return None
+
+        x = int(state["x"])
+        y = int(state["y"])
+        width = int(state["width"])
+        height = int(state["height"])
+    except (FileNotFoundError, KeyError, TypeError, ValueError, json.JSONDecodeError, OSError) as e:
+        logger.debug(f"主窗口状态不可用，使用默认窗口配置: {e}")
+        return None
+
+    if width < _MAIN_WINDOW_MIN_WIDTH or height < _MAIN_WINDOW_MIN_HEIGHT:
+        return None
+
+    screen_x, screen_y, screen_w, screen_h = _get_virtual_screen_bounds()
+    if screen_w < _MAIN_WINDOW_MIN_WIDTH or screen_h < _MAIN_WINDOW_MIN_HEIGHT:
+        return None
+
+    # 分辨率降低或显示器被移除时，把窗口重新限制在仍然存在的桌面范围内。
+    width = max(_MAIN_WINDOW_MIN_WIDTH, min(width, screen_w))
+    height = max(_MAIN_WINDOW_MIN_HEIGHT, min(height, screen_h))
+    x = max(screen_x, min(x, screen_x + screen_w - width))
+    y = max(screen_y, min(y, screen_y + screen_h - height))
+    return {"x": x, "y": y, "width": width, "height": height}
+
+
+def _save_main_window_geometry(state):
+    """原子写入主窗口位置和大小，避免异常退出留下损坏的状态文件。"""
+    path = config.get_external_path(_MAIN_WINDOW_STATE_FILE)
+    directory = os.path.dirname(path) or "."
+    os.makedirs(directory, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(
+        dir=directory,
+        prefix=os.path.basename(path) + ".tmp.",
+        suffix=".json",
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(
+                {_MAIN_WINDOW_STATE_KEY: state},
+                f,
+                ensure_ascii=False,
+                indent=2,
+            )
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
+    finally:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
 
 
 class WindowManager:
@@ -91,33 +179,69 @@ class WindowManager:
         则直接以全屏方式显示，避免窗口超出屏幕无法操作。
         """
         screen_w, screen_h = _get_screen_size()
-        use_fullscreen = (
-            _MAIN_WINDOW_WIDTH > screen_w or _MAIN_WINDOW_HEIGHT > screen_h
-        )
+        saved_geometry = _load_main_window_geometry()
 
         window_kwargs = {
             "title": '洛克王国徽章试炼助手',
             "url": self.base_url,
-            "width": screen_w if use_fullscreen else _MAIN_WINDOW_WIDTH,
-            "height": screen_h if use_fullscreen else _MAIN_WINDOW_HEIGHT,
             "js_api": self.js_api,
         }
-        if use_fullscreen:
+        if saved_geometry:
+            window_kwargs.update(saved_geometry)
+            window_kwargs["min_size"] = (
+                _MAIN_WINDOW_MIN_WIDTH,
+                _MAIN_WINDOW_MIN_HEIGHT,
+            )
+            logger.info(
+                "恢复主窗口位置和大小: "
+                f"{saved_geometry['width']}x{saved_geometry['height']} "
+                f"@ ({saved_geometry['x']}, {saved_geometry['y']})"
+            )
+        elif _MAIN_WINDOW_WIDTH > screen_w or _MAIN_WINDOW_HEIGHT > screen_h:
             logger.info(
                 f"桌面分辨率 {screen_w}x{screen_h} 小于配置窗口尺寸，"
                 f"主窗口改为全屏显示"
             )
+            window_kwargs.update({
+                "width": screen_w,
+                "height": screen_h,
+            })
             window_kwargs["fullscreen"] = True
         else:
+            window_kwargs.update({
+                "width": _MAIN_WINDOW_WIDTH,
+                "height": _MAIN_WINDOW_HEIGHT,
+            })
             window_kwargs["min_size"] = (
                 _MAIN_WINDOW_MIN_WIDTH,
                 _MAIN_WINDOW_MIN_HEIGHT,
             )
 
         self.main_window = webview.create_window(**window_kwargs)
+        self.main_window.events.closing += self._on_main_closing
         self.main_window.events.closed += self._on_main_closed
         logger.info("主窗口创建完成")
         return self.main_window
+
+    def _on_main_closing(self):
+        """关闭前记录主窗口位置和大小，供下次启动恢复。"""
+        try:
+            win = self.main_window
+            if win is None:
+                return
+            state = {
+                "x": int(win.x),
+                "y": int(win.y),
+                "width": max(_MAIN_WINDOW_MIN_WIDTH, int(win.width)),
+                "height": max(_MAIN_WINDOW_MIN_HEIGHT, int(win.height)),
+            }
+            _save_main_window_geometry(state)
+            logger.info(
+                "已保存主窗口位置和大小: "
+                f"{state['width']}x{state['height']} @ ({state['x']}, {state['y']})"
+            )
+        except Exception as e:
+            logger.warning(f"保存主窗口位置和大小失败: {e}")
 
     def _on_main_closed(self):
         """主窗口关闭时销毁子识别窗口"""
@@ -233,4 +357,3 @@ class WindowManager:
         except Exception as e:
             logger.error(f"resize_scanner_window 异常: {e}")
             return {"status": "error", "message": str(e)}
-

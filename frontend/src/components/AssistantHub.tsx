@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Leaf, Map as MapIcon, Sparkles, Wrench } from 'lucide-react';
+import { Flame, Leaf, Sparkles, Wrench } from 'lucide-react';
 import { Trial } from '../types';
 
 interface AssistantHubProps {
@@ -34,14 +34,6 @@ const TRIAL_CARD_CONFIG: Record<string, AssistantItem> = {
     subtitle: '洛克王国火系徽章自选图鉴（开发环境）',
     gradient: 'from-orange-500 to-red-600',
     Icon: Flame,
-  },
-  map: {
-    key: 'map',
-    category: 'tool',
-    title: '地图感知',
-    subtitle: '世界实时地图 · 位置 / 朝向 / 周边刷新',
-    gradient: 'from-sky-500 to-indigo-600',
-    Icon: MapIcon,
   },
 };
 

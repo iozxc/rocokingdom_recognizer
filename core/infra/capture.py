@@ -220,7 +220,6 @@ def match_scene_unique_char(ocr_raw_text: str, trial_key="grass"):
     """
     【徽章试炼】关卡判定：对关卡标题 OCR 文本做独有单字匹配，
     命中某关卡任意一个独有字符即返回该关卡 map id（map1/map2/map3）；都不命中返回 None。
-    （识别的是试炼关卡标题，与开放世界地图感知无关。）
     """
     txt = clean_text(ocr_raw_text)
     for scene_name, char_set in get_scene_features(trial_key):

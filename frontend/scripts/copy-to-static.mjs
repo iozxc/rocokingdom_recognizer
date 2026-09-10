@@ -48,6 +48,6 @@ if (existsSync(glossarySrc)) {
   copyFileSync(glossarySrc, join(staticDir, 'data', 'glossary.json'));
 }
 
-// 注意：elements、map 与 mapdata_real 等静态资源无需在 postbuild 阶段重复复制，改为按需手动维护。
+// 注意：elements 等静态资源无需在 postbuild 阶段重复复制，改为按需手动维护。
 
 console.log('[copy-to-static] 已同步: static/index.html + static/assets/* + static/icon/* + static/data/*');

@@ -28,9 +28,12 @@ Thumbs.db
 /build/
 /dist/
 /.idea/
-/assets/
+/assets/*
+!/assets/manifests/
+!/assets/manifests/**
 app.spec
 roco_user_data.json
+window_state.json
 /debug_caps/
 /debug/
 tree.txt
@@ -64,11 +67,6 @@ build_key.txt
 /build.bat
 /build_logs/
 /train/onnx_dino/
-/frontend/public/mapdata/
-/roco_user_mapdata.json
-/train/yolo_minimap/
-/frontend/public/mapdata_real/
-/train/phash/
 /test/
 /build-web.bat
 /.workbuddy/

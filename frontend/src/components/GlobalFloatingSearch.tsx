@@ -789,7 +789,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 </span>
                     <span className="flex items-center gap-1">
                   <kbd className="font-mono bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 shadow-2xs">Enter</kbd>
-                  <span>跳转地图定位</span>
+                  <span>跳转到对应关卡</span>
                 </span>
                   </div>
 

@@ -1,70 +1,70 @@
 {
-  "version": "1.4.7",
+  "version": "1.4.8",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.4.7 更新公告】\n\n【功能新增】\n1、首页识别功能现在会把经过拆分的原图放入识别结果里以供对比。\n2、增加了多账号管理功能\n3、增加滚动条及滚动条开关、粗细设置（默认为关）\n4、增加了部分术语的说明（threshold、candidates、topk等）\n\n【优化&修复】\n5、优化了APP的整体性能（启动速度、识别速度、更新可靠性等）\n6、优化了首屏识别结果的布局，在少数识别的情况下现在会居中显示\n7、修复了首屏识别出的结果没有对应上位置的问题\n8、修复了app在某些路径下权限不足的问题\n9、移除了右下角部分按钮（删除了单个识别和批量识别）\n\n【补充】\n鼠标放在识别出的候选图片上可以展示大图，跟随识别同理。\n\n【更新方式】\n自动更新：启动旧版本后按提示点击 “立即更新” 即可。\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。",
+  "update_log": "",
   "auto_update": {
-    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/",
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.8/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "afd3ca4399b6bfe537cd63869110ec35",
+        "md5": "2053dbcbc8b804d729594c8cc0c873cd",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "f1442eb0449308284032add06b81c21d",
+        "md5": "8c5bc46e8a5dc24d617eaeecf3da282d",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "6cce8658dfd9f2773fc8e23059bcd0d4",
-        "size": 55440919
+        "md5": "e1d718a87df5f74c255751a420b4dce4",
+        "size": 54913185
       }
     ]
   },
   "deltas": [
     {
+      "base_version": "1.4.7",
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.8/RocoKingdomRecognizer_delta_1.4.7.7z",
+      "md5": "2f58b7b48e49a7ec3b7409966558c608",
+      "size": 19871838,
+      "changed": 6,
+      "removed": 5
+    },
+    {
       "base_version": "1.4.6",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.6.7z",
-      "md5": "dc957eb90dd09183f6c4f765c79e969c",
-      "size": 19912957,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.8/RocoKingdomRecognizer_delta_1.4.6.7z",
+      "md5": "eccf359395d747512f7b28ae5f7e84cb",
+      "size": 19872116,
       "changed": 7,
-      "removed": 1
+      "removed": 6
     },
     {
       "base_version": "1.4.5",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.5.7z",
-      "md5": "999a3fd671dc21ec2303f93f3f3ac373",
-      "size": 43699173,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.8/RocoKingdomRecognizer_delta_1.4.5.7z",
+      "md5": "4b724f4dcfbf51fd50b6ce00cead40a1",
+      "size": 43657212,
       "changed": 18,
-      "removed": 1
+      "removed": 6
     },
     {
       "base_version": "1.4.4",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.4.7z",
-      "md5": "3a39bc7b05eb75acceb1d2eb484ab1b6",
-      "size": 43699289,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.8/RocoKingdomRecognizer_delta_1.4.4.7z",
+      "md5": "79347bcc42285bb4e268fe7ebf99f71f",
+      "size": 43657282,
       "changed": 20,
-      "removed": 1
+      "removed": 6
     },
     {
       "base_version": "1.4.3",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.3.7z",
-      "md5": "bf052ee727c348b4a8d8ce80d113956c",
-      "size": 45206174,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.8/RocoKingdomRecognizer_delta_1.4.3.7z",
+      "md5": "e320985e63b10c99f5533cf896b9ee21",
+      "size": 45163742,
       "changed": 22,
-      "removed": 1
-    },
-    {
-      "base_version": "1.4.2",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.7/RocoKingdomRecognizer_delta_1.4.2.7z",
-      "md5": "b6b8ad1f13d7d9862a2805d6e55b85f4",
-      "size": 60874923,
-      "changed": 26,
-      "removed": 0
+      "removed": 6
     }
   ]
 }

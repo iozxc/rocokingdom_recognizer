@@ -26,7 +26,7 @@ interface UserManualModalProps {
   onClose: () => void;
 }
 
-type TabKey = 'quickstart' | 'recognition' | 'batch' | 'map' | 'features' | 'faq';
+type TabKey = 'quickstart' | 'recognition' | 'batch' | 'features' | 'faq';
 
 export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('quickstart');
@@ -121,7 +121,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                     欢迎使用《洛克王国》徽章试炼小助手！
                   </h4>
                   <p className="text-xs text-slate-600">
-                    本工具专为徽章试炼活动打造，通过本地离线 AI 深度学习与特征检测，自动识别精灵、记录点亮图鉴、地图定位与寻路，完全不修改游戏内存，安全绿色。
+                    本工具专为徽章试炼活动打造，通过本地离线 AI 深度学习与特征检测，自动识别精灵、记录点亮图鉴，完全不修改游戏内存，安全绿色。
                   </p>
                 </div>
               </div>

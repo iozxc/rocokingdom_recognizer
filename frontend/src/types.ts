@@ -273,27 +273,6 @@ export interface AppSettings {
   [key: string]: unknown;
 }
 
-export interface MapObservation {
-  source: 'window-image' | string;
-  window_found: boolean;
-  window_title: string;
-  confidence: number | null;
-  screenshot: { width: number; height: number; bbox?: Record<string, number> } | null;
-  position: { x: number; y: number; z?: number; captured_at?: number } | null;
-  heading: number | null;
-  map_found: boolean;
-  reason: string;
-  status_message?: string;
-  elapsed_ms?: number;
-  timestamp?: number;
-  localize?: {
-    confidence?: number | null;
-    source?: string;
-    status?: string;
-    timings_ms?: Record<string, number>;
-  };
-}
-
 export interface CheckUpdateResponse {
   has_update: boolean;
   latest_version?: string;
