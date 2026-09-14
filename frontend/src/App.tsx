@@ -595,6 +595,7 @@ export default function App() {
 
         {/* Top Header with Settings Button */}
         <Header
+            modalActive={isAnyModalOpen}
             activeStageNum={activeStageNum}
             onSelectMap={(num) => setActiveStageNum(num)}
             mapsStats={allMapsStats}
@@ -675,9 +676,8 @@ export default function App() {
                 />
                 </div>
 
-                {/* Pet Image Recognition Module (BatchRecognizerCard: 3 columns layout + ? help button) */}
-                {!IS_STATIC && (
-                    <BatchRecognizerCard
+                {/* Pet Image Recognition Module (BatchRecognizerCard: 首页单图识别；纯前端走浏览器内 LocalRecognizer) */}
+                <BatchRecognizerCard
                         key={`${currentMap.id}_${recognizerKey}`}
                         currentMap={currentMap}
                         trialKey={activeTrialKey}
@@ -688,7 +688,6 @@ export default function App() {
                         onSelectMap={(num) => setActiveStageNum(num)}
                         onScanningChange={setIsBatchScanning}
                     />
-                )}
 
                 {/* Map Pets Grid */}
                 <div ref={petGridWrapRef} className={searchQuery.trim() ? 'min-h-[80vh]' : undefined}>

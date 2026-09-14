@@ -38,6 +38,8 @@ interface HeaderProps {
     devBadge?: boolean;
     rightStatus?: React.ReactNode;
     centerStatus?: React.ReactNode;
+    /** 任意模态弹窗打开时为 true：Header 抬升到业务弹窗遮罩(z-50)之上保持可见，且不拦截点击（点击穿透到遮罩可关闭弹窗）。 */
+    modalActive?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -61,6 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
                                                   devBadge,
                                                   rightStatus,
                                                   centerStatus,
+                                                  modalActive = false,
                                               }) => {
     const updateState = useUpdateStore();
     const [currentTheme, setCurrentTheme] = useState<ThemeMode>(() => themeService.getTheme());
@@ -86,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <>
-        <header className="relative bg-[#7ABCF4] dark:bg-[#1e293b] border-b-4 border-[#5DA8E8] dark:border-[#334155] sticky top-0 z-30 shadow-md text-white select-none transition-colors duration-200">
+        <header className={`relative bg-[#7ABCF4] dark:bg-[#1e293b] border-b-4 border-[#5DA8E8] dark:border-[#334155] sticky top-0 ${modalActive ? 'z-[30] pointer-events-none' : 'z-30'} shadow-md text-white select-none transition-colors duration-200`}>
             <div className="mx-auto px-2 sm:px-4 lg:px-8 py-1.5 sm:py-2">
                 <div className="relative flex items-center justify-between gap-1.5 sm:gap-3">
                     {/* Logo & Kingdom Branding */}
