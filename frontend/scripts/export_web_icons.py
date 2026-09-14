@@ -11,6 +11,7 @@
   icons/sprite-1..N.png # 精灵雪碧图（ICONS_PER_SPRITE=100 → 当前 387 只 ≈ 4 张）
   icons/elements-sprite.png  # 属性雪碧图（6 列 × 3 行 = 18 格）
   elements/*.png        # 保留单张属性图（桌面/兜底用）
+  assets/*              # 从 frontend/public/assets 同步的公共图片资源
   （其余 logo / hub / 资源不变）
 """
 import io
@@ -197,10 +198,18 @@ def discover_trials() -> list:
 
 
 def prepare_public_assets(icons_dir, elements_dir, resources_dir):
-    """拷贝根级静态资源到 public-web，保证纯前端站点自包含。"""
+    """拷贝公共静态资源到 public-web，保证纯前端站点自包含。"""
     icons_dir.mkdir(parents=True, exist_ok=True)
     elements_dir.mkdir(parents=True, exist_ok=True)
     resources_dir.mkdir(parents=True, exist_ok=True)
+
+    # public/assets 同时服务桌面端与 Web 端，Web 构建不能把它丢掉。
+    assets_dir = OUT / "assets"
+    src_assets = ROOT / "frontend" / "public" / "assets"
+    if src_assets.exists():
+        shutil.copytree(src_assets, assets_dir, dirs_exist_ok=True)
+    else:
+        assets_dir.mkdir(parents=True, exist_ok=True)
 
     src_elements = ROOT / "frontend" / "public" / "elements"
     if src_elements.exists():
@@ -353,8 +362,12 @@ def main():
     if not DB.exists():
         raise SystemExit(f"[export_web_icons] 找不到数据库: {DB}")
 
-    if OUT.exists():
-        shutil.rmtree(OUT)
+    # 只清理本脚本生成的内容，保留 assets 等公共静态资源，避免 Web 构建反复丢文件。
+    for dirname in ("data", "icons", "elements", "resources", "icon"):
+        generated_dir = OUT / dirname
+        if generated_dir.exists():
+            shutil.rmtree(generated_dir)
+    OUT.mkdir(parents=True, exist_ok=True)
 
     trials = discover_trials()
     if not trials:
