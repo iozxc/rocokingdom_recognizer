@@ -27,6 +27,13 @@ def main() -> None:
     if activate_existing_if_visible():
         return
 
+    # WebView2 运行环境自检：缺失时弹出与主界面同风格的引导框并退出，
+    # 必须在任何 webview 窗口/重模块加载之前，否则缺组件的机器只会白屏
+    from desktop.webview_runtime import ensure_webview2_ready
+    if not ensure_webview2_ready():
+        logger.warning("缺少 WebView2 Runtime，已提示用户并终止启动")
+        return
+
     # 启动提示（加载进度条）：首次启动强制显示一次（roco_user_data.json 不存在），
     # 之后默认关闭，仅当用户在“系统设置/启动提示”里开启时才显示。
     hint = None

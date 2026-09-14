@@ -49,6 +49,49 @@ def _get_virtual_screen_bounds():
     return 0, 0, width, height
 
 
+def _get_dpi_scale():
+    """返回系统级“逻辑像素 -> 物理像素”缩放比（如 150% 缩放返回 1.5）。
+
+    main.py 已把进程设为 System-DPI-Aware，此后 GetSystemMetrics 返回的是
+    物理像素；而 pywebview 的窗口坐标/尺寸（window.x、保存的 window_state.json）
+    全部使用逻辑像素。两套坐标必须换算到同一坐标系后再比较，否则在高 DPI 屏幕
+    上做边界钳制会失真。System-Aware 下系统级缩放即窗口缩放，二者等价。
+    """
+    try:
+        # DEVICE_PRIMARY=0，返回主显示器缩放百分比（如 150）
+        percent = int(ctypes.windll.shcore.GetScaleFactorForDevice(0))
+        if percent >= 100:
+            return percent / 100.0
+    except Exception as e:
+        logger.debug(f"读取系统缩放比例失败，尝试 GetDpiForSystem: {e}")
+    try:
+        dpi = int(ctypes.windll.user32.GetDpiForSystem())
+        if dpi >= 96:
+            return dpi / 96.0
+    except Exception:
+        pass
+    return 1.0
+
+
+def _get_logical_screen_size():
+    """返回主显示器的逻辑分辨率（与 pywebview 坐标同坐标系）。"""
+    phys_w, phys_h = _get_screen_size()
+    scale = _get_dpi_scale()
+    return int(round(phys_w / scale)), int(round(phys_h / scale))
+
+
+def _get_logical_virtual_screen_bounds():
+    """返回整个虚拟桌面的逻辑 (左, 上, 宽, 高)，用于多显示器坐标校验。"""
+    left, top, width, height = _get_virtual_screen_bounds()
+    scale = _get_dpi_scale()
+    return (
+        int(round(left / scale)),
+        int(round(top / scale)),
+        int(round(width / scale)),
+        int(round(height / scale)),
+    )
+
+
 def _load_main_window_geometry():
     """读取并校验上一次的主窗口位置、大小；无效或越界时返回 None。"""
     try:
@@ -73,7 +116,9 @@ def _load_main_window_geometry():
     if width < _MAIN_WINDOW_MIN_WIDTH or height < _MAIN_WINDOW_MIN_HEIGHT:
         return None
 
-    screen_x, screen_y, screen_w, screen_h = _get_virtual_screen_bounds()
+    # window_state 与 pywebview 都是逻辑像素，这里也必须用逻辑虚拟屏比较，
+    # 否则高 DPI（如 150%）下会拿物理分辨率去钳制逻辑坐标，结果失真。
+    screen_x, screen_y, screen_w, screen_h = _get_logical_virtual_screen_bounds()
     if screen_w < _MAIN_WINDOW_MIN_WIDTH or screen_h < _MAIN_WINDOW_MIN_HEIGHT:
         return None
 
@@ -125,6 +170,10 @@ class WindowManager:
         self.scanner_topmost = True
         # 防止连点“跟随识别”并发创建多个子窗口导致卡死
         self._scanner_open_lock = threading.Lock()
+        # 主窗口位置/大小的运行期防抖落盘：开发态常用 IDE 强杀进程，
+        # closing 事件来不及触发，只在关闭时保存会导致下次启动“读不到”上次位置
+        self._geom_timer = None
+        self._geom_timer_lock = threading.Lock()
 
     @property
     def base_url(self) -> str:
@@ -178,7 +227,8 @@ class WindowManager:
         如果配置的窗口尺寸大于桌面分辨率（低分辨率小屏幕），
         则直接以全屏方式显示，避免窗口超出屏幕无法操作。
         """
-        screen_w, screen_h = _get_screen_size()
+        # 默认窗口常量与 pywebview 坐标都是逻辑像素，屏幕尺寸也取逻辑分辨率
+        screen_w, screen_h = _get_logical_screen_size()
         saved_geometry = _load_main_window_geometry()
 
         window_kwargs = {
@@ -220,21 +270,59 @@ class WindowManager:
         self.main_window = webview.create_window(**window_kwargs)
         self.main_window.events.closing += self._on_main_closing
         self.main_window.events.closed += self._on_main_closed
+        # 运行期防抖落盘：拖动/缩放停顿后即保存，IDE 强杀或崩溃也能保住最近位置
+        self.main_window.events.moved += self._schedule_geometry_save
+        self.main_window.events.resized += self._schedule_geometry_save
         logger.info("主窗口创建完成")
         return self.main_window
 
-    def _on_main_closing(self):
-        """关闭前记录主窗口位置和大小，供下次启动恢复。"""
+    def _collect_main_geometry(self):
+        """读取主窗口当前几何（逻辑像素）；窗口已销毁或读取失败时返回 None。"""
+        win = self.main_window
+        if win is None:
+            return None
         try:
-            win = self.main_window
-            if win is None:
-                return
-            state = {
+            return {
                 "x": int(win.x),
                 "y": int(win.y),
                 "width": max(_MAIN_WINDOW_MIN_WIDTH, int(win.width)),
                 "height": max(_MAIN_WINDOW_MIN_HEIGHT, int(win.height)),
             }
+        except Exception as e:
+            logger.debug(f"读取主窗口几何失败: {e}")
+            return None
+
+    def _schedule_geometry_save(self, *args):
+        """moved/resized 回调：0.8s 防抖后落盘，避免拖动过程中频繁写文件。"""
+        with self._geom_timer_lock:
+            if self._geom_timer is not None:
+                self._geom_timer.cancel()
+            timer = threading.Timer(0.8, self._persist_geometry_silent)
+            timer.daemon = True
+            self._geom_timer = timer
+            timer.start()
+
+    def _persist_geometry_silent(self):
+        """防抖落盘实现：只写文件不打日志，避免拖动时刷屏。"""
+        state = self._collect_main_geometry()
+        if state is None:
+            return
+        try:
+            _save_main_window_geometry(state)
+        except Exception as e:
+            logger.debug(f"防抖保存主窗口几何失败: {e}")
+
+    def _on_main_closing(self):
+        """关闭前记录主窗口位置和大小，供下次启动恢复。"""
+        state = self._collect_main_geometry()
+        if state is None:
+            return
+        try:
+            # 取消尚未触发的防抖保存，改为立即落盘一次
+            with self._geom_timer_lock:
+                if self._geom_timer is not None:
+                    self._geom_timer.cancel()
+                self._geom_timer = None
             _save_main_window_geometry(state)
             logger.info(
                 "已保存主窗口位置和大小: "
