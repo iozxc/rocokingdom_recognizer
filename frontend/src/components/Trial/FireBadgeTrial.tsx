@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode, AdvancedFilterState, FireSettings } from '../../types';
+import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode, AdvancedFilterState, FireSettings, SearchFilterPosition } from '../../types';
 import { fireStorage } from '../../services/fireStorage';
 import { getCachedFirePets, getFireTrialPetsCached, getFireMapPets } from '../../services/fireTrialData';
 import { storage } from '../../services/storage';
@@ -44,6 +44,9 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
+  const [searchFilterPosition, setSearchFilterPosition] = useState<SearchFilterPosition>(() => {
+    return storage.getSetting<SearchFilterPosition>('searchFilterPosition', 'position2');
+  });
   const [loaded, setLoaded] = useState<boolean>(initialPets !== null);
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', sound.getMuted());
@@ -104,6 +107,9 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       }
       if (newSettings.floatingButtonsMode) {
         setFloatingMode(newSettings.floatingButtonsMode);
+      }
+      if (newSettings.searchFilterPosition === 'position1' || newSettings.searchFilterPosition === 'position2') {
+        setSearchFilterPosition(newSettings.searchFilterPosition);
       }
       // 多端同步：远端 user_data.json 拉到最新 fire 专属设置时刷新本地展示态
       const fs = newSettings.fireSettings || {};
@@ -639,6 +645,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               onResetEncounters={handleResetCurrentMap}
               advancedFilters={advancedFilters}
               onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
+              searchFilterPosition={searchFilterPosition}
           />
 
           {/* 游戏画面识别（与草系一致；使用火系图鉴，trialKey=fire） */}
@@ -667,6 +674,10 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               searchQuery={searchQuery}
               searchMode={searchMode}
               advancedFilters={advancedFilters}
+              searchFilterPosition={searchFilterPosition}
+              onSearchChange={setSearchQuery}
+              onSearchModeChange={setSearchMode}
+              onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
               communityAtlas={showAtlasVote ? (communityAtlas ?? undefined) : undefined}
               minAgreeRatio={showAtlasVote ? minAgreeRatio : 0}
               onAtlasVote={showAtlasVote ? handleAtlasVote : undefined}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, Volume2, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, Camera, Settings2, ShieldCheck, ChevronDown, Sun, Moon, Info, LayoutGrid, Bug } from 'lucide-react';
-import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode } from '../types';
+import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode, SearchFilterPosition } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { themeService } from '../services/theme';
@@ -32,6 +32,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   });
   const [floatingMode, setFloatingMode] = useState<FloatingButtonsMode>(() => {
     return storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal');
+  });
+  const [searchFilterPosition, setSearchFilterPosition] = useState<SearchFilterPosition>(() => {
+    return storage.getSetting<SearchFilterPosition>('searchFilterPosition', 'position2');
   });
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', false);
@@ -78,6 +81,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     const unsubscribe = storage.subscribeSettings((settings) => {
       if (typeof settings.effectLevel === 'number') setEffectLevel(settings.effectLevel as EffectLevel);
       if (settings.floatingButtonsMode) setFloatingMode(settings.floatingButtonsMode);
+      if (settings.searchFilterPosition === 'position1' || settings.searchFilterPosition === 'position2') {
+        setSearchFilterPosition(settings.searchFilterPosition);
+      }
       if (typeof settings.isSoundMuted === 'boolean') setIsSoundMuted(settings.isSoundMuted);
       if (settings.captureMode === 'hwnd' || settings.captureMode === 'grab') setCaptureMode(settings.captureMode);
       if (typeof settings.showRecognitionSamples === 'boolean') setShowSamples(settings.showRecognitionSamples);
@@ -99,6 +105,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     if (!isOpen) return;
     setEffectLevel(storage.getSetting<EffectLevel>('effectLevel', 0));
     setFloatingMode(storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal'));
+    const savedSearchFilterPosition = storage.getSetting<SearchFilterPosition>('searchFilterPosition', 'position2');
+    setSearchFilterPosition(savedSearchFilterPosition);
     setIsSoundMuted(storage.getSetting<boolean>('isSoundMuted', false));
     const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'grab');
     if (savedCaptureMode === 'hwnd' || savedCaptureMode === 'grab') {
@@ -184,6 +192,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     sound.playClick();
     setFloatingMode(mode);
     storage.setSetting('floatingButtonsMode', mode);
+  };
+
+  const handleSelectSearchFilterPosition = (position: SearchFilterPosition) => {
+    sound.playClick();
+    setSearchFilterPosition(position);
+    storage.setSetting('searchFilterPosition', position);
   };
 
   const handleToggleSound = () => {
@@ -759,6 +773,36 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 >
                   移至顶栏
                 </button>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">搜索与筛选位置</div>
+                <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                  <button
+                      type="button"
+                      id="search-filter-position1-btn"
+                      onClick={() => handleSelectSearchFilterPosition('position1')}
+                      className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                          searchFilterPosition === 'position1'
+                              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                      }`}
+                  >
+                    位置1
+                  </button>
+                  <button
+                      type="button"
+                      id="search-filter-position2-btn"
+                      onClick={() => handleSelectSearchFilterPosition('position2')}
+                      className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                          searchFilterPosition === 'position2'
+                              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                      }`}
+                  >
+                    位置2
+                  </button>
+                </div>
               </div>
 
             </div>

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Sparkles, RotateCcw, MapPin, CheckCircle2, X, ArrowUpCircle, Filter } from 'lucide-react';
-import { MapConfig, PetItem, AdvancedFilterState } from '../types';
+import { Sparkles, RotateCcw, MapPin, ArrowUpCircle } from 'lucide-react';
+import { MapConfig, PetItem, AdvancedFilterState, SearchFilterPosition } from '../types';
 import { sound } from '../services/sound';
 import { ConfirmDialog } from './ConfirmDialog';
-import { AdvancedFilterPopover } from './AdvancedFilterPopover';
-import { PetSearchBox } from './PetSearchBox';
+import { SearchFilterToolbar } from './SearchFilterToolbar';
 import { PetSearchMode } from '../utils/skillSearch';
 
 interface StatsBannerProps {
@@ -26,6 +25,8 @@ interface StatsBannerProps {
     dataUpdateAvailable?: boolean;
     advancedFilters: AdvancedFilterState;
     onAdvancedFilterChange: (filters: AdvancedFilterState) => void;
+    /** position1=留在统计栏，position2=移到 PetGrid 右上角。 */
+    searchFilterPosition: SearchFilterPosition;
 }
 
 export const StatsBanner: React.FC<StatsBannerProps> = ({
@@ -45,12 +46,10 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                                             dataUpdateAvailable,
                                                             advancedFilters,
                                                             onAdvancedFilterChange,
+                                                            searchFilterPosition,
                                                         }) => {
     const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
-    const [isAdvancedOpen, setIsAdvancedOpen] = useState<boolean>(false);
     const unencounteredCount = Math.max(0, totalMapPets - encounteredCount);
-
-    const activeAdvancedCount = advancedFilters.elements.length + advancedFilters.specialTypes.length;
 
 
 
@@ -174,105 +173,28 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                 onCancel={() => setIsConfirmOpen(false)}
             />
 
-            {/* Integrated Divider Line */}
-            <div className="border-t border-[#E6EEF8] dark:border-slate-800 relative z-10" />
+            {searchFilterPosition === 'position1' && (
+                <>
+                    {/* Integrated Divider Line */}
+                    <div className="border-t border-[#E6EEF8] dark:border-slate-800 relative z-10" />
 
-            {/* Bottom Row: Filter Tabs & Search Controls */}
-            {/* 注意：不要给这一行加 z-index。搜索候选下拉用 z-40，若给父级加 z-index 会形成
-                stacking context，把下拉锁死在较低层级，导致被下方 pet 卡片的系别图标（z-10/z-20）盖住。 */}
-            <div className="relative flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 sm:gap-3 pt-0.5">
-                {/* Filter Mode Buttons */}
-                <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#F5F9FF] dark:bg-slate-800 rounded-xl border border-[#E2E8F0] dark:border-slate-700 w-full md:w-auto overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0">
-                    <button
-                        type="button"
-                        id="filter-all-btn"
-                        onClick={() => {
-                            sound.playClick();
-                            onFilterChange('all');
-                        }}
-                        className={`flex-1 md:flex-initial px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
-                            filterMode === 'all'
-                                ? 'bg-white dark:bg-slate-700 text-[#2B78C4] dark:text-sky-300 border-[#7ABCF4] dark:border-sky-500 shadow-2xs'
-                                : 'bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
-                        }`}
-                    >
-                        全部 ({totalMapPets})
-                    </button>
-                    <button
-                        type="button"
-                        id="filter-encountered-btn"
-                        onClick={() => {
-                            sound.playClick();
-                            onFilterChange('encountered');
-                        }}
-                        className={`flex-1 md:flex-initial px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
-                            filterMode === 'encountered'
-                                ? 'bg-[#95D151] text-white border-[#76B032] shadow-2xs'
-                                : 'bg-transparent text-[#2D6613] dark:text-emerald-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
-                        }`}
-                    >
-                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                        已遇 ({encounteredCount})
-                    </button>
-                    <button
-                        type="button"
-                        id="filter-unencountered-btn"
-                        onClick={() => {
-                            sound.playClick();
-                            onFilterChange('unencountered');
-                        }}
-                        className={`flex-1 md:flex-initial px-3 py-1.5 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1 cursor-pointer whitespace-nowrap border ${
-                            filterMode === 'unencountered'
-                                ? 'bg-[#FEE061] text-[#854D0E] border-[#E5C43B] shadow-2xs'
-                                : 'bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-transparent'
-                        }`}
-                    >
-                        <X className="w-3.5 h-3.5 shrink-0" />
-                        未遇 ({unencounteredCount})
-                    </button>
-                </div>
-
-                {/* Search Input and Advanced Filter with Popover */}
-                <div className="flex items-center gap-2 w-full md:w-auto relative">
-                    <PetSearchBox
+                    {/* Position 1: filter tabs + search controls remain in StatsBanner */}
+                    <SearchFilterToolbar
                         pets={pets}
+                        encounteredCount={encounteredCount}
+                        totalCount={totalMapPets}
+                        filterMode={filterMode}
+                        onFilterChange={onFilterChange}
                         searchQuery={searchQuery}
                         searchMode={searchMode}
                         onSearchChange={onSearchChange}
                         onSearchModeChange={onSearchModeChange}
+                        advancedFilters={advancedFilters}
+                        onAdvancedFilterChange={onAdvancedFilterChange}
+                        layout="banner"
                     />
-
-                    <div className="relative shrink-0">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                sound.playClick();
-                                setIsAdvancedOpen(!isAdvancedOpen);
-                            }}
-                            className={`p-2 rounded-xl border-2 transition-all flex items-center justify-center gap-1 cursor-pointer hover:scale-105 active:scale-95 ${
-                                activeAdvancedCount > 0
-                                    ? 'bg-[#F0F7FF] dark:bg-slate-800 border-[#7ABCF4] dark:border-sky-500 text-[#2B78C4] dark:text-sky-300'
-                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-[#7ABCF4] hover:text-[#2B78C4]'
-                            }`}
-                            title="高级筛选"
-                        >
-                            <Filter className="w-4 h-4" />
-                            {activeAdvancedCount > 0 && (
-                                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white">
-                                    {activeAdvancedCount}
-                                </span>
-                            )}
-                        </button>
-
-                        <AdvancedFilterPopover
-                            isOpen={isAdvancedOpen}
-                            onClose={() => setIsAdvancedOpen(false)}
-                            filters={advancedFilters}
-                            onChange={onAdvancedFilterChange}
-                        />
-                    </div>
-                </div>
-            </div>
+                </>
+            )}
         </div>
     );
 };

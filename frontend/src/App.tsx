@@ -35,7 +35,7 @@ import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
 import { IS_STATIC } from './services/staticMode';
-import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState } from './types';
+import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState, SearchFilterPosition } from './types';
 import { isPetEncounteredInRecords } from './utils/petHelper';
 import { PetSearchMode } from './utils/skillSearch';
 
@@ -48,6 +48,9 @@ export default function App() {
   const [filterMode, setFilterMode] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
+  const [searchFilterPosition, setSearchFilterPosition] = useState<SearchFilterPosition>(() => {
+    return storage.getSetting<SearchFilterPosition>('searchFilterPosition', 'position2');
+  });
   // 下滑浏览结果时，把搜索框固定在 header 下方（搜索行滚出可视区即显示）
   const [floatingSearch, setFloatingSearch] = useState<{ visible: boolean; top: number }>({
     visible: false,
@@ -284,6 +287,9 @@ export default function App() {
       }
       if (typeof newSettings.homeScrollbarWidth === 'number') {
         setHomeScrollbarWidth(newSettings.homeScrollbarWidth);
+      }
+      if (newSettings.searchFilterPosition === 'position1' || newSettings.searchFilterPosition === 'position2') {
+        setSearchFilterPosition(newSettings.searchFilterPosition);
       }
       if (typeof newSettings.activeStageNum === 'number' && [1, 2, 3].includes(newSettings.activeStageNum)) {
         setActiveStageNum(newSettings.activeStageNum);
@@ -667,6 +673,7 @@ export default function App() {
                     dataUpdateAvailable={dataUpdateAvailable}
                     advancedFilters={advancedFilters}
                     onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
+                    searchFilterPosition={searchFilterPosition}
                 />
                 </div>
 
@@ -702,6 +709,10 @@ export default function App() {
                       setIsFeedbackOpen(true);
                     }}
                     advancedFilters={advancedFilters}
+                    searchFilterPosition={searchFilterPosition}
+                    onSearchChange={handleSearchChange}
+                    onSearchModeChange={handleSearchModeChange}
+                    onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
                 />
                 </div>
               </>

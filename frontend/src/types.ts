@@ -242,6 +242,7 @@ export type EffectLevel = 0 | 1 | 2 | 3;
 export type FloatingButtonsMode = 'normal' | 'compact' | 'hidden';
 export type CaptureMode = 'hwnd' | 'grab';
 export type ThemeMode = 'light' | 'dark';
+export type SearchFilterPosition = 'position1' | 'position2';
 
 export interface FireSettings {
   agreeRatio?: number; // 火系赞同率阈值 0~1（默认 0）
@@ -270,6 +271,7 @@ export interface AppSettings {
   showPetSkillHover?: boolean; // petgrid 卡片 hover 时是否展示精灵技能面板（默认开启）
   showHomeScrollbar?: boolean; // 首页自定义滚动条是否显示（默认关闭）
   homeScrollbarWidth?: number; // 首页自定义滚动条宽度 px（默认 10）
+  searchFilterPosition?: SearchFilterPosition; // 搜索/筛选位置：position1=统计栏，position2=PetGrid 右上角（默认）
   [key: string]: unknown;
 }
 

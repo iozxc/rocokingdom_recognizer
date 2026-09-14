@@ -647,7 +647,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 目标地图:<Info className="w-3 h-3 text-slate-400" />
               </span>
             </HintTooltip>
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden min-w-0 flex-1">
+            <div className="grid grid-cols-3 gap-1.5 lg:flex lg:items-center lg:gap-2 lg:flex-1 w-full lg:w-auto min-w-0">
               {MAP_CONFIGS.map((map) => {
                 const isSelected = selectedMapNum === map.num;
                 const mapPets = allMapsPets[`map${map.num}`]?.items || [];
@@ -664,14 +664,14 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           if (onSelectMap) onSelectMap(map.num);
                         }}
                         disabled={isScanning}
-                        className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1 sm:gap-1.5 border-2 whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                        className={`min-w-0 w-full lg:w-auto justify-center px-1.5 sm:px-2 lg:px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-black transition-all flex flex-col min-[420px]:flex-row items-center gap-0.5 min-[420px]:gap-1 lg:gap-1.5 border-2 whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                             isSelected
                                 ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs'
                                 : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#E2E8F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500'
                         }`}
                     >
-                      <span>{map.num}、{shortName}</span>
-                      <span className={`text-[10px] font-mono ${isSelected ? 'text-white/90' : 'text-slate-400'}`}>
+                      <span className="truncate max-w-full">{map.num}、{shortName}</span>
+                      <span className={`text-[9px] sm:text-[10px] font-mono ${isSelected ? 'text-white/90' : 'text-slate-400'}`}>
                         ({encCount}/{totalPets})
                       </span>
                     </button>
@@ -680,12 +680,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
             </div>
 
             {/* 识别专业参数（识别门槛 / 候选数量）收进小弹窗，正常使用无需调整 */}
-            <div className="relative shrink-0" ref={recogSettingsRef}>
+            <div className="relative shrink-0 w-full lg:w-auto" ref={recogSettingsRef}>
               <button
                   type="button"
                   onClick={() => { sound.playClick(); setShowRecogSettings((v) => !v); }}
                   disabled={isScanning}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black border-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`w-full lg:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black border-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       showRecogSettings
                           ? 'bg-[#7ABCF4] text-white border-[#5DA8E8] dark:border-sky-400 shadow-xs'
                           : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#E2E8F0] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500'

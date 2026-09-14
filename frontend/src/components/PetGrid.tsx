@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Sparkles, Check, Sparkle, Filter, Info, Bug, RotateCcw } from 'lucide-react';
-import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState } from '../types';
+import { Sparkles, Check, Sparkle, Info, Bug, RotateCcw } from 'lucide-react';
+import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState, SearchFilterPosition } from '../types';
 import { sound } from '../services/sound';
 import { IS_STATIC } from '../services/staticMode';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecialType } from '../utils/petHelper';
@@ -11,6 +11,7 @@ import { PetSpecialTag } from './PetSpecialTag';
 import { PetSkillPanel } from './PetSkillPanel';
 import { petKeyOf } from '../services/atlasCollector';
 import { storage } from '../services/storage';
+import { SearchFilterToolbar } from './SearchFilterToolbar';
 
 interface PetGridProps {
   currentMap: MapConfig;
@@ -25,6 +26,11 @@ interface PetGridProps {
   onOpenPetDetail?: (pet: PetItem) => void;
   onOpenFeedback?: (type: string, pet: PetItem) => void;
   advancedFilters: AdvancedFilterState;
+  /** 搜索/筛选位置：position2 时显示在 PetGrid 标题栏右侧。 */
+  searchFilterPosition?: SearchFilterPosition;
+  onSearchChange?: (query: string) => void;
+  onSearchModeChange?: (mode: PetSearchMode) => void;
+  onAdvancedFilterChange?: (filters: AdvancedFilterState) => void;
   /** 开荒图鉴：按展示名 -> 社区数据（含赞同率 / 我是否已投）。 */
   communityAtlas?: Record<string, {
     confirmed_by: number;
@@ -52,6 +58,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
   onOpenPetDetail,
   onOpenFeedback,
   advancedFilters,
+  searchFilterPosition = 'position2',
+  onSearchChange,
+  onSearchModeChange,
+  onAdvancedFilterChange,
   communityAtlas,
   minAgreeRatio = 0,
   onAtlasVote,
@@ -74,6 +84,9 @@ export const PetGrid: React.FC<PetGridProps> = ({
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const totalCount = pets.length;
+  const showSearchFilterToolbar = Boolean(
+    searchFilterPosition === 'position2' && onSearchChange && onSearchModeChange && onAdvancedFilterChange,
+  );
 
   useEffect(() => {
     const unsub = storage.subscribeSettings((settings) => {
@@ -213,33 +226,53 @@ export const PetGrid: React.FC<PetGridProps> = ({
   return (
       <div className="bg-white dark:bg-slate-800 roco-card p-5 sm:p-6 border-2 border-transparent dark:border-slate-700/80 transition-colors">
         {/* Section Header */}
-        <div className="flex items-center justify-between gap-3 pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
-          <div className="flex items-center gap-2.5">
-            <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0 shadow-xs"
-                style={{ backgroundColor: currentMap.themeColor }}
-            >
-              {currentMap.num}
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 flex-wrap">
-                <span>{currentMap.name}</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] dark:bg-slate-800 text-[#2B78C4] dark:text-sky-300 font-mono font-black border border-[#E6EEF8] dark:border-slate-700 flex items-center gap-1">
-                <span>已遇见 <strong className="text-[#2D6613] dark:text-emerald-400 font-black">{encounteredCount}</strong> / {totalCount}</span>
-                  {filterMode !== 'all' && (
-                      <span className="text-[10px] text-slate-400 dark:text-slate-400 font-normal">
-                    (当前显示 {filteredPets.length})
+        <div className="pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0 shadow-xs"
+                  style={{ backgroundColor: currentMap.themeColor }}
+              >
+                {currentMap.num}
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 flex-wrap">
+                  <span>{currentMap.name}</span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] dark:bg-slate-800 text-[#2B78C4] dark:text-sky-300 font-mono font-black border border-[#E6EEF8] dark:border-slate-700 flex items-center gap-1">
+                    <span>已遇见 <strong className="text-[#2D6613] dark:text-emerald-400 font-black">{encounteredCount}</strong> / {totalCount}</span>
+                    {filterMode !== 'all' && (
+                        <span className="text-[10px] text-slate-400 dark:text-slate-400 font-normal">
+                          (当前显示 {filteredPets.length})
+                        </span>
+                    )}
                   </span>
-                  )}
-              </span>
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                点击卡片即可直接切换【已遇见 / 未遇见】状态
-              </p>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  点击卡片即可直接切换【已遇见 / 未遇见】状态
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
+          {showSearchFilterToolbar && (
+            <div className="w-full pt-3 mt-3 border-t border-slate-100 dark:border-slate-700/70">
+              <SearchFilterToolbar
+                pets={pets}
+                encounteredCount={encounteredCount}
+                totalCount={totalCount}
+                filterMode={filterMode}
+                onFilterChange={onFilterChange || (() => {})}
+                searchQuery={searchQuery}
+                searchMode={searchMode}
+                onSearchChange={onSearchChange!}
+                onSearchModeChange={onSearchModeChange!}
+                advancedFilters={advancedFilters}
+                onAdvancedFilterChange={onAdvancedFilterChange!}
+                layout="grid"
+              />
+            </div>
+          )}
+        </div>
         {/* Empty State */}
         {filteredPets.length === 0 ? (
             <div className="py-16 text-center text-slate-400 flex flex-col items-center">
