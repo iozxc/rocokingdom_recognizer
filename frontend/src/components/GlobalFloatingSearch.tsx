@@ -17,8 +17,11 @@ import {
   Database,
   ListFilter,
   Flame,
+  Wand2,
 } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, FloatingButtonsMode } from '../types';
+import { PetSearchMode, petMatchesSkillQuery } from '../utils/skillSearch';
+import { resolvePetSkillsAndTrait } from '../data/petSkillMock';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
@@ -89,6 +92,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
   const hasFireAtlas = !!onOpenFireAtlas || !!onToggleAtlasMode;
 
   const [searchQuery, setSearchQuery] = useState<string>('');
+  // 搜索模式：'name'=精灵名/图鉴id/地图（默认）；'skill'=技能名/描述、特性名/描述
+  const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
   const [selectedMapFilter, setSelectedMapFilter] = useState<number | 'all'>('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<'all' | 'unencountered' | 'encountered'>('all');
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
@@ -154,6 +159,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
       setFocusedIndex(0);
     } else {
       setSearchQuery('');
+      setSearchMode('name');
     }
   }, [isSearchOpen]);
 
@@ -207,12 +213,13 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
         const baseMatch = getBasePetName(item.rawName).toLowerCase().includes(q);
         const mapMatch = item.mapConfig.name.toLowerCase().includes(q);
         const idMatch = String(item.pet.id ?? '').includes(q);
+        if (searchMode === 'skill') return petMatchesSkillQuery(item.pet, q);
         return cleanMatch || rawMatch || baseMatch || mapMatch || idMatch;
       }
 
       return true;
     });
-  }, [allPetsList, searchQuery, selectedMapFilter, selectedStatusFilter]);
+  }, [allPetsList, searchQuery, searchMode, selectedMapFilter, selectedStatusFilter]);
 
   // Overall Statistics for Search Palette
   const totalAllPets = allPetsList.length;
@@ -236,6 +243,25 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
         handleSelectPet(targetItem);
       }
     }
+  };
+
+  // 技能/特性模式下，找出某只精灵命中关键词的技能/特性名称（用于卡片标注命中来源）
+  const getMatchedSkillTags = (item: GlobalSearchPetResult): { type: 'skill' | 'trait'; label: string }[] => {
+    if (searchMode !== 'skill') return [];
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return [];
+    const { trait, skills } = resolvePetSkillsAndTrait(item.pet);
+    const hits: { type: 'skill' | 'trait'; label: string }[] = [];
+    if (trait?.name && (trait.name.toLowerCase().includes(q) || (trait.desc || '').toLowerCase().includes(q))) {
+      hits.push({ type: 'trait', label: trait.name });
+    }
+    for (const s of skills) {
+      if (s?.name && (s.name.toLowerCase().includes(q) || (s.desc || '').toLowerCase().includes(q))) {
+        hits.push({ type: 'skill', label: s.name });
+        if (hits.length >= 3) break;
+      }
+    }
+    return hits;
   };
 
   const handleSelectPet = (item: GlobalSearchPetResult) => {
@@ -529,7 +555,10 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
 
                   {/* Large Input Box */}
                   <div className="relative">
-                    <Search className="w-5 h-5 text-[#7ABCF4] absolute left-4 top-1/2 -translate-y-1/2" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5">
+                      <Search className={`absolute inset-0 w-5 h-5 text-[#7ABCF4] transition-opacity duration-200 ${searchMode === 'skill' ? 'opacity-0' : 'opacity-100'}`} />
+                      <Sparkles className={`absolute inset-0 w-5 h-5 text-violet-500 transition-opacity duration-200 ${searchMode === 'skill' ? 'opacity-100' : 'opacity-0'}`} />
+                    </div>
                     <input
                         ref={inputRef}
                         type="text"
@@ -539,16 +568,37 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           setFocusedIndex(0);
                         }}
                         onKeyDown={handleKeyDownInInput}
-                        placeholder="输入精灵名、图鉴id实时查找..."
-                        className="w-full pl-12 pr-10 py-3 text-sm sm:text-base bg-white dark:bg-slate-800 border-2 border-[#BCD7F2] dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-400 rounded-2xl outline-hidden text-slate-800 dark:text-slate-100 font-bold shadow-inner transition-all placeholder:text-slate-400 placeholder:font-normal"
+                        placeholder={searchMode === 'skill' ? '输入技能/特性名或描述，查找拥有它的精灵...' : '输入精灵名、图鉴id实时查找...'}
+                        className={`w-full pl-12 ${searchQuery ? 'pr-24' : 'pr-14'} py-3 text-sm sm:text-base bg-white dark:bg-slate-800 border-2 rounded-2xl outline-hidden text-slate-800 dark:text-slate-100 font-bold shadow-inner transition-colors duration-200 placeholder:font-normal ${
+                            searchMode === 'skill'
+                                ? 'border-violet-300 dark:border-violet-500/60 focus:border-violet-500 dark:focus:border-violet-400 bg-violet-50/50 dark:bg-slate-800 placeholder:text-violet-400'
+                                : 'border-[#BCD7F2] dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-400 placeholder:text-slate-400'
+                        }`}
                     />
+                    <button
+                        type="button"
+                        onClick={() => {
+                          sound.playClick();
+                          setSearchMode(searchMode === 'skill' ? 'name' : 'skill');
+                          setFocusedIndex(0);
+                          inputRef.current?.focus();
+                        }}
+                        title={searchMode === 'skill' ? '当前为技能/特性搜索，点击切回精灵名/图鉴id搜索' : '开启技能/特性搜索（按技能名、技能描述、特性名、特性描述查找精灵）'}
+                        className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer border focus:outline-none ${
+                            searchMode === 'skill'
+                                ? 'bg-violet-100 dark:bg-violet-500/25 border-violet-300 text-violet-600 dark:text-violet-300'
+                                : 'bg-transparent border-transparent text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10'
+                        }`}
+                    >
+                      <Wand2 className="w-4 h-4" />
+                    </button>
                     {searchQuery && (
                         <button
                             onClick={() => {
                               setSearchQuery('');
                               inputRef.current?.focus();
                             }}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer"
+                            className="absolute right-12 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer focus:outline-none"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -646,7 +696,11 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
 
                 {/* Results Counter Banner */}
                 <div className="px-5 py-2 bg-[#F5F9FF] dark:bg-slate-800/80 border-b border-[#E6EEF8] dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold shrink-0">
-                  <span>找到 <strong className="text-[#2B78C4] dark:text-sky-400">{filteredResults.length}</strong> 只相关精灵</span>
+                  <span>
+                    {searchMode === 'skill' ? '找到 ' : '找到 '}
+                    <strong className="text-[#2B78C4] dark:text-sky-400">{filteredResults.length}</strong>
+                    {searchMode === 'skill' ? ' 只拥有相关技能/特性的精灵' : ' 只相关精灵'}
+                  </span>
                   <span className="text-[11px] text-slate-400 hidden sm:inline-block">
                 点击精灵卡片即可快速跳转至该地图并定位 · 或点击右侧快捷勾选
               </span>
@@ -664,7 +718,9 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         </div>
                         <p className="text-sm font-black text-slate-700 dark:text-slate-200">未找到符合条件的精灵</p>
                         <p className="text-xs text-slate-400 mt-1">
-                          请尝试检查拼写，或切换地图/遇见状态筛选条件
+                          {searchMode === 'skill'
+                            ? '请尝试更换技能/特性关键词，或点输入框右侧按钮切回精灵名搜索'
+                            : '请尝试检查拼写，或切换地图/遇见状态筛选条件'}
                         </p>
                       </div>
                   ) : (
@@ -730,6 +786,17 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                             </span>
                                   </div>
 
+                                  {searchMode === 'skill' && (
+                                    <div className="mt-0.5 flex flex-wrap gap-1">
+                                      {getMatchedSkillTags(item).map((tag) => (
+                                        <span key={tag.label} className={`text-[10px] font-black px-1.5 py-0.5 rounded-md border ${
+                                            tag.type === 'skill'
+                                                ? 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/30'
+                                                : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30'
+                                        }`}>{tag.type === 'skill' ? '技能 · ' : '特性 · '}{tag.label}</span>
+                                      ))}
+                                    </div>
+                                  )}
                                   {/* Secondary status text */}
                                   <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5">
                                     {item.isEncountered ? (

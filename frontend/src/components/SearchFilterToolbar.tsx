@@ -19,6 +19,8 @@ interface SearchFilterToolbarProps {
   advancedFilters: AdvancedFilterState;
   onAdvancedFilterChange: (filters: AdvancedFilterState) => void;
   layout?: 'banner' | 'grid';
+  /** 顶部悬浮搜索栏出现时，隐藏原位搜索输入框（避免两个搜索框重复）。 */
+  hideSearchInput?: boolean;
   className?: string;
 }
 
@@ -35,6 +37,7 @@ export const SearchFilterToolbar: React.FC<SearchFilterToolbarProps> = ({
   advancedFilters,
   onAdvancedFilterChange,
   layout = 'banner',
+  hideSearchInput = false,
   className = '',
 }) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState<boolean>(false);
@@ -105,6 +108,7 @@ export const SearchFilterToolbar: React.FC<SearchFilterToolbarProps> = ({
         searchMode={searchMode}
         onSearchChange={onSearchChange}
         onSearchModeChange={onSearchModeChange}
+        hideInput={hideSearchInput}
         containerClassName={
           isGridLayout
             ? 'relative flex-1 min-w-0'

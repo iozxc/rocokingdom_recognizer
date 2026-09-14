@@ -27,6 +27,8 @@ interface StatsBannerProps {
     onAdvancedFilterChange: (filters: AdvancedFilterState) => void;
     /** position1=留在统计栏，position2=移到 PetGrid 右上角。 */
     searchFilterPosition: SearchFilterPosition;
+    /** 顶部悬浮搜索栏出现时，隐藏原位搜索框（避免重复）。 */
+    hideSearchInput?: boolean;
 }
 
 export const StatsBanner: React.FC<StatsBannerProps> = ({
@@ -47,6 +49,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                                             advancedFilters,
                                                             onAdvancedFilterChange,
                                                             searchFilterPosition,
+                                                            hideSearchInput = false,
                                                         }) => {
     const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
     const unencounteredCount = Math.max(0, totalMapPets - encounteredCount);
@@ -192,6 +195,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                         advancedFilters={advancedFilters}
                         onAdvancedFilterChange={onAdvancedFilterChange}
                         layout="banner"
+                        hideSearchInput={hideSearchInput}
                     />
                 </>
             )}

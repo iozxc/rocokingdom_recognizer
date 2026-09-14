@@ -28,6 +28,8 @@ interface PetGridProps {
   advancedFilters: AdvancedFilterState;
   /** 搜索/筛选位置：position2 时显示在 PetGrid 标题栏右侧。 */
   searchFilterPosition?: SearchFilterPosition;
+  /** 顶部悬浮搜索栏出现时，隐藏原位搜索框（避免重复）。 */
+  hideSearchInput?: boolean;
   onSearchChange?: (query: string) => void;
   onSearchModeChange?: (mode: PetSearchMode) => void;
   onAdvancedFilterChange?: (filters: AdvancedFilterState) => void;
@@ -59,6 +61,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
   onOpenFeedback,
   advancedFilters,
   searchFilterPosition = 'position2',
+  hideSearchInput = false,
   onSearchChange,
   onSearchModeChange,
   onAdvancedFilterChange,
@@ -269,6 +272,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                 advancedFilters={advancedFilters}
                 onAdvancedFilterChange={onAdvancedFilterChange!}
                 layout="grid"
+                hideSearchInput={hideSearchInput}
               />
             </div>
           )}

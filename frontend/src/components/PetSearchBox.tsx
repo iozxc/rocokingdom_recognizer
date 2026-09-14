@@ -16,6 +16,8 @@ interface PetSearchBoxProps {
   containerClassName?: string;
   /** 输入框 DOM id（同一页面可能出现多个搜索框，避免 id 冲突）。 */
   inputId?: string;
+  /** 顶部悬浮搜索栏出现时，原位搜索框平滑淡出（仍占位，避免布局跳动）。 */
+  hideInput?: boolean;
 }
 
 /**
@@ -30,6 +32,7 @@ export const PetSearchBox: React.FC<PetSearchBoxProps> = ({
   onSearchModeChange,
   containerClassName = 'relative flex-1 md:w-88 lg:w-112',
   inputId = 'search-pet-input',
+  hideInput = false,
 }) => {
   const isDefaultId = inputId === 'search-pet-input';
   const toggleBtnId = isDefaultId ? 'skill-search-toggle-btn' : `${inputId}-toggle-btn`;
@@ -61,7 +64,11 @@ export const PetSearchBox: React.FC<PetSearchBoxProps> = ({
   };
 
   return (
-      <div className={containerClassName}>
+      <div
+          className={`${containerClassName} transition-opacity duration-300 ease-out ${
+            hideInput ? 'opacity-0 invisible pointer-events-none' : 'opacity-100'
+          }`}
+      >
         {searchMode === 'skill' ? (
             <Sparkles className="w-4 h-4 text-violet-500 dark:text-violet-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         ) : (

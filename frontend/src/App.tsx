@@ -58,7 +58,7 @@ export default function App() {
   });
   const statsBannerWrapRef = useRef<HTMLDivElement>(null);
   const petGridWrapRef = useRef<HTMLDivElement>(null);
-  const floatingSearchCacheRef = useRef({ visible: false, top: 0, latched: false });
+  const floatingSearchCacheRef = useRef({ visible: false, top: 0 });
   // 记录「悬浮输入时」的滚动位置，筛选列表变短导致页面收缩时仍回到原处，避免闪回顶部
   const searchScrollCaptureRef = useRef<number | null>(null);
 
@@ -360,10 +360,10 @@ export default function App() {
     let rafId = 0;
     const update = () => {
       rafId = 0;
-      const bannerWrap = statsBannerWrapRef.current;
-      const gridWrap = petGridWrapRef.current;
       const headerEl = document.querySelector('header');
-      if (!bannerWrap || !gridWrap || !headerEl) {
+      // 以「原位搜索框」为唯一锚点：它被顶部 header 遮住时，用悬浮搜索框接力
+      const inputEl = document.getElementById('search-pet-input');
+      if (!headerEl || !inputEl) {
         if (floatingSearchCacheRef.current.visible) {
           floatingSearchCacheRef.current.visible = false;
           setFloatingSearch((prev) => (prev.visible ? { ...prev, visible: false } : prev));
@@ -373,23 +373,24 @@ export default function App() {
       // header 可能随内容滚走（sticky 受外层影响），但高度基本恒定：
       // 悬浮栏始终固定在「页面顶部往下一行 header 高度」的位置
       const headerHeight = headerEl.getBoundingClientRect().height || 56;
-      const gridRect = gridWrap.getBoundingClientRect();
-      const inputEl = bannerWrap ? document.getElementById('search-pet-input') : null;
-      const inputTop = inputEl ? inputEl.getBoundingClientRect().top : Number.MAX_SAFE_INTEGER;
+      const inputTop = inputEl.getBoundingClientRect().top;
       const floatingInput = document.getElementById('floating-search-pet-input');
       const floatingFocused = !!floatingInput && document.activeElement === floatingInput;
-      // 滑到 petgrid 卡片区（其顶部滚到 header 下方）才显示悬浮搜索
-      const gridReached =
-          window.scrollY > 4 &&
-          gridRect.top < headerHeight + 4 &&
-          gridRect.bottom > headerHeight + 4;
-      // 原搜索行重新回到视野
-      const bannerSearchVisible = inputTop >= headerHeight + 4;
       const cache = floatingSearchCacheRef.current;
-      // 一旦进入 petgrid 即锁定显示；回到顶部搜索行且悬浮框未聚焦时才收起
-      if (gridReached) cache.latched = true;
-      if (cache.latched && bannerSearchVisible && !floatingFocused) cache.latched = false;
-      const visible = cache.latched || floatingFocused || gridReached;
+      // 带回差的显隐（只由滚动位置决定）：原位框顶部滚到 header 下沿即显示，
+      // 回到 header 下方 28px 才隐藏（临界区间不抖动）；不监听 focusout，
+      // 因此点击页面空白处让输入框失焦，悬浮框也不会消失；
+      // 仅当正在悬浮框里输入时保持显示，避免筛选导致页面收缩把框藏掉。
+      const showAt = headerHeight + 2;
+      const hideAt = headerHeight + 28;
+      let visible: boolean;
+      if (window.scrollY <= 4 && !floatingFocused) {
+        visible = false;
+      } else if (cache.visible) {
+        visible = floatingFocused || inputTop <= hideAt;
+      } else {
+        visible = floatingFocused || inputTop < showAt;
+      }
       const top = headerHeight + 8;
       if (cache.visible !== visible || Math.abs(cache.top - top) > 0.5) {
         cache.visible = visible;
@@ -404,13 +405,9 @@ export default function App() {
     update();
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
-    window.addEventListener('focusout', schedule);
-    window.addEventListener('focusin', schedule);
     return () => {
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
-      window.removeEventListener('focusout', schedule);
-      window.removeEventListener('focusin', schedule);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
@@ -674,6 +671,7 @@ export default function App() {
                     advancedFilters={advancedFilters}
                     onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
                     searchFilterPosition={searchFilterPosition}
+                    hideSearchInput={floatingSearch.visible}
                 />
                 </div>
 
@@ -710,6 +708,7 @@ export default function App() {
                     }}
                     advancedFilters={advancedFilters}
                     searchFilterPosition={searchFilterPosition}
+                    hideSearchInput={floatingSearch.visible}
                     onSearchChange={handleSearchChange}
                     onSearchModeChange={handleSearchModeChange}
                     onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}

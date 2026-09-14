@@ -71,7 +71,7 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                   className="group relative overflow-hidden rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer text-left"
                   title="点击进入"
                 >
-                  <div className={`relative w-full aspect-[16/10] bg-gradient-to-br ${a.gradient} flex items-center justify-center`}>
+                  <div className={`relative w-full aspect-square bg-gradient-to-br ${a.gradient} flex items-center justify-center border-b border-[#EDF3FA] dark:border-slate-700/60`}>
                     <Icon className="w-10 h-10 text-white/70" />
                     {a.image && (
                       <img
@@ -121,7 +121,7 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                   className="group relative overflow-hidden rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer text-left"
                   title="点击进入"
                 >
-                  <div className={`relative w-full aspect-[16/10] bg-gradient-to-br ${a.gradient} flex items-center justify-center`}>
+                  <div className={`relative w-full aspect-square bg-gradient-to-br ${a.gradient} flex items-center justify-center border-b border-[#EDF3FA] dark:border-slate-700/60`}>
                     <Icon className="w-10 h-10 text-white/70" />
                     {a.image && (
                       <img
