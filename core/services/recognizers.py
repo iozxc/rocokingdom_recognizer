@@ -25,17 +25,13 @@ class _ModelRegistry:
 
         model_path = config.DINO[0]
         try:
-            import onnxruntime as ort
-            from core.infra.ort_session import create_session_options
+            from core.infra.ort_session import create_inference_session
             if not os.path.exists(model_path):
                 logger.warning(f"DINO backbone 模型文件不存在: {model_path}")
                 return None
             logger.info(f"加载共享 DINO backbone 会话: {model_path}")
-            self._dino_session = ort.InferenceSession(
-                model_path,
-                sess_options=create_session_options(),
-                providers=['CPUExecutionProvider'],
-            )
+            # 优先 GPU（DirectML/CUDA），不可用时自动降级 CPU
+            self._dino_session = create_inference_session(model_path)
         except Exception as e:
             logger.error(f"共享 DINO backbone 会话加载失败: {e}", exc_info=True)
             self._dino_session = None
@@ -95,3 +91,28 @@ class _ModelRegistry:
 
 # 全局单例
 models = _ModelRegistry()
+
+
+def reset_inference_singletons() -> None:
+    """丢弃全部已建会话与识别器（GPU 加速开关变化后调用）。
+
+    只做丢弃，不重建：下次识别时按新的后端偏好懒加载。级联清空各识别器持有的
+    session 引用，避免旧会话继续被复用。
+    """
+    registry = models
+    for name in ("_icon_recognizer", "_dino_session"):
+        obj = getattr(registry, name, None)
+        if obj is not None and hasattr(obj, "session"):
+            try:
+                obj.session = None
+            except Exception:  # noqa: BLE001
+                pass
+        setattr(registry, name, None)
+    for classifier in (getattr(registry, "_stage_classifiers", {}) or {}).values():
+        if classifier is not None and hasattr(classifier, "session"):
+            try:
+                classifier.session = None
+            except Exception:  # noqa: BLE001
+                pass
+    registry._stage_classifiers = {}
+    logger.info("已清空识别器/共享会话单例，等待按新后端重建")

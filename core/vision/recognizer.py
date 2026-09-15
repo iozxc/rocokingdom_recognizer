@@ -1,11 +1,10 @@
-import onnxruntime as ort
 import numpy as np
 import cv2
 import os
 import pickle
 import time
 from core.infra.logger import logger
-from core.infra.ort_session import create_session_options
+from core.infra.ort_session import create_inference_session
 from core.infra.utils import strip_id_prefix
 from core.infra.pet_path import split_pet_filename
 from PIL import Image
@@ -29,13 +28,9 @@ class ImageRecognizer:
             if not os.path.exists(onnx_model_path):
                 logger.error(f"ONNX模型文件缺失: {onnx_model_path}")
                 raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
-            # 仅使用 CPU 运行
-            self.session = ort.InferenceSession(
-                onnx_model_path,
-                sess_options=create_session_options(),
-                providers=['CPUExecutionProvider'],
-            )
-            logger.info("ImageRecognizer ONNX模型加载成功 (CPU)")
+            # 优先 GPU（DirectML/CUDA），不可用时自动降级 CPU
+            self.session = create_inference_session(onnx_model_path)
+            logger.info(f"ImageRecognizer ONNX模型加载成功 ({self.session.get_providers()[0]})")
 
         # 3. 从 ONNX 输入推断输入尺寸（resnet=224, dino=518 均自动适配）
         self.input_size = 224

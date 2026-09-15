@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont  # 增加了 ImageDraw 和 ImageFont
 import config
 from core.infra.logger import logger
 from core.infra.capture import clean_debug_folder, debug_enabled
-from core.infra.ort_session import create_session_options
+from core.infra.ort_session import create_inference_session
 
 # --- 配置 ---
 MODEL_PATH = config.SCANNER_MODEL if config.SCANNER_MODEL.endswith(".onnx") else config.SCANNER_MODEL.replace(".pt", ".onnx")
@@ -25,15 +25,12 @@ COLORS = {0: (255, 0, 0), 1: (0, 255, 0), 2: (0, 0, 255)}  # RGB
 
 class YOLOv8ORT:
     def __init__(self, model_path):
-        # 延迟导入 onnxruntime，避免启动阶段加载重模块
-        import onnxruntime as ort
         logger.info(f"正在加载YOLO模型: {model_path}")
-        providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
-        if ort.get_device() == 'CPU':
-            providers = ['CPUExecutionProvider']
-
-        logger.info(f"ONNX Runtime 推理后端: {providers[0]}")
-        self.session = ort.InferenceSession(model_path, sess_options=create_session_options(), providers=providers)
+        # 统一走 ort_session：优先 GPU（DirectML/CUDA），不可用自动降级 CPU。
+        # 注意：不能用 ort.get_device() 判断——DirectML 版返回的是 "CPU-DML"，
+        # 会被误判成纯 CPU 而被强制降级。
+        self.session = create_inference_session(model_path)
+        logger.info(f"ONNX Runtime 推理后端: {self.session.get_providers()[0]}")
         self.input_name = self.session.get_inputs()[0].name
         self.output_names = [o.name for o in self.session.get_outputs()]
 
@@ -180,6 +177,14 @@ def get_yolo_model():
             if _yolo_model is None:
                 _yolo_model = YOLOv8ORT(MODEL_PATH)
     return _yolo_model
+
+
+def reset_yolo_model():
+    """丢弃 YOLO 单例（GPU 加速开关变化后调用），下次用新后端重建。"""
+    global _yolo_model
+    with _yolo_lock:
+        _yolo_model = None
+    logger.info("已释放 YOLO 模型（下次识别按新后端重建）")
 
 
 def crop_sections_from_pil_by_YOLOv8(pil_image: Image.Image, debug=True):

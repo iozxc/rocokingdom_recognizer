@@ -7,7 +7,7 @@ from rapidocr_onnxruntime import RapidOCR  # 导入 RapidOCR
 
 import config
 from core.infra.logger import logger
-from core.infra.ort_session import get_ort_intra_threads
+from core.infra.ort_session import get_ort_intra_threads, ocr_ep_kwargs
 from core.vision.ocr_corrections import correct_ocr_text
 
 # 彻底移除对 torch 和 ssl 的依赖
@@ -26,6 +26,13 @@ def ocr():
         return _ocr
     except Exception as e:
         logger.error(f"OCREngine初始化失败: {e}", exc_info=True)
+
+
+def reset_ocr():
+    """丢弃 OCR 引擎单例（GPU 加速开关变化后调用），下次用新后端重建。"""
+    global _ocr
+    _ocr = None
+    logger.info("已释放 OCR 引擎（下次识别按新后端重建）")
 
 
 def clean_ocr_text(text):
@@ -55,14 +62,25 @@ class OCREngine:
                 logger.debug(f"OCR{name}模型路径确认: {path}")
 
         try:
-            self.engine = RapidOCR(
+            # 优先 GPU（DirectML/CUDA），可用时 det/cls/rec 三个会话都交给 GPU；
+            # 建引擎失败（老显卡/虚拟机/显存不足）就退回 CPU，行为与原来一致。
+            base_kwargs = dict(
                 det_model_path=det_model_path,
                 cls_model_path=cls_model_path,
                 rec_model_path=rec_model_path,
                 intra_op_num_threads=get_ort_intra_threads(),
                 inter_op_num_threads=1,
             )
-            logger.info("RapidOCR引擎初始化成功")
+            gpu_kwargs = ocr_ep_kwargs()
+            try:
+                self.engine = RapidOCR(**base_kwargs, **gpu_kwargs)
+                logger.info(f"RapidOCR引擎初始化成功（{'GPU: ' + ','.join(gpu_kwargs) if gpu_kwargs else 'CPU'}）")
+            except Exception as gpu_err:
+                if not gpu_kwargs:
+                    raise
+                logger.warning(f"RapidOCR GPU 初始化失败，回退 CPU：{gpu_err}")
+                self.engine = RapidOCR(**base_kwargs)
+                logger.info("RapidOCR引擎初始化成功（CPU，GPU 回退）")
         except Exception as e:
             logger.error(f"RapidOCR引擎初始化失败: {e}", exc_info=True)
             raise

@@ -179,6 +179,24 @@ def ts_icon_file(filename):
         return str(e), 500
 
 
+@bp.route('/api/infer_backend', methods=['GET'])
+def api_infer_backend():
+    """推理后端状态：当前用的是 GPU 还是 CPU、可用后端、ONNX Runtime 版本。
+
+    前端用它展示「GPU 加速已启用 / 当前为 CPU」这类状态；首次调用会真机探测一次
+    （建一个 0.5MB 小模型的会话），结果缓存在进程内，后续调用零成本。
+    带 ?force=1 可强制重新检测（设置里的「重新检测」按钮）。
+    """
+    try:
+        from core.infra.ort_session import runtime_status
+
+        force = request.args.get('force') in ('1', 'true', 'yes')
+        return success(data=runtime_status(force=force))
+    except Exception as e:
+        logger.error(f"[GET /api/infer_backend] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
 @bp.route('/api/app/agreement_required', methods=['GET'])
 def api_app_agreement_required():
     """是否仍需展示用户协议：以 roco_user_data.json 中 agreementAccepted 字段判断。

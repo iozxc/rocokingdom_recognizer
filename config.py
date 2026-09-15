@@ -254,4 +254,11 @@ DEFAULT_TOPK = 6
 
 ENABLE_NAME_ANCHOR_FALLBACK = _env("ROCO_ENABLE_ANCHOR_FALLBACK", "1") != "0"
 
+# 推理后端：auto(默认，能用 GPU 就用) / dml / cuda / openvino / cpu
+# 记录在 config 里只是为了让设置项集中可见；实际生效逻辑在 core/infra/ort_session.py，
+# 它会读同名环境变量，并在 GPU 不可用时自动降级 CPU。
+INFER_EP = _env("ROCO_INFER_EP", "auto")
+# OCR（RapidOCR）是否走 GPU：auto(默认) / 1 / 0
+OCR_GPU = _env("ROCO_OCR_GPU", "auto")
+
 LOG_LEVEL = getattr(logging, _env("ROCO_LOG_LEVEL", "DEBUG").upper(), logging.DEBUG)

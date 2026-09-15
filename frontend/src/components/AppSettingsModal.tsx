@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, Volume2, Database, ArrowRight, ArrowUpCircle, Sparkles, Monitor, Camera, Settings2, ShieldCheck, ChevronDown, Sun, Moon, Info, LayoutGrid, Bug } from 'lucide-react';
+import { Cpu, RefreshCw } from 'lucide-react';
+import { api } from '../services/api';
+import { inferHardwareLine } from '../utils/inferBackendText';
 import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode, SearchFilterPosition } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
@@ -134,6 +137,62 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     if (!el) return;
     const canScroll = el.scrollHeight - el.scrollTop - el.clientHeight > 30;
     setCanScrollDown(canScroll);
+  };
+
+  // PC 端：打开设置时查一次推理后端状态（GPU/CPU），供下方状态行展示
+  const [inferBackend, setInferBackend] = useState<{
+    activeLabel: string;
+    isGpu: boolean;
+    gpuAvailable: boolean;
+    gpuEnabled: boolean;
+    onnxruntime: string;
+    ocrGpu: boolean;
+    mode: string;
+    gpuName: string;
+    gpuVramMB: number;
+    gpuCount: number;
+    cpuName: string;
+  } | null>(null);
+  const [backendChecking, setBackendChecking] = useState(false);
+  /** GPU 加速开关（用户设置，默认开）。关掉后后端会强制用 CPU（功能一致，只是慢一些）。 */
+  const [gpuEnabled, setGpuEnabled] = useState<boolean>(() =>
+      storage.getSetting<boolean>('gpuAcceleration', true));
+  const loadInferBackend = React.useCallback((force: boolean) => {
+    if (IS_STATIC) return;
+    setBackendChecking(true);
+    api.getInferBackend(force)
+        .then((info) => setInferBackend(info ? {
+          activeLabel: info.activeLabel,
+          isGpu: info.isGpu,
+          gpuAvailable: info.gpuAvailable,
+          gpuEnabled: info.gpuEnabled,
+          onnxruntime: info.onnxruntime,
+          ocrGpu: info.ocrGpu,
+          mode: info.mode,
+          gpuName: info.gpuName,
+          gpuVramMB: info.gpuVramMB,
+          gpuCount: info.gpuCount,
+          cpuName: info.cpuName,
+        } : null))
+        .catch(() => setInferBackend(null))
+        .finally(() => setBackendChecking(false));
+  }, []);
+  useEffect(() => {
+    if (!isOpen) return;
+    setGpuEnabled(storage.getSetting<boolean>('gpuAcceleration', true));
+    loadInferBackend(false);
+  }, [isOpen, loadInferBackend]);
+
+  /** 切换 GPU 加速：写入设置（后端会据此清掉已建会话）→ 稍后强制重新检测状态 → 通知识别卡刷新。 */
+  const handleToggleGpu = (next: boolean) => {
+    sound.playClick();
+    setGpuEnabled(next);
+    storage.setSetting('gpuAcceleration', next);
+    // 设置异步落盘到后端（/api/storage），给它一点时间再重新探测
+    window.setTimeout(() => {
+      loadInferBackend(true);
+      window.dispatchEvent(new Event('roco-infer-backend-changed'));
+    }, 600);
   };
 
   useEffect(() => {
@@ -875,7 +934,68 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 </div>
             )}
 
-            {/* Section 6: 系统设置入口（web 版隐藏） */}
+            {/* Section 6: 推理后端状态（web 版隐藏：Web 端在识别卡里显示 webgpu/wasm） */}
+            <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3${IS_STATIC ? ' hidden' : ''}`}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0">
+                  <Cpu className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span>推理后端</span>
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                        inferBackend?.isGpu
+                            ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                    }`}
+                          title={inferBackend
+                              ? `ONNX Runtime ${inferBackend.onnxruntime} · OCR ${inferBackend.ocrGpu ? 'GPU' : 'CPU'} · 偏好 ${inferBackend.mode}` +
+                                (inferBackend.isGpu ? '' : (inferBackend.gpuAvailable ? '（检测到 GPU 但未启用）' : '（未安装 GPU 版推理引擎）')) +
+                                (inferBackend.cpuName ? `\nCPU：${inferBackend.cpuName}` : '')
+                              : '识别模型运行在 GPU 还是 CPU 上；没有可用 GPU 会自动降级 CPU'}
+                    >
+                      {backendChecking ? '检测中…' : (inferBackend ? inferBackend.activeLabel : '未知')}
+                    </span>
+                  </div>
+                  {/* 硬件信息跟随后端一起变（GPU 显示显卡，CPU 说明原因 + CPU 型号）；细节在悬浮提示里 */}
+                  <div className="text-[10px] text-slate-400 truncate">
+                    {inferBackend ? inferHardwareLine(inferBackend) : '正在读取硬件信息…'}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {/* GPU 加速开关：默认开启；关闭后强制 CPU（功能一致，只是慢一些） */}
+                <button
+                    type="button"
+                    id="gpu-acceleration-switch-btn"
+                    role="switch"
+                    aria-checked={gpuEnabled}
+                    title={gpuEnabled ? '已开启 GPU 加速（关闭后改用 CPU）' : '已关闭：推理强制使用 CPU'}
+                    onClick={() => handleToggleGpu(!gpuEnabled)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${gpuEnabled ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                >
+                  <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${gpuEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
+                </button>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+                  GPU 加速
+                </span>
+                <button
+                    type="button"
+                    id="infer-backend-refresh-btn"
+                    disabled={backendChecking}
+                    onClick={() => {
+                      sound.playClick();
+                      loadInferBackend(true);
+                    }}
+                    className="text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 cursor-pointer disabled:opacity-50 shrink-0"
+                    title="重新检测推理后端"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${backendChecking ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Section 7: 系统设置入口（web 版隐藏） */}
             <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
@@ -900,7 +1020,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </button>
             </div>
 
-            {/* Section 7: 更新设置入口（web 版隐藏） */}
+            {/* Section 8: 更新设置入口（web 版隐藏） */}
             <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
@@ -930,7 +1050,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               </button>
             </div>
 
-            {/* Section 8: 用户协议查看 */}
+            {/* Section 9: 用户协议查看 */}
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">

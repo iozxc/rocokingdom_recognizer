@@ -4,13 +4,12 @@
 图像提特征并与标题特征库比对，判定当前是第几关，作为标题 OCR + 特征字
 （core/infra/capture.match_scene_unique_char）识别失败时的回退方案。
 """
-import onnxruntime as ort
 import numpy as np
 import cv2
 import os
 import pickle
 from core.infra.logger import logger
-from core.infra.ort_session import create_session_options
+from core.infra.ort_session import create_inference_session
 import time
 from PIL import Image
 
@@ -32,13 +31,9 @@ class StageClassifier:
             if not os.path.exists(onnx_model_path):
                 logger.error(f"ONNX模型文件缺失: {onnx_model_path}")
                 raise FileNotFoundError(f"ONNX 模型文件缺失：{onnx_model_path}")
-            # 优化选项：仅使用 CPU 运行
-            self.session = ort.InferenceSession(
-                onnx_model_path,
-                sess_options=create_session_options(),
-                providers=['CPUExecutionProvider'],
-            )
-            logger.info("StageClassifier ONNX模型加载成功 (CPU)")
+            # 优先 GPU（DirectML/CUDA），不可用时自动降级 CPU
+            self.session = create_inference_session(onnx_model_path)
+            logger.info(f"StageClassifier ONNX模型加载成功 ({self.session.get_providers()[0]})")
 
         # 从 ONNX 输入推断输入尺寸（resnet=224, dino=518 自动适配）
         self.input_size = 224

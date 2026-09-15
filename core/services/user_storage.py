@@ -13,6 +13,44 @@ DATA_FILE = config.DATA_JSON
 _IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".svg")
 
 
+def _reset_inference_after_gpu_toggle(enabled) -> None:
+    """GPU 加速开关变化后，丢弃已建好的 ONNX 会话与识别器单例。
+
+    推理会话一旦建立就固定了执行后端（GPU/CPU），必须重建才能让开关真正生效。
+    这里只做「丢弃」，不主动建会话（避免在保存设置的请求里阻塞），
+    下次识别时会用新后端懒加载重建；任何异常都不影响设置保存本身。
+    """
+    try:
+        from core.infra.ort_session import reset_provider_cache
+
+        reset_provider_cache()
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"清理推理后端缓存失败（忽略）: {e}")
+
+    try:
+        from core.services import recognizers
+
+        recognizers.reset_inference_singletons()
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"清理识别器单例失败（忽略）: {e}")
+
+    try:
+        from core.vision import ocr as ocr_module
+
+        ocr_module.reset_ocr()
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"清理 OCR 单例失败（忽略）: {e}")
+
+    try:
+        from core.vision import crop as crop_module
+
+        crop_module.reset_yolo_model()
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"清理 YOLO 单例失败（忽略）: {e}")
+
+    logger.info(f"GPU 加速开关已切换为 {'开启' if enabled else '关闭'}，推理会话将在下次识别时重建")
+
+
 def _strip_ext(name):
     if not name:
         return ""
@@ -157,7 +195,9 @@ class UserStorage:
 
     def update_app_settings(self, app_settings: dict) -> dict:
         """合并更新 appSettings 并落盘，保持内存缓存一致。"""
-        data = self.load()
+        # 注意：必须用浅拷贝 + 新建 appSettings dict，不能原地改缓存里的同一个 dict，
+        # 否则 save() 里的「新旧值比较」永远相等，GPU 开关就不会触发会话重建。
+        data = dict(self.load() or {})
         current = data.get("appSettings", {})
         if not isinstance(current, dict):
             logger.warning("appSettings 格式异常，重置为空")
@@ -171,6 +211,7 @@ class UserStorage:
         与既有缓存合并：这样前端只提交某个试炼的字段时，不会误删其他试炼的数据
         （例如草系前端提交时不会抹掉火系的 encounteredPets2）。
         """
+        previous_gpu = (self.load().get("appSettings") or {}).get("gpuAcceleration")
         data = dict(self.load() or {})
         if payload:
             data.update(payload)
@@ -183,6 +224,10 @@ class UserStorage:
         pets, _ = _apply_renames(data.get("encounteredPets", {}))
         data["encounteredPets"] = pets
         pet_count = len(data.get("encounteredPets", {}))
+        # 「GPU 加速」开关变了：清掉已建好的推理会话，下次识别按新后端重建
+        new_gpu = (data.get("appSettings") or {}).get("gpuAcceleration")
+        if new_gpu is not None and new_gpu != previous_gpu:
+            _reset_inference_after_gpu_toggle(new_gpu)
         try:
             result = self._persist(data)
             logger.info(
@@ -200,11 +245,16 @@ class UserStorage:
 
     def set_payload(self, payload: dict) -> dict:
         """用一份完整账号数据整体替换当前数据并落盘（多账号切换用）。"""
+        previous_gpu = (self.load().get("appSettings") or {}).get("gpuAcceleration")
         data = dict(payload or {})
         data.setdefault("encounteredPets", {})
         data.setdefault("encounteredPets2", {})
         data.setdefault("thresholds", {})
         data.setdefault("appSettings", {})
+        # 切换账号后 GPU 开关可能不同：同样需要重建推理会话
+        new_gpu = (data.get("appSettings") or {}).get("gpuAcceleration")
+        if new_gpu is not None and new_gpu != previous_gpu:
+            _reset_inference_after_gpu_toggle(new_gpu)
         result = self._persist(data)
         return result
 

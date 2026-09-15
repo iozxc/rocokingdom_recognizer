@@ -119,6 +119,62 @@ export class ApiService {
   }
 
   /**
+   * 推理后端状态（PC 端）：当前用 GPU 还是 CPU、有哪些可用后端、ONNX Runtime 版本。
+   * 首次调用后端会真机探测一次（约 0.2~0.5s），之后走缓存；force=1 强制重新检测。
+   */
+  public async getInferBackend(force = false): Promise<{
+    mode: string;
+    gpuAvailable: boolean;
+    gpuEnabled: boolean;
+    gpuEps: string[];
+    availableProviders: string[];
+    active: string;
+    activeLabel: string;
+    isGpu: boolean;
+    ocrGpu: boolean;
+    onnxruntime: string;
+    device: string;
+    probeModel: string | null;
+    error: string | null;
+    gpuName: string;
+    gpuVramMB: number;
+    gpuCount: number;
+    gpuAdapters: string[];
+    cpuName: string;
+  } | null> {
+    try {
+      const res = await axios.get(`${this.apiBase}/api/infer_backend`, {
+        params: force ? { force: 1 } : undefined,
+        timeout: force ? 15000 : 8000,
+      });
+      const data = res.data?.data ?? res.data;
+      if (!data || typeof data.activeLabel !== 'string') return null;
+      return {
+        mode: String(data.mode || 'auto'),
+        gpuAvailable: !!data.gpuAvailable,
+        gpuEnabled: data.gpuEnabled !== false,
+        gpuEps: Array.isArray(data.gpuEps) ? data.gpuEps : [],
+        availableProviders: Array.isArray(data.availableProviders) ? data.availableProviders : [],
+        active: String(data.active || ''),
+        activeLabel: String(data.activeLabel || ''),
+        isGpu: !!data.isGpu,
+        ocrGpu: !!data.ocrGpu,
+        onnxruntime: String(data.onnxruntime || ''),
+        device: String(data.device || ''),
+        probeModel: data.probeModel ? String(data.probeModel) : null,
+        error: data.error ? String(data.error) : null,
+        gpuName: String(data.gpuName || ''),
+        gpuVramMB: Number(data.gpuVramMB) || 0,
+        gpuCount: Number(data.gpuCount) || 0,
+        gpuAdapters: Array.isArray(data.gpuAdapters) ? data.gpuAdapters.map((v: unknown) => String(v)) : [],
+        cpuName: String(data.cpuName || ''),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * 获取当前环境可见的徽章试炼列表（打包环境不返回火系试炼）。
    */
   public async getTrials(): Promise<{ trials: Trial[]; isOfflineMock: boolean }> {

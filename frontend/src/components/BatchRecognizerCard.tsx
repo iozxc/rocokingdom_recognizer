@@ -18,6 +18,7 @@ import {
   ZoomIn,
   ChevronDown,
   ChevronUp,
+  Cpu,
   Trash2,
   Sparkle,
   Info,
@@ -50,6 +51,8 @@ import {
   recognizeImage,
 } from '../services/recognition';
 import { IS_STATIC } from '../services/staticMode';
+import { api } from '../services/api';
+import { inferBackendSummary, inferHardwareLine } from '../utils/inferBackendText';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
@@ -114,6 +117,25 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const progressHideTimerRef = useRef<number | null>(null);
   /** 本次识别已用时（秒）：OCR 这种长时间不回报的阶段靠它体现"还在动"。 */
   const [scanElapsed, setScanElapsed] = useState<number>(0);
+  /** PC 端推理后端状态（GPU/CPU）：进页面就查一次，展示给用户看。 */
+  const [inferBackend, setInferBackend] = useState<{
+    activeLabel: string;
+    isGpu: boolean;
+    gpuAvailable: boolean;
+    gpuEnabled: boolean;
+    onnxruntime: string;
+    ocrGpu: boolean;
+    mode: string;
+    error: string | null;
+    gpuName: string;
+    gpuVramMB: number;
+    gpuCount: number;
+    cpuName: string;
+  } | null>(null);
+  const [backendChecking, setBackendChecking] = useState<boolean>(false);
+  /** PC 端：上一次识别的耗时/图位数（与 Web 端一样，识别完展示一行信息） */
+  const [pcPerf, setPcPerf] = useState<{ ms: number; count: number; p95: number; samples: number } | null>(null);
+  const pcPerfSamplesRef = useRef<number[]>([]);
   /** 纯前端版：本次切分出几个图位（单图=1）。 */
   const [batchInfo, setBatchInfo] = useState<{ count: number; mode: 'single' | 'batch' } | null>(null);
   /** 纯前端版：OCR 名字融合开关（关掉可省 15MB 下载与每次几百 ms 推理）。 */
@@ -222,6 +244,41 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   useEffect(() => () => {
     if (progressHideTimerRef.current !== null) window.clearTimeout(progressHideTimerRef.current);
   }, []);
+
+  /** 查询/重新检测推理后端（PC 端）。Web 端没有这个概念，直接用本地识别后端那行展示。 */
+  const loadInferBackend = React.useCallback((force: boolean) => {
+    if (IS_STATIC) return;
+    setBackendChecking(true);
+    api.getInferBackend(force)
+        .then((info) => setInferBackend(info ? {
+          activeLabel: info.activeLabel,
+          isGpu: info.isGpu,
+          gpuAvailable: info.gpuAvailable,
+          gpuEnabled: info.gpuEnabled,
+          onnxruntime: info.onnxruntime,
+          ocrGpu: info.ocrGpu,
+          mode: info.mode,
+          error: info.error,
+          gpuName: info.gpuName,
+          gpuVramMB: info.gpuVramMB,
+          gpuCount: info.gpuCount,
+          cpuName: info.cpuName,
+        } : null))
+        .catch(() => setInferBackend(null))
+        .finally(() => setBackendChecking(false));
+  }, []);
+
+  useEffect(() => {
+    loadInferBackend(false);
+  }, [loadInferBackend]);
+
+  // 设置里切换「GPU 加速」后，让这里的状态徽标也跟着刷新
+  useEffect(() => {
+    if (IS_STATIC) return;
+    const onChange = () => loadInferBackend(false);
+    window.addEventListener('roco-infer-backend-changed', onChange);
+    return () => window.removeEventListener('roco-infer-backend-changed', onChange);
+  }, [loadInferBackend]);
 
   // 真实进度只允许单调上升（后端阶段切换时偶发回退也不让进度条倒退）
   useEffect(() => {
@@ -414,6 +471,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
       }
 
       // 纯前端版走浏览器内本地识别（LocalRecognizer），桌面版仍走 Flask；返回结构同构。
+      const recognizeStart = performance.now();
       const { data } = await recognizeImage(
           fileToSend, selectedMapNum, threshold, topK, trialKey, targetMapPets,
           (phase, pct, text) => {
@@ -421,6 +479,21 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           },
           IS_STATIC ? { enableOcr: ocrEnabled, totalCount: 12 } : undefined
       );
+      // PC 端：记录整次请求耗时，识别完成后像 Web 端一样展示一行信息
+      const elapsedMs = performance.now() - recognizeStart;
+      if (!IS_STATIC) {
+        const samples = pcPerfSamplesRef.current;
+        samples.push(elapsedMs);
+        if (samples.length > 30) samples.shift();
+        const sorted = samples.slice().sort((a, b) => a - b);
+        const p95 = sorted[Math.min(sorted.length - 1, Math.ceil(0.95 * sorted.length) - 1)];
+        setPcPerf({
+          ms: elapsedMs,
+          count: data.total_detected || data.results.length,
+          p95,
+          samples: samples.length,
+        });
+      }
 
       setTotalDetected(data.total_detected || data.results.length);
 
@@ -784,6 +857,39 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   <Sparkles className="w-3 h-3 text-[#2B78C4] dark:text-sky-300" />
                   本地 AI 离线推理
                 </span>
+                {/* PC 端：推理后端状态（GPU / CPU）——让用户一眼看到当前在用哪个后端 */}
+                {!IS_STATIC && inferBackend && (
+                    <HintTooltip
+                        side="bottom"
+                        content={
+                          `${inferBackend.isGpu
+                              ? '已启用 GPU 加速（DirectML/CUDA），识别更快。'
+                              : (inferBackend.gpuAvailable
+                                  ? '检测到 GPU 后端但本次未启用（可能是后端偏好设为 cpu，或建会话失败），已自动使用 CPU。'
+                                  : '当前环境未安装 GPU 版推理引擎，使用 CPU 计算。')}\n` +
+                          `推理后端：${inferBackend.activeLabel}\n` +
+                          `ONNX Runtime：${inferBackend.onnxruntime}\n` +
+                          `OCR 加速：${inferBackend.ocrGpu ? 'GPU' : 'CPU'}\n` +
+                          `后端偏好：${inferBackend.mode}\n` +
+                          (inferBackend.gpuName
+                              ? `显卡：${inferBackend.gpuName}${inferBackend.gpuVramMB ? `（显存 ${(inferBackend.gpuVramMB / 1024).toFixed(0)}GB）` : ''}`
+                                + (inferBackend.gpuCount > 1 ? ` 等 ${inferBackend.gpuCount} 块` : '') + '\n'
+                              : '显卡：未识别到独立 GPU\n') +
+                          (inferBackend.cpuName ? `CPU：${inferBackend.cpuName}` : '') +
+                          (inferBackend.error ? `\n探测信息：${inferBackend.error}` : '')
+                        }
+                        className="cursor-help"
+                    >
+                      <span className={`text-[11px] px-2.5 py-0.5 rounded-full border font-black flex items-center gap-1 ${
+                          inferBackend.isGpu
+                              ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#95D151]'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                      }`}>
+                        <Cpu className="w-3 h-3" />
+                        {backendChecking ? '检测后端…' : inferBackend.activeLabel}
+                      </span>
+                    </HintTooltip>
+                )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 导入含精灵图标或名字的截图，本地视觉模型离线计算并提供候选
@@ -997,6 +1103,47 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           </label>
                         </div>
                     )}
+
+                    {/* PC 端：推理后端状态 + 重新检测（GPU 是否生效一眼可见） */}
+                    {!IS_STATIC && (
+                        <div className="pt-1 border-t border-slate-100 dark:border-slate-700">
+                          <div className="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-200 mb-2">
+                            <Cpu className="w-3.5 h-3.5 text-[#7ABCF4] dark:text-sky-400" />
+                            <HintTooltip
+                                side="bottom"
+                                content="识别用的推理后端：GPU（DirectML/CUDA）会显著更快；没有可用 GPU 时会自动降级为 CPU，功能完全一致。"
+                                className="cursor-help"
+                            >
+                              <span className="font-bold flex items-center gap-0.5 underline decoration-dotted decoration-slate-300 underline-offset-2">
+                                推理后端<Info className="w-3 h-3 text-slate-400" />
+                              </span>
+                            </HintTooltip>
+                            <button
+                                type="button"
+                                disabled={backendChecking}
+                                onClick={() => {
+                                  sound.playClick();
+                                  loadInferBackend(true);
+                                }}
+                                className="ml-auto text-[10px] font-black text-[#2B78C4] dark:text-sky-300 hover:underline disabled:opacity-50 cursor-pointer"
+                            >
+                              {backendChecking ? '检测中…' : '重新检测'}
+                            </button>
+                          </div>
+                          {/* 只留一个徽标：版本/OCR 等细节放进悬浮提示，避免窄弹窗里换行溢出 */}
+                          <span className={`inline-block whitespace-nowrap text-[11px] font-black px-2 py-0.5 rounded ${
+                              inferBackend?.isGpu
+                                  ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                          }`}>
+                            {inferBackend ? inferBackend.activeLabel : '检测中…'}
+                          </span>
+                          {/* 硬件信息：跟随后端一起变（GPU 时显示显卡，CPU 时说明原因 + CPU 型号） */}
+                          <p className="mt-1 text-[10px] text-slate-400 truncate">
+                            {inferBackend ? inferHardwareLine(inferBackend) : ''}
+                          </p>
+                        </div>
+                    )}
                   </div>
               )}
             </div>
@@ -1169,6 +1316,21 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                             </HintTooltip>
                             <span className="font-mono font-black text-[#2B78C4] dark:text-sky-300">{Math.round(threshold * 100)}%</span>
                           </div>
+                          {/* PC 端：把推理后端也放在这里，开跑前就能看到用的是 GPU 还是 CPU */}
+                          {!IS_STATIC && (
+                              <div className="flex items-center justify-between text-slate-600 dark:text-slate-300 mt-1">
+                                <HintTooltip side="top" content="识别模型运行在 GPU 还是 CPU 上；可在「设置 → 推理后端」里开关 GPU 加速。" className="cursor-help">
+                                  <span className="font-bold flex items-center gap-0.5">推理后端<Info className="w-3 h-3 text-slate-400" /></span>
+                                </HintTooltip>
+                                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                                    inferBackend?.isGpu
+                                        ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                }`}>
+                                  {backendChecking ? '检测中…' : (inferBackend ? inferBackend.activeLabel : '未知')}
+                                </span>
+                              </div>
+                          )}
                         </div>
 
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed bg-[#FFFDF5] dark:bg-amber-950/20 border border-[#FEE061]/50 dark:border-amber-700/50 rounded-xl p-2.5 space-y-1">
@@ -1257,6 +1419,22 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                               上次 {scanPerf.totalMs}ms
                               {batchInfo ? ` · ${batchInfo.mode === 'batch' ? `切分 ${batchInfo.count} 个图位` : '单图'}` : ''}
                               {scanPerf.samples > 1 ? `（P95 ${scanPerf.p95}ms / ${scanPerf.samples} 次）` : ''}
+                            </div>
+                          </div>
+                      )}
+
+                      {/* PC 端：识别完成后展示本次用了哪个后端 / 多久 / 切了几个图位 */}
+                      {!IS_STATIC && !isScanning && pcPerf && (
+                          <div className="text-[10px] text-slate-400 text-center font-mono leading-relaxed">
+                            <div>
+                              本地识别 · {inferBackendSummary(inferBackend)}
+                            </div>
+                            <div>
+                              上次 {Math.round(pcPerf.ms)}ms
+                              {pcPerf.count > 0
+                                  ? ` · ${pcPerf.count > 1 ? `切分 ${pcPerf.count} 个图位` : '单图'}`
+                                  : ''}
+                              {pcPerf.samples > 1 ? `（P95 ${Math.round(pcPerf.p95)}ms / ${pcPerf.samples} 次）` : ''}
                             </div>
                           </div>
                       )}

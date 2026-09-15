@@ -1,5 +1,6 @@
 """单实例保护：防止用户重复打开程序导致本地用户数据互相覆盖。"""
 import ctypes
+import os
 import sys
 import time
 
@@ -90,13 +91,56 @@ def _wait_for_exit(kernel32) -> bool:
 
 
 def _find_main_window(user32=None):
-    """按标题查找应用主窗口（含旧标题），找不到返回 None。"""
+    """按标题查找应用主窗口（含旧标题），找不到返回 None。
+
+    关键：标题相同不代表是本程序 —— 纯 web 版页面的 <title> 与应用主窗口标题完全一致，
+    用户只要在浏览器里打开过那个页面，FindWindowW 就会命中浏览器窗口，
+    导致「检测到程序已在运行」而拒绝启动。所以这里还要校验窗口归属进程的
+    可执行文件名必须与我们自己相同（浏览器是 chrome.exe/msedge.exe，直接排除）。
+    """
     user32 = user32 or ctypes.WinDLL("user32", use_last_error=True)
+    ours = _own_image_name()
     for title in _MAIN_WINDOW_TITLES:
         hwnd = user32.FindWindowW(None, title)
-        if hwnd:
+        if not hwnd:
+            continue
+        owner = _window_owner_image(hwnd, user32)
+        if ours and owner and owner == ours:
             return hwnd
+        logger.info(f"忽略同名窗口（属于其他程序: {owner or '未知'}）: {title}")
     return None
+
+
+def _own_image_name() -> str:
+    """本进程可执行文件名（打包后是 RocoKingdomRecognizer.exe，开发时是 python.exe）。"""
+    try:
+        return os.path.basename(sys.executable or "").lower()
+    except Exception:
+        return ""
+
+
+def _window_owner_image(hwnd, user32) -> str:
+    """窗口所属进程的可执行文件名（小写）；取不到时返回空串。"""
+    try:
+        pid = ctypes.c_ulong(0)
+        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        if not pid.value:
+            return ""
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid.value)
+        if not handle:
+            return ""
+        try:
+            size = ctypes.c_ulong(32768)
+            buf = ctypes.create_unicode_buffer(size.value)
+            if kernel32.QueryFullProcessImageNameW(handle, 0, buf, ctypes.byref(size)):
+                return os.path.basename(buf.value).lower()
+            return ""
+        finally:
+            kernel32.CloseHandle(handle)
+    except Exception:
+        return ""
 
 
 def _activate_existing_window() -> None:
