@@ -142,6 +142,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   // PC 端：打开设置时查一次推理后端状态（GPU/CPU），供下方状态行展示
   const [inferBackend, setInferBackend] = useState<{
     activeLabel: string;
+    activeShort: string;
     isGpu: boolean;
     gpuAvailable: boolean;
     gpuEnabled: boolean;
@@ -163,6 +164,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     api.getInferBackend(force)
         .then((info) => setInferBackend(info ? {
           activeLabel: info.activeLabel,
+          activeShort: info.activeShort,
           isGpu: info.isGpu,
           gpuAvailable: info.gpuAvailable,
           gpuEnabled: info.gpuEnabled,
@@ -192,6 +194,18 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     window.setTimeout(() => {
       loadInferBackend(true);
       window.dispatchEvent(new Event('roco-infer-backend-changed'));
+      // 跟随识别是独立窗口，用 BroadcastChannel 通知它立刻刷新底部设备信息
+      try {
+        if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+          const bc = new BroadcastChannel('roco_channel');
+          bc.postMessage({ type: 'INFER_BACKEND_CHANGED' });
+          bc.close();
+        }
+        // 兜底：BroadcastChannel 不可用时走 localStorage 事件
+        localStorage.setItem('roco_infer_backend_changed', String(Date.now()));
+      } catch (e) {
+        console.warn('broadcast infer backend change failed', e);
+      }
     }, 600);
   };
 
@@ -954,7 +968,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                                 (inferBackend.cpuName ? `\nCPU：${inferBackend.cpuName}` : '')
                               : '识别模型运行在 GPU 还是 CPU 上；没有可用 GPU 会自动降级 CPU'}
                     >
-                      {backendChecking ? '检测中…' : (inferBackend ? inferBackend.activeLabel : '未知')}
+                      {backendChecking ? '检测中…' : (inferBackend ? inferBackend.activeShort : '未知')}
                     </span>
                   </div>
                   {/* 硬件信息跟随后端一起变（GPU 显示显卡，CPU 说明原因 + CPU 型号）；细节在悬浮提示里 */}

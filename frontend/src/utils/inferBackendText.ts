@@ -15,6 +15,7 @@ export interface InferBackendLike {
   gpuCount: number;
   cpuName: string;
   activeLabel?: string;
+  activeShort?: string;
 }
 
 /** 把 "13th Gen Intel(R) Core(TM) i5-13600KF" 缩成 "i5-13600KF"（识别不出就原样返回）。 */
@@ -43,11 +44,27 @@ export function inferHardwareLine(info: InferBackendLike | null): string {
 /** 识别完成后那行「本地识别 · …」里的后端描述。 */
 export function inferBackendSummary(info: InferBackendLike | null, fallback = ''): string {
   if (!info) return fallback;
+  const short = info.activeShort || (info.isGpu ? 'GPU' : 'CPU');
   if (info.isGpu) {
     const vram = info.gpuVramMB ? ` ${(info.gpuVramMB / 1024).toFixed(0)}GB` : '';
-    return info.gpuName
-        ? `${info.activeLabel || 'GPU'} · ${info.gpuName}${vram}`
-        : (info.activeLabel || 'GPU');
+    // 只显示「GPU + 显卡型号」，具体后端（DirectML/CUDA）放进悬浮提示，避免与显卡名重复
+    return info.gpuName ? `${short} · ${info.gpuName}${vram}` : short;
   }
-  return `${info.activeLabel || 'CPU'}（${info.gpuEnabled ? '无可用 GPU' : '已关闭 GPU 加速'}）`;
+  return `${short}（${info.gpuEnabled ? '无可用 GPU' : '已关闭 GPU 加速'}）`;
+}
+
+/**
+ * 跟随识别底部状态栏用的极简设备文案：只说「在用什么设备」，不解释原因。
+ *  - GPU：显卡型号 + 显存
+ *  - CPU：CPU 计算 · CPU 型号
+ */
+export function inferDeviceLine(info: InferBackendLike | null): string {
+  if (!info) return '';
+  if (info.isGpu) {
+    const vram = info.gpuVramMB ? ` · ${(info.gpuVramMB / 1024).toFixed(0)}GB` : '';
+    const multi = info.gpuCount > 1 ? `（共 ${info.gpuCount} 块）` : '';
+    return `${info.gpuName || 'GPU'}${vram}${multi}`;
+  }
+  const cpu = shortCpuName(info.cpuName);
+  return `CPU 计算${cpu ? ` · ${cpu}` : ''}`;
 }

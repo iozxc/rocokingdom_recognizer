@@ -120,6 +120,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   /** PC 端推理后端状态（GPU/CPU）：进页面就查一次，展示给用户看。 */
   const [inferBackend, setInferBackend] = useState<{
     activeLabel: string;
+    activeShort: string;
     isGpu: boolean;
     gpuAvailable: boolean;
     gpuEnabled: boolean;
@@ -252,6 +253,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     api.getInferBackend(force)
         .then((info) => setInferBackend(info ? {
           activeLabel: info.activeLabel,
+          activeShort: info.activeShort,
           isGpu: info.isGpu,
           gpuAvailable: info.gpuAvailable,
           gpuEnabled: info.gpuEnabled,
@@ -886,7 +888,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                       }`}>
                         <Cpu className="w-3 h-3" />
-                        {backendChecking ? '检测后端…' : inferBackend.activeLabel}
+                        {backendChecking ? '检测后端…' : inferBackend.activeShort}
                       </span>
                     </HintTooltip>
                 )}
@@ -1136,7 +1138,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                   ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300'
                                   : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                           }`}>
-                            {inferBackend ? inferBackend.activeLabel : '检测中…'}
+                            {inferBackend ? inferBackend.activeShort : '检测中…'}
                           </span>
                           {/* 硬件信息：跟随后端一起变（GPU 时显示显卡，CPU 时说明原因 + CPU 型号） */}
                           <p className="mt-1 text-[10px] text-slate-400 truncate">
@@ -1327,7 +1329,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                         ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300'
                                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                                 }`}>
-                                  {backendChecking ? '检测中…' : (inferBackend ? inferBackend.activeLabel : '未知')}
+                                  {backendChecking ? '检测中…' : (inferBackend ? inferBackend.activeShort : '未知')}
                                 </span>
                               </div>
                           )}

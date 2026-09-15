@@ -130,6 +130,7 @@ export class ApiService {
     availableProviders: string[];
     active: string;
     activeLabel: string;
+    activeShort: string;
     isGpu: boolean;
     ocrGpu: boolean;
     onnxruntime: string;
@@ -157,6 +158,7 @@ export class ApiService {
         availableProviders: Array.isArray(data.availableProviders) ? data.availableProviders : [],
         active: String(data.active || ''),
         activeLabel: String(data.activeLabel || ''),
+        activeShort: String(data.activeShort || (data.isGpu ? 'GPU' : 'CPU')),
         isGpu: !!data.isGpu,
         ocrGpu: !!data.ocrGpu,
         onnxruntime: String(data.onnxruntime || ''),

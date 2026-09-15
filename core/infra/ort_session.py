@@ -253,6 +253,13 @@ def _ep_label(provider: str | None) -> str:
     return provider
 
 
+def _ep_short_label(provider: str | None) -> str:
+    """简短标签：界面上只区分「GPU / CPU」，具体是 DirectML 还是 CUDA 放到悬浮提示里。"""
+    if not provider:
+        return "未知"
+    return "GPU" if provider in _GPU_EP_ORDER else "CPU"
+
+
 def probe_runtime(force: bool = False) -> dict:
     """真机探测一次「能不能用 GPU」，结果缓存；force=True 时重新探测。
 
@@ -297,6 +304,7 @@ def probe_runtime(force: bool = False) -> dict:
         "availableProviders": avail,
         "active": active,
         "activeLabel": _ep_label(active),
+        "activeShort": _ep_short_label(active),
         "isGpu": active not in (None, "CPUExecutionProvider") and active in _GPU_EP_ORDER,
         "ocrGpu": ocr_use_gpu(),
         "onnxruntime": getattr(ort, "__version__", ""),

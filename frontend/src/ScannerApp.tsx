@@ -25,8 +25,11 @@ import {
   History,
   Sun,
   Moon,
+  Cpu,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse, FirePokedexEntry, ThemeMode } from './types';
+import { IS_STATIC } from './services/staticMode';
+import { inferDeviceLine } from './utils/inferBackendText';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA, createSvgPetAvatar } from './data/mockPets';
 import { FIRE_MAP_CONFIGS } from './data/trials';
 import { sound } from './services/sound';
@@ -295,6 +298,13 @@ export const ScannerApp: React.FC = () => {
   const [isRecognizingNow, setIsRecognizingNow] = useState<boolean>(false);
   const [showRadarAnimation, setShowRadarAnimation] = useState<boolean>(false);
   const [lastScanTime, setLastScanTime] = useState<string>('未识别');
+  /** 推理设备状态（GPU/CPU）：底部状态栏展示，与首页识别卡共用同一个后端接口。 */
+  const [inferBackend, setInferBackend] = useState<{
+    activeLabel: string;
+    isGpu: boolean;
+    gpuEnabled: boolean;
+    gpuName: string;
+  } | null>(null);
 
   // Backend connection & collapsed state
   const [, setIsRealBackendConnected] = useState<boolean>(false);
@@ -922,6 +932,45 @@ export const ScannerApp: React.FC = () => {
             .padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
     );
   };
+
+  // 推理设备（GPU/CPU）：跟随识别窗口常驻显示在底部状态栏。
+  // 纯 web 版没有跟随识别，也不存在这个后端接口，直接不请求。
+  const loadInferBackend = useCallback(() => {
+    if (IS_STATIC) return;
+    api.getInferBackend(false)
+        .then((info) => setInferBackend(info ? {
+          activeLabel: info.activeLabel,
+          isGpu: info.isGpu,
+          gpuEnabled: info.gpuEnabled,
+          gpuName: info.gpuName,
+        } : null))
+        .catch(() => setInferBackend(null));
+  }, []);
+
+  useEffect(() => {
+    loadInferBackend();
+    // 跟随识别是独立窗口：主窗口在设置里切换 GPU 开关时，会通过 BroadcastChannel 广播
+    // INFER_BACKEND_CHANGED，这里收到就立刻刷新；另外保留低频轮询兜底
+    // （接口在后端是缓存读取，代价几乎为 0）。
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      bc = new BroadcastChannel('roco_channel');
+      bc.onmessage = (event: MessageEvent) => {
+        if (event.data?.type === 'INFER_BACKEND_CHANGED') loadInferBackend();
+      };
+    }
+    const onStorage = (event: StorageEvent) => {
+      // 兜底：BroadcastChannel 不可用时，主窗口写 localStorage 也会触发这里
+      if (event.key === 'roco_infer_backend_changed' && event.newValue) loadInferBackend();
+    };
+    window.addEventListener('storage', onStorage);
+    const timer = window.setInterval(loadInferBackend, 30000);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('storage', onStorage);
+      bc?.close();
+    };
+  }, [loadInferBackend]);
 
   // 识别不可用（游戏未打开 / 无 Python 桥接 / 识别失败）时，保持“当前未检测到精灵”空态
   const showNoPets = () => {
@@ -1661,10 +1710,27 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         <div
             id="scanner-statusbar"
-            className="h-7 px-3 bg-[#E9F2FA] dark:bg-slate-800 border-t-2 border-[#D5E3F0] dark:border-slate-700 text-[11px] font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between shrink-0 font-bold rounded-none"
+            className="h-7 px-3 bg-[#E9F2FA] dark:bg-slate-800 border-t-2 border-[#D5E3F0] dark:border-slate-700 text-[11px] leading-none font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2 shrink-0 font-bold rounded-none overflow-hidden"
         >
-          <span>上次捕获: {lastScanTime}</span>
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans">洛克王国徽章试炼助手</span>
+          <span className="truncate shrink-0">上次捕获: {lastScanTime}</span>
+          {/* 右侧：识别设备（显卡/CPU）+ 程序名。风格与左侧一致，不加底色边框；
+              宽度固定，空间不够时中间那段用 … 截断 */}
+          <span className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+            {!IS_STATIC && inferBackend && (
+                <span
+                    className="flex items-center gap-1 text-[10px] font-sans font-normal text-slate-500 dark:text-slate-400 min-w-0"
+                    title={`识别设备：${inferDeviceLine(inferBackend)}` +
+                        `\n推理后端：${inferBackend.activeLabel}` +
+                        '\n可在「设置 → 推理后端」里切换'}
+                >
+                  <Cpu className="w-3 h-3 shrink-0 opacity-70" />
+                  <span className="truncate min-w-0">{inferDeviceLine(inferBackend)}</span>
+                </span>
+            )}
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans font-normal shrink-0">
+              洛克王国徽章试炼助手
+            </span>
+          </span>
         </div>
 
         {/* ------------------------------------------------------------- */}
