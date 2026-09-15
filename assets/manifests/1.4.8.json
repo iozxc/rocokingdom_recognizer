@@ -2,8 +2,8 @@
   "version": "1.4.8",
   "files": {
     "RocoKingdomRecognizer.exe": {
-      "md5": "dea0534b432d02ef4df5d80f0b9b121a",
-      "size": 19623906
+      "md5": "35cce0793e48e0ec08db9915cefe9a64",
+      "size": 19605360
     },
     "libs/api-ms-win-core-console-l1-1-0.dll": {
       "md5": "6758f8aee3488dbe68c9b474d11b7c09",
@@ -166,7 +166,7 @@
       "size": 22000
     },
     "libs/base_library.zip": {
-      "md5": "8006f1003c37d235c1a27a0a6a33e7f2",
+      "md5": "b5303052a217cd91eba0b5d72ef90d03",
       "size": 1333490
     },
     "libs/ffi.dll": {
@@ -174,8 +174,8 @@
       "size": 41288
     },
     "libs/file_manifest.json": {
-      "md5": "95bbb7a4135f33b53dceb88d2e77bb5d",
-      "size": 233492
+      "md5": "7224915e6b70dbb20ebea6467e840548",
+      "size": 233995
     },
     "libs/LIBBZ2.dll": {
       "md5": "71e7c0f84d0a3d8ee0ffbdb60a36e504",
@@ -1082,56 +1082,60 @@
       "size": 1094
     },
     "libs/onnxruntime/Privacy.md": {
-      "md5": "5cadd9fa7dfbc7c8109ceece841b82bb",
-      "size": 4730
+      "md5": "b830a2d6d1b5245c0eb8a1bcf4857bd6",
+      "size": 2490
     },
     "libs/onnxruntime/ThirdPartyNotices.txt": {
-      "md5": "f9c610e3eb0eb76f7d1a0010a1099c71",
-      "size": 343249
+      "md5": "764d8004beb99ee15a635477490d32de",
+      "size": 331175
     },
     "libs/onnxruntime/__init__.py": {
-      "md5": "f0d62955833b4cfb33a5d0d9ccb524c0",
-      "size": 21947
+      "md5": "025cf7b5692afadd8cdf126315d18a0c",
+      "size": 17693
     },
     "libs/onnxruntime/backend/backend.py": {
-      "md5": "cbf75cdbc293e4c045960a34064d71aa",
-      "size": 10447
+      "md5": "fef9a4113a06b3c92266590f0de481db",
+      "size": 8187
     },
     "libs/onnxruntime/backend/backend_rep.py": {
-      "md5": "4a2c1857d4ddcf21a7635948d215035f",
-      "size": 2901
+      "md5": "b110a721129df6fca3e1aab5ff36138c",
+      "size": 1776
     },
     "libs/onnxruntime/backend/__init__.py": {
       "md5": "c129d50bbfa96cfcd7b84873adcc7877",
       "size": 334
     },
     "libs/onnxruntime/capi/build_and_package_info.py": {
-      "md5": "f8e29b0ad0d3991779f6cfbc9f95dffb",
-      "size": 54
+      "md5": "a15f054cee95e1cfaa24f870906fcec0",
+      "size": 63
     },
     "libs/onnxruntime/capi/convert_npz_to_onnx_adapter.py": {
       "md5": "9b865abec8b23b0a6dba388525647d5f",
       "size": 1581
     },
+    "libs/onnxruntime/capi/DirectML.dll": {
+      "md5": "75164f4f5f23d9f0df6e0e92889d7613",
+      "size": 18527776
+    },
     "libs/onnxruntime/capi/onnxruntime.dll": {
-      "md5": "5f7d47c8288c4f6baa41b0aade7f91d5",
-      "size": 18093880
+      "md5": "43643de8b9c2099732679f0b8434f81c",
+      "size": 21111832
     },
     "libs/onnxruntime/capi/onnxruntime_collect_build_info.py": {
       "md5": "f2a03c7682219ac967c6eb037a51c112",
       "size": 2109
     },
     "libs/onnxruntime/capi/onnxruntime_inference_collection.py": {
-      "md5": "b95739004735bc3cc84eecbd8b63d5a8",
-      "size": 70533
+      "md5": "9d47328d6fe97caf4b59e56184cafd7f",
+      "size": 62504
     },
     "libs/onnxruntime/capi/onnxruntime_providers_shared.dll": {
-      "md5": "31aa0963310d4b78ac41427f97e74b9b",
-      "size": 21816
+      "md5": "32a29a1a127743b776bd6f4885732638",
+      "size": 21576
     },
     "libs/onnxruntime/capi/onnxruntime_pybind11_state.pyd": {
-      "md5": "f19147c1857b16cad360d85a3327ccea",
-      "size": 18748216
+      "md5": "b38e62065182948f813903f91da3879c",
+      "size": 26509336
     },
     "libs/onnxruntime/capi/onnxruntime_validation.py": {
       "md5": "1b2231e985f1635a55b6e69343864484",
@@ -1170,32 +1174,28 @@
       "size": 473
     },
     "libs/onnxruntime/quantization/base_quantizer.py": {
-      "md5": "0486a98d92af1774439b3017bfebc533",
-      "size": 26295
+      "md5": "0284a7b4531613ad977a68e69ce0717f",
+      "size": 26179
     },
     "libs/onnxruntime/quantization/calibrate.py": {
-      "md5": "b9b038d8ba42d6bc47fe404577e306e8",
-      "size": 58144
-    },
-    "libs/onnxruntime/quantization/cuda_quantizer.py": {
-      "md5": "de91e2b9416e8090bc9cae03ce023f5b",
-      "size": 27498
+      "md5": "6ab0d29ae75c1badde5758037fcf3d2a",
+      "size": 54638
     },
     "libs/onnxruntime/quantization/matmul_bnb4_quantizer.py": {
       "md5": "d6988c6173a89a6b242952454a1de681",
       "size": 9263
     },
     "libs/onnxruntime/quantization/matmul_nbits_quantizer.py": {
-      "md5": "02da2f77fd333729b649176b52624156",
-      "size": 81039
+      "md5": "50997652e6f28f5947071b66810d89eb",
+      "size": 69088
     },
     "libs/onnxruntime/quantization/onnx_model.py": {
       "md5": "84c17736b90cfa2dcd0b9fdbe66caa55",
       "size": 24528
     },
     "libs/onnxruntime/quantization/onnx_quantizer.py": {
-      "md5": "cefb3e2d23832a3c8d1a08550e1b6400",
-      "size": 51001
+      "md5": "eab5f2468478d6d4431486d5e1a81925",
+      "size": 50385
     },
     "libs/onnxruntime/quantization/preprocess.py": {
       "md5": "f0345c89660a2dcace8d9ecc2db7783f",
@@ -1206,24 +1206,24 @@
       "size": 15829
     },
     "libs/onnxruntime/quantization/qdq_quantizer.py": {
-      "md5": "bcad99ceb0d7f03b6991342b1e0d74a3",
-      "size": 74285
+      "md5": "1f868d252addea9fc0268b5e0a2395ac",
+      "size": 71354
     },
     "libs/onnxruntime/quantization/quantize.py": {
-      "md5": "f4cb6c889f34903fc0eef7a80fc7f79b",
-      "size": 61377
+      "md5": "dc1e97f543fcb96f85f96ebcd77b9ae4",
+      "size": 53809
     },
     "libs/onnxruntime/quantization/quant_utils.py": {
-      "md5": "98bf4b6badef9cc32e6d0aea9d3ce366",
-      "size": 53010
+      "md5": "f59f956ee1d09fd72d9b99091693e081",
+      "size": 41408
     },
     "libs/onnxruntime/quantization/registry.py": {
-      "md5": "d107dbbbbe7623f1a77938007e64b0cb",
-      "size": 3919
+      "md5": "10771f26f7fe6e0fdfc5755790d77863",
+      "size": 3856
     },
     "libs/onnxruntime/quantization/shape_inference.py": {
-      "md5": "dc0d1f7ca745030d7023fd286e11b7dc",
-      "size": 10259
+      "md5": "176a8eeef2d2b5e8accfd69b8594e1f4",
+      "size": 9892
     },
     "libs/onnxruntime/quantization/static_quantize_runner.py": {
       "md5": "e18a8a4eb6bf4efca06def499e888fea",
@@ -1234,8 +1234,8 @@
       "size": 21304
     },
     "libs/onnxruntime/quantization/__init__.py": {
-      "md5": "eaa1c2f8a7740b5603e190b3a571f946",
-      "size": 787
+      "md5": "c7745830743c01321027944251cbe42b",
+      "size": 647
     },
     "libs/onnxruntime/quantization/CalTableFlatBuffers/KeyValue.py": {
       "md5": "b21752c580235a2fd3f54316bdbd8fed",
@@ -1294,8 +1294,8 @@
       "size": 246
     },
     "libs/onnxruntime/quantization/neural_compressor/onnx_model.py": {
-      "md5": "94376c0713e7b519d361303125719f60",
-      "size": 50836
+      "md5": "5dda6800d9de98ad30dc3af5f56272fc",
+      "size": 51478
     },
     "libs/onnxruntime/quantization/neural_compressor/util.py": {
       "md5": "dcb1c3c7028ecc943afb01aa7105f172",
@@ -1362,12 +1362,12 @@
       "size": 5238
     },
     "libs/onnxruntime/quantization/operators/matmul.py": {
-      "md5": "050ccf7115950940ae2b8f2679c05977",
-      "size": 8222
+      "md5": "cc0e229428655505cfe728bf1e5425dc",
+      "size": 8499
     },
     "libs/onnxruntime/quantization/operators/maxpool.py": {
-      "md5": "b347cb369cbf57be7b445d572e5d20ee",
-      "size": 1393
+      "md5": "5b36a8c5bdb41b2f25c390a2e7344ac8",
+      "size": 961
     },
     "libs/onnxruntime/quantization/operators/norm.py": {
       "md5": "330914a816bb185746459d7b91034361",
@@ -1450,8 +1450,8 @@
       "size": 5351
     },
     "libs/onnxruntime/tools/pytorch_export_helpers.py": {
-      "md5": "b3058bd766dc60e0603c26e2092c2db6",
-      "size": 6009
+      "md5": "628aa4b758b997251e6fd6c6f3097dfc",
+      "size": 5971
     },
     "libs/onnxruntime/tools/reduced_build_config_parser.py": {
       "md5": "613192dab76b939163dfafb6c46dfe2c",
@@ -1462,8 +1462,8 @@
       "size": 1031
     },
     "libs/onnxruntime/tools/symbolic_shape_infer.py": {
-      "md5": "56fdfaf7c128591d58d73fd3dee45f50",
-      "size": 148547
+      "md5": "0f738cbb97d82925c94fe32aa7b5c32a",
+      "size": 145673
     },
     "libs/onnxruntime/tools/update_onnx_opset.py": {
       "md5": "3c15b888eacc6d1e36b190569e56c4e9",
@@ -1474,8 +1474,8 @@
       "size": 528
     },
     "libs/onnxruntime/tools/mobile_helpers/coreml_supported_mlprogram_ops.md": {
-      "md5": "76613ab072b4291500162b7d4ae0a966",
-      "size": 3114
+      "md5": "730451331b58ae042223facb539c5f7b",
+      "size": 2456
     },
     "libs/onnxruntime/tools/mobile_helpers/coreml_supported_neuralnetwork_ops.md": {
       "md5": "2b9d1861c51d19d29ab3b8311346a836",
@@ -1726,12 +1726,12 @@
       "size": 1442
     },
     "libs/onnxruntime/transformers/benchmark.py": {
-      "md5": "8d80195733ca49a183d009fbfcccad3d",
-      "size": 33525
+      "md5": "05ff34eb72618ccbc63ee775b76f2838",
+      "size": 33496
     },
     "libs/onnxruntime/transformers/benchmark_helper.py": {
-      "md5": "4a7e5ecd8526950653bd1d3344e7a9cd",
-      "size": 22997
+      "md5": "e51a1e058511817cf62c1f4b30e96f88",
+      "size": 23043
     },
     "libs/onnxruntime/transformers/bert_perf_test.py": {
       "md5": "413d768e48881f1fe3323950c9b7a552",
@@ -1754,8 +1754,8 @@
       "size": 145070
     },
     "libs/onnxruntime/transformers/convert_tf_models_to_pytorch.py": {
-      "md5": "f82f53a2c57a02eff7c6ec34d10f31f6",
-      "size": 9244
+      "md5": "685567900aca388dfb75418ed1162cbd",
+      "size": 6841
     },
     "libs/onnxruntime/transformers/convert_to_packing_mode.py": {
       "md5": "3044cf32eca8aa7060a8d05538a4215d",
@@ -1766,12 +1766,12 @@
       "size": 7802
     },
     "libs/onnxruntime/transformers/float16.py": {
-      "md5": "db2d2fdcf302d22b95cc66fefe292808",
-      "size": 25190
+      "md5": "4fef48316179aae0c0824ce0d94fcc51",
+      "size": 24687
     },
     "libs/onnxruntime/transformers/fusion_attention.py": {
-      "md5": "28c23516125cdf39355209fb63f67d6d",
-      "size": 52125
+      "md5": "ce87cc991dd3c21785060cf0033dec3d",
+      "size": 51393
     },
     "libs/onnxruntime/transformers/fusion_attention_clip.py": {
       "md5": "9b870b8c402a452d9ca4e6e560ec7d2a",
@@ -1790,8 +1790,8 @@
       "size": 12379
     },
     "libs/onnxruntime/transformers/fusion_bart_attention.py": {
-      "md5": "ed6ba648516dc52c0e4039f3606258e8",
-      "size": 23926
+      "md5": "c95d265723a31efd27ed782782c837e5",
+      "size": 20277
     },
     "libs/onnxruntime/transformers/fusion_base.py": {
       "md5": "248bbfa81f42027515b989d65fea6af7",
@@ -1810,8 +1810,8 @@
       "size": 2041
     },
     "libs/onnxruntime/transformers/fusion_conformer_attention.py": {
-      "md5": "64ce68c38d54d2d73ba28be5b89a7b55",
-      "size": 12002
+      "md5": "39cf489ed66fd74d713816380b9751fa",
+      "size": 8424
     },
     "libs/onnxruntime/transformers/fusion_constant_fold.py": {
       "md5": "45493cc2a612e778d5b0dc9c96d52f66",
@@ -1846,8 +1846,8 @@
       "size": 13639
     },
     "libs/onnxruntime/transformers/fusion_gpt_attention_no_past.py": {
-      "md5": "47f805ffc7d71caecda09ecadfb4a257",
-      "size": 10830
+      "md5": "54f7035daa1b79592abe666d523e6048",
+      "size": 10794
     },
     "libs/onnxruntime/transformers/fusion_group_norm.py": {
       "md5": "0f2bec844332954eb15b2c12b143e005",
@@ -1856,10 +1856,6 @@
     "libs/onnxruntime/transformers/fusion_layernorm.py": {
       "md5": "b15792d5ccb0f579b18a2b8d7edbb35e",
       "size": 20845
-    },
-    "libs/onnxruntime/transformers/fusion_mha_dit.py": {
-      "md5": "750664e9d481ab8a089287c6b9b321d1",
-      "size": 24663
     },
     "libs/onnxruntime/transformers/fusion_mha_mmdit.py": {
       "md5": "c05f0a377d4fe7c41c463d33287009cd",
@@ -1870,8 +1866,8 @@
       "size": 3948
     },
     "libs/onnxruntime/transformers/fusion_options.py": {
-      "md5": "7b5854cbff92cf6745ede44a471b65b0",
-      "size": 12726
+      "md5": "9b762be2f595c616927a9fe9212856ed",
+      "size": 12704
     },
     "libs/onnxruntime/transformers/fusion_qordered_attention.py": {
       "md5": "4486d7c9ab974e5e598cce1d68512f5f",
@@ -1898,8 +1894,8 @@
       "size": 6403
     },
     "libs/onnxruntime/transformers/fusion_rotary_attention.py": {
-      "md5": "8e8d7c41dfc2be07344614a2786470f0",
-      "size": 79638
+      "md5": "39411ea7266573094061c3143e0817df",
+      "size": 68222
     },
     "libs/onnxruntime/transformers/fusion_shape.py": {
       "md5": "f2eb613604c55f509e947874438d54cc",
@@ -1910,8 +1906,8 @@
       "size": 7831
     },
     "libs/onnxruntime/transformers/fusion_skiplayernorm.py": {
-      "md5": "973f6e509a0840418bad6a42cde6e158",
-      "size": 11075
+      "md5": "bdbdf813e7133acfb25a0849e51be08d",
+      "size": 9168
     },
     "libs/onnxruntime/transformers/fusion_skip_group_norm.py": {
       "md5": "96731e1a5a0a2cf926cd12da93ed2352",
@@ -1934,8 +1930,8 @@
       "size": 651
     },
     "libs/onnxruntime/transformers/io_binding_helper.py": {
-      "md5": "b540aee02bc41f448bce8695bc30def7",
-      "size": 21845
+      "md5": "4dff58b59f5829932189df72a7a7a27f",
+      "size": 19440
     },
     "libs/onnxruntime/transformers/large_model_exporter.py": {
       "md5": "e87e0ef207c8af8aa262fb171da5c07b",
@@ -1954,16 +1950,16 @@
       "size": 25340
     },
     "libs/onnxruntime/transformers/onnx_model.py": {
-      "md5": "650daa8a0358456c84035c3f08905d93",
-      "size": 70237
+      "md5": "41708eff24e71783203d27aed39d86a1",
+      "size": 69954
     },
     "libs/onnxruntime/transformers/onnx_model_bart.py": {
       "md5": "fb1ffee3d5137025a0154df83667a8f0",
       "size": 5547
     },
     "libs/onnxruntime/transformers/onnx_model_bert.py": {
-      "md5": "833dbc728b2b925337edf7f07d2361a7",
-      "size": 21937
+      "md5": "234a145f90f70d05d3f499f543a55e19",
+      "size": 20402
     },
     "libs/onnxruntime/transformers/onnx_model_bert_keras.py": {
       "md5": "2e9a558ee968e564659c109f9f389a9f",
@@ -1986,8 +1982,8 @@
       "size": 3913
     },
     "libs/onnxruntime/transformers/onnx_model_mmdit.py": {
-      "md5": "f99e441cc92c44dde1b7f26b7657d526",
-      "size": 4578
+      "md5": "f5b2bff9a5771c5b10c69479f81f2214",
+      "size": 4209
     },
     "libs/onnxruntime/transformers/onnx_model_phi.py": {
       "md5": "a254c89a18befdef5a31d1b77f844cd3",
@@ -2018,8 +2014,8 @@
       "size": 2175
     },
     "libs/onnxruntime/transformers/optimizer.py": {
-      "md5": "45c9597b5554766951654884b25ba162",
-      "size": 25784
+      "md5": "8adf85a2a3a0818a07fba482c29261a1",
+      "size": 25691
     },
     "libs/onnxruntime/transformers/past_helper.py": {
       "md5": "10a4bea6bf6d1d0c345afd9d776f499e",
@@ -2034,20 +2030,20 @@
       "size": 12940
     },
     "libs/onnxruntime/transformers/quantize_helper.py": {
-      "md5": "1ed72af3c91ef34082d2d42d86c9b98f",
-      "size": 3011
+      "md5": "563abb064cb21749d1511517496a59c9",
+      "size": 2927
     },
     "libs/onnxruntime/transformers/shape_infer_helper.py": {
-      "md5": "47cf98f0fe1c69ec7522c44c62c5d181",
-      "size": 5418
+      "md5": "1dbba4e24e38f02d562dcf3105099342",
+      "size": 4566
     },
     "libs/onnxruntime/transformers/shape_optimizer.py": {
       "md5": "b95b9c6593ec8701560bd9feced1aabb",
       "size": 15468
     },
     "libs/onnxruntime/transformers/torch_onnx_export_helper.py": {
-      "md5": "3f193daf186be7d944abe027e121c5f1",
-      "size": 3083
+      "md5": "b42dfb8ab477840da1ad55a2b96aa577",
+      "size": 2602
     },
     "libs/onnxruntime/transformers/__init__.py": {
       "md5": "a482de695f4c0e973e982a7c9119b265",
@@ -2214,8 +2210,8 @@
       "size": 495
     },
     "libs/onnxruntime/transformers/models/stable_diffusion/benchmark.py": {
-      "md5": "628ddce8ca05640ed37de6e64ceaef9f",
-      "size": 51085
+      "md5": "9428d09c511fe85feb123c3b7ef55ee7",
+      "size": 51563
     },
     "libs/onnxruntime/transformers/models/stable_diffusion/benchmark_controlnet.py": {
       "md5": "f10841e34eee96baf3d5efc3feb87604",
@@ -2298,8 +2294,8 @@
       "size": 15421
     },
     "libs/onnxruntime/transformers/models/t5/t5_helper.py": {
-      "md5": "6c074d0385b5470afbc86a3e6e38f79b",
-      "size": 12941
+      "md5": "1b7e2c3a5b13d3f70560050f57a4274c",
+      "size": 12515
     },
     "libs/onnxruntime/transformers/models/t5/__init__.py": {
       "md5": "e3dc067a0ea3f8349f64f8c07ad17922",
@@ -2314,8 +2310,8 @@
       "size": 19368
     },
     "libs/onnxruntime/transformers/models/whisper/convert_to_onnx.py": {
-      "md5": "178944a8b1da29d8ca47c33c1d176302",
-      "size": 26611
+      "md5": "d8d422747a518fa0ac695544c9ed5ed7",
+      "size": 21750
     },
     "libs/onnxruntime/transformers/models/whisper/whisper_chain.py": {
       "md5": "bea479d48faa5f82bedc1241cc84b603",
@@ -2334,47 +2330,47 @@
       "size": 16833
     },
     "libs/onnxruntime/transformers/models/whisper/whisper_helper.py": {
-      "md5": "42c2cac828b49addf533f23422592a79",
-      "size": 51589
+      "md5": "382a91b7b1db8cc328b8f3b5047e3a9d",
+      "size": 51334
     },
     "libs/onnxruntime/transformers/models/whisper/whisper_inputs.py": {
       "md5": "842a51649496a220be16ec46e9fc8407",
       "size": 16041
     },
     "libs/onnxruntime/transformers/models/whisper/whisper_jump_times.py": {
-      "md5": "734066cf7044cfbe0f370750498ae60b",
-      "size": 20039
+      "md5": "f80c8c9b54b0e958ced063ad7fdb7299",
+      "size": 19950
     },
     "libs/onnxruntime/transformers/models/whisper/__init__.py": {
       "md5": "83a7070e6f8d8d9d3d7fd235865054bb",
       "size": 490
     },
-    "libs/onnxruntime-1.29.0.dist-info/entry_points.txt": {
+    "libs/onnxruntime_directml-1.24.4.dist-info/entry_points.txt": {
       "md5": "de46a49fec2a4048b41e5093d4aa90ba",
       "size": 77
     },
-    "libs/onnxruntime-1.29.0.dist-info/INSTALLER": {
+    "libs/onnxruntime_directml-1.24.4.dist-info/INSTALLER": {
       "md5": "365c9bfeb7d89244f2ce01c1de44cb85",
       "size": 4
     },
-    "libs/onnxruntime-1.29.0.dist-info/METADATA": {
-      "md5": "9c1d00b46afe56c5875cdd137caf6f17",
-      "size": 5802
+    "libs/onnxruntime_directml-1.24.4.dist-info/METADATA": {
+      "md5": "5e4b5affd19e8247950f155a9ed49650",
+      "size": 5452
     },
-    "libs/onnxruntime-1.29.0.dist-info/RECORD": {
-      "md5": "0d7e26390dc8138cfcaa419f9a3f1873",
-      "size": 60839
+    "libs/onnxruntime_directml-1.24.4.dist-info/RECORD": {
+      "md5": "ac0b2b4ab066d63f7b1f281551896ff6",
+      "size": 60644
     },
-    "libs/onnxruntime-1.29.0.dist-info/REQUESTED": {
+    "libs/onnxruntime_directml-1.24.4.dist-info/REQUESTED": {
       "md5": "d41d8cd98f00b204e9800998ecf8427e",
       "size": 0
     },
-    "libs/onnxruntime-1.29.0.dist-info/top_level.txt": {
+    "libs/onnxruntime_directml-1.24.4.dist-info/top_level.txt": {
       "md5": "09a2d6936458d2ad745286a887093fb3",
       "size": 12
     },
-    "libs/onnxruntime-1.29.0.dist-info/WHEEL": {
-      "md5": "dd73c92c4c719900a740f6fafeb4782c",
+    "libs/onnxruntime_directml-1.24.4.dist-info/WHEEL": {
+      "md5": "10969f824c5663888f94138dd2dfcdb2",
       "size": 101
     },
     "libs/opencv_python-5.0.0.93.dist-info/INSTALLER": {
@@ -3134,12 +3130,32 @@
       "size": 376750
     },
     "libs/static/assets/index.css": {
-      "md5": "079f60d56d7798a8d7a3c382467bd4e6",
-      "size": 199415
+      "md5": "76fd81042ccb39404a76bd51ae704fb0",
+      "size": 202255
     },
     "libs/static/assets/index.js": {
-      "md5": "41a344a09f4e5a6bb2625133cb581d49",
-      "size": 880011
+      "md5": "0f773761334498ceba0eb462fde1bca7",
+      "size": 900167
+    },
+    "libs/static/assets/test1.png": {
+      "md5": "7c8f93a79431ddcdfa4b7ac23a25f4e3",
+      "size": 33602
+    },
+    "libs/static/assets/test2.png": {
+      "md5": "bbf225a5002447db99ca1c7da070ef04",
+      "size": 17819
+    },
+    "libs/static/assets/test3.png": {
+      "md5": "b33077bb00a192cf5d1cec9f22a6ecdc",
+      "size": 22771
+    },
+    "libs/static/assets/test4.png": {
+      "md5": "9863bd61e4573f7f66e9e010e57dc86c",
+      "size": 229768
+    },
+    "libs/static/assets/test5.png": {
+      "md5": "983c56cc025923c47b23995d7f391b99",
+      "size": 217099
     },
     "libs/static/data/glossary.json": {
       "md5": "a7c9ff12907b7fcdd3c43747a6ede88b",
