@@ -3,6 +3,7 @@ import io
 import os
 import tempfile
 
+import numpy as np
 from flask import Blueprint, request, url_for
 from PIL import Image
 
@@ -18,8 +19,22 @@ from core.services.trial_filter import (
 from core.infra.utils import get_top_k_matches, get_icon_file_name, fuse_ocr_feat
 from core.infra.logger import logger
 from core.auth.service import is_authorized
+from core.services import recog_progress
 
 bp = Blueprint("predict", __name__)
+
+
+@bp.route('/api/recog_progress', methods=['GET'])
+def recog_progress_status():
+    """PC 端进度条轮询接口：读取识别任务快照（进程内内存，只读）。
+
+    前端在发起 /init_batch（或 /predict）时带上 task_id，另起轻量轮询读这个接口，
+    就能显示与纯前端版一致的阶段进度；不传 task_id 的老前端完全不受影响。
+    """
+    snap = recog_progress.snapshot(request.args.get('task'))
+    if snap is None:
+        return success(data={"phase": "unknown", "pct": 0, "done": 0, "total": 0, "text": ""})
+    return success(data=snap)
 
 
 def _pil_to_data_uri(img, fmt="PNG"):
@@ -126,6 +141,8 @@ def predict():
         logger.warning("[/predict] image文件为空")
         return error("No image uploaded", 400)
 
+    task_id = request.form.get('task_id')
+    recog_progress.begin(task_id, phase='prepare', text='正在读取截图')
     temp_path = None
     try:
         from core.services.recognizers import models
@@ -136,6 +153,7 @@ def predict():
         img = Image.open(temp_path).convert('RGB')
         logger.debug(f"[/predict] 图片尺寸: {img.size}")
 
+        recog_progress.update(task_id, phase='features', pct=25, text='正在提取图像特征')
         recognizer = models.get_icon_recognizer()
         if recognizer is None:
             return error(f"试炼 {trial_key} 的图标特征库不可用", 500)
@@ -148,9 +166,11 @@ def predict():
             logger.warning(f"[/predict] 特征匹配返回错误: {err}")
             return error(err, 500)
 
+        recog_progress.update(task_id, phase='ocr', pct=60, text='正在识别精灵名文字')
         ocr_results = ocr_top_k_match(temp_path, stage_num, top_k, trial_key)
         logger.debug(f"[/predict] OCR匹配结果数: {len(ocr_results)}")
 
+        recog_progress.update(task_id, phase='merge', pct=85, text='正在融合候选结果')
         # 特调：OCR 多形态名字(seq_tag)按特征(图像)置信度加权
         ocr_results = fuse_ocr_feat(ocr_results, feat_results)
         combined_results = feat_results + ocr_results
@@ -184,15 +204,20 @@ def predict():
             top1 = final_list[0]
             logger.info(f"[/predict] 预测成功: top1={top1['filename']}({top1['score']:.3f}), "
                         f"共{len(final_list)}个候选")
+            recog_progress.update(task_id, phase='finish', pct=95, text='正在整理结果')
+            recog_progress.finish(task_id)
             return success(data=final_list, count=len(final_list))
 
         logger.info(f"[/predict] 无匹配结果, err={err}")
+        recog_progress.finish(task_id, error=err or "未识别到匹配项")
         return error(err or "未识别到匹配项", 404)
 
     except Exception as e:
         logger.error(f"[/predict] 处理异常: {e}", exc_info=True)
+        recog_progress.finish(task_id, error=str(e))
         return error(str(e), 500)
     finally:
+        recog_progress.finish(task_id)
         # 统一清理临时文件：任何提前 return / 异常都不会泄漏
         if temp_path and os.path.exists(temp_path):
             try:
@@ -223,6 +248,8 @@ def predict_batch():
         return error(f"未知的徽章试炼: {trial_key}", 400)
 
     temp_path = None
+    task_id = request.form.get('task_id')
+    recog_progress.begin(task_id, phase='prepare', text='正在读取整页截图')
     try:
         from core.vision.ocr import ocr
         from core.vision.processor import segment_icons, segment_icons_by_name_anchors
@@ -231,10 +258,12 @@ def predict_batch():
             temp_path = tmp.name
             file.save(temp_path)
 
+        recog_progress.update(task_id, phase='ocr', pct=5, text='正在识别精灵名文字')
         bottom_items = ocr().recognize_bottom_items(temp_path)
         ocr_names = [b['text'] for b in bottom_items]
         logger.debug(f"[/init_batch] OCR识别名字列表: {ocr_names}")
 
+        recog_progress.update(task_id, phase='segment', pct=42, text='正在切分图位')
         with open(temp_path, 'rb') as f:
             image_bytes = f.read()
         pil_icons = segment_icons(image_bytes, total_count)
@@ -281,8 +310,17 @@ def predict_batch():
         if total_detected == 0:
             if temp_path and os.path.exists(temp_path): os.remove(temp_path)
             logger.info("[/init_batch] 未检测到图标或文字，返回404")
+            recog_progress.finish(task_id, error="未检测到图标或文字")
             return error("No icons or text detected", 404)
 
+        # 进度权重按【实测耗时】分配（tools/bench_recog_stages.py）：
+        #   OCR 约 35~70%、批量 DINO 特征约 30~60%、切图与逐图位匹配各 <1%。
+        # 所以大头给 OCR 与 features 两段，features 再按分块上报，避免"走到三四十就突然结束"。
+        recog_progress.update(
+            task_id, phase='features', pct=45,
+            total=num_pil, done=0,
+            text=f'正在提取 {num_pil} 个图标的图像特征' if num_pil else '正在准备特征匹配',
+        )
         batch_results = []
         map_name = f"map{stage_num}"
 
@@ -297,13 +335,35 @@ def predict_batch():
         feat_matrix = None
         if num_pil and recognizer is not None:
             try:
-                feat_matrix = recognizer.get_feature_batch(pil_icons)
+                # 分块调用（每块 4 张）以便上报进度；结果与一次性批量完全等价
+                # （get_feature_batch 内部本来也是按 batch_size 分块，逐行归一化后可拼接）
+                chunks = []
+                step = 4
+                for start in range(0, num_pil, step):
+                    part = recognizer.get_feature_batch(pil_icons[start:start + step], batch_size=step)
+                    chunks.append(part)
+                    done_n = min(num_pil, start + step)
+                    recog_progress.update(
+                        task_id, phase='features',
+                        pct=45 + int(50 * done_n / max(1, num_pil)),
+                        done=done_n, total=num_pil,
+                        text=f'正在提取图像特征 {done_n}/{num_pil}',
+                    )
+                feat_matrix = np.concatenate(chunks, axis=0) if chunks else None
                 logger.debug(f"[/init_batch] 批量特征提取完成: N={num_pil}, shape={feat_matrix.shape}")
             except Exception as e:
                 logger.error(f"[/init_batch] 批量特征提取失败，回退为逐图标匹配: {e}", exc_info=True)
                 feat_matrix = None
 
+        recog_progress.update(task_id, phase='infer', pct=95, total=total_detected,
+                              done=0, text=f'共 {total_detected} 个图位，开始逐位识别')
         for i in range(total_detected):
+            recog_progress.update(
+                task_id, phase='infer',
+                pct=95 + int(3 * (i + 1) / max(1, total_detected)),
+                done=i + 1, total=total_detected,
+                text=f'正在识别第 {i + 1}/{total_detected} 个图位',
+            )
             # A. 获取图像块进行特征匹配（如果 i 超过了分割块数量，则不进行图像匹配）
             feat_results = []
             if i < num_pil:
@@ -389,13 +449,18 @@ def predict_batch():
         logger.info(f"[/init_batch] 批量预测完成: total={total_detected}, matched={matched}, "
                    f"unmatched={total_detected - matched}")
 
+        recog_progress.update(task_id, phase='finish', pct=97, done=total_detected,
+                              total=total_detected, text='正在汇总候选结果')
+        recog_progress.finish(task_id)
         return success(total_detected=total_detected, results=batch_results)
 
     except Exception as e:
         logger.error(f"[/init_batch] 批量预测异常: {e}", exc_info=True)
+        recog_progress.finish(task_id, error=str(e))
         return error(str(e), 500)
 
     finally:
+        recog_progress.finish(task_id)
         if temp_path and os.path.exists(temp_path):
             try:
                 os.remove(temp_path)

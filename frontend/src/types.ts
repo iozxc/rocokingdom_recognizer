@@ -91,6 +91,10 @@ export interface BatchInitCandidateItem {
   view_url: string;
   match_path?: string;
   matchedPet?: PetItem;
+  /** 纯前端版：候选来源（图像特征 / OCR 文字 / 两者都命中）。 */
+  source?: 'feature' | 'ocr' | 'both';
+  /** 纯前端版：该候选不在当前地图白名单（仅提示，仍可手动点选）。 */
+  out_of_map?: boolean;
 }
 
 export interface BatchInitApiRawItem {

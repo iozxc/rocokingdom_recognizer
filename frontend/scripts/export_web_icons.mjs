@@ -6,12 +6,14 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const script = join(here, 'export_web_icons.py');
+// 透传参数（例如 --force 忽略缓存、强制重建雪碧图）
+const extraArgs = process.argv.slice(2);
 
 const candidates =
     process.platform === 'win32' ? ['python', 'py', 'python3'] : ['python3', 'python'];
 
 for (const cmd of candidates) {
-    const r = spawnSync(cmd, [script], { stdio: 'inherit' });
+    const r = spawnSync(cmd, [script, ...extraArgs], { stdio: 'inherit' });
     if (r.error) continue;
     if (r.status === 0) process.exit(0);
     process.exit(r.status ?? 1);

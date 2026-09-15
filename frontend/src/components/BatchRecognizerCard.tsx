@@ -28,6 +28,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { ImageZoom } from './ImageZoom';
+import { PetSprite } from './PetSprite';
 import { collectAtlasObservation } from '../services/atlasCollector';
 import confetti from 'canvas-confetti';
 import { ThresholdSlider } from './ThresholdSlider';
@@ -39,7 +40,16 @@ import {
   BatchInitCandidateItem,
   EncounterRecord,
 } from '../types';
-import { api } from '../services/api';
+import {
+  cancelLocalRecognition,
+  getLastBatchInfo,
+  getRecognizerInfo,
+  getRecognizerPerf,
+  hasWebGPU,
+  isRecognitionCanceled,
+  recognizeImage,
+} from '../services/recognition';
+import { IS_STATIC } from '../services/staticMode';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
@@ -81,6 +91,33 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
+  /** 纯前端版：模型/特征库加载与推理阶段进度（桌面版不显示）。 */
+  const [scanProgress, setScanProgress] = useState<{ phase: string; pct: number; text?: string } | null>(null);
+  /** 纯前端版：上一次识别用的后端/模型/耗时（排查「为什么慢/为什么没识别到」）。 */
+  const [scanPerf, setScanPerf] = useState<{
+    backend: string;
+    totalMs: number;
+    p95: number;
+    samples: number;
+    modelFile: string;
+    modelKey: string;
+    modelMB: number;
+    fromCache: boolean;
+    features: number;
+  } | null>(null);
+  /** 进度条显示的百分比：向真实进度平滑逼近，避免「卡住 → 突然结束」。 */
+  const [displayPct, setDisplayPct] = useState<number>(0);
+  const progressTargetRef = useRef<number>(0);
+  const displayPctRef = useRef<number>(0);
+  /** 进度行是否可见：识别结束后还会停留一小会儿做收尾动画，不会"嗖"地消失。 */
+  const [progressVisible, setProgressVisible] = useState<boolean>(false);
+  const progressHideTimerRef = useRef<number | null>(null);
+  /** 本次识别已用时（秒）：OCR 这种长时间不回报的阶段靠它体现"还在动"。 */
+  const [scanElapsed, setScanElapsed] = useState<number>(0);
+  /** 纯前端版：本次切分出几个图位（单图=1）。 */
+  const [batchInfo, setBatchInfo] = useState<{ count: number; mode: 'single' | 'batch' } | null>(null);
+  /** 纯前端版：OCR 名字融合开关（关掉可省 15MB 下载与每次几百 ms 推理）。 */
+  const [ocrEnabled, setOcrEnabled] = useState<boolean>(() => storage.getSetting<boolean>('webEnableOcr', true));
 
   // 识别参数小弹窗（识别门槛 / 候选数量收进此处，正常使用无需展开）
   const [showRecogSettings, setShowRecogSettings] = useState<boolean>(false);
@@ -125,11 +162,72 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     };
   }, [showRecogSettings]);
 
+  // 纯前端版没有 WebGPU 就不提供识别入口：部署包只带 int8（受 Pages 单文件 25MiB 限制），
+  // 保持与之前一致的策略 —— 无 WebGPU 的浏览器直接不显示识别模块。
+  // 图鉴浏览、筛选、历史记录等纯静态功能不受影响。
+  const webGpuMissing = IS_STATIC && !hasWebGPU();
+  /** 纯前端版「当前生效模型」一行文案（模型固定 int8，不做切换）。 */
+  const modelInfoLine = scanPerf?.modelFile
+      ? `${scanPerf.modelFile} · ${scanPerf.modelMB ? scanPerf.modelMB.toFixed(0) + 'MB' : ''}` +
+        ` · ${scanPerf.fromCache ? '已缓存' : '本次下载'}`
+      : '';
+
   // 把识别进行中状态上报给父级（卸载时恢复为 false，避免父状态卡住）
   useEffect(() => {
     onScanningChange?.(isScanning);
     return () => onScanningChange?.(false);
   }, [isScanning]);
+
+  // 真实进度（scanProgress.pct）只记录目标值；显示值走平滑动画：
+  // 有目标时快速逼近，长时间没有新上报时缓慢爬升（最多比已上报值多 8%），
+  // 这样 PC 端那种「OCR 之后几十毫秒就跑完」的场景也不会出现卡住再跳满。
+  useEffect(() => {
+    if (!progressVisible) {
+      setDisplayPct(0);
+      progressTargetRef.current = 0;
+      return;
+    }
+    const id = window.setInterval(() => {
+      setDisplayPct((prev) => {
+        const target = progressTargetRef.current;
+        if (target >= 100) return 100;
+        if (prev < target) {
+          // 收尾（target=100）时提快一点，让"完成后补满"只花半秒左右
+          const gain = target >= 100 ? 0.45 : 0.22;
+          return Math.min(target, prev + Math.max(0.8, (target - prev) * gain));
+        }
+        // 没有新上报时缓慢爬升，最多比已上报值多 12 个百分点（不假装快完成）
+        const ceiling = Math.min(target + 12, 96);
+        return prev < ceiling ? Math.min(ceiling, prev + 0.3) : prev;
+      });
+    }, 90);
+    return () => window.clearInterval(id);
+  }, [progressVisible]);
+
+  useEffect(() => {
+    displayPctRef.current = displayPct;
+  }, [displayPct]);
+
+  useEffect(() => {
+    if (!progressVisible) {
+      setScanElapsed(0);
+      return;
+    }
+    const t0 = performance.now();
+    const id = window.setInterval(() => setScanElapsed((performance.now() - t0) / 1000), 200);
+    return () => window.clearInterval(id);
+  }, [progressVisible]);
+
+  // 卸载时清掉收尾定时器
+  useEffect(() => () => {
+    if (progressHideTimerRef.current !== null) window.clearTimeout(progressHideTimerRef.current);
+  }, []);
+
+  // 真实进度只允许单调上升（后端阶段切换时偶发回退也不让进度条倒退）
+  useEffect(() => {
+    if (!isScanning || !scanProgress) return;
+    progressTargetRef.current = Math.max(progressTargetRef.current, scanProgress.pct);
+  }, [isScanning, scanProgress]);
 
   // Sync when currentMap changes from outside
   useEffect(() => {
@@ -226,11 +324,14 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
   const handleFileSelect = (file: File) => {
     sound.playClick();
+    // 换图即作废旧任务，避免上一张图的结果后到覆盖新图
+    cancelLocalRecognition();
     setSelectedFile(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     setReviewItems([]);
     setScanError(null);
+    setScanProgress(null);
   };
 
   const handleThresholdChange = (val: number) => {
@@ -263,14 +364,23 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
   const handleClearUpload = () => {
     sound.playClick();
+    cancelLocalRecognition();
     setSelectedFile(null);
     setPreviewUrl(null);
     setReviewItems([]);
     setTotalDetected(0);
     setScanError(null);
+    setScanProgress(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  /** 纯前端版：取消进行中的本地识别。 */
+  const handleCancelScan = () => {
+    sound.playClick();
+    cancelLocalRecognition();
+    setScanProgress(null);
   };
 
   const handleStartBatchScan = async () => {
@@ -279,6 +389,18 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     sound.playScan();
     setIsScanning(true);
     setScanError(null);
+    if (progressHideTimerRef.current !== null) {
+      window.clearTimeout(progressHideTimerRef.current);
+      progressHideTimerRef.current = null;
+    }
+    setProgressVisible(true);
+    progressTargetRef.current = 1;
+    setDisplayPct(1);
+    setScanProgress({
+      phase: 'manifest',
+      pct: 0,
+      text: IS_STATIC ? '正在准备识别资产' : '正在准备识别',
+    });
 
     try {
       let fileToSend: File | Blob;
@@ -291,7 +413,14 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         throw new Error('请先导入或选择图片');
       }
 
-      const { data } = await api.initBatch(fileToSend, selectedMapNum, threshold, topK, trialKey);
+      // 纯前端版走浏览器内本地识别（LocalRecognizer），桌面版仍走 Flask；返回结构同构。
+      const { data } = await recognizeImage(
+          fileToSend, selectedMapNum, threshold, topK, trialKey, targetMapPets,
+          (phase, pct, text) => {
+            setScanProgress({ phase, pct, text });
+          },
+          IS_STATIC ? { enableOcr: ocrEnabled, totalCount: 12 } : undefined
+      );
 
       setTotalDetected(data.total_detected || data.results.length);
 
@@ -318,6 +447,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
             match_path: cand.match_path,
             score: cand.score,
             view_url: cand.view_url,
+            source: cand.source,
+            out_of_map: cand.out_of_map,
             matchedPet: matchedCandPet || {
               name: cand.filename,
               url: cand.view_url || '',
@@ -402,10 +533,53 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         }
       }, 120);
     } catch (err: unknown) {
+      if (isRecognitionCanceled(err)) {
+        // 用户换图/主动取消：静默放弃，不当作错误提示
+        setProgressVisible(false);
+        return;
+      }
       const error = err as Error;
       setScanError(error.message || '批量识别请求失败，请检查网络或后端接口');
     } finally {
       setIsScanning(false);
+      setScanProgress(null);
+      // 收尾：先把进度条补满到 100% 再隐藏（等它真的爬到 100，最多等 1.6s）——
+      // 识别只要几百毫秒时也不会出现「刚走到三四十就嗖地消失」。
+      // 结果列表本身已经在上面渲染出来了，这一步只影响进度行。
+      progressTargetRef.current = 100;
+      const finishAt = performance.now();
+      const waitAndHide = () => {
+        if (displayPctRef.current >= 99.5 || performance.now() - finishAt > 1600) {
+          setProgressVisible(false);
+          progressHideTimerRef.current = null;
+          return;
+        }
+        progressHideTimerRef.current = window.setTimeout(waitAndHide, 80);
+      };
+      progressHideTimerRef.current = window.setTimeout(waitAndHide, 80);
+      if (IS_STATIC) {
+        const perf = getRecognizerPerf();
+        const info = getRecognizerInfo();
+        if (perf && perf.last) {
+          const modelPath = info?.model || '';
+          const models = info?.manifest?.models || {};
+          const modelKey = Object.keys(models).find((k) => models[k] === modelPath) || '';
+          const modelBytes = (info?.manifest?.assets || []).find((a) => a.path === modelPath)?.bytes || 0;
+          setScanPerf({
+            backend: perf.backend || 'wasm',
+            totalMs: Math.round(perf.last.totalMs),
+            p95: Math.round(perf.totalP95),
+            samples: perf.samples,
+            modelFile: modelPath.split('/').pop() || '',
+            modelKey,
+            modelMB: modelBytes / 1e6,
+            fromCache: !!info?.fromCache,
+            features: info?.manifest?.features?.count || 0,
+          });
+        }
+        const lastBatch = getLastBatchInfo();
+        if (lastBatch) setBatchInfo({ count: lastBatch.count, mode: lastBatch.mode });
+      }
     }
   };
 
@@ -572,6 +746,23 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     // 最多 6 列：结果容器 >=1360px 即排 6 列（单卡约 217px），1140~1360 为 5 列，再窄依次降级
     return 'w-full @[480px]:w-[calc((100%_-_0.75rem)/2)] @[700px]:w-[calc((100%_-_1.5rem)/3)] @[920px]:w-[calc((100%_-_2.25rem)/4)] @[1140px]:w-[calc((100%_-_3rem)/5)] @[1360px]:w-[calc((100%_-_3.75rem)/6)]';
   };
+
+  // 没有 WebGPU：不渲染识别模块，只留一句说明（图鉴本身照常可用）
+  if (webGpuMissing) {
+    return (
+        <div className="bg-white dark:bg-slate-900 roco-card p-4 sm:p-5 mb-5 shadow-xs border border-slate-100 dark:border-slate-800">
+          <div className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            <Info className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
+            <span>
+              本机浏览器不支持 GPU 加速（<span className="font-mono">WebGPU</span>），本地识别模块已隐藏；
+              图鉴浏览、地图筛选、记录功能一切照常。
+              如需识别，请用 <span className="font-black text-slate-600 dark:text-slate-300">Chrome / Edge 113+</span>
+              或 <span className="font-black text-slate-600 dark:text-slate-300">Safari 16.4+</span> 打开本页面。
+            </span>
+          </div>
+        </div>
+    );
+  }
 
   return (
       <div className="bg-white dark:bg-slate-900 roco-card p-5 sm:p-6 mb-5 shadow-xs border border-slate-100 dark:border-slate-800 transition-colors">
@@ -759,6 +950,53 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         ))}
                       </div>
                     </div>
+
+                    {/* 纯前端版：不再提供模型切换（部署包只带 int8，受 Pages 单文件 25MiB 限制），
+                        只显示当前实际生效的模型 + OCR 增强开关。桌面版没有这一块。 */}
+                    {IS_STATIC && (
+                        <div className="pt-1 border-t border-slate-100 dark:border-slate-700 space-y-2">
+                          <div className="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-200">
+                            <Layers className="w-3.5 h-3.5 text-[#7ABCF4] dark:text-sky-400" />
+                            <HintTooltip
+                                side="bottom"
+                                content="本地识别用的模型（固定 int8 量化版，体积 25MB 以内以便随站点分发；首次识别会下载并缓存到浏览器，之后不再重复下载）。"
+                                className="cursor-help"
+                            >
+                              <span className="font-bold flex items-center gap-0.5 underline decoration-dotted decoration-slate-300 underline-offset-2">
+                                本地模型<Info className="w-3 h-3 text-slate-400" />
+                              </span>
+                            </HintTooltip>
+                            <span className="ml-auto">
+                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                                int8 · 25MB
+                              </span>
+                            </span>
+                          </div>
+                          <p className="text-[10px] font-mono text-slate-400 truncate">
+                            当前生效：{modelInfoLine || '首次识别时加载（dino_int8.onnx）'}
+                          </p>
+
+                          {/* OCR 文字融合：增强项，可关闭以省流量与耗时 */}
+                          <label className="flex items-start gap-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={ocrEnabled}
+                                disabled={isScanning}
+                                onChange={(e) => {
+                                  const next = e.target.checked;
+                                  setOcrEnabled(next);
+                                  storage.setSetting('webEnableOcr', next);
+                                }}
+                                className="mt-0.5 w-3.5 h-3.5 accent-[#7ABCF4] cursor-pointer"
+                            />
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                              <span className="font-black text-slate-600 dark:text-slate-300">OCR 名字辅助（+15MB）</span>
+                              <br />
+                              用截图里的精灵名做文字匹配，和图像特征融合；关掉可省一次模型下载与每次几百毫秒。
+                            </span>
+                          </label>
+                        </div>
+                    )}
                   </div>
               )}
             </div>
@@ -962,6 +1200,66 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                             </>
                         )}
                       </button>
+
+                      {/* 识别进度：纯前端版是本地推理进度，PC 端是后端阶段进度（轮询快照） */}
+                      {progressVisible && (
+                          <div className="rounded-xl border border-[#BCD7F2] dark:border-slate-600 bg-[#F8FBFE] dark:bg-slate-900 p-2.5 space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                              <span className="truncate pr-2">
+                                {!isScanning && displayPct >= 99.5 ? '识别完成' : (scanProgress?.text || '正在识别')}
+                                <span className="ml-1 font-mono text-[10px] font-normal text-slate-400">
+                                  {scanElapsed >= 0.5 ? `${scanElapsed.toFixed(1)}s` : ''}
+                                </span>
+                              </span>
+                              <span className="font-mono shrink-0">{Math.round(displayPct)}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                              <div
+                                  className="h-full bg-[#7ABCF4] dark:bg-sky-500 transition-[width] duration-100 ease-linear"
+                                  style={{ width: `${Math.max(2, Math.min(100, displayPct))}%` }}
+                              />
+                            </div>
+                            {isScanning && (
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-slate-400">
+                                    {IS_STATIC ? '首次识别需下载本地模型，之后走缓存秒开' : '本地后端识别中，请稍候'}
+                                  </span>
+                                  {IS_STATIC && (
+                                      <button
+                                          type="button"
+                                          onClick={handleCancelScan}
+                                          className="text-[10px] font-black text-rose-500 hover:text-rose-600 cursor-pointer"
+                                      >
+                                        取消
+                                      </button>
+                                  )}
+                                </div>
+                            )}
+                          </div>
+                      )}
+
+                      {IS_STATIC && !isScanning && scanPerf && (
+                          <div className="text-[10px] text-slate-400 text-center font-mono leading-relaxed">
+                            <div>
+                              本地识别 · {scanPerf.backend}
+                              {scanPerf.modelFile ? (
+                                  <> · 模型 {scanPerf.modelKey || '—'}
+                                    {scanPerf.modelMB ? ` ${scanPerf.modelMB.toFixed(0)}MB` : ''}
+                                    <span className="opacity-70">
+                                      （{scanPerf.modelFile}
+                                      {scanPerf.fromCache ? ' · 已缓存' : ' · 本次下载'}）
+                                    </span>
+                                  </>
+                              ) : null}
+                              {scanPerf.features ? ` · 特征库 ${scanPerf.features} 条` : ''}
+                            </div>
+                            <div>
+                              上次 {scanPerf.totalMs}ms
+                              {batchInfo ? ` · ${batchInfo.mode === 'batch' ? `切分 ${batchInfo.count} 个图位` : '单图'}` : ''}
+                              {scanPerf.samples > 1 ? `（P95 ${scanPerf.p95}ms / ${scanPerf.samples} 次）` : ''}
+                            </div>
+                          </div>
+                      )}
 
                       <button
                           type="button"
@@ -1231,13 +1529,17 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                               <div className="flex flex-col items-center gap-0.5">
                             <div className="relative w-16 h-16 rounded-xl bg-white dark:bg-slate-900 p-1 border border-[#E6EEF8] dark:border-slate-700 shadow-inner flex items-center justify-center">
                               {isMatched && item.matchedPet ? (
-                                  <ImageZoom
-                                      src={item.view_url || item.matchedPet.url}
-                                      alt={displayName}
-                                      trigger="hover"
-                                      className="w-full h-full"
-                                      imgClassName="w-full h-full object-contain"
-                                  />
+                                  item.view_url ? (
+                                      <ImageZoom
+                                          src={item.view_url}
+                                          alt={displayName}
+                                          trigger="hover"
+                                          className="w-full h-full"
+                                          imgClassName="w-full h-full object-contain"
+                                      />
+                                  ) : (
+                                      <PetSprite pet={item.matchedPet} url={item.matchedPet?.url} alt={displayName} className="w-full h-full object-contain" />
+                                  )
                               ) : (
                                   <HelpCircle className="w-8 h-8 text-rose-300 dark:text-rose-600" />
                               )}
@@ -1375,15 +1677,11 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
                                           {/* 图标：窄卡跨两行铺满，宽卡内联小图 */}
                                           <div className="relative z-10 w-5 h-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs @max-[300px]:w-9 @max-[300px]:h-auto @max-[300px]:min-h-9 @max-[300px]:row-span-2 @max-[300px]:self-stretch">
-                                              <img
-                                                  src={cand.view_url || cand.matchedPet?.url}
+                                              <PetSprite
+                                                  pet={cand.matchedPet}
+                                                  url={cand.view_url}
                                                   alt={candDisplayName}
                                                   className="w-full h-full object-contain"
-                                                  onError={(e) => {
-                                                    if (cand.matchedPet?.url) {
-                                                      (e.target as HTMLImageElement).src = cand.matchedPet.url;
-                                                    }
-                                                  }}
                                               />
                                             </div>
 
@@ -1399,6 +1697,22 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                             <span className="text-[11px] truncate flex-1 min-w-0 font-bold">
                                               {candDisplayName}
                                             </span>
+                                            {cand.out_of_map && (
+                                                <span
+                                                    className="text-[8px] font-black px-1 py-0.2 rounded shrink-0 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-300/60"
+                                                    title="该候选不在当前地图白名单，通常是别的图或别的试炼的精灵；点它仍可手动选中"
+                                                >
+                                                  非本图
+                                                </span>
+                                            )}
+                                            {IS_STATIC && cand.source === 'ocr' && (
+                                                <span
+                                                    className="text-[8px] font-black px-1 py-0.2 rounded shrink-0 bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 border border-sky-300/60"
+                                                    title="该候选来自截图中的精灵名文字识别（OCR），图像相似度没有命中"
+                                                >
+                                                  文字
+                                                </span>
+                                            )}
                                           </div>
 
                                           <div className="relative z-10 flex items-center gap-1 flex-wrap shrink-0">

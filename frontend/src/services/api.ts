@@ -88,6 +88,37 @@ export class ApiService {
   }
 
   /**
+   * PC 端识别进度快照（识别过程中轮询）。
+   * 后端在 /init_batch、/predict 里按阶段更新；拿不到（老后端/任务已过期）返回 null。
+   */
+  public async getRecogProgress(taskId: string): Promise<{
+    phase: string;
+    pct: number;
+    done: number;
+    total: number;
+    text: string;
+  } | null> {
+    if (!taskId) return null;
+    try {
+      const res = await axios.get(`${this.apiBase}/api/recog_progress`, {
+        params: { task: taskId },
+        timeout: 2000,
+      });
+      const data = res.data?.data ?? res.data;
+      if (!data || typeof data.pct !== 'number') return null;
+      return {
+        phase: String(data.phase || ''),
+        pct: Number(data.pct) || 0,
+        done: Number(data.done) || 0,
+        total: Number(data.total) || 0,
+        text: String(data.text || ''),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * 获取当前环境可见的徽章试炼列表（打包环境不返回火系试炼）。
    */
   public async getTrials(): Promise<{ trials: Trial[]; isOfflineMock: boolean }> {
@@ -372,7 +403,9 @@ export class ApiService {
       stageNum: number,
       threshold: number = 0.25,
       topK: number = 3,
-      trialKey: string = 'grass'
+      trialKey: string = 'grass',
+      /** PC 端进度条：带上任务号，后端会把阶段进度写进可轮询的快照。 */
+      taskId?: string
   ): Promise<{ result: PredictResult; isOfflineMock: boolean }> {
     if (this._authLocked()) {
       throw new Error('请授权，解锁更多功能');
@@ -386,6 +419,7 @@ export class ApiService {
     formData.append('k', String(clampedK));
     formData.append('max_results', String(clampedK));
     formData.append('trial', trialKey);
+    if (taskId) formData.append('task_id', taskId);
 
     const mapKey = `map${stageNum}`;
     const fallbackList = FALLBACK_MAPS_DATA[mapKey]?.items || [];
@@ -498,7 +532,9 @@ export class ApiService {
       stageNum: number,
       threshold: number = 0.25,
       topK: number = 3,
-      trialKey: string = 'grass'
+      trialKey: string = 'grass',
+      /** PC 端进度条：带上任务号，后端会把阶段进度写进可轮询的快照。 */
+      taskId?: string
   ): Promise<{ data: BatchInitApiResponse; isOfflineMock: boolean }> {
     if (this._authLocked()) {
       throw new Error('请授权，解锁更多功能');
@@ -513,6 +549,7 @@ export class ApiService {
     formData.append('topk', String(clampedK));
     formData.append('k', String(clampedK));
     formData.append('trial', trialKey);
+    if (taskId) formData.append('task_id', taskId);
 
     try {
       const response = await axios.post<any>(

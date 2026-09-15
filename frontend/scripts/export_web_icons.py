@@ -15,10 +15,12 @@
   （其余 logo / hub / 资源不变）
 """
 import io
+import hashlib
 import json
 import math
 import os
 import re
+import sys
 import shutil
 import sqlite3
 import urllib.parse
@@ -33,6 +35,17 @@ DB = DATASETS / "datasets.db"
 POKEDEX = DATASETS / "roco_all_pets_info.json"
 TRAITS_SKILLS = DATASETS / "traits_skills.json"
 OUT = ROOT / "frontend" / "public-web"
+# 构建缓存（node_modules 已被 gitignore）：输入没变就整段跳过重建，
+# 因为 build:web 每次都会调本脚本，而拼雪碧图要 8 秒左右。
+CACHE_FILE = ROOT / "frontend" / "node_modules" / ".cache" / "roco-web-icons.json"
+
+# 识别资产由 tools/export_web_recognizer.py 产出，既不属于本脚本的输出，
+# 也不能因为图鉴重建被清掉。
+PRESERVE_IN_DATA = {
+    "features.bin", "features.meta.json",
+    "ocr_keys.json", "ocr_corrections.json",
+    "recognizer-assets.json",
+}
 
 
 def resolve_ts_icons_src() -> Path:
@@ -44,6 +57,97 @@ def resolve_ts_icons_src() -> Path:
 
 
 TS_ICONS_SRC = resolve_ts_icons_src()
+
+
+# --------------------------------------------------------------------------- #
+# 构建缓存：输入没变就跳过整个重建（build:web 每次都会调用本脚本）
+# --------------------------------------------------------------------------- #
+def _file_sha256(path: Path, chunk: int = 1 << 20) -> str:
+    h = hashlib.sha256()
+    with open(str(path), "rb") as f:
+        for block in iter(lambda: f.read(chunk), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def _dir_fingerprint(directory: Path) -> str:
+    """目录指纹：文件名 + 大小 + mtime（767 个图标做内容哈希不划算）。"""
+    if not directory.exists():
+        return "missing"
+    h = hashlib.sha256()
+    for p in sorted(directory.rglob("*")):
+        if p.is_dir():
+            continue
+        st = p.stat()
+        h.update(f"{p.relative_to(directory)}|{st.st_size}|{st.st_mtime_ns}".encode())
+    return h.hexdigest()
+
+
+def input_signature() -> str:
+    """所有输入的内容/结构指纹：数据源、图鉴映射、公共静态资源、脚本自身。"""
+    h = hashlib.sha256()
+    # 1) 数据源（内容哈希：都不大，datasets.db 8.7MB）
+    for p in [DB, POKEDEX, TRAITS_SKILLS, DATASETS / "glossary.json", ROOT / "config.py",
+              ROOT / "version.json", ROOT / "icon.ico", Path(__file__).resolve()]:
+        h.update(f"{p.name}:".encode())
+        h.update((_file_sha256(p) if p.exists() else "missing").encode())
+    # 2) 试炼 -> 图鉴映射（map_pets*.json）
+    for p in sorted(DATASETS.glob("map_pets*.json")):
+        h.update(f"{p.name}:{_file_sha256(p)}".encode())
+    # 3) 技能/特性图标源目录（767 个文件）
+    h.update(f"ts:{_dir_fingerprint(TS_ICONS_SRC)}".encode())
+    # 4) 公共静态资源
+    for d in [ROOT / "frontend" / "public" / "assets",
+              ROOT / "frontend" / "public" / "elements",
+              ROOT / "frontend" / "public" / "icon",
+              ROOT / "resources",
+              ROOT / "static"]:
+        h.update(f"{d.name}:{_dir_fingerprint(d)}".encode())
+    return h.hexdigest()
+
+
+def _output_manifest() -> list:
+    """本脚本产出的文件清单（排除识别资产），用于校验缓存是否仍然有效。"""
+    items = []
+    for p in sorted(OUT.rglob("*")):
+        if p.is_dir():
+            continue
+        if p.parent.name == "data" and p.name in PRESERVE_IN_DATA:
+            continue
+        items.append(f"{p.relative_to(OUT)}|{p.stat().st_size}")
+    return items
+
+
+def _cache_hit(sig: str) -> bool:
+    """输入指纹一致 + 上次记录的所有产出文件仍在且大小一致 => 可以直接跳过。"""
+    try:
+        with open(str(CACHE_FILE), "r", encoding="utf-8") as f:
+            cache = json.load(f)
+    except Exception:
+        return False
+    if not isinstance(cache, dict) or cache.get("inputSig") != sig:
+        return False
+    outputs = cache.get("outputs") or []
+    if not outputs:
+        return False
+    for item in outputs:
+        rel, _, size = str(item).rpartition("|")
+        p = OUT / rel
+        try:
+            if not p.exists() or p.stat().st_size != int(size):
+                return False
+        except Exception:
+            return False
+    return True
+
+
+def _write_cache(sig: str) -> None:
+    try:
+        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(str(CACHE_FILE), "w", encoding="utf-8") as f:
+            json.dump({"inputSig": sig, "outputs": _output_manifest()}, f, ensure_ascii=False)
+    except Exception as e:  # noqa: BLE001
+        print(f"[export_web_icons] 缓存写入失败（忽略，下次会重建）：{e}")
 
 # ---- 雪碧图可调参数 ----
 ICONS_PER_SPRITE = 100   # 每张精灵雪碧图最大格子数；387 只 → 4 张
@@ -362,10 +466,28 @@ def main():
     if not DB.exists():
         raise SystemExit(f"[export_web_icons] 找不到数据库: {DB}")
 
+    force = ("--force" in sys.argv[1:]) or (os.environ.get("ROCO_FORCE_ICONS") == "1")
+    sig = input_signature()
+    if not force and _cache_hit(sig):
+        print(f"[export_web_icons] 输入未变化，跳过重建（雪碧图/图鉴数据已是最新）-> {OUT}")
+        return
+
     # 只清理本脚本生成的内容，保留 assets 等公共静态资源，避免 Web 构建反复丢文件。
+    # 注意：data/ 下的识别资产（特征库/OCR 字符表/资产清单）由 tools/export_web_recognizer.py
+    # 产出，不能随图鉴重建一起清掉，否则纯前端识别会报「特征库 meta 格式异常」。
     for dirname in ("data", "icons", "elements", "resources", "icon"):
         generated_dir = OUT / dirname
-        if generated_dir.exists():
+        if not generated_dir.exists():
+            continue
+        if dirname == "data":
+            for child in generated_dir.iterdir():
+                if child.name in PRESERVE_IN_DATA:
+                    continue
+                if child.is_dir():
+                    shutil.rmtree(child)
+                else:
+                    child.unlink()
+        else:
             shutil.rmtree(generated_dir)
     OUT.mkdir(parents=True, exist_ok=True)
 
@@ -462,6 +584,7 @@ def main():
         f"{unique_total} 张去重精灵图 + {len(ts_pos)} 张技能/特性图 "
         f"→ {len(sprites_meta)} 张雪碧图 -> {OUT}"
     )
+    _write_cache(sig)
 
 
 if __name__ == "__main__":

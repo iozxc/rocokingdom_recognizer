@@ -2,7 +2,7 @@
 //   html   -> D:\game\RocoKingdom\static\index.html
 //   资源   -> D:\game\RocoKingdom\static\assets\（index.css / index.js 等）
 // 只做覆盖/新增，不会删除 static 里已有的其他文件（icon.jpg、qrcode.png 等）。
-import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -39,6 +39,28 @@ const dstAssets = join(staticDir, 'assets');
 for (const name of readdirSync(srcAssets)) {
   copyFileSync(join(srcAssets, name), join(dstAssets, name));
 }
+
+// 桌面版（pywebview + Flask）不会用到浏览器内识别，走的是后端 /init_batch，
+// 因此把「只有纯前端版才需要」的大文件从 static 里剔除，避免安装包无谓变大：
+//   - ort-wasm-*.wasm / .mjs：onnxruntime-web 运行时（纯前端识别用，20MB+）
+//   - recognition.worker-*.js / dino.worker-*.js：浏览器内识别 Worker（后者是旧文件名）
+// 顺带清掉历史遗留（本脚本只覆盖不删除，改名/升级后旧 hash 文件会一直堆在 static 里）。
+const DESKTOP_UNUSED = [
+  /^ort-wasm-.*\.(wasm|mjs)$/i,
+  /^recognition\.worker-.*\.js$/i,
+  /^dino\.worker-.*\.js$/i,
+];
+let pruned = 0;
+for (const name of readdirSync(dstAssets)) {
+  if (!DESKTOP_UNUSED.some((re) => re.test(name))) continue;
+  try {
+    unlinkSync(join(dstAssets, name));
+    pruned++;
+  } catch {
+    /* 占用中/权限问题：忽略，不影响构建 */
+  }
+}
+if (pruned) console.log(`[copy-to-static] 已剔除 ${pruned} 个桌面版不使用的识别资产文件`);
 
 copyDir(join(distDir, 'icon'), join(staticDir, 'icon'));
 
