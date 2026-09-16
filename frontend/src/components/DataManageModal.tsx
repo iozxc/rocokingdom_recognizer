@@ -174,10 +174,22 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
       const text = await file.text();
       const parsed = JSON.parse(text);
 
-      if (IS_STATIC && parsed && parsed.app === 'roco-multi-account' && Array.isArray(parsed.accounts)) {
-        const result = webAccounts.importAll(text);
-        await refreshAccounts();
-        setMessage(`导入成功：共 ${result.count} 个账号，当前为「${result.current}」`);
+      const isArchive = !!parsed && parsed.app === 'roco-multi-account' && Array.isArray(parsed.accounts);
+
+      // 整套多账号存档：web 版写 localStorage，桌面版交给后端拆成每个账号一个文件。
+      // 桌面版此前没有这条分支，会被下面的单账号导入接住，把整份存档当成精灵
+      // 记录写进主数据（进度被清空且界面还提示成功）。
+      if (isArchive) {
+        if (IS_STATIC) {
+          const result = webAccounts.importAll(text);
+          await refreshAccounts();
+          setMessage(`导入成功：共 ${result.count} 个账号，当前为「${result.current}」`);
+        } else {
+          const result = await api.accountImportArchive(parsed);
+          await storage.refreshFromServer();
+          await refreshAccounts();
+          setMessage(`导入成功：共 ${result.count ?? parsed.accounts.length} 个账号，当前为「${result.name || parsed.current}」`);
+        }
         setMsgType('ok');
         return;
       }
@@ -195,6 +207,10 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
 
       const ok = storage.importData(text);
       if (ok) {
+        // importData 内部是异步落盘（triggerSave → void saveToRemote），这里等它真正写完，
+        // 否则紧接着的账号列表刷新会读到旧数据，多账号面板要重开才更新。
+        await storage.flushPendingSave();
+        await refreshAccounts();
         setMessage('导入成功！当前账号图鉴点亮记录与设置已更新。'); setMsgType('ok');
       } else {
         setMessage('导入失败：文件不是有效的 roco_user_data.json。'); setMsgType('err');

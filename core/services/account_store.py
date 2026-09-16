@@ -14,6 +14,10 @@ from core.infra.logger import logger
 from core.services.user_storage import user_storage
 
 DEFAULT_ACCOUNT = "默认账号"
+# 账号之间可以互相导入/导出的数据键；其余顶层键（version/platform/agreementAccepted…）
+# 属于本机状态，导入时保留本地值，避免被外来存档覆盖。
+IMPORTABLE_KEYS = ("encounteredPets", "encounteredPets2", "thresholds", "appSettings")
+MULTI_APP_TAG = "roco-multi-account"
 _ILLEGAL = re.compile(r'[\\/:*?"<>|\s]+')
 _DIR = None
 
@@ -234,3 +238,84 @@ def rename_account(old_name: str, new_name: str) -> dict:
     if _read_active() == old_safe:
         _write_active(new_safe)
     return {"name": new_safe}
+
+
+def _merge_importable(data: dict | None, base: dict | None = None) -> dict:
+    """把导入数据里可迁移的键覆盖到 base 上，保留 base 的本机顶层字段。
+
+    只接受 dict 值：这四个键本质都是字典，出现别的类型说明文件已损坏，
+    此时宁可留空也不要写入脏结构。
+    """
+    source = data if isinstance(data, dict) else {}
+    payload = dict(base) if isinstance(base, dict) else {}
+    for key in IMPORTABLE_KEYS:
+        value = source.get(key)
+        if isinstance(value, dict):
+            payload[key] = value
+    for key in IMPORTABLE_KEYS:
+        if not isinstance(payload.get(key), dict):
+            payload[key] = {}
+    return payload
+
+
+def _local_top_level() -> dict:
+    """当前主数据里的本机顶层字段（agreementAccepted / platform 等）。
+
+    新建账号时继承这些字段，避免导入出来的新账号一被切换就重新弹用户协议。
+    """
+    data = user_storage.get_payload() or {}
+    return {
+        key: value
+        for key, value in data.items()
+        if key not in IMPORTABLE_KEYS and key != "version"
+    }
+
+
+def is_multi_archive(data) -> bool:
+    """是否为纯前端导出的整套多账号存档。"""
+    return bool(
+        isinstance(data, dict)
+        and data.get("app") == MULTI_APP_TAG
+        and isinstance(data.get("accounts"), list)
+    )
+
+
+def import_archive(data: dict) -> dict:
+    """导入整套多账号存档：每个账号写入独立的账号文件，并切到存档里的 current。
+
+    纯前端（web）导出的 roco_accounts_*.json 就是这个结构；桌面版此前没有对应
+    入口，会被退化成“单账号导入”，把整份存档当成精灵记录写脏主数据。
+    """
+    if not is_multi_archive(data):
+        raise ValueError("不是有效的多账号存档")
+
+    _ensure_default()
+    active = current_account()
+    save_account(active)  # 导入前先把当前账号的最新主数据落盘
+
+    imported: list[str] = []
+    for entry in data.get("accounts") or []:
+        if not isinstance(entry, dict):
+            continue
+        raw_name = str(entry.get("name") or "").strip()
+        if not raw_name:
+            continue
+        safe = _safe_name(raw_name)
+        existing = _read_json(_profile_path(safe))
+        # 同账号已存在时沿用其本机顶层字段；新账号则继承当前主数据的本机字段。
+        # 两种情况都只替换可迁移数据，不把外来文件的顶层状态带进来。
+        if not isinstance(existing, dict):
+            existing = _local_top_level()
+        _write_json(_profile_path(safe), _merge_importable(entry.get("payload"), existing))
+        imported.append(safe)
+
+    if not imported:
+        raise ValueError("存档里没有可用账号")
+
+    names = set(imported)
+    target = _safe_name(str(data.get("current") or "")) if data.get("current") else ""
+    if target not in names:
+        target = active if active in names else imported[0]
+
+    _activate(target)
+    return {"name": target, "count": len(imported), "accounts": imported}

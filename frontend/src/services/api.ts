@@ -1031,6 +1031,25 @@ export class ApiService {
   }
 
   /**
+   * 导入整套多账号存档（纯前端导出的 roco_accounts_*.json）。
+   * 后端会拆成每个账号一个文件，并切换到存档里的 current。
+   * 导入后需要由调用方刷新 storage 与账号列表，才能立刻看到变化。
+   */
+  public async accountImportArchive(payload: Record<string, any>): Promise<{ name?: string; count?: number }> {
+    try {
+      const res = await axios.post<any>(
+        `${this.apiBase}/api/accounts/import`,
+        { payload },
+        { timeout: 15000 },
+      );
+      return this.accountResolve(res.data);
+    } catch (err: unknown) {
+      const e = err as AxiosError<{ message?: string }>;
+      throw new Error(e.response?.data?.message || e.message || '导入失败');
+    }
+  }
+
+  /**
    * 4. 发起手动/自动下载更新
    * GET /api/start_download
    */

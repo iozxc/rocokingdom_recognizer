@@ -108,3 +108,27 @@ def api_account_delete():
         logger.error(f"[POST /api/accounts/delete] 异常: {e}", exc_info=True)
         return error(str(e), 500)
 
+
+@bp.route("/api/accounts/import", methods=["POST"])
+def api_account_import():
+    """导入整套多账号存档（纯前端导出的 roco_accounts_*.json）。
+
+    body = {"payload": {"app": "roco-multi-account", "accounts": [...]}}
+    每个账号写成一个独立的账号文件，并切换到存档里的 current。
+    单账号 roco_user_data.json 不走这里，仍由 /api/storage 覆盖当前账号。
+    """
+    from core.services.account_store import import_archive
+
+    body = request.get_json(silent=True) or {}
+    payload = body.get("payload")
+    if not isinstance(payload, dict):
+        return error("导入数据不能为空", 400)
+
+    try:
+        return success(data=import_archive(payload))
+    except ValueError as e:
+        return error(str(e), 400)
+    except Exception as e:
+        logger.error(f"[POST /api/accounts/import] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+

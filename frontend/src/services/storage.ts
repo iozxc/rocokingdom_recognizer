@@ -40,6 +40,8 @@ export class StorageService {
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   // 标记是否本地有未同步到后端的最新更改，避免轮询覆盖当前未落盘的点击
   private hasPendingLocalChanges = false;
+  // 最近一次落盘请求的 Promise：供导入等场景等待同步完成，避免读到旧数据
+  private pendingSave: Promise<boolean> | null = null;
 
   constructor() {
     if (IS_STATIC) {
@@ -269,7 +271,8 @@ export class StorageService {
     this.hasPendingLocalChanges = true;
     this.saveToLocalStorage();
     this.notifyListeners();
-    void this.saveToRemote();
+    this.pendingSave = this.saveToRemote();
+    void this.pendingSave;
   }
 
   private triggerSettingsSave() {
@@ -592,25 +595,49 @@ export class StorageService {
     );
   }
 
+  /**
+   * 判断解析出来的 JSON 是否「看起来像」一份精灵记录表。
+   *
+   * 用于兜底分支：老版本导出的是裸记录表（{ "map1_喵喵.png": {...} }），
+   * 但多账号存档、配置对象等任何 JSON 对象也都是对象。若不做校验就整个当成
+   * 记录写进去，会把 app/accounts 之类字段当成精灵、静默清空进度。
+   */
+  private looksLikeRecords(value: unknown): boolean {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) return true; // 空表合法（导入空白进度）
+    return entries.every(([key, rec]) => {
+      if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return false;
+      const r = rec as Record<string, unknown>;
+      // key 形如 map1_xxx.png，或记录里带 mapId/filename 等身份字段
+      return /^map\d+_/.test(key) || typeof r.mapId === 'string' || typeof r.filename === 'string';
+    });
+  }
+
   public importData(jsonString: string): boolean {
     try {
       const parsed = JSON.parse(jsonString);
-      if (typeof parsed === 'object' && parsed !== null) {
-        if (parsed.encounteredPets) {
-          this.records = parsed.encounteredPets;
-          this.thresholds = parsed.thresholds || {};
-          this.appSettings = this.migrateLegacySettings(parsed.appSettings || {});
-        } else {
-          this.records = parsed;
-        }
-        if (typeof this.appSettings.isSoundMuted === 'boolean') {
-          sound.setMuted(this.appSettings.isSoundMuted);
-        }
-        this.triggerSave();
-        this.notifySettingsListeners();
-        return true;
+      if (typeof parsed !== 'object' || parsed === null) return false;
+
+      if (parsed.encounteredPets) {
+        if (typeof parsed.encounteredPets !== 'object' || Array.isArray(parsed.encounteredPets)) return false;
+        this.records = parsed.encounteredPets;
+        this.thresholds = parsed.thresholds || {};
+        this.appSettings = this.migrateLegacySettings(parsed.appSettings || {});
+      } else if (this.looksLikeRecords(parsed)) {
+        // 老格式：整份文件就是记录表
+        this.records = parsed;
+      } else {
+        // 不是记录表、也不是本应用的 payload：拒绝，避免写脏并谎报成功
+        return false;
       }
-      return false;
+
+      if (typeof this.appSettings.isSoundMuted === 'boolean') {
+        sound.setMuted(this.appSettings.isSoundMuted);
+      }
+      this.triggerSave();
+      this.notifySettingsListeners();
+      return true;
     } catch {
       return false;
     }
@@ -631,6 +658,27 @@ export class StorageService {
     this.saveToLocalStorage();
     this.notifyListeners();
     this.notifySettingsListeners();
+  }
+
+  /**
+   * 等待未落盘的改动真正写入后端。
+   *
+   * 导入数据后紧接着刷新多账号列表时会用到：triggerSave 是“发出去就不管”的，
+   * 若不等它完成，后端读到的还是旧数据，界面要重开才更新。
+   */
+  public async flushPendingSave(): Promise<boolean> {
+    const pending = this.pendingSave;
+    if (pending) {
+      try {
+        await pending;
+      } catch {
+        /* saveToRemote 自身已兜错，这里只是保险 */
+      } finally {
+        if (this.pendingSave === pending) this.pendingSave = null;
+      }
+    }
+    if (this.hasPendingLocalChanges) return this.saveToRemote();
+    return true;
   }
 
   public async refreshFromServer(): Promise<void> {
