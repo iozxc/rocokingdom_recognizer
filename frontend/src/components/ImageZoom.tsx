@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ImageZoomProps {
-  src: string;
+  /** 单图地址；与 thumb 二选一（src 优先）。 */
+  src?: string;
   alt?: string;
   className?: string;
   imgClassName?: string;
@@ -12,6 +13,13 @@ interface ImageZoomProps {
   maxWidth?: number;
   maxHeight?: number;
   hoverDelay?: number;   // 悬停预览延迟(ms)，避免过于灵敏
+  /**
+   * 自定义缩略内容：给没有独立图片地址的场景用（例如雪碧图切片这类 CSS 背景渲染的图标）。
+   * 放大浮层默认复用它——节点在浮层里同样被拉伸铺满，所以 CSS 切片也能清晰放大。
+   */
+  thumb?: React.ReactNode;
+  /** 放大浮层专用内容；缺省复用 thumb。 */
+  zoom?: React.ReactNode;
 }
 
 /**
@@ -19,6 +27,7 @@ interface ImageZoomProps {
  * - trigger='hover' 鼠标悬停显示放大浮层（跟随鼠标，边缘自动翻转避让）
  * - trigger='click' 点击打开大图模态（点遮罩 / Esc 关闭）
  * - trigger='both' 两者都支持
+ * - src 之外还可以传 thumb（自定义缩略内容），让雪碧图切片等非 <img> 内容也能悬停放大
  *
  * 关键：悬浮预览与点击模态都通过 React Portal 挂到 document.body，
  * 避免被父容器（卡片带 opacity / overflow-hidden / backdrop-blur / transform 等）
@@ -35,12 +44,18 @@ export const ImageZoom: React.FC<ImageZoomProps> = ({
   maxWidth = 90,
   maxHeight = 90,
   hoverDelay = 250,
+  thumb,
+  zoom,
 }) => {
   const [hover, setHover] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hasSrc = !!src;
+  /** 悬浮/模态里的放大画面：没有单图 src 时复用 thumb（CSS 切片会随容器放大）。 */
+  const zoomContent = zoom ?? thumb;
 
   const handleClick = () => {
     if (trigger === 'click' || trigger === 'both') {
@@ -117,20 +132,24 @@ export const ImageZoom: React.FC<ImageZoomProps> = ({
       <>
         <div
             ref={boxRef}
-            className={`relative inline-block ${className}`}
+            className={`relative inline-block ${hasSrc ? '' : 'cursor-zoom-in'} ${className}`}
             onMouseEnter={handleMouseEnter}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             onClick={handleImgClick}
         >
-          <img
-              src={src}
-              alt={alt}
-              className={`${imgClassName} cursor-zoom-in`}
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.opacity = '0.25';
-              }}
-          />
+          {hasSrc ? (
+              <img
+                  src={src}
+                  alt={alt}
+                  className={`${imgClassName} cursor-zoom-in`}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.opacity = '0.25';
+                  }}
+              />
+          ) : (
+              thumb
+          )}
         </div>
 
         {/* Hover 放大浮层：Portal 到 body，彻底脱离卡片包含块 */}
@@ -140,11 +159,17 @@ export const ImageZoom: React.FC<ImageZoomProps> = ({
                     className="fixed z-[100] pointer-events-none"
                     style={previewStyle}
                 >
-                  <img
-                      src={src}
-                      alt={alt}
-                      className="w-full h-full object-contain rounded-xl bg-white shadow-2xl border-2 border-[#BCD7F2]"
-                  />
+                  {hasSrc ? (
+                      <img
+                          src={src}
+                          alt={alt}
+                          className="w-full h-full object-contain rounded-xl bg-white shadow-2xl border-2 border-[#BCD7F2]"
+                      />
+                  ) : (
+                      <div className="w-full h-full rounded-xl bg-white shadow-2xl border-2 border-[#BCD7F2] p-2">
+                        {zoom ?? thumb}
+                      </div>
+                  )}
                 </div>,
                 document.body
             )}
@@ -170,12 +195,21 @@ export const ImageZoom: React.FC<ImageZoomProps> = ({
                     >
                       ×
                     </button>
-                    <img
-                        src={src}
-                        alt={alt}
-                        className="max-w-full max-h-full object-contain rounded-xl"
-                        style={{ maxWidth: `${maxWidth}vw`, maxHeight: `${maxHeight}vh` }}
-                    />
+                    {hasSrc ? (
+                        <img
+                            src={src}
+                            alt={alt}
+                            className="max-w-full max-h-full object-contain rounded-xl"
+                            style={{ maxWidth: `${maxWidth}vw`, maxHeight: `${maxHeight}vh` }}
+                        />
+                    ) : (
+                        <div
+                            className="flex items-center justify-center rounded-xl"
+                            style={{ width: `${maxWidth}vw`, height: `${maxHeight}vh` }}
+                        >
+                          {zoomContent}
+                        </div>
+                    )}
                   </div>
                 </div>,
                 document.body

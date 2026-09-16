@@ -1709,17 +1709,23 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                               <div className="flex flex-col items-center gap-0.5">
                             <div className="relative w-16 h-16 rounded-xl bg-white dark:bg-slate-900 p-1 border border-[#E6EEF8] dark:border-slate-700 shadow-inner flex items-center justify-center">
                               {isMatched && item.matchedPet ? (
-                                  item.view_url ? (
-                                      <ImageZoom
-                                          src={item.view_url}
-                                          alt={displayName}
-                                          trigger="hover"
-                                          className="w-full h-full"
-                                          imgClassName="w-full h-full object-contain"
-                                      />
-                                  ) : (
-                                      <PetSprite pet={item.matchedPet} url={item.matchedPet?.url} alt={displayName} className="w-full h-full object-contain" />
-                                  )
+                                  <ImageZoom
+                                      src={item.view_url || undefined}
+                                      alt={displayName}
+                                      trigger="hover"
+                                      className="w-full h-full"
+                                      imgClassName="w-full h-full object-contain"
+                                      // 纯前端版没有独立图标地址（view_url 为空），用雪碧图切片渲染：
+                                      // 同样支持悬停放大，浮层里切片会跟着容器放大。
+                                      thumb={
+                                          <PetSprite
+                                              pet={item.matchedPet}
+                                              url={item.matchedPet?.url}
+                                              alt={displayName}
+                                              className="w-full h-full object-contain"
+                                          />
+                                      }
+                                  />
                               ) : (
                                   <HelpCircle className="w-8 h-8 text-rose-300 dark:text-rose-600" />
                               )}
