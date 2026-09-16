@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { fetchJson } from './secureFetch';
 
 export interface GlossaryTerm {
   id: string;
@@ -12,10 +12,8 @@ let glossaryPromise: Promise<Record<string, GlossaryTerm>> | null = null;
 /** 加载术语表（data/glossary.json），结果缓存，多个调用共享同一次请求。 */
 export function loadGlossary(): Promise<Record<string, GlossaryTerm>> {
   if (!glossaryPromise) {
-    glossaryPromise = axios
-        .get(`${import.meta.env.BASE_URL}data/glossary.json`, { timeout: 10000 })
-        .then((r) => {
-          const list = (r.data as GlossaryTerm[]) || [];
+    glossaryPromise = fetchJson<GlossaryTerm[]>(`${import.meta.env.BASE_URL}data/glossary.json`, 10000)
+        .then((list) => {
           glossaryMap = {};
           list.forEach((term) => {
             if (term && term.id) glossaryMap[term.id] = term;

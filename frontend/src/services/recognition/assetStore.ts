@@ -11,6 +11,7 @@
  * 清单缺失时全部退化为「直接 fetch」，功能不受影响，只是没有缓存与体积优化。
  */
 import axios from 'axios';
+import { fetchJson, decryptData, isEncrypted } from '../secureFetch';
 
 export interface RecognizerManifest {
   version: number;
@@ -72,13 +73,8 @@ export function hardwareThreads(): number {
 
 export function loadManifest(): Promise<RecognizerManifest | null> {
   if (!manifestPromise) {
-    manifestPromise = axios
-        .get<RecognizerManifest>(`${baseUrl()}data/recognizer-assets.json`, {
-          timeout: 10000,
-          // 清单必须每次校验，不能吃浏览器缓存里的旧版本
-          headers: { 'Cache-Control': 'no-cache' },
-        })
-        .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
+    manifestPromise = fetchJson<RecognizerManifest>(`${baseUrl()}data/recognizer-assets.json`, 10000)
+        .then((r) => (r && typeof r === 'object' ? r : null))
         .catch(() => null);
   }
   return manifestPromise;
@@ -271,8 +267,11 @@ export async function loadAsset(
   }
 
   const buf = await fetchWithProgress(url, onProgress);
+  // 构建时加密的资源（模型/features.bin）在此处解密；未加密资源原样返回。
+  // 解密后再存入 IndexedDB，后续从缓存读取即为明文，避免重复解密开销。
+  const plain = isEncrypted(buf) ? decryptData(buf) : buf;
   // 必须等写入完成再返回：调用方会把这个 ArrayBuffer transfer 给 Worker（transfer 后引用被清空），
   // 若 IndexedDB 序列化发生在 transfer 之后，缓存里就会存进一个空 buffer。
-  await idbPut(key, { version, bytes: buf.byteLength, buf });
-  return buf;
+  await idbPut(key, { version, bytes: plain.byteLength, buf: plain });
+  return plain;
 }

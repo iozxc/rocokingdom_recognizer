@@ -7,8 +7,8 @@
  * M2：改走 assetStore —— 按清单版本缓存进 IndexedDB，版本不变则二次进入零下载。
  * 内存里保持单例，识别期间不重复解析。
  */
-import axios from 'axios';
 import { loadAsset } from './assetStore';
+import { fetchJson } from '../secureFetch';
 
 export interface FeatureEntry {
   path: string;
@@ -57,8 +57,7 @@ class FeatureStoreClass {
 
   private async _load(version: number, onProgress?: (pct: number) => void): Promise<void> {
     const base = import.meta.env.BASE_URL || '/';
-    const metaRes = await axios.get<FeatureMeta>(`${base}data/features.meta.json`, { timeout: 20000 });
-    const meta = metaRes.data;
+    const meta = await fetchJson<FeatureMeta>(`${base}data/features.meta.json`, 20000);
     if (!meta || !Array.isArray(meta.entries) || meta.dim <= 0) {
       throw new Error('特征库 meta 格式异常');
     }

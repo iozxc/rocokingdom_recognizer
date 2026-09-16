@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { fetchJson } from './secureFetch';
 
 type SpriteMetaMap = Record<string, { cols: number; rows: number }>;
 type ElementSpriteMap = Record<string, { sprite: string; col: number; row: number }>;
@@ -14,9 +14,8 @@ let tsMetaPromise: Promise<TsSpriteMap> | null = null;
 /** 加载雪碧图元信息（每张的 cols/rows），结果缓存，多个调用共享同一次请求。 */
 export function loadSpriteMeta(): Promise<SpriteMetaMap> {
   if (!sMetaPromise) {
-    sMetaPromise = axios
-        .get(`${import.meta.env.BASE_URL}data/sprites.json`, { timeout: 10000 })
-        .then((r) => (sMeta = (r.data as SpriteMetaMap) || {}))
+    sMetaPromise = fetchJson<SpriteMetaMap>(`${import.meta.env.BASE_URL}data/sprites.json`, 10000)
+        .then((r) => (sMeta = r || {}))
         .catch(() => (sMeta = {}));
   }
   return sMetaPromise;
@@ -35,9 +34,8 @@ export function getSpriteUrl(name: string): string {
 /** 加载 18 系别属性图在雪碧图上的坐标，结果缓存。 */
 export function loadElementSprites(): Promise<ElementSpriteMap> {
   if (!eMetaPromise) {
-    eMetaPromise = axios
-        .get(`${import.meta.env.BASE_URL}data/elements.json`, { timeout: 10000 })
-        .then((r) => (eMeta = (r.data as ElementSpriteMap) || {}))
+    eMetaPromise = fetchJson<ElementSpriteMap>(`${import.meta.env.BASE_URL}data/elements.json`, 10000)
+        .then((r) => (eMeta = r || {}))
         .catch(() => (eMeta = {}));
   }
   return eMetaPromise;
@@ -51,9 +49,8 @@ export function getElementSprite(element: string): { sprite: string; col: number
 /** 加载技能/特性图标的雪碧图坐标（Sxxx/Txxx -> sprite/col/row），结果缓存。 */
 export function loadTsSprites(): Promise<TsSpriteMap> {
   if (!tsMetaPromise) {
-    tsMetaPromise = axios
-        .get(`${import.meta.env.BASE_URL}data/ts_sprites.json`, { timeout: 10000 })
-        .then((r) => (tsMeta = (r.data as TsSpriteMap) || {}))
+    tsMetaPromise = fetchJson<TsSpriteMap>(`${import.meta.env.BASE_URL}data/ts_sprites.json`, 10000)
+        .then((r) => (tsMeta = r || {}))
         .catch(() => (tsMeta = {}));
   }
   return tsMetaPromise;

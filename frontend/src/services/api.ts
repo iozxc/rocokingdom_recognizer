@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { fetchJson } from './secureFetch';
 import { loadSpriteMeta, loadElementSprites, loadTsSprites } from './spriteMeta';
 import { loadGlossary } from './glossary';
 import {
@@ -333,14 +334,10 @@ export class ApiService {
         await loadElementSprites();
         await loadTsSprites();
         await loadGlossary();
-        const res = await axios.get(`${import.meta.env.BASE_URL}data/icons.json`, {
-          timeout: 10000,
-        });
+        const remoteData = await fetchJson<any>(`${import.meta.env.BASE_URL}data/icons.json`, 10000);
         // icons.json 顶层按试炼分组：{ "t1": {map1,map2,map3}, "t2": {...} }
-        const remoteData = res.data as Record<
-            string,
-            Record<string, { count: number; items: PetItem[] }>
-        >;
+
+
         if (remoteData && typeof remoteData === 'object') {
           const trialKeys = Object.keys(remoteData);
           // 默认取第一个试炼（当前 = 草系, t1）；多试炼时可传入 iconsKey（如 't2'）
@@ -1382,7 +1379,7 @@ export class ApiService {
       }
       try {
         const res = await axios.get(`${import.meta.env.BASE_URL}resources/chat.json?_t=${t}`, { timeout: 6000 });
-        const data = res.data;
+        const data = await fetchJson<any>(`${import.meta.env.BASE_URL}resources/chat.json?_t=${t}`, 6000);
         if (data && (Array.isArray(data.qq_group) || data.web_path)) return data;
         if (data?.data && (Array.isArray(data.data.qq_group) || data.data.web_path)) return data.data;
         return null;
@@ -1436,7 +1433,7 @@ export class ApiService {
     }
     try {
       const res = await axios.get(`${import.meta.env.BASE_URL}resources/version.json`, { timeout: 6000 });
-      const data = res.data;
+      const data = await fetchJson<any>(`${import.meta.env.BASE_URL}resources/version.json`, 6000);
       if (data && typeof data.version === 'string') {
         return { version: data.version, mirrors: data.mirrors || {} };
       }

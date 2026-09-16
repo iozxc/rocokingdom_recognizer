@@ -60,10 +60,11 @@ build_key.txt
 /train/yolo/runs/
 /train/yolo/test/
 /train/yolo/*.pt
-/tools/
 /train/dataset/
 /train/assets/
 /train/onnx/
+/tools/
+
 /build.bat
 /build_logs/
 /train/onnx_dino/
@@ -74,3 +75,4 @@ build_key.txt
 /code-review-report/
 /web-recognition-plan/
 /accounts/
+/frontend/scripts/

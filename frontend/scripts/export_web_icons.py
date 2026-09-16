@@ -29,6 +29,67 @@ from pathlib import Path
 from PIL import Image
 
 
+# =========================================================================== #
+# 资源加密（与前端 src/services/crypto.ts 算法必须 1:1 一致）
+# 格式：[0:4]魔数"RENC" [4:8]版本uint32LE [8:12]原始长度uint32LE [12:]密文
+# 算法：XOR密钥流 = key[(i*7+3)%keyLen] ^ (i & 0xFF)
+# =========================================================================== #
+_RENC_MAGIC = b"RENC"
+_RENC_VERSION = 1
+_RENC_MASTER_KEY = b"RocoKingdom_WebGuard_v1_2026"
+
+
+def _renc_encrypt(data: bytes) -> bytes:
+    key = _RENC_MASTER_KEY
+    klen = len(key)
+    arr = bytearray(data)
+    for i in range(len(arr)):
+        kb = key[((i * 7 + 3) % klen + klen) % klen] ^ (i & 0xFF)
+        arr[i] ^= kb
+    header = _RENC_MAGIC + _RENC_VERSION.to_bytes(4, "little") + len(data).to_bytes(4, "little")
+    return bytes(header) + bytes(arr)
+
+
+def _encrypt_file(path: Path) -> bool:
+    """加密单个文件（in-place 覆盖）。已是加密格式则跳过。返回是否执行了加密。"""
+    if not path.exists():
+        return False
+    raw = path.read_bytes()
+    if raw[:4] == _RENC_MAGIC:
+        return False  # 已加密，跳过
+    encrypted = _renc_encrypt(raw)
+    path.write_bytes(encrypted)
+    return True
+
+
+def encrypt_web_assets(out_dir: Path) -> None:
+    """加密纯前端 web 版的静态资源：JSON 图鉴数据 + 雪碧图 PNG。"""
+    encrypted = []
+    for rel in (
+        "data/icons.json",
+        "data/sprites.json",
+        "data/ts_sprites.json",
+        "data/elements.json",
+        "data/glossary.json",
+    ):
+        p = out_dir / rel
+        if _encrypt_file(p):
+            encrypted.append(rel)
+    icons_dir = out_dir / "icons"
+    if icons_dir.exists():
+        for p in sorted(icons_dir.glob("sprite-*.png")):
+            if _encrypt_file(p):
+                encrypted.append(f"icons/{p.name}")
+        for p in sorted(icons_dir.glob("elements-sprite.png")):
+            if _encrypt_file(p):
+                encrypted.append(f"icons/{p.name}")
+        for p in sorted(icons_dir.glob("ts-sprite-*.png")):
+            if _encrypt_file(p):
+                encrypted.append(f"icons/{p.name}")
+    if encrypted:
+        print(f"[export_web_icons] 已加密 {len(encrypted)} 个资源: {', '.join(encrypted[:6])}{'...' if len(encrypted) > 6 else ''}")
+
+
 ROOT = Path(__file__).resolve().parent.parent.parent  # RocoKingdom 根
 DATASETS = ROOT / "datasets"
 DB = DATASETS / "datasets.db"
@@ -584,6 +645,8 @@ def main():
         f"{unique_total} 张去重精灵图 + {len(ts_pos)} 张技能/特性图 "
         f"→ {len(sprites_meta)} 张雪碧图 -> {OUT}"
     )
+    # 加密纯前端 web 版静态资源（JSON + 雪碧图）
+    encrypt_web_assets(OUT)
     _write_cache(sig)
 
 

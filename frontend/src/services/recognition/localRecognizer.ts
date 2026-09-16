@@ -11,6 +11,7 @@
  * M3：OCR 顶部懒加载，读到的名字参与候选融合（多形态/近似精灵更稳）。
  */
 import axios from 'axios';
+import { fetchJson } from '../secureFetch';
 import { featureStore, FeatureEntry } from './featureStore';
 import { buildWhitelist, isEntryInWhitelist, matchFeaturesEx } from './matcher';
 import { splitPetFilename } from './petPath';
@@ -314,20 +315,20 @@ class LocalRecognizerClass {
     if (!det || !rec) throw new Error('未找到 OCR 模型资产（请先运行 tools/export_web_recognizer.py）');
 
     onProgress?.('ocr', 0, '正在加载 OCR 模型');
-    const [detBuf, recBuf, keysRes] = await Promise.all([
+    const [detBuf, recBuf, keysData] = await Promise.all([
       loadAsset(det, version, (p) => onProgress?.('ocr', p.total ? Math.min(50, Math.round((p.loaded / p.total) * 50)) : 0,
           `正在加载 OCR 检测模型 ${mb(p.loaded)}/${mb(p.total)}`)),
       loadAsset(rec, version, (p) => onProgress?.('ocr', p.total ? Math.min(90, 50 + Math.round((p.loaded / p.total) * 40)) : 50,
           `正在加载 OCR 识别模型 ${mb(p.loaded)}/${mb(p.total)}`)),
-      axios.get<{ chars: string[] }>(`${import.meta.env.BASE_URL || '/'}${keysFile}`, { timeout: 20000 }),
+      fetchJson<{ chars: string[] }>(`${import.meta.env.BASE_URL || '/'}${keysFile}`, 20000),
     ]);
-    this.ocrChars = keysRes.data?.chars || [];
+    this.ocrChars = keysData?.chars || [];
     if (!this.ocrChars.length) throw new Error('OCR 字符表为空');
 
     const correctionsFile = ocr.corrections?.file || 'data/ocr_corrections.json';
     try {
-      const res = await axios.get(`${import.meta.env.BASE_URL || '/'}${correctionsFile}`, { timeout: 10000 });
-      this.corrections = parseCorrections(res.data);
+      const corrData = await fetchJson(`${import.meta.env.BASE_URL || '/'}${correctionsFile}`, 10000);
+      this.corrections = parseCorrections(corrData);
     } catch {
       this.corrections = null;
     }
