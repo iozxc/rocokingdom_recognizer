@@ -8,6 +8,12 @@ export const DEFAULT_ACCOUNT = '默认账号';
 const MULTI_APP = 'roco-multi-account';
 const AUTOSAVE_DELAY = 400;
 
+// 一次性迁移标记：老版本（线上）只在扁平 localStorage 键里写日常进度、几乎不回写账号档案，
+// 且「导入存档且存档 current == 当前账号」时又只更新档案，两侧都可能偏新/偏旧。
+// 首次升级到本版本时做一次并集合并把两边都收拢；之后扁平键就是权威数据源，
+// 再无条件合并会把用户「清空/重置」的意图复活，所以用这个标记区分「迁移」与「日常」。
+const MIGRATION_KEY = 'roco_accounts_migrated_v1';
+
 export interface AccountPayload {
   encounteredPets: Record<string, EncounterRecord>;
   encounteredPets2: Record<string, EncounterRecord>;
@@ -51,6 +57,35 @@ function normalizePayload(raw: any): AccountPayload {
     thresholds: source.thresholds && typeof source.thresholds === 'object' ? source.thresholds : {},
     appSettings: source.appSettings && typeof source.appSettings === 'object' ? source.appSettings : {},
   };
+}
+
+/**
+ * 合并两份精灵记录：键取并集；同一个键取 lastSeenAt 较新的一条（相同则取 live 侧）。
+ *
+ * 账号档案与扁平 localStorage 都可能是「更新的那一份」：
+ * - 平时进度只写扁平键，档案停在最后一次 切换/导入/导出 时的状态（档案偏旧）；
+ * - 但老版本「导入存档且存档 current 就是当前账号」时只更新档案、不碰扁平键（档案偏新）。
+ * 迁移时若二选一，必然会清空另一侧的数据，所以这里做并集合并。
+ * 取较新的 lastSeenAt 也能正确保留「重置地图」这类 encountered=false 的较新状态。
+ */
+function mergeRecords(
+  archived: Record<string, EncounterRecord> | undefined,
+  live: Record<string, EncounterRecord> | undefined,
+): Record<string, EncounterRecord> {
+  const out: Record<string, EncounterRecord> = {};
+  const keys = new Set([...Object.keys(archived || {}), ...Object.keys(live || {})]);
+  keys.forEach((key) => {
+    const a = archived?.[key];
+    const b = live?.[key];
+    if (a && b) {
+      const aAt = String(a.lastSeenAt || '');
+      const bAt = String(b.lastSeenAt || '');
+      out[key] = aAt > bAt ? a : b;
+    } else {
+      out[key] = (b || a) as EncounterRecord;
+    }
+  });
+  return out;
 }
 
 function readProfiles(): AccountProfile[] {
@@ -99,9 +134,10 @@ class WebAccounts {
     if (this._initialized || typeof window === 'undefined') return;
     this._initialized = true;
 
-    let profiles = readProfiles();
     const live = this.collect();
     const now = new Date().toISOString();
+    let profiles = readProfiles();
+    const migrated = this.isMigrated();
     if (profiles.length === 0) {
       profiles = [{ name: DEFAULT_ACCOUNT, payload: live, updatedAt: now }];
       writeProfiles(profiles);
@@ -110,15 +146,44 @@ class WebAccounts {
       let cur = readCurrent();
       if (!profiles.some((p) => p.name === cur)) cur = profiles[0].name;
       writeCurrent(cur);
-      // 旧版本地数据只写入 localStorage、不回写账号档案，且火系从不归档；
-      // 迁移时以 localStorage 的实时数据为准覆盖当前账号，避免用过时档案清空进度。
       const idx = profiles.findIndex((p) => p.name === cur);
-      profiles[idx] = { name: cur, payload: live, updatedAt: now };
+      const prev = profiles[idx];
+      // 首次升级（未迁移）：档案与扁平键都可能各自偏新，做并集合并把两边都保住。
+      // 已迁移：本版本会自动把扁平键写回档案，扁平键是权威源；此时若再合并，
+      // 用户刚清空/重置的数据会被档案里的旧记录「复活」，所以直接以扁平键为准。
+      const payload = migrated
+        ? live
+        : normalizePayload({
+            encounteredPets: mergeRecords(prev?.payload.encounteredPets, live.encounteredPets),
+            encounteredPets2: mergeRecords(prev?.payload.encounteredPets2, live.encounteredPets2),
+            thresholds: live.thresholds,
+            appSettings: live.appSettings,
+          });
+      profiles[idx] = { name: cur, payload, updatedAt: now };
       writeProfiles(profiles);
+      // 让内存与扁平键也反映结果；否则下一次自动保存又会用旧的扁平数据把档案覆盖回去。
+      this.applyPayload(payload);
     }
+    this.markMigrated();
 
     storage.subscribe(() => this.scheduleAutoSave());
     fireStorage.subscribe(() => this.scheduleAutoSave());
+  }
+
+  private isMigrated(): boolean {
+    try {
+      return localStorage.getItem(MIGRATION_KEY) === '1';
+    } catch {
+      return true; // 读不到（隐私模式等）时按已迁移处理，避免反复合并复活旧数据
+    }
+  }
+
+  private markMigrated(): void {
+    try {
+      localStorage.setItem(MIGRATION_KEY, '1');
+    } catch {
+      /* 忽略 */
+    }
   }
 
   private collect(): AccountPayload {
