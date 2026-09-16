@@ -4,49 +4,28 @@ import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { api } from '../services/api';
 import { IS_STATIC } from '../services/staticMode';
+import { webAccounts, DEFAULT_ACCOUNT } from '../services/webAccounts';
 
 interface DataManageModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface AccountProfile {
+interface AccountMeta {
   name: string;
-  payload: unknown;
   updatedAt: string;
   maps?: Record<string, number>;
   fireMaps?: Record<string, number>;
 }
 
-const ACCOUNTS_KEY = 'roco_account_profiles_v1';
-const CURRENT_ACCOUNT_KEY = 'roco_current_account_name';
 const SORT_KEY = 'roco_account_sort';
-const DEFAULT_ACCOUNT = '默认账号';
-
-function readLocalAccounts(): AccountProfile[] {
-  try {
-    const raw = localStorage.getItem(ACCOUNTS_KEY);
-    const list = raw ? JSON.parse(raw) : [];
-    return Array.isArray(list) ? list : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeLocalAccounts(list: AccountProfile[]) {
-  try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list)); } catch { /* 忽略 */ }
-}
-
-function readLocalCurrent(): string {
-  try { return localStorage.getItem(CURRENT_ACCOUNT_KEY) || DEFAULT_ACCOUNT; } catch { return DEFAULT_ACCOUNT; }
-}
 
 export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string>('');
   const [msgType, setMsgType] = useState<'ok' | 'err'>('ok');
   const [isExporting, setIsExporting] = useState<boolean>(false);
-  const [accounts, setAccounts] = useState<AccountProfile[]>([]);
+  const [accounts, setAccounts] = useState<AccountMeta[]>([]);
   const [currentAccount, setCurrentAccount] = useState<string>(DEFAULT_ACCOUNT);
   const [newAccountName, setNewAccountName] = useState<string>('');
   const [searchText, setSearchText] = useState<string>('');
@@ -62,57 +41,29 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   const accountItemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const prevAccountRects = useRef<Map<string, DOMRect>>(new Map());
 
-  const currentPayload = () => {
-    try { return JSON.parse(storage.exportData()); } catch { return {}; }
-  };
-
-  const emptyPayloadFromCurrent = () => {
-    const p = currentPayload();
-    return { ...p, encounteredPets: {}, encounteredPets2: {} };
-  };
-
-  const saveLocalCurrent = (name: string) => {
-    const list = readLocalAccounts();
-    const payload = currentPayload();
-    const idx = list.findIndex((a) => a.name === name);
-    const item: AccountProfile = { name, payload, updatedAt: new Date().toISOString() };
-    if (idx >= 0) list[idx] = item; else list.push(item);
-    writeLocalAccounts(list);
-    setAccounts(list);
-  };
-
   const refreshAccounts = async () => {
     if (!IS_STATIC) {
       try {
         const data = await api.accountList();
         const list = (data.accounts || []).map((a: any) => ({
           name: a.name,
-          payload: null,
           updatedAt: a.updated_at || '',
           maps: a.maps || { map1: 0, map2: 0, map3: 0 },
           fireMaps: a.fire_maps || { map1: 0, map2: 0, map3: 0 },
         }));
         setAccounts(list);
         setCurrentAccount(data.current || DEFAULT_ACCOUNT);
-        return true;
-      } catch { /* 后端不可用时回退本地 */ }
+        return;
+      } catch { /* 后端不可用时忽略 */ }
     }
-    let list = readLocalAccounts();
-    if (list.length === 0) {
-      list = [{ name: DEFAULT_ACCOUNT, payload: currentPayload(), updatedAt: new Date().toISOString() }];
-      writeLocalAccounts(list);
-    }
+    const list = webAccounts.list().map((m) => ({ ...m }));
     setAccounts(list);
-    const current = readLocalCurrent();
-    setCurrentAccount(list.some((a) => a.name === current) ? current : list[0].name);
-    return false;
+    setCurrentAccount(webAccounts.current());
   };
-
-  const loadAccounts = async () => { await refreshAccounts(); };
 
   useEffect(() => {
     if (isOpen) {
-      void loadAccounts();
+      void refreshAccounts();
       setMessage('');
       setAccountMsg('');
       setSwitchNotice('');
@@ -184,7 +135,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
 
   const handleExport = async () => {
     sound.playClick();
-    const data = storage.exportData();
+    const data = IS_STATIC ? webAccounts.exportSingle() : storage.exportData();
     const defaultFilename = `roco_user_data_${new Date().toISOString().slice(0, 10)}.json`;
 
     if (!IS_STATIC && typeof window !== 'undefined' && (window as any).pywebview?.api?.save_export_file) {
@@ -223,29 +174,22 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
       const text = await file.text();
       const parsed = JSON.parse(text);
 
-      // 纯前端多账号存档：一次性导入整套账号
       if (IS_STATIC && parsed && parsed.app === 'roco-multi-account' && Array.isArray(parsed.accounts)) {
-        saveLocalCurrent(currentAccount);
-        const existing = readLocalAccounts();
-        const listMap = new Map(existing.map((a) => [a.name, a]));
-        let importedCount = 0;
-        parsed.accounts.forEach((a: any) => {
-          if (!a || !a.name || !a.payload) return;
-          listMap.set(a.name, { name: a.name, payload: a.payload, updatedAt: a.updatedAt || new Date().toISOString() });
-          importedCount += 1;
-        });
-        const list = Array.from(listMap.values());
-        writeLocalAccounts(list);
-        setAccounts(list);
-        const importCurrent = parsed.current && list.some((a) => a.name === parsed.current) ? parsed.current : currentAccount;
-        if (importCurrent !== currentAccount) {
-          try { localStorage.setItem(CURRENT_ACCOUNT_KEY, importCurrent); } catch { /* 忽略 */ }
-          const target = list.find((a) => a.name === importCurrent);
-          if (target) storage.importData(JSON.stringify(target.payload));
-        }
-        setCurrentAccount(importCurrent);
-        setMessage(`导入成功：共 ${importedCount} 个账号${importCurrent !== currentAccount ? `，已切换到「${importCurrent}」` : ''}`);
+        const result = webAccounts.importAll(text);
+        await refreshAccounts();
+        setMessage(`导入成功：共 ${result.count} 个账号，当前为「${result.current}」`);
         setMsgType('ok');
+        return;
+      }
+
+      if (IS_STATIC) {
+        const ok = webAccounts.importSingle(text);
+        await refreshAccounts();
+        if (ok) {
+          setMessage('导入成功！当前账号图鉴点亮记录与设置已更新。'); setMsgType('ok');
+        } else {
+          setMessage('导入失败：文件不是有效的 roco_user_data.json。'); setMsgType('err');
+        }
         return;
       }
 
@@ -279,16 +223,8 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
       setMessage('桌面版多账号在 accounts/ 目录中，请直接备份该目录'); setMsgType('ok'); return;
     }
     sound.playClick();
-    saveLocalCurrent(currentAccount); // 确保最新数据已写回当前账号
-    const list = readLocalAccounts();
-    const archive = {
-      app: 'roco-multi-account',
-      version: 1,
-      current: currentAccount,
-      exportedAt: new Date().toISOString(),
-      accounts: list,
-    };
-    downloadJsonFile(`roco_accounts_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(archive, null, 2));
+    const content = webAccounts.exportAll();
+    downloadJsonFile(`roco_accounts_${new Date().toISOString().slice(0, 10)}.json`, content);
     setMessage('已导出全部账号（含当前账号最新数据）'); setMsgType('ok');
   };
 
@@ -299,18 +235,10 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     try {
       if (!IS_STATIC) {
         await api.accountCreate(name); // 后端只创建空账号，不切换
-        await refreshAccounts();
       } else {
-        if (readLocalAccounts().some((a) => a.name === name)) {
-          setAccountMsg(`账号「${name}」已存在`); setAccountMsgType('err'); return;
-        }
-        const current = readLocalCurrent();
-        saveLocalCurrent(current);
-        const list = readLocalAccounts();
-        list.push({ name, payload: emptyPayloadFromCurrent(), updatedAt: new Date().toISOString() });
-        writeLocalAccounts(list);
-        setAccounts(list);
+        webAccounts.create(name);
       }
+      await refreshAccounts();
       setNewAccountName('');
       setSwitchNotice(`已新建空账号「${name}」`);
       setAccountMsg(''); setAccountMsgType('ok');
@@ -326,16 +254,10 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
       if (!IS_STATIC) {
         await api.accountSwitch(name); // 后端自动保存原账号
         await storage.refreshFromServer();
-        await refreshAccounts();
-        try { localStorage.setItem(CURRENT_ACCOUNT_KEY, name); } catch { /* 忽略 */ }
       } else {
-        saveLocalCurrent(currentAccount);
-        try { localStorage.setItem(CURRENT_ACCOUNT_KEY, name); } catch { /* 忽略 */ }
-        const target = readLocalAccounts().find((a) => a.name === name);
-        setCurrentAccount(name);
-        if (target) storage.importData(JSON.stringify(target.payload));
-        setAccounts(readLocalAccounts());
+        webAccounts.switchTo(name);
       }
+      await refreshAccounts();
       setSwitchNotice(`已切换到账号「${name}」`);
       setAccountMsg(''); setAccountMsgType('ok');
     } catch (e: any) {
@@ -353,19 +275,10 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     try {
       if (!IS_STATIC) {
         await api.accountRename(oldName, clean);
-        await refreshAccounts();
       } else {
-        const list = readLocalAccounts();
-        if (list.some((a) => a.name === clean)) { setAccountMsg('账号名已存在'); setAccountMsgType('err'); return; }
-        const item = list.find((a) => a.name === oldName);
-        if (item) {
-          item.name = clean;
-          writeLocalAccounts(list);
-          if (readLocalCurrent() === oldName) { try { localStorage.setItem(CURRENT_ACCOUNT_KEY, clean); } catch { /* 忽略 */ } }
-          setAccounts(list);
-          setCurrentAccount(clean);
-        }
+        webAccounts.rename(oldName, clean);
       }
+      await refreshAccounts();
       setPopover(null);
       setSwitchNotice(`账号已重命名为「${clean}」`);
     } catch (e: any) {
@@ -375,6 +288,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
 
   const handleDeleteAccount = async (name: string) => {
     sound.playClick();
+    const wasCurrent = name === currentAccount;
     try {
       if (!IS_STATIC) {
         const result = await api.accountDelete(name);
@@ -382,21 +296,9 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
         await refreshAccounts();
         setSwitchNotice(`账号「${name}」已删除${result?.name ? `，已切换到「${result.name}」` : ''}`);
       } else {
-        const list = readLocalAccounts();
-        if (list.length <= 1) { setAccountMsg('至少保留一个账号'); setAccountMsgType('err'); return; }
-        saveLocalCurrent(currentAccount);
-        const nextList = readLocalAccounts().filter((a) => a.name !== name);
-        writeLocalAccounts(nextList);
-        setAccounts(nextList);
-        if (currentAccount === name) {
-          const fallback = nextList[0];
-          try { localStorage.setItem(CURRENT_ACCOUNT_KEY, fallback.name); } catch { /* 忽略 */ }
-          setCurrentAccount(fallback.name);
-          storage.importData(JSON.stringify(fallback.payload));
-          setSwitchNotice(`账号「${name}」已删除，已切换到「${fallback.name}」`);
-        } else {
-          setSwitchNotice(`账号「${name}」已删除`);
-        }
+        const fallback = webAccounts.remove(name);
+        await refreshAccounts();
+        setSwitchNotice(wasCurrent ? `账号「${name}」已删除，已切换到「${fallback}」` : `账号「${name}」已删除`);
       }
       setPopover(null);
       setAccountMsg('');
@@ -594,7 +496,11 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
 
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
               <FileJson className="w-3.5 h-3.5 shrink-0" />
-              <span>账号保存在数据目录的 accounts/ 文件夹中，关闭 App 后依然保留。</span>
+              <span>
+                {IS_STATIC
+                    ? '账号保存在当前浏览器本地存储中，清理浏览器数据会丢失，请及时用「导出全部账号」备份。'
+                    : '账号保存在数据目录的 accounts/ 文件夹中，关闭 App 后依然保留。'}
+              </span>
             </div>
 
             {message && (

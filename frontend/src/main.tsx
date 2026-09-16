@@ -8,6 +8,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { IS_STATIC } from './services/staticMode';
 import { startWebTelemetry } from './services/webTelemetry';
 import { runtimeGuard } from './services/runtimeGuard';
+import { webAccounts } from './services/webAccounts';
 import './index.css';
 
 // Check if running as standalone scanner window (via pathname /scanner or query ?view=scanner or #scanner)
@@ -52,6 +53,7 @@ createRoot(rootElement).render(
 
 // 纯前端版：上报“打开 / 心跳”到远端统计服务器（不含授权/存储/反馈）。
 if (IS_STATIC) {
+  webAccounts.init();
   startWebTelemetry();
   runtimeGuard.init();
 }

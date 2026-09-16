@@ -616,6 +616,23 @@ export class StorageService {
     }
   }
 
+  public loadPayload(payload: {
+    encounteredPets?: Record<string, EncounterRecord>;
+    thresholds?: Record<string, number>;
+    appSettings?: AppSettings;
+  }): void {
+    this.records = { ...(payload.encounteredPets || {}) };
+    this.thresholds = { ...(payload.thresholds || {}) };
+    this.appSettings = this.migrateLegacySettings({ ...(payload.appSettings || {}) });
+    this.localVersion = 0;
+    if (typeof this.appSettings.isSoundMuted === 'boolean') {
+      sound.setMuted(this.appSettings.isSoundMuted);
+    }
+    this.saveToLocalStorage();
+    this.notifyListeners();
+    this.notifySettingsListeners();
+  }
+
   public async refreshFromServer(): Promise<void> {
     // 多账号切换后：从后端重新拉取当前账号数据并通知 UI
     await this.fetchRemote();

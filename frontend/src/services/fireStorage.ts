@@ -290,6 +290,13 @@ export class FireStorageService {
     this.triggerSave();
   }
 
+  public loadRecords(records: Record<string, EncounterRecord>): void {
+    this.records = { ...(records || {}) };
+    this.localVersion = 0;
+    this.saveToLocalStorage();
+    this.notifyListeners();
+  }
+
   public destroy() {
     if (this.saveTimeout) clearTimeout(this.saveTimeout);
     if (this.pollTimer) clearTimeout(this.pollTimer);
