@@ -1,9 +1,10 @@
 {
-  "version": "1.4.8",
+  "version": "1.4.9",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
+  "update_log": "",
   "update_log": "【v1.4.8 更新公告】\n\n 【功能新增】\n1、增加了 GPU 的适配（识别更快）- 默认开启，如果不支持GPU会自动降级为CPU\n2、增加了 浏览器 版本的首页识别功能，现在Web版可以识图了 https://roco.omisheep.cn/\n3、增加了窗口定位记忆\n\n【优化&修复】\n4、增加了白屏解决方案（异常白屏通常是精简系统所致，根据指导安装环境依赖即可）\n5、优化了搜索栏的布局\n\n【更新方式】\n自动更新：启动旧版本后按提示点击 “立即更新” 即可\n手动更新：下载最新安装包覆盖安装即可，原有数据自动保留\n",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.8/",
