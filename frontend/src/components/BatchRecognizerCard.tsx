@@ -132,6 +132,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     gpuVramMB: number;
     gpuCount: number;
     cpuName: string;
+    gpuUsable: boolean;
+    gpuReason: string;
   } | null>(null);
   const [backendChecking, setBackendChecking] = useState<boolean>(false);
   /** PC 端：上一次识别的耗时/图位数（与 Web 端一样，识别完展示一行信息） */
@@ -265,6 +267,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           gpuVramMB: info.gpuVramMB,
           gpuCount: info.gpuCount,
           cpuName: info.cpuName,
+          gpuUsable: info.gpuUsable,
+          gpuReason: info.gpuReason,
         } : null))
         .catch(() => setInferBackend(null))
         .finally(() => setBackendChecking(false));
@@ -867,7 +871,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           `${inferBackend.isGpu
                               ? '已启用 GPU 加速（DirectML/CUDA），识别更快。'
                               : (inferBackend.gpuAvailable
-                                  ? '检测到 GPU 后端但本次未启用（可能是后端偏好设为 cpu，或建会话失败），已自动使用 CPU。'
+                                  ? `GPU 不可用，已自动降级为 CPU 计算。\n原因：${inferBackend.gpuReason || '未通过真机验证'}`
                                   : '当前环境未安装 GPU 版推理引擎，使用 CPU 计算。')}\n` +
                           `推理后端：${inferBackend.activeLabel}\n` +
                           `ONNX Runtime：${inferBackend.onnxruntime}\n` +

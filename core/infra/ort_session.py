@@ -15,6 +15,12 @@ _GPU_EP_ORDER = ("CUDAExecutionProvider", "DmlExecutionProvider", "OpenVINOExecu
 
 # 已经成功建过会话的后端列表：第一次探测出结果后，后续会话直接复用，避免反复试错
 _ACTIVE_PROVIDERS: list | None = None
+# 最近一次会话实际生效的 EP（session.get_providers()[0]，ORT 可能把请求的 GPU 静默换成 CPU）
+_LAST_ACTUAL_PROVIDER: str | None = None
+# GPU 真机可用性结论（缓存）：{"usable": bool, "reason": str, "provider": str}
+_GPU_VERDICT: dict | None = None
+# 真机验证时创建的会话（(模型路径, session)）：验证通过后直接复用，避免同一模型建两份会话
+_PROBE_SESSION: tuple | None = None
 
 
 def get_ort_intra_threads() -> int:
@@ -88,9 +94,12 @@ def user_gpu_enabled() -> bool:
 
 def reset_provider_cache() -> None:
     """忘掉已探测到的后端（设置变更后调用，让下次建会话重新按新偏好选择）。"""
-    global _ACTIVE_PROVIDERS, _PROBE_CACHE
+    global _ACTIVE_PROVIDERS, _PROBE_CACHE, _GPU_VERDICT, _LAST_ACTUAL_PROVIDER, _PROBE_SESSION
     _ACTIVE_PROVIDERS = None
     _PROBE_CACHE = None
+    _GPU_VERDICT = None
+    _LAST_ACTUAL_PROVIDER = None
+    _PROBE_SESSION = None
 
 
 def get_available_providers() -> set:
@@ -119,6 +128,12 @@ def provider_candidates(mode: str | None = None) -> list:
     if mode == "cpu":
         return [["CPUExecutionProvider"]]
 
+    # GPU 真机验证没通过（老显卡/驱动不支持 D3D12/显存不足/用户关掉了开关）就直接纯 CPU：
+    # 避免出现「会话建得起来、一推理就报设备错误」这种识别不可用的状态。
+    verdict = gpu_verdict()
+    if not verdict.get("usable"):
+        return [["CPUExecutionProvider"]]
+
     if mode == "auto":
         order = [ep for ep in _GPU_EP_ORDER if ep in avail]
     else:
@@ -143,6 +158,90 @@ def provider_candidates(mode: str | None = None) -> list:
     return uniq
 
 
+def _shape_is_concrete(shape) -> bool:
+    """除 batch 维外都是具体整数时，才敢按它造空输入做前向验证。"""
+    return all(isinstance(d, int) and d > 0 for d in list(shape)[1:])
+
+
+def _smoke_forward(session) -> None:
+    """对会话跑一次全零输入，确认「不仅能建会话，还能真的推理」。"""
+    import numpy as np
+
+    inp = session.get_inputs()[0]
+    dims = [
+        d if isinstance(d, int) and d > 0 else (1 if i == 0 else 32)
+        for i, d in enumerate(inp.shape)
+    ]
+    session.run(None, {inp.name: np.zeros(dims, dtype=np.float32)})
+
+
+def mark_gpu_unusable(reason: str) -> None:
+    """把 GPU 标记为不可用：后续所有会话（含 OCR/YOLO）直接用 CPU，不再反复试错。"""
+    global _GPU_VERDICT, _ACTIVE_PROVIDERS, _LAST_ACTUAL_PROVIDER, _PROBE_SESSION
+    _GPU_VERDICT = {"usable": False, "reason": reason, "provider": ""}
+    _ACTIVE_PROVIDERS = None
+    _LAST_ACTUAL_PROVIDER = None
+    _PROBE_SESSION = None
+
+
+def gpu_verdict(force: bool = False) -> dict:
+    """真机验证 GPU 到底能不能用（结果缓存）。
+
+    只看 get_available_providers() 不够：老显卡 / 老驱动（D3D12 特性级别不足）/
+    显存不足 / 远程桌面(WARP) 等场景下，GPU 会话可能「建得起来，一推理就报设备错误」。
+    所以这里真的跑一次前向，跑通才算可用。
+
+    探测模型优先用【识别主模型】（DINO）：它的空间维是固定 518×518，能安全地造空输入；
+    而且它就是识别真正依赖的模型，拿它验证最贴近实际。
+    注意：不能用 OCR 的 cls/rec 当探测对象 —— 它们的输入是动态形状（真实尺寸分别是
+    48×192 / 48×N），喂错尺寸会抛错，会把健康显卡误判成不可用。
+    """
+    global _GPU_VERDICT, _PROBE_SESSION
+    if _GPU_VERDICT is not None and not force:
+        return _GPU_VERDICT
+
+    import onnxruntime as ort
+
+    from core.infra.logger import logger
+
+    gpu_eps = [ep for ep in _GPU_EP_ORDER if ep in get_available_providers()]
+    if env_ep_override() == "cpu" or not user_gpu_enabled():
+        _GPU_VERDICT = {"usable": False, "reason": "已关闭 GPU 加速", "provider": ""}
+        return _GPU_VERDICT
+    if not gpu_eps:
+        _GPU_VERDICT = {"usable": False, "reason": "当前推理库不含 GPU 执行后端", "provider": ""}
+        return _GPU_VERDICT
+
+    model = _recognizer_probe_model() or _probe_model_path()
+    if not model:
+        _GPU_VERDICT = {"usable": True, "reason": "缺少验证用模型，跳过真机验证", "provider": gpu_eps[0]}
+        return _GPU_VERDICT
+
+    last_reason = ""
+    for ep in gpu_eps:
+        try:
+            session = ort.InferenceSession(model, providers=[ep, "CPUExecutionProvider"])
+            providers = session.get_providers() or []
+            actual = providers[0] if providers else ""
+            if actual != ep:
+                last_reason = f"{ep} 未真正生效（实际 {actual or '未知'}，通常是缺少可用的 D3D12 设备）"
+                logger.warning(f"GPU 验证不通过：{last_reason}")
+                continue
+            if _shape_is_concrete(session.get_inputs()[0].shape):
+                _smoke_forward(session)
+                _PROBE_SESSION = (str(model), session)
+                logger.info(f"GPU 可用性验证通过（含前向）：{ep}")
+            else:
+                logger.info(f"{ep} 会话创建成功；该模型是动态输入形状，跳过空输入前向验证")
+            _GPU_VERDICT = {"usable": True, "reason": f"{ep} 真机验证通过", "provider": ep}
+            return _GPU_VERDICT
+        except Exception as e:  # noqa: BLE001
+            last_reason = f"{ep} 验证失败：{type(e).__name__}: {e}"
+            logger.warning(f"GPU 验证失败，将回退 CPU：{last_reason}")
+    _GPU_VERDICT = {"usable": False, "reason": last_reason or "GPU 不可用", "provider": ""}
+    return _GPU_VERDICT
+
+
 def create_inference_session(model_path, sess_options=None, mode: str | None = None):
     """创建 ONNX 会话：优先 GPU，失败自动降级 CPU。
 
@@ -156,7 +255,11 @@ def create_inference_session(model_path, sess_options=None, mode: str | None = N
     if sess_options is None:
         sess_options = create_session_options()
 
-    global _ACTIVE_PROVIDERS
+    global _ACTIVE_PROVIDERS, _LAST_ACTUAL_PROVIDER
+    # 真机验证时已经为这个模型建过会话（并跑通前向），直接复用，避免同模型两份会话常驻内存
+    if sess_options is None and _PROBE_SESSION and _PROBE_SESSION[0] == str(model_path):
+        _LAST_ACTUAL_PROVIDER = (_PROBE_SESSION[1].get_providers() or ["CPUExecutionProvider"])[0]
+        return _PROBE_SESSION[1]
     tried = []
     # 已经探测成功的后端排最前，避免每个会话都重新试一遍失败的 GPU
     planned = ([_ACTIVE_PROVIDERS] if _ACTIVE_PROVIDERS else []) + [
@@ -169,13 +272,29 @@ def create_inference_session(model_path, sess_options=None, mode: str | None = N
         tried.append(providers[0])
         try:
             session = ort.InferenceSession(str(model_path), sess_options=sess_options, providers=providers)
+            actual = (session.get_providers() or [providers[0]])[0]
+            # ORT 可能在内部把请求的 GPU 静默换成 CPU（设备创建失败）——必须认出来
+            if providers[0] in _GPU_EP_ORDER and actual != providers[0]:
+                logger.warning(f"请求 {providers[0]} 实际生效 {actual}，判定 GPU 不可用，改用 CPU")
+                mark_gpu_unusable(f"请求 {providers[0]} 实际生效 {actual}")
+                continue
+            # 形状明确时再真机前向一次：老显卡常见「能建会话、一跑就报设备错误」
+            if actual in _GPU_EP_ORDER and _shape_is_concrete(session.get_inputs()[0].shape):
+                try:
+                    _smoke_forward(session)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"{actual} 前向验证失败（{type(e).__name__}: {e}），改用 CPU 重建")
+                    mark_gpu_unusable(f"{actual} 前向失败：{type(e).__name__}: {e}")
+                    continue
             if _ACTIVE_PROVIDERS != providers:
                 _ACTIVE_PROVIDERS = providers
-                backend = session.get_providers()[0] if session.get_providers() else providers[0]
-                logger.info(f"ONNX 推理后端: {backend}（providers={providers}）")
+                logger.info(f"ONNX 推理后端: {actual}（providers={providers}）")
+            _LAST_ACTUAL_PROVIDER = actual
             return session
         except Exception as e:  # noqa: BLE001 - 任何后端问题都应降级而不是让识别挂掉
             last_err = e
+            if providers[0] in _GPU_EP_ORDER:
+                mark_gpu_unusable(f"{providers[0]} 建会话失败：{type(e).__name__}: {e}")
             logger.warning(f"ONNX 后端 {providers[0]} 建会话失败，降级下一个：{type(e).__name__}: {e}")
 
     # 兜底：所有候选都失败时抛出最后一次错误（保持与原来直接抛出的行为一致）
@@ -202,7 +321,8 @@ def ocr_use_gpu() -> bool:
         return True
     if not user_gpu_enabled():
         return False
-    return bool(get_available_providers() & set(_GPU_EP_ORDER))
+    # 跟随 GPU 真机结论：老显卡/驱动不支持时这里也要回 CPU
+    return bool(gpu_verdict().get("usable"))
 
 
 def ocr_ep_kwargs() -> dict:
@@ -224,6 +344,20 @@ def ocr_ep_kwargs() -> dict:
 # 运行时状态（给前端展示「当前用的是 GPU 还是 CPU」）
 # --------------------------------------------------------------------------- #
 _PROBE_CACHE: dict | None = None
+
+
+def _recognizer_probe_model() -> str | None:
+    """识别主模型（DINO backbone）：空间维固定，适合做真机前向验证。"""
+    try:
+        import config
+
+        dino = getattr(config, "DINO", None)
+        path = dino[0] if dino else None
+        if path and os.path.exists(path):
+            return path
+    except Exception:
+        pass
+    return None
 
 
 def _probe_model_path() -> str | None:
@@ -267,7 +401,7 @@ def probe_runtime(force: bool = False) -> dict:
     远程桌面等情况下列表里照样有 DmlExecutionProvider，但建会话会失败。
     所以这里真的建一次小会话，拿到的才是"确实能用"的结论。
     """
-    global _PROBE_CACHE, _ACTIVE_PROVIDERS
+    global _PROBE_CACHE, _ACTIVE_PROVIDERS, _LAST_ACTUAL_PROVIDER
     if _PROBE_CACHE is not None and not force:
         return _PROBE_CACHE
 
@@ -275,31 +409,31 @@ def probe_runtime(force: bool = False) -> dict:
 
     avail = sorted(get_available_providers())
     gpu_eps = [ep for ep in _GPU_EP_ORDER if ep in avail]
-    model = _probe_model_path()
+    model = _recognizer_probe_model() or _probe_model_path()
     active = None
     error = None
 
     if force:
         _ACTIVE_PROVIDERS = None  # 清掉记忆，让它重新按候选顺序试
+        _LAST_ACTUAL_PROVIDER = None
 
-    if model:
-        try:
-            session = create_inference_session(model)
-            providers = session.get_providers()
-            active = providers[0] if providers else None
-        except Exception as e:  # noqa: BLE001
-            error = f"{type(e).__name__}: {e}"
-    elif _ACTIVE_PROVIDERS:
-        active = _ACTIVE_PROVIDERS[0]
-
+    verdict = gpu_verdict(force=force)
+    if _LAST_ACTUAL_PROVIDER:
+        active = _LAST_ACTUAL_PROVIDER
+    elif verdict.get("usable"):
+        active = verdict.get("provider") or None
     if active is None:
-        active = (_ACTIVE_PROVIDERS or ["CPUExecutionProvider"])[0]
+        active = "CPUExecutionProvider"
+    if not verdict.get("usable"):
+        error = verdict.get("reason") or error
 
     _PROBE_CACHE = {
         "mode": get_ep_mode(),
         "gpuEnabled": user_gpu_enabled(),
         "envOverride": env_ep_override() or "",
         "gpuAvailable": bool(gpu_eps),
+        "gpuUsable": bool(verdict.get("usable")),
+        "gpuReason": verdict.get("reason", ""),
         "gpuEps": gpu_eps,
         "availableProviders": avail,
         "active": active,

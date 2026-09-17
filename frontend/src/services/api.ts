@@ -127,6 +127,8 @@ export class ApiService {
     mode: string;
     gpuAvailable: boolean;
     gpuEnabled: boolean;
+    gpuUsable: boolean;
+    gpuReason: string;
     gpuEps: string[];
     availableProviders: string[];
     active: string;
@@ -155,6 +157,8 @@ export class ApiService {
         mode: String(data.mode || 'auto'),
         gpuAvailable: !!data.gpuAvailable,
         gpuEnabled: data.gpuEnabled !== false,
+        gpuUsable: data.gpuUsable !== false,
+        gpuReason: String(data.gpuReason || ''),
         gpuEps: Array.isArray(data.gpuEps) ? data.gpuEps : [],
         availableProviders: Array.isArray(data.availableProviders) ? data.availableProviders : [],
         active: String(data.active || ''),
