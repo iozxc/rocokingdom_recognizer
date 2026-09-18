@@ -9,6 +9,8 @@ interface ConfirmDialogProps {
     confirmText?: string;
     cancelText?: string;
     danger?: boolean;
+    /** 次要说明行；不传则用「重置地图」的默认文案，传空串则不显示 */
+    detail?: string;
     onConfirm: () => void;
     onClose: () => void;
 }
@@ -20,6 +22,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                                                                 confirmText = '确定重置',
                                                                 cancelText = '取消',
                                                                 danger = true,
+                                                                detail,
                                                                 onConfirm,
                                                                 onClose,
                                                             }) => {
@@ -67,9 +70,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                             <p className="text-xs font-black text-rose-900 dark:text-rose-200 leading-relaxed">
                                 {description}
                             </p>
-                            <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium">
-                                清空后该地图所有精灵的遇见记录与绿勾标记将重置。
-                            </p>
+                            {detail !== '' && (
+                                <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium whitespace-pre-line">
+                                    {detail ?? '清空后该地图所有精灵的遇见记录与绿勾标记将重置。'}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

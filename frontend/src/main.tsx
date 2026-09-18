@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ScannerApp } from './ScannerApp.tsx';
 import { WebFollowScanner } from './components/WebFollowScanner';
+import { ScannerPipHost } from './components/ScannerPipHost';
 import { AuthGate } from './components/AuthGate';
 import { AgreementGate } from './components/AgreementGate';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -32,15 +33,9 @@ function isScannerMode(): boolean {
 const rootElement = document.getElementById('root')!;
 const isStandaloneScanner = isScannerMode();
 
-/**
- * 跟随识别面板单独开窗时的窗口标题。
- *
- * 浏览器原生的「选择要共享的内容」对话框在窄窗口下会把标题截断成
- * 「洛克王国徽章试炼助手…」，和游戏窗口的「洛克王国：世…」几乎分不清，用户很容易选错。
- * 这里换成一个短且一眼能排除的标题（只在纯前端版的跟随识别面板生效）。
- */
+// 跟随识别面板单独开窗（非 PiP 的兜底路径）时的窗口标题
 if (isStandaloneScanner && IS_STATIC) {
-  document.title = '识别面板 · 勿选此窗口';
+  document.title = '识别窗口';
 }
 
 createRoot(rootElement).render(
@@ -52,6 +47,8 @@ createRoot(rootElement).render(
       ) : IS_STATIC ? (
         <AgreementGate>
           <App />
+          {/* 纯前端版：跟随识别小窗（由首页直接开的 Document PiP）挂在这里 */}
+          <ScannerPipHost />
         </AgreementGate>
       ) : (
         <AgreementGate>

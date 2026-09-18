@@ -1,10 +1,21 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { X, Upload, Download, Database, CheckCircle2, AlertTriangle, FileJson, Plus, UserRound, Trash2, Pencil, Search } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import axios from 'axios';
+import { X, Upload, Download, Database, CheckCircle2, AlertTriangle, FileJson, Plus, UserRound, Trash2, Pencil, Search, Cloud, RefreshCw, Unlink, KeyRound, ShieldAlert, MonitorSmartphone } from 'lucide-react';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { api } from '../services/api';
 import { IS_STATIC } from '../services/staticMode';
 import { webAccounts, DEFAULT_ACCOUNT } from '../services/webAccounts';
+import { cloudSync, type CloudSyncState } from '../services/cloudSync';
+import { ConfirmDialog } from './ConfirmDialog';
+
+/** 毫秒时间戳 → 本地可读时间（空值显示 —）。 */
+function fmtMs(ms: number | null | undefined): string {
+  if (!ms) return '—';
+  const d = new Date(Number(ms));
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('zh-CN', { hour12: false });
+}
 
 interface DataManageModalProps {
   isOpen: boolean;
@@ -36,6 +47,46 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   const [accountMsgType, setAccountMsgType] = useState<'ok' | 'err'>('ok');
   const [switchNotice, setSwitchNotice] = useState<string>('');
   const [popover, setPopover] = useState<{ kind: 'rename' | 'delete'; name: string; x: number; y: number } | null>(null);
+  // 云端同步（仅纯前端版）：配对码输入 + 同步状态
+  const [cloudState, setCloudState] = useState<CloudSyncState>(() => cloudSync.getState());
+  const [cloudCode, setCloudCode] = useState('');
+  const [cloudMsg, setCloudMsg] = useState('');
+  const [cloudMsgType, setCloudMsgType] = useState<'ok' | 'err'>('ok');
+  const [cloudBusy, setCloudBusy] = useState(false);
+  // 桌面端：本机生成的配对码
+  const [pairCode, setPairCode] = useState('');
+  // 覆盖类操作的二次确认
+  const [cloudConfirm, setCloudConfirm] = useState<null | 'pull' | 'push' | { revoke: string }>(null);
+  // 《云端同步协议》弹窗（首次必须同意；之后点标题后的链接可再次查看）
+  const [showAgreement, setShowAgreement] = useState(false);
+  // 桌面端：已配对的网页端列表
+  const [bindings, setBindings] = useState<Array<{ webCode: string; shortId: string; createdAt: string; lastUsedAt: string | null; ip: string }>>([]);
+  const [bindingsLoaded, setBindingsLoaded] = useState(false);
+  // 桌面端：本机同步状态（最近上传 / 上次同步 / 云端最后更新）
+  const [cloudStatusLocal, setCloudStatusLocal] = useState<{
+    lastSyncAt?: number; lastPushAt?: number; cloudUpdatedAt?: string | null;
+    cloudAhead?: boolean; syncing?: boolean;
+  }>({});
+  // 桌面端的「已同意协议」标记。
+  // 与网页端一样独立存 key：appSettings 会被账号切换/云端覆盖整份替换掉，
+  // 放那里会出现「同意过又失效」的问题。
+  const [agreedLocal, setAgreedLocal] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('roco_cloud_sync_agreed_v1') === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  const writeAgreedLocal = (v: boolean) => {
+    try {
+      if (v) localStorage.setItem('roco_cloud_sync_agreed_v1', '1');
+      else localStorage.removeItem('roco_cloud_sync_agreed_v1');
+    } catch {
+      /* ignore */
+    }
+    setAgreedLocal(v);
+  };
   const [renameValue, setRenameValue] = useState<string>('');
   const popoverRef = useRef<HTMLDivElement>(null);
   const accountItemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -131,7 +182,230 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     setPopover({ kind, name, x: rect.left, y: rect.bottom });
   };
 
+  /**
+   * 订阅云端同步状态。
+   *
+   * 注意：同步（尤其「云端覆盖本地」）会把本机账号列表整体换掉 —— 如果这里不同步刷新，
+   * 界面还显示同步前的旧账号，切过去就会提示「账号不存在」。所以盯住 lastSyncAt：
+   * 一变就重新拉一次账号列表。
+   */
+  const lastSyncAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    const unsub = cloudSync.subscribe((st) => {
+      setCloudState(st);
+      if (st.lastSyncAt && st.lastSyncAt !== lastSyncAtRef.current) {
+        lastSyncAtRef.current = st.lastSyncAt;
+        void refreshAccounts();
+      }
+    });
+    return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 打开数据管理时：重读一次协议同意状态（避免 UI 缓存与真实状态不一致），
+  // 桌面端再拉一次配对列表
+  useEffect(() => {
+    if (!isOpen) return;
+    if (IS_STATIC) {
+      cloudSync.refreshAgreed();
+      // 顺手刷新云端元信息，让「云端最后更新」显示的是当前值（便于和本机上传时间对比）
+      void cloudSync.refreshMeta();
+    } else {
+      try {
+        setAgreedLocal(localStorage.getItem('roco_cloud_sync_agreed_v1') === '1');
+      } catch {
+        /* ignore */
+      }
+    }
+    if (!IS_STATIC) {
+      void loadCloudStatus();
+      if (!bindingsLoaded) void loadBindings();
+    }
+  }, [isOpen, bindingsLoaded]);
+
   if (!isOpen) return null;
+
+  const handleCloudBind = async () => {
+    sound.playClick();
+    setCloudBusy(true);
+    setCloudMsg('');
+    const res = await cloudSync.bind(cloudCode);
+    setCloudMsg(res.msg);
+    setCloudMsgType(res.ok ? 'ok' : 'err');
+    if (res.ok) setCloudCode('');
+    setCloudBusy(false);
+  };
+
+  const handleCloudPull = async () => {
+    sound.playClick();
+    setCloudBusy(true);
+    setCloudMsg('');
+    const res = await cloudSync.pullOverwrite();
+    setCloudMsg(res.msg);
+    setCloudMsgType(res.ok ? 'ok' : 'err');
+    // 云端覆盖本地会把账号列表整体换掉，必须立刻刷新，否则列表还是旧的
+    await refreshAccounts();
+    setCloudBusy(false);
+  };
+
+  const handleCloudPush = async () => {
+    sound.playClick();
+    setCloudBusy(true);
+    setCloudMsg('');
+    const res = await cloudSync.pushOverwrite();
+    setCloudMsg(res.msg);
+    setCloudMsgType(res.ok ? 'ok' : 'err');
+    await refreshAccounts();
+    setCloudBusy(false);
+  };
+
+  /** 桌面端：向后端申请一次性配对码，显示给用户去网页版绑定。 */
+  const handleCloudUnbind = async () => {
+    sound.playClick();
+    setCloudBusy(true);
+    await cloudSync.unbind();
+    setCloudMsg('已解除云端同步绑定（本地数据保留）');
+    setCloudMsgType('ok');
+    await refreshAccounts();
+    setCloudBusy(false);
+  };
+
+  const handleDesktopPairCode = async () => {
+    sound.playClick();
+    setCloudBusy(true);
+    setCloudMsg('');
+    try {
+      const res = await axios.get(`${api.getApiBase()}/api/cloud/pair_code`, { timeout: 20000 });
+      if (res.data?.status === 'success' && res.data?.code) {
+        setPairCode(String(res.data.code));
+        setCloudMsg('配对码已生成：请在网页版「数据管理 → 云端同步」里填入');
+        setCloudMsgType('ok');
+      } else {
+        setCloudMsg(res.data?.message || '生成配对码失败');
+        setCloudMsgType('err');
+      }
+    } catch (e: any) {
+      setCloudMsg(`生成配对码失败：${e?.message || '云端不可达'}`);
+      setCloudMsgType('err');
+    }
+    setCloudBusy(false);
+  };
+
+  /** 桌面端：拉取本机云端同步状态（时间戳）。 */
+  const loadCloudStatus = async () => {
+    if (IS_STATIC) return;
+    try {
+      const res = await axios.get(`${api.getApiBase()}/api/cloud/status`, { timeout: 10000 });
+      if (res.data?.status === 'success') {
+        setCloudStatusLocal({
+          lastSyncAt: Number(res.data.lastSyncAt) * 1000 || 0,
+          lastPushAt: Number(res.data.lastPushAt) * 1000 || 0,
+          cloudUpdatedAt: res.data.cloudUpdatedAt || null,
+          cloudAhead: !!res.data.cloudAhead,
+          syncing: !!res.data.syncing,
+        });
+      }
+    } catch {
+      /* 状态拿不到就不显示，不影响功能 */
+    }
+  };
+
+  /** 桌面端：拉取已配对的网页端列表。 */
+  const loadBindings = async () => {
+    if (IS_STATIC) return;
+    try {
+      const res = await axios.get(`${api.getApiBase()}/api/cloud/bindings`, { timeout: 20000 });
+      if (res.data?.status === 'success') {
+        setBindings(Array.isArray(res.data.bindings) ? res.data.bindings : []);
+      }
+      setBindingsLoaded(true);
+    } catch {
+      setBindingsLoaded(true);
+    }
+  };
+
+  /** 桌面端：撤销某个网页端的同步权限。 */
+  const handleRevokeBinding = async (webCode: string) => {
+    setCloudBusy(true);
+    setCloudMsg('');
+    try {
+      const res = await axios.post(`${api.getApiBase()}/api/cloud/bindings/revoke`, { webCode }, { timeout: 20000 });
+      if (res.data?.status === 'success') {
+        setCloudMsg('已撤销该网页端的同步权限');
+        setCloudMsgType('ok');
+        await loadBindings();
+      } else {
+        setCloudMsg(res.data?.message || '撤销失败');
+        setCloudMsgType('err');
+      }
+    } catch (e: any) {
+      setCloudMsg(`撤销失败：${e?.message || '云端不可达'}`);
+      setCloudMsgType('err');
+    }
+    setCloudBusy(false);
+  };
+
+  /** 桌面端：云端 → 本地（覆盖）。 */
+  const handleDesktopPull = async () => {
+    sound.playClick();
+    setCloudBusy(true);
+    setCloudMsg('');
+    try {
+      const res = await axios.post(`${api.getApiBase()}/api/cloud/pull`, {}, { timeout: 60000 });
+      if (res.data?.status === 'success') {
+        setCloudMsg('已用云端数据覆盖本地');
+        setCloudMsgType('ok');
+        // 桌面端同步走本机后端，账号列表与同步时间都要立刻刷新
+        await refreshAccounts();
+        await loadCloudStatus();
+      } else {
+        setCloudMsg(res.data?.message || '拉取失败');
+        setCloudMsgType('err');
+      }
+    } catch (e: any) {
+      setCloudMsg(`拉取失败：${e?.message || '云端不可达'}`);
+      setCloudMsgType('err');
+    }
+    setCloudBusy(false);
+  };
+
+  /** 桌面端：本地 → 云端（覆盖）。 */
+  const handleDesktopPush = async () => {
+    sound.playClick();
+    setCloudBusy(true);
+    setCloudMsg('');
+    try {
+      const res = await axios.post(`${api.getApiBase()}/api/cloud/push`, {}, { timeout: 60000 });
+      if (res.data?.status === 'success') {
+        setCloudMsg('已用本地数据覆盖云端');
+        setCloudMsgType('ok');
+        await refreshAccounts();
+        await loadCloudStatus();
+      } else {
+        setCloudMsg(res.data?.message || '上传失败');
+        setCloudMsgType('err');
+      }
+    } catch (e: any) {
+      setCloudMsg(`上传失败：${e?.message || '云端不可达'}`);
+      setCloudMsgType('err');
+    }
+    setCloudBusy(false);
+  };
+
+  /** 二次确认弹窗里点「确定」后真正执行的动作。 */
+  const runCloudConfirm = async () => {
+    const c = cloudConfirm;
+    if (!c) return;
+    if (c === 'pull') {
+      if (IS_STATIC) await handleCloudPull();
+      else await handleDesktopPull();
+    } else if (c === 'push') {
+      if (IS_STATIC) await handleCloudPush();
+      else await handleDesktopPush();
+    } else if (typeof c === 'object' && 'revoke' in c) {
+      await handleRevokeBinding(c.revoke);
+    }
+  };
 
   const handleExport = async () => {
     sound.playClick();
@@ -375,6 +649,220 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                 </button>
             )}
 
+            {/* 云端同步：桌面端与网页版共用同一份云端数据（网页端靠配对码绑定）
+                只能手动同步、语义是「覆盖」而不是合并；首次使用必须先同意《云端同步协议》。 */}
+            {(
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-black text-slate-800 dark:text-slate-100">
+                      <Cloud className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                      <span>云端同步</span>
+                      <button
+                          type="button"
+                          onClick={() => { sound.playClick(); setShowAgreement(true); }}
+                          className="text-[10px] font-black text-[#1E5B99] dark:text-sky-400 hover:underline cursor-pointer"
+                          title="查看《云端同步协议》（数据上传说明与免责声明）"
+                      >
+                        《云端同步协议》
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {IS_STATIC && (
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${
+                              cloudState.bound
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                          }`}>
+                            {cloudState.syncing ? '同步中…' : cloudState.bound ? '已绑定' : '未绑定'}
+                          </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                    只能<b>手动同步</b>：不会自动读写云端，只有你点下面的按钮才会同步，
+                    全程<b>整体覆盖</b>（不合并）——「云端覆盖本地」会丢掉本地未上传的改动。
+                  </p>
+
+                  {!(IS_STATIC ? cloudState.agreed : agreedLocal) ? (
+                      <div className="rounded-2xl border-2 border-dashed border-[#BCD7F2] dark:border-sky-900/60 bg-[#F4F9FF] dark:bg-slate-800/90 p-3 space-y-2">
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
+                          云端同步会把你的<b>全部账号</b>图鉴记录上传到作者的云端服务器，
+                          并且同步是<b>整体覆盖</b>。首次使用前需要先阅读并同意《云端同步协议》。
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => { sound.playClick(); setShowAgreement(true); }}
+                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl roco-btn-primary text-xs cursor-pointer"
+                        >
+                          <ShieldAlert className="w-3.5 h-3.5" />
+                          阅读并同意《云端同步协议》
+                        </button>
+                      </div>
+                  ) : !IS_STATIC ? (
+                      <>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                          想让<b>网页版/手机</b>共用这份数据：点「生成配对码」，在网页版
+                          「数据管理 → 云端同步」里填入 6 位数字即可。
+                        </p>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed space-y-0.5">
+                          <div>本机最近上传：<span className="font-mono">{fmtMs(cloudStatusLocal.lastPushAt)}</span></div>
+                          <div>本机上次同步：<span className="font-mono">{fmtMs(cloudStatusLocal.lastSyncAt)}</span></div>
+                          <div>云端最后更新：<span className="font-mono">{cloudStatusLocal.cloudUpdatedAt || '—'}</span></div>
+                        </div>
+                        {(() => {
+                          const newer = !!cloudStatusLocal.cloudAhead;
+                          return newer ? (
+                              <div className="text-[11px] font-bold text-[#854D0E] dark:text-amber-200 bg-[#FEF9E6] dark:bg-amber-950/60 border border-[#E5C43B] dark:border-amber-700 rounded-xl px-2.5 py-1.5 leading-snug">
+                                云端数据比本机上次同步更新（可能是另一台设备上传的），建议先点「云端覆盖本地」
+                              </div>
+                          ) : null;
+                        })()}
+                        <div className="grid grid-cols-2 gap-2">
+                          <button type="button" onClick={handleDesktopPairCode} disabled={cloudBusy}
+                                  className="flex items-center justify-center gap-1.5 py-2 rounded-xl roco-btn-primary text-xs disabled:opacity-50">
+                            <KeyRound className="w-3.5 h-3.5" />
+                            生成配对码
+                          </button>
+                          <button type="button" onClick={() => { sound.playClick(); setCloudConfirm('pull'); }} disabled={cloudBusy}
+                                  className="flex items-center justify-center gap-1.5 py-2 rounded-xl roco-btn-secondary text-xs disabled:opacity-50">
+                            <Download className="w-3.5 h-3.5" />
+                            云端覆盖本地
+                          </button>
+                        </div>
+                        <button type="button" onClick={() => { sound.playClick(); setCloudConfirm('push'); }} disabled={cloudBusy}
+                                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl roco-btn-secondary text-xs disabled:opacity-50">
+                          <Upload className="w-3.5 h-3.5" />
+                          本地覆盖云端
+                        </button>
+                        {pairCode && (
+                            <div className="rounded-2xl border-2 border-dashed border-[#7ABCF4] dark:border-sky-700 bg-[#F4F9FF] dark:bg-sky-950/30 py-3 text-center space-y-1">
+                              <div className="text-3xl font-mono font-black tracking-[0.35em] text-[#1E5B99] dark:text-sky-300 pl-[0.35em]">
+                                {pairCode}
+                              </div>
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                                10 分钟内有效 · 只能使用一次
+                              </div>
+                            </div>
+                        )}
+
+                        {/* 已配对的网页端：可以单独撤销（撤销后那个浏览器立刻失去同步权限） */}
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                              <MonitorSmartphone className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                              已配对的网页端
+                            </span>
+                            <button type="button" onClick={() => void loadBindings()}
+                                    className="text-[10px] font-black text-[#1E5B99] dark:text-sky-400 hover:underline cursor-pointer">
+                              刷新
+                            </button>
+                          </div>
+                          {bindings.length === 0 ? (
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                                {bindingsLoaded ? '还没有网页端配对过' : '正在读取…'}
+                              </p>
+                          ) : (
+                              bindings.map((b) => (
+                                  <div key={b.webCode}
+                                       className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border-2 border-[#E6EEF8] dark:border-slate-700 bg-[#F8FBFE] dark:bg-slate-800">
+                                    <div className="min-w-0">
+                                      <div className="text-[11px] font-mono font-black text-slate-700 dark:text-slate-200">
+                                        {b.shortId}…
+                                      </div>
+                                      <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                                        配对于 {b.createdAt || '—'}
+                                        {' · '}最近使用 {b.lastUsedAt || '—'}
+                                        {b.ip && b.ip !== '—' ? ` · ${b.ip}` : ''}
+                                      </div>
+                                    </div>
+                                    <button type="button" disabled={cloudBusy}
+                                            onClick={() => { sound.playClick(); setCloudConfirm({ revoke: b.webCode }); }}
+                                            className="shrink-0 px-2 py-1 rounded-lg text-[10px] font-black text-rose-600 dark:text-rose-300 border border-rose-300 dark:border-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 disabled:opacity-50 cursor-pointer">
+                                      解除
+                                    </button>
+                                  </div>
+                              ))
+                          )}
+                        </div>
+                      </>
+                  ) : !cloudState.bound ? (
+                      <>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                          在<b>桌面端「数据管理 → 云端同步」</b>点「生成配对码」，把 6 位数字填到这里，
+                          之后浏览器与桌面端就会共用同一份图鉴记录。
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <KeyRound className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                            <input
+                                value={cloudCode}
+                                onChange={(e) => setCloudCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                onKeyDown={(e) => { if (e.key === 'Enter') void handleCloudBind(); }}
+                                inputMode="numeric"
+                                placeholder="6 位配对码"
+                                className="w-full pl-8 pr-3 py-2 rounded-xl border-2 border-[#D5E3F0] dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-mono tracking-[0.3em] text-slate-800 dark:text-slate-100 outline-none focus:border-[#7ABCF4]"
+                            />
+                          </div>
+                          <button type="button" onClick={handleCloudBind}
+                                  disabled={cloudBusy || cloudCode.length !== 6}
+                                  className="px-4 py-2 rounded-xl roco-btn-primary text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+                            {cloudBusy ? '绑定中…' : '绑定'}
+                          </button>
+                        </div>
+                      </>
+                  ) : (
+                      <>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed space-y-0.5">
+                          <div>本机最近上传：<span className="font-mono">{fmtMs(cloudState.lastPushAt)}</span></div>
+                          <div>本机上次同步：<span className="font-mono">{fmtMs(cloudState.lastSyncAt)}</span></div>
+                          <div>
+                            云端最后更新：<span className="font-mono">{cloudState.cloudUpdatedAt || '—'}</span>
+                            {cloudState.cloudBytes > 0 && ` · 云端 ${(cloudState.cloudBytes / 1024).toFixed(1)} KB`}
+                          </div>
+                        </div>
+                        {(() => {
+                          // cloudAhead 由「当前云端时间戳 vs 上次同步时看到的云端时间戳」得出，
+                          // 不受本机时区/时钟偏差影响（见 cloudSync.ts 的 LAST_SEEN_CLOUD_TS_KEY）
+                          const newer = cloudState.cloudAhead;
+                          return newer ? (
+                              <div className="text-[11px] font-bold text-[#854D0E] dark:text-amber-200 bg-[#FEF9E6] dark:bg-amber-950/60 border border-[#E5C43B] dark:border-amber-700 rounded-xl px-2.5 py-1.5 leading-snug">
+                                云端数据比本机上次同步更新（可能是另一台设备上传的），建议先点「云端覆盖本地」
+                              </div>
+                          ) : null;
+                        })()}
+                        <div className="grid grid-cols-2 gap-2">
+                          <button type="button" onClick={() => { sound.playClick(); setCloudConfirm('pull'); }} disabled={cloudBusy}
+                                  className="flex items-center justify-center gap-1.5 py-2 rounded-xl roco-btn-secondary text-xs disabled:opacity-50">
+                            <Download className="w-3.5 h-3.5" />
+                            云端覆盖本地
+                          </button>
+                          <button type="button" onClick={() => { sound.playClick(); setCloudConfirm('push'); }} disabled={cloudBusy}
+                                  className="flex items-center justify-center gap-1.5 py-2 rounded-xl roco-btn-primary text-xs disabled:opacity-50">
+                            <Upload className="w-3.5 h-3.5" />
+                            本地覆盖云端
+                          </button>
+                        </div>
+                        <button type="button" onClick={handleCloudUnbind} disabled={cloudBusy}
+                                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl roco-btn-secondary text-xs disabled:opacity-50">
+                          <Unlink className="w-3.5 h-3.5" />
+                          解除绑定
+                        </button>
+                      </>
+                  )}
+
+                  {(cloudMsg || cloudState.lastError) && (
+                      <div className={`text-[11px] font-bold px-3 py-2 rounded-xl border ${
+                          (cloudMsg ? cloudMsgType === 'ok' : false)
+                              ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700'
+                              : 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-700'
+                      }`}>
+                        {cloudMsg || cloudState.lastError}
+                      </div>
+                  )}
+                </div>
+            )}
+
             {/* 多账号管理 */}
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
               <div className="flex items-center justify-between">
@@ -597,6 +1085,115 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                   </>
               )}
             </div>
+        )}
+
+        {/* 云端同步的确认弹窗统一 portal 到 body：
+            否则它们会嵌在「数据管理」弹窗里，点击冒泡到外层遮罩把整个弹窗关掉。 */}
+        {createPortal(
+            /* React 的事件是按「React 树」冒泡的：portal 虽然挂到了 body，
+               但它在 React 树里仍是本弹窗的子节点，点击会一路冒泡到外层遮罩的
+               onClick={onClose} 把整个「数据管理」关掉。这里显式截断传播。 */
+            <div onClick={(e) => e.stopPropagation()}>
+        {/* 云端同步：覆盖类操作的二次确认 */}
+        <ConfirmDialog
+            isOpen={cloudConfirm !== null && cloudConfirm !== 'auto'}
+            title={
+              cloudConfirm === 'pull' ? '用云端覆盖本地？'
+                  : cloudConfirm === 'push' ? '用本地覆盖云端？'
+                      : '解除这台网页端的配对？'
+            }
+            description={
+              cloudConfirm === 'pull'
+                  ? '会用云端那份数据直接替换本机【全部账号】的图鉴记录。'
+                  : cloudConfirm === 'push'
+                      ? `会把本机【全部账号】（当前 ${accounts.length} 个）的图鉴记录上传覆盖云端。`
+                      : '解除后，这个浏览器将立刻失去云端同步权限。'
+            }
+            detail={
+              cloudConfirm === 'pull'
+                  ? '本机所有账号里还没上传的改动都会丢失，且无法撤销。\n建议先点「本地覆盖云端」把本机数据存上去。'
+                  : cloudConfirm === 'push'
+                      ? '云端现有数据会被本机数据替换，其它已配对设备下次同步也会变成这一份。\n本机数据会被上传到作者的云端服务器。'
+                      : '该浏览器本地已有的数据不受影响，只是不能再读写云端；如需恢复，重新配对即可。'
+            }
+            confirmText={
+              cloudConfirm === 'pull' ? '确认覆盖本地'
+                  : cloudConfirm === 'push' ? '确认覆盖云端' : '解除配对'
+            }
+            danger={cloudConfirm === 'pull' || (cloudConfirm !== null && typeof cloudConfirm === 'object')}
+            onConfirm={() => void runCloudConfirm()}
+            onClose={() => setCloudConfirm(null)}
+        />
+
+        {/* 《云端同步协议》：首次必须同意才能使用；之后点标题后的链接可再次查看 */}
+        {showAgreement && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+                 onWheel={(e) => e.stopPropagation()}>
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-lg w-full max-h-[88vh] overflow-hidden flex flex-col">
+                <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-3.5 text-white flex items-center gap-2.5 border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center">
+                    <ShieldAlert className="w-4 h-4 text-[#FEE061]" />
+                  </div>
+                  <h3 className="text-base font-black tracking-tight">云端同步协议</h3>
+                </div>
+
+                <div className="p-5 space-y-3 overflow-y-auto">
+                  <p className="text-xs font-black text-slate-800 dark:text-slate-100">使用云端同步会发生什么：</p>
+                  <ul className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed space-y-1.5 list-disc pl-4">
+                    <li>会被上传的是你<b>全部账号</b>的图鉴点亮记录（精灵 id / 名称 / 遇见时间、识别阈值），<b>会保存到作者的云端服务器</b>（api.omisheep.cn）。</li>
+                    <li>同步单位是<b>多账号存档</b>：当前最多 <b>5 个账号</b>；超过 5 个账号时会同步失败，并提示你先删到只剩 5 个（<b>不会自动删除</b>你的账号）。</li>
+                    <li><b>只能手动同步</b>：软件不会自动读写云端；点「云端覆盖本地」会用云端数据覆盖本地<span className="font-black">全部账号</span>，点「本地覆盖云端」会把本机数据上传覆盖云端。</li>
+                    <li>云端数据按「已授权设备」归属，只有你本人配对的浏览器/设备能读写；服务端会记录网页设备的最近使用时间与 IP 网段，你可以在桌面端核对并随时解除配对。</li>
+                    <li>数据<b>仅用于多设备间同步</b>，不含账号密码，也不会用于其它用途。</li>
+                    <li><b>你确认并同意上述数据被上传到云端</b>；如果不想上传，请不要使用本功能（尤其不要点「本地覆盖云端」）。</li>
+                  </ul>
+                  <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-800">
+                    <p className="text-[11px] font-black text-amber-800 dark:text-amber-200 mb-1">免责声明</p>
+                    <ul className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed space-y-1 list-disc pl-4">
+                      <li>本功能为个人开发者提供的免费服务，<b>不承诺可用性、不保证数据不丢失</b>：服务器故障、维护、迁移、误操作等都可能导致云端数据损坏或清空。</li>
+                      <li>云端数据<b>不是备份</b>，请定期用「导出数据」自行保存到本机。</li>
+                      <li>因使用本功能导致的数据丢失、进度回退、设备间不一致等后果，由使用者自行承担。</li>
+                      <li>你随时可以解除配对，或联系作者删除云端数据。</li>
+                    </ul>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    点击「同意并启用」即表示：<b>你已阅读并同意上述说明，并明确同意把你的图鉴数据上传到云端服务器</b>。
+                  </p>
+                </div>
+
+                <div className="px-5 py-3.5 bg-[#F0F6FC] dark:bg-slate-800/80 border-t border-[#D5E3F0] dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0">
+                  {(IS_STATIC ? cloudState.agreed : agreedLocal) ? (
+                      <button type="button"
+                              onClick={() => { sound.playClick(); setShowAgreement(false); }}
+                              className="px-4 py-2 rounded-xl roco-btn-primary text-xs cursor-pointer">
+                        关闭
+                      </button>
+                  ) : (
+                      <>
+                        <button type="button" onClick={() => { sound.playClick(); setShowAgreement(false); }}
+                                className="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-black text-xs border-2 border-[#BCD7F2] dark:border-slate-700 cursor-pointer">
+                          取消
+                        </button>
+                        <button type="button"
+                                onClick={() => {
+                                  sound.playClick();
+                                  if (IS_STATIC) cloudSync.setAgreed(true);
+                                  else writeAgreedLocal(true);
+                                  setCloudMsg('已同意《云端同步协议》，可以开始使用了');
+                                  setCloudMsgType('ok');
+                                  setShowAgreement(false);
+                                }}
+                                className="px-4 py-2 rounded-xl roco-btn-primary text-xs cursor-pointer">
+                          同意并启用
+                        </button>
+                      </>
+                  )}
+                </div>
+              </div>
+            </div>
+        )}
+            </div>,
+            document.body,
         )}
 
       </div>

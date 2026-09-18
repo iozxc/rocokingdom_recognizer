@@ -9,10 +9,9 @@ import {
   Github,
   Link2,
   Cpu,
-  ScanLine,
-  Image as ImageIcon,
   Database,
   Sparkles,
+  Monitor,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { api } from '../services/api';
@@ -30,11 +29,17 @@ interface DownloadAppModalProps {
   onClose: () => void;
 }
 
+/**
+ * 桌面端相比网页版的优势。
+ *
+ * 网页版现在也能识别、也能云端同步了，所以这张卡片不再强调"能不能识别"，
+ * 而是讲桌面端在**精度、体验、数据、反馈**四件事上仍然更好的地方。
+ */
 const APP_FEATURES = [
-  { icon: Cpu, title: '本地 AI 识别', desc: '截图本地推理识别精灵，不出本机、无需上传' },
-  { icon: ScanLine, title: '跟随识别悬浮窗', desc: '游戏画面实时跟随识别当前试炼关卡与精灵' },
-  { icon: ImageIcon, title: '批量 / 单张识别', desc: '支持整页截图批量点亮与单张图片识别' },
-  { icon: Database, title: '本地图鉴与离线记录', desc: '图鉴/记录存本机，离线可用，数据不对外上传' },
+  { icon: Cpu, title: '更精准的识别', desc: '本机原生推理支持 GPU 加速，小图标、低分辨率画面也能稳定认出' },
+  { icon: Monitor, title: '更好的体验', desc: '不用等网页加载、不受服务器波动影响，还有无边框置顶悬浮窗' },
+  { icon: Database, title: '数据同步', desc: '与网页版共用同一份图鉴数据，多账号、多设备一起同步' },
+  { icon: MessageCircle, title: '及时的反馈', desc: '软件内可直接反馈问题，更新与修复比网页版更快到达' },
 ];
 
 export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onClose }) => {
@@ -92,7 +97,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                   下载桌面版 · 使用完整识别 AI
                 </h3>
                 <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">
-                  网页版仅提供图鉴浏览；识别功能需下载本地桌面端
+                  网页版已支持识别与云端同步；桌面端在精度、体验与数据上更进一步
                 </p>
               </div>
             </div>
@@ -116,7 +121,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
               <span className="px-2 py-0.5 bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 rounded-lg border border-[#BCD7F2] dark:border-sky-800 font-black">
                 v{appInfo?.version ?? '1.4.4'}
               </span>
-              <span className="text-slate-400">· 网页版为图鉴浏览版</span>
+              <span className="text-slate-400">· 网页版已支持识别与云端同步</span>
             </div>
 
             {/* 功能补充介绍 */}
@@ -182,7 +187,8 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
             <div className="flex items-start gap-2 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-200 dark:border-emerald-800">
               <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-snug">
-                本应用<strong>完全免费且开源</strong>，无广告、无内购、不上传你的隐私数据，数据完全本地存储。
+                本应用<strong>完全免费且开源</strong>，无广告、无内购；图鉴数据<strong>默认只存在本机</strong>，
+                只有你主动启用「云端同步」时才会把数据上传到作者服务器（可随时解除）。
               </p>
             </div>
 

@@ -204,7 +204,22 @@ const CandidateGrid: React.FC<{
       </div>
   );
 };
-export const WebFollowScanner: React.FC = () => {
+interface WebFollowScannerProps {
+  /**
+   * 由首页直接开的 Document PiP 小窗。
+   * 传入表示「本面板当前就渲染在这个小窗里」——此时不再需要内置的置顶按钮，
+   * 也不能再用 window.resizeTo（PiP 的尺寸由 requestWindow 决定）。
+   */
+  hostWindow?: Window | null;
+}
+
+export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow = null }) => {
+  const hostedInPip = !!hostWindow;
+  /** 面板自身的 DOM 在哪个 document 里（托管到 PiP 时就不是当前 document 了）。 */
+  const hostDoc = useCallback(
+      () => (hostedInPip && hostWindow ? hostWindow.document : document),
+      [hostedInPip, hostWindow],
+  );
   const [capture, setCapture] = useState<CaptureState>(() => screenCapture.getState());
   const [slots, setSlots] = useState<SlotView[]>([]);
   const [busy, setBusy] = useState(false);
@@ -594,13 +609,15 @@ export const WebFollowScanner: React.FC = () => {
    *   - 普通标签页会忽略 resizeTo，此时退化成固定高度 + 滚动，不影响功能。
    */
   const syncWindowHeight = useCallback(() => {
-    if (pipWindow) return; // PiP 窗口尺寸由 requestWindow 决定
+    // PiP（无论是自己转的还是首页直接开的）尺寸由 requestWindow 决定，不做自适应
+    if (pipWindow || hostedInPip) return;
     if (typeof window === 'undefined') return;
-    const contentEl = document.getElementById('scanner-scroll-content');
+    const contentEl = hostDoc().getElementById('scanner-scroll-content');
     if (!contentEl) return;
 
+    const doc = hostDoc();
     const hOf = (id: string, fallback: number) => {
-      const el = document.getElementById(id);
+      const el = doc.getElementById(id);
       return el ? el.getBoundingClientRect().height : fallback;
     };
     const titlebarH = hOf('scanner-titlebar', 44);
@@ -638,7 +655,7 @@ export const WebFollowScanner: React.FC = () => {
     } catch {
       /* 浏览器拒绝 resize 时忽略 */
     }
-  }, [pipWindow]);
+  }, [pipWindow, hostedInPip, hostDoc]);
 
   /** 高度同步节流（leading + trailing）：内容一变先立刻调一次，高频变化合并到间隔后一次。 */
   const scheduleHeightSync = useCallback(() => {
@@ -667,7 +684,7 @@ export const WebFollowScanner: React.FC = () => {
     scheduleHeightSync();
     const timer = window.setTimeout(scheduleHeightSync, 350);
 
-    const inner = document.getElementById('scanner-content-inner');
+    const inner = hostDoc().getElementById('scanner-content-inner');
     const observer = inner && typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(() => scheduleHeightSync())
         : null;
@@ -677,7 +694,7 @@ export const WebFollowScanner: React.FC = () => {
       window.clearTimeout(timer);
       observer?.disconnect();
     };
-  }, [pipWindow, scheduleHeightSync, slots, hintText, errorText, statusText, busy]);
+  }, [pipWindow, hostedInPip, hostDoc, scheduleHeightSync, slots, hintText, errorText, statusText, busy]);
 
   // 预览 video 必须留在文档里：脱离文档或 display:none 时浏览器会降频甚至暂停解码，
   // 抓帧就会拿到旧画面。所以用一个 1×1 透明容器挂着它（界面上看不见）。
@@ -772,6 +789,7 @@ export const WebFollowScanner: React.FC = () => {
               <BookOpen className="w-3.5 h-3.5" />
               <span>查图鉴</span>
             </button>
+            {!hostedInPip && (
             <button
                 type="button"
                 id="scanner-topmost-btn"
@@ -787,6 +805,7 @@ export const WebFollowScanner: React.FC = () => {
             >
               {pipWindow ? <Pin className="w-4 h-4" /> : <PinOff className="w-4 h-4" />}
             </button>
+            )}
             <button
                 type="button"
                 id="scanner-standalone-close-btn"
@@ -1029,8 +1048,8 @@ export const WebFollowScanner: React.FC = () => {
                       <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-relaxed">
                         点下面的「连接游戏画面」，在弹窗里选中《洛克王国：世界》的窗口即可。
                         <br />
-                        列表里那个「识别面板 · 勿选此窗口」就是这个网页（别选它）；
-                        名字会被浏览器截断，认<b>缩略图里的游戏画面</b>最稳。
+                        列表里那个「识别窗口」就是这个网页（别选它）；
+                        名字可能被浏览器截断，认<b>缩略图里的游戏画面</b>最稳。
                       </p>
                   )}
                 </div>
@@ -1189,11 +1208,13 @@ export const WebFollowScanner: React.FC = () => {
       </div>
   );
 
+  // 首页托管（hostWindow）时由 ScannerPipHost 负责 portal，这里直接输出内容
+  if (hostedInPip) return body;
   return pipWindow ? createPortal(body, pipWindow.document.body) : body;
 };
 
 /** 把当前文档的样式表复制到 PiP 文档（跨域样式表退化为 <link>）。 */
-function copyStylesTo(win: Window): void {
+export function copyStylesTo(win: Window): void {
   Array.from(document.styleSheets).forEach((sheet) => {
     try {
       const css = Array.from(sheet.cssRules).map((rule) => rule.cssText).join('\n');

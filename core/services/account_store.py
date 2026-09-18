@@ -18,6 +18,9 @@ DEFAULT_ACCOUNT = "默认账号"
 # 属于本机状态，导入时保留本地值，避免被外来存档覆盖。
 IMPORTABLE_KEYS = ("encounteredPets", "encounteredPets2", "thresholds", "appSettings")
 MULTI_APP_TAG = "roco-multi-account"
+# 账号数量上限（与网页端 webAccounts 的 MAX_ACCOUNTS、服务端 MAX_USER_DATA_ACCOUNTS 保持一致）
+# 只限制「新建」；历史遗留的多余账号不主动删除，但云端同步会上传失败并提示用户先删到 5 个。
+MAX_ACCOUNTS = 5
 _ILLEGAL = re.compile(r'[\\/:*?"<>|\s]+')
 _DIR = None
 
@@ -173,6 +176,9 @@ def create_account(name: str) -> dict:
     safe = _safe_name(name)
     if os.path.isfile(_profile_path(safe)):
         raise ValueError(f"账号「{safe}」已存在")
+    existing = [f for f in os.listdir(_account_dir()) if f.endswith(".json")]
+    if len(existing) >= MAX_ACCOUNTS:
+        raise ValueError(f"最多只能创建 {MAX_ACCOUNTS} 个账号，请先删除不需要的账号")
     # 自动保存当前账号（新建前）
     active = current_account()
     if active != safe:
@@ -319,3 +325,72 @@ def import_archive(data: dict) -> dict:
 
     _activate(target)
     return {"name": target, "count": len(imported), "accounts": imported}
+
+
+def export_archive() -> dict:
+    """把本机全部账号打包成与网页端同构的多账号存档（云端同步用）。
+
+    先把「当前账号」的最新主数据落盘，保证导出的是最新进度。
+    """
+    _ensure_default()
+    active = current_account()
+    if active:
+        save_account(active)
+    accounts = []
+    for fname in sorted(os.listdir(_account_dir())):
+        if not fname.endswith(".json"):
+            continue
+        path = os.path.join(_account_dir(), fname)
+        payload = _read_json(path) or {}
+        try:
+            updated = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(os.path.getmtime(path)))
+        except OSError:
+            updated = ""
+        accounts.append({"name": fname[: -len(".json")], "updatedAt": updated, "payload": payload})
+    return {
+        "app": MULTI_APP_TAG,
+        "version": 1,
+        "current": active,
+        "exportedAt": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "accounts": accounts,
+    }
+
+
+def replace_from_archive(data: dict) -> dict:
+    """用存档**整体替换**本机全部账号（云端「覆盖」语义）。
+
+    与 import_archive 的区别：import_archive 是按名字合并、保留本机多出来的账号；
+    这里会把存档里没有的账号文件删掉，保证覆盖后两边完全一致。
+    """
+    if not is_multi_archive(data):
+        raise ValueError("不是有效的多账号存档")
+    entries = [
+        e for e in (data.get("accounts") or [])
+        if isinstance(e, dict) and str(e.get("name") or "").strip()
+    ]
+    if not entries:
+        raise ValueError("存档里没有可用账号")
+    if len(entries) > MAX_ACCOUNTS:
+        raise ValueError(f"存档里账号数超过上限（{MAX_ACCOUNTS} 个）")
+
+    _ensure_default()
+    keep = set()
+    local_base = _local_top_level()
+    for entry in entries:
+        safe = _safe_name(str(entry.get("name")).strip())
+        keep.add(safe)
+        _write_json(_profile_path(safe), _merge_importable(entry.get("payload"), local_base))
+
+    # 删掉存档里没有的账号（这才是"覆盖"而不是"合并"）
+    for fname in os.listdir(_account_dir()):
+        if fname.endswith(".json") and fname[: -len(".json")] not in keep:
+            try:
+                os.remove(os.path.join(_account_dir(), fname))
+            except OSError as e:
+                logger.warning(f"覆盖同步时删除旧账号文件失败 {fname}: {e}")
+
+    target = _safe_name(str(data.get("current") or "")) if data.get("current") else ""
+    if target not in keep:
+        target = sorted(keep)[0]
+    _activate(target)
+    return {"name": target, "count": len(keep)}
