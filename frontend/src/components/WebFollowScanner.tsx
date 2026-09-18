@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Download,
   History,
   Layers,
   MapPin,
@@ -56,6 +57,7 @@ import { ElementBadges } from './ElementBadges';
 import { PetSpecialTag } from './PetSpecialTag';
 import { ScannerMapGalleryModal } from './ScannerMapGalleryModal';
 import { EncounterHistoryModal } from './EncounterHistoryModal';
+import { ModelAssetsModal } from './ModelAssetsModal';
 import { themeService } from '../services/theme';
 import { MAP_CONFIGS } from '../data/mockPets';
 import type { PetItem } from '../types';
@@ -259,6 +261,8 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  // 纯前端版：模型列表（查看缓存状态 / 提前手动下载）
+  const [isModelAssetsOpen, setIsModelAssetsOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(() => themeService.isDark());
 
   const mountedRef = useRef(true);
@@ -777,6 +781,19 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
             </button>
             <button
                 type="button"
+                id="scanner-model-assets-btn"
+                onClick={() => {
+                  sound.playClick();
+                  setIsModelAssetsOpen(true);
+                }}
+                className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center gap-1 text-xs font-black transition-all cursor-pointer border-2 border-white/40"
+                title="查看本地识别模型，并提前手动下载（跟随识别会用到版面检测模型）"
+            >
+              <Download className="w-3.5 h-3.5 text-[#FEE061]" />
+              <span>模型</span>
+            </button>
+            <button
+                type="button"
                 onClick={() => {
                   sound.playClick();
                   setIsHistoryOpen(true);
@@ -1192,6 +1209,9 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
             }}
             trialKey={TRIAL_KEY}
         />
+
+        {/* 模型列表（缓存状态 / 提前下载）—— 内联渲染，PiP 小窗里也能正常显示 */}
+        <ModelAssetsModal isOpen={isModelAssetsOpen} onClose={() => setIsModelAssetsOpen(false)} />
 
         <EncounterHistoryModal
             isOpen={isHistoryOpen}

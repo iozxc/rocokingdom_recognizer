@@ -201,6 +201,39 @@ async function idbPut(key: string, rec: CacheRecord): Promise<void> {
   });
 }
 
+async function idbDel(key: string): Promise<void> {
+  const db = await openDb();
+  if (!db) return;
+  await new Promise<void>((resolve) => {
+    try {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+      tx.onabort = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
+
+/**
+ * 从构建期清单里查这个资产的期望字节数。
+ *
+ * 用途：站点缺文件时，ESA/OSS 会把 `index.html` 以 200 返回（SPA 兜底），
+ * 光看 HTTP 状态码根本发现不了 —— 只有比对清单里的字节数才能识别出来。
+ * 拿不到清单/没登记就返回 null，此时跳过校验（保证不阻塞正常加载）。
+ */
+async function expectedBytesFor(relPath: string): Promise<number | null> {
+  try {
+    const m = await loadManifest();
+    const hit = (m?.assets || []).find((a) => a && a.path === relPath);
+    return hit && typeof hit.bytes === 'number' && hit.bytes > 0 ? hit.bytes : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function clearAssetCache(): Promise<void> {
   const db = await openDb();
   if (!db) return;
@@ -233,6 +266,13 @@ export interface FetchProgress {
 async function fetchWithProgress(url: string, onProgress?: (p: FetchProgress) => void): Promise<ArrayBuffer> {
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`资产下载失败：HTTP ${resp.status}（${url}）`);
+  // 站点把 404 兜底成 index.html 时，缺文件也会返回 200 + text/html：
+  // 这里直接拦掉，否则这坨网页会被当成模型丢给推理引擎，
+  // 报出来的是 "protobuf parsing failed" 这种完全看不出原因的错误。
+  const ctype = (resp.headers.get('content-type') || '').toLowerCase();
+  if (ctype.startsWith('text/html')) {
+    throw new Error(`识别资产不存在：${url} 返回了网页（一般是部署时漏传了文件），请重新部署站点后再试`);
+  }
   const total = Number(resp.headers.get('content-length') || 0);
   if (!resp.body) return resp.arrayBuffer();
 
@@ -268,18 +308,33 @@ export async function loadAsset(
     onProgress?: (p: FetchProgress) => void
 ): Promise<ArrayBuffer> {
   const key = `v${version}:${relPath}`;
-  const url = `${assetBaseUrl()}${relPath.replace(/^\/+/, '')}`;
+  const cleanPath = relPath.replace(/^\/+/, '');
+  const url = `${assetBaseUrl()}${cleanPath}`;
+  const expected = await expectedBytesFor(cleanPath);
 
   const cached = await idbGet(key);
   if (cached && cached.version === version && cached.buf && cached.buf.byteLength > 0) {
-    onProgress?.({ loaded: cached.bytes || cached.buf.byteLength, total: cached.bytes || cached.buf.byteLength, fromCache: true });
-    return cached.buf;
+    if (expected === null || cached.buf.byteLength === expected) {
+      onProgress?.({ loaded: cached.bytes || cached.buf.byteLength, total: cached.bytes || cached.buf.byteLength, fromCache: true });
+      return cached.buf;
+    }
+    // 缓存内容与清单不符：曾经把「服务器返回的 HTML 兜底页」或半截文件缓存下来了，
+    // 丢掉重下，这样站点补齐文件后不用手动清缓存也能自动恢复。
+    console.warn(`[assetStore] 丢弃异常的缓存资产 ${cleanPath}：缓存 ${cached.buf.byteLength} 字节 ≠ 清单 ${expected} 字节`);
+    await idbDel(key);
   }
 
   const buf = await fetchWithProgress(url, onProgress);
   // 构建时加密的资源（模型/features.bin）在此处解密；未加密资源原样返回。
   // 解密后再存入 IndexedDB，后续从缓存读取即为明文，避免重复解密开销。
   const plain = isEncrypted(buf) ? decryptData(buf) : buf;
+  if (expected !== null && plain.byteLength !== expected) {
+    // 不写缓存：否则半截/错误内容会被当成有效资产一直用下去。
+    throw new Error(
+        `识别资产不完整：${cleanPath} 应为 ${expected} 字节，实际 ${plain.byteLength} 字节。` +
+        `通常是部署时漏传了该文件，请重新部署站点后再试。`
+    );
+  }
   // 必须等写入完成再返回：调用方会把这个 ArrayBuffer transfer 给 Worker（transfer 后引用被清空），
   // 若 IndexedDB 序列化发生在 transfer 之后，缓存里就会存进一个空 buffer。
   await idbPut(key, { version, bytes: plain.byteLength, buf: plain });

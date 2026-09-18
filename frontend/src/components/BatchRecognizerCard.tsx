@@ -16,6 +16,7 @@ import {
   Layers,
   Search,
   ZoomIn,
+  Download,
   ChevronDown,
   ChevronUp,
   Cpu,
@@ -58,6 +59,7 @@ import { storage } from '../services/storage';
 import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
 import { formatPetName, isSamePetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { RecognitionSamplesHint } from './RecognitionSamplesHint';
+import { ModelAssetsModal } from './ModelAssetsModal';
 import { ElementBadges } from './ElementBadges';
 import { PetSpecialTag } from './PetSpecialTag';
 
@@ -159,6 +161,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
   // Help modal
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+  // 纯前端版：模型列表弹窗（查看缓存状态 / 提前手动下载模型）
+  const [showModelAssets, setShowModelAssets] = useState<boolean>(false);
 
   // Editing single item modal/picker
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -863,6 +867,19 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   <Sparkles className="w-3 h-3 text-[#2B78C4] dark:text-sky-300" />
                   本地 AI 离线推理
                 </span>
+                {/* 纯前端版：模型/特征库都在浏览器本地，给一个入口让用户提前手动下载 */}
+                {IS_STATIC && (
+                    <button
+                        type="button"
+                        id="batch-model-assets-btn"
+                        onClick={() => { sound.playClick(); setShowModelAssets(true); }}
+                        className="text-[11px] px-2.5 py-0.5 rounded-full bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800 font-black flex items-center gap-1 shadow-2xs cursor-pointer transition-colors"
+                        title="查看本地识别模型，并提前手动下载"
+                    >
+                      <Download className="w-3 h-3" />
+                      模型列表
+                    </button>
+                )}
                 {/* PC 端：推理后端状态（GPU / CPU）——让用户一眼看到当前在用哪个后端 */}
                 {!IS_STATIC && inferBackend && (
                     <HintTooltip
@@ -2097,6 +2114,11 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 </div>
               </div>
             </div>
+        )}
+
+        {/* 纯前端版：模型列表（查看缓存状态 / 提前手动下载） */}
+        {IS_STATIC && (
+            <ModelAssetsModal isOpen={showModelAssets} onClose={() => setShowModelAssets(false)} />
         )}
       </div>
   );
