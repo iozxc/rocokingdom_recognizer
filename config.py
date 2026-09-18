@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import sys
@@ -114,7 +115,36 @@ def is_dev_environment() -> bool:
     return not hasattr(sys, "_MEIPASS")
 
 
-APP_VERSION = _env("ROCO_APP_VERSION", "1.4.9")
+def _read_json_version(path: str) -> str:
+    """读一个 JSON 文件里的 version 字段；读不到返回空串。"""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return str(json.load(f).get("version") or "").strip()
+    except Exception:
+        return ""
+
+
+def _load_app_version(default: str = "0.0.0") -> str:
+    bases = []
+    if getattr(sys, "frozen", False):
+        bases.append(os.path.dirname(os.path.abspath(sys.executable)))
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        bases.append(meipass)
+    bases.append(os.path.dirname(os.path.abspath(__file__)))
+
+    for base in bases:
+        ver = _read_json_version(os.path.join(base, "version.json"))
+        if ver:
+            return ver
+    for base in bases:
+        ver = _read_json_version(os.path.join(base, "datasets", "data_manifest.json"))
+        if ver:
+            return ver
+    return default
+
+
+APP_VERSION = _env("ROCO_APP_VERSION", _load_app_version("0.0.0"))
 MAX_DELTA_UPDATE_SIZE = int(_env("ROCO_MAX_DELTA_UPDATE_SIZE", str(90 * 1024 * 1024)))
 CAPTURE_MODE = _env("ROCO_CAPTURE_MODE", "grab")  # grab / hwnd
 GAME_WINDOW_TITLE = _env("ROCO_GAME_WINDOW_TITLE", "洛克王国：世界")
