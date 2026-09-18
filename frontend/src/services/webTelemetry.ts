@@ -29,7 +29,7 @@ let started = false;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let closed = false;
 
-async function report(event: 'open' | 'heartbeat'): Promise<void> {
+async function report(event: 'open' | 'heartbeat' | 'close'): Promise<void> {
   if (!IS_STATIC || !AUTH_SERVER) return;
   const payload = {
     machine_code: getWebDeviceCode(),
@@ -90,11 +90,45 @@ export function startWebTelemetry(): void {
     console.warn('[webTelemetry] 缺少上报地址（同源与 VITE_ROCO_AUTH_SERVER 均为空），跳过');
     return;
   }
+  const startHeartbeat = () => {
+    if (heartbeatTimer != null) return;
+    heartbeatTimer = setInterval(() => {
+      // 后台标签页不发心跳（切回来时再补一次 open）
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      void report('heartbeat');
+    }, HEARTBEAT_MS);
+  };
+  const stopHeartbeat = () => {
+    if (heartbeatTimer != null) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+  };
+
   void report('open');
-  heartbeatTimer = setInterval(() => void report('heartbeat'), HEARTBEAT_MS);
+  startHeartbeat();
+
   // 页面真正关闭/卸载时上报 close（pagehide 在关闭/跳转时可靠触发）
   window.addEventListener('pagehide', reportClose);
   window.addEventListener('beforeunload', reportClose);
+
+  /**
+   * 切到后台/最小化/锁屏时**立即上报 close**，切回来再报 open。
+   *
+   * 之前只在页面卸载时上报 close：用户把标签页开着一整天不关，心跳就一直发，
+   * 统计里就成了"整天在线"。实际上人根本没在用，所以按可见性来算更准。
+   */
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        stopHeartbeat();
+        if (!closed) void report('close');
+      } else if (!closed) {
+        void report('open');
+        startHeartbeat();
+      }
+    });
+  }
 }
 
 /** 停止心跳（便于测试/卸载时清理）。 */

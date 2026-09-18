@@ -571,6 +571,16 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
     sound.playClick();
     screenCapture.stop();
     releaseFollowAssets();
+    // 托管在首页开的 PiP 小窗里时，这个组件的 JS 跑在**首页**的上下文里 ——
+    // 直接 window.close() 关掉的是首页！要关的是那个小窗。
+    if (hostedInPip && hostWindow) {
+      try {
+        hostWindow.close();
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
     try {
       window.close();
     } catch {
@@ -811,7 +821,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                 id="scanner-standalone-close-btn"
                 onClick={handleCloseWindow}
                 className="w-7 h-7 rounded-xl bg-white/20 hover:bg-rose-500 text-white border-2 border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer active:opacity-80"
-                title="关闭窗口"
+                title={hostedInPip ? '关闭小窗' : '关闭窗口'}
             >
               <X className="w-4 h-4 stroke-[2.5]" />
             </button>
