@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, Search, Check, Sparkles, AlertCircle, Filter, CheckCircle2 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { MapConfig, PetItem, PredictResult, EncounterRecord } from '../types';
 import { sound } from '../services/sound';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
@@ -63,11 +62,8 @@ export const ManualSelectModal: React.FC<ManualSelectModalProps> = ({
     if (!selectedPet) return;
 
     sound.playEncounter();
-    confetti({
-      particleCount: 60,
-      spread: 60,
-      origin: { y: 0.6 },
-    });
+    // 特效由 App 的 handleEncounterSuccess → triggerScanSyncEffect 按「系统设置」的
+    // 特效等级统一播放；这里以前又写死撒了一次 60 粒彩花，既重复又不受设置控制。
 
     onConfirmSelection(
         currentMap.id,

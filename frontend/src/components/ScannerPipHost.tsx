@@ -22,6 +22,13 @@ export const ScannerPipHost: React.FC = () => {
     const onOpen = (e: Event) => {
       const win = (e as CustomEvent).detail as Window | undefined;
       if (!win || !win.document) return;
+      // PiP 文档是浏览器新建的空文档，没有 title 时标题栏会退化成网址（localhost:4173）。
+      // 设一个标题，标题栏就显示「跟随识别 · 识别窗口」。
+      try {
+        win.document.title = '跟随识别 · 识别窗口';
+      } catch {
+        /* 某些版本 PiP 文档不允许改标题，忽略即可 */
+      }
       // 复制样式 + 主题类，否则小窗里的面板没有任何样式
       copyStylesTo(win);
       win.document.documentElement.className = document.documentElement.className;

@@ -34,12 +34,14 @@ interface DownloadAppModalProps {
  *
  * 网页版现在也能识别、也能云端同步了，所以这张卡片不再强调"能不能识别"，
  * 而是讲桌面端在**精度、体验、数据、反馈**四件事上仍然更好的地方。
+ *
+ * 每条的说明文字都保持一行（过长由 truncate 省略，鼠标悬停可看完整说明）。
  */
 const APP_FEATURES = [
-  { icon: Cpu, title: '更精准的识别', desc: '本机原生推理支持 GPU 加速，小图标、低分辨率画面也能稳定认出' },
-  { icon: Monitor, title: '更好的体验', desc: '不用等网页加载、不受服务器波动影响，还有无边框置顶悬浮窗' },
-  { icon: Database, title: '数据同步', desc: '与网页版共用同一份图鉴数据，多账号、多设备一起同步' },
-  { icon: MessageCircle, title: '及时的反馈', desc: '软件内可直接反馈问题，更新与修复比网页版更快到达' },
+  { icon: Cpu, title: '更精准的识别', desc: '本机原生推理，支持 GPU 加速' },
+  { icon: Monitor, title: '更好的体验', desc: '免加载，不受服务器波动影响' },
+  { icon: Database, title: '数据同步', desc: '多账号、多设备共用一份数据' },
+  { icon: MessageCircle, title: '及时的反馈', desc: '软件内直接反馈，更新更快' },
 ];
 
 export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onClose }) => {
@@ -138,7 +140,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                       </div>
                       <div className="min-w-0">
                         <div className="text-xs font-black text-slate-800 dark:text-slate-100">{f.title}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">{f.desc}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug truncate" title={f.desc}>{f.desc}</div>
                       </div>
                     </div>
                 ))}

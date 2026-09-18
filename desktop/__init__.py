@@ -51,6 +51,13 @@ def run(app, hint=None) -> None:
     # PyInstaller 打包后 sys.frozen 为 True：自动关闭 webview 调试模式，无需手动改
     debug_mode = not bool(getattr(sys, "frozen", False))
     logger.info(f"webview 调试模式: {debug_mode}")
+
+    # 注意：不要给 webview.start 传 storage_path，也不要关掉 private_mode ——
+    # 之前为了让 localStorage 落盘这么改过，结果会在程序目录多出一个 webview_data 文件夹。
+    # pywebview 的 private_mode 默认为 True：WebView2 用临时配置（退出即删），
+    # **localStorage 不落盘**，这正是我们要的。桌面端需要跨重启保留的状态一律写进
+    # 用户自己的 roco_user_data.json（例如《云端同步协议》同意标记，见
+    # core/api/cloud.py 的 /api/cloud/agreement），不依赖 WebView 的浏览器存储。
     webview.start(debug=debug_mode)
 
     # 所有窗口已关闭：先关闭存活的 Tk 提示窗口，再给最后一批 HTTP 请求一点落盘时间，

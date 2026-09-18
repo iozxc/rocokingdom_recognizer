@@ -124,6 +124,16 @@ def _apply_renames(pets):
             out[new_key] = rec
     return out, changed
 
+# 客户端级顶层字段：属于「本机客户端状态」而不是账号数据，切换账号 / 云端覆盖本地
+# 时都不该跟着换掉。
+# 桌面端 WebView 是 private 模式（localStorage 关掉 App 就没了），所以这类状态必须
+# 落在用户自己的 roco_user_data.json 顶层，才能真正跨重启保留。
+CLOUD_SYNC_AGREED_KEY = "cloudSyncAgreed"
+# 桌面端云端同步的「最近上传 / 上次同步 / 云端最后更新」时间（cloud_sync 读写）
+CLOUD_SYNC_STATE_KEY = "cloudSyncState"
+CLIENT_LEVEL_KEYS = (CLOUD_SYNC_AGREED_KEY, CLOUD_SYNC_STATE_KEY)
+
+
 DEFAULT_STRUCTURE = {
     "version": 0,
     "encounteredPets": {},
@@ -246,7 +256,12 @@ class UserStorage:
     def set_payload(self, payload: dict) -> dict:
         """用一份完整账号数据整体替换当前数据并落盘（多账号切换用）。"""
         previous_gpu = (self.load().get("appSettings") or {}).get("gpuAcceleration")
+        previous = dict(self.load() or {})
         data = dict(payload or {})
+        # 把客户端级顶层字段从当前数据带过去（账号文件里的那份可能是旧的）
+        for key in CLIENT_LEVEL_KEYS:
+            if key in previous and key not in data:
+                data[key] = previous[key]
         data.setdefault("encounteredPets", {})
         data.setdefault("encounteredPets2", {})
         data.setdefault("thresholds", {})

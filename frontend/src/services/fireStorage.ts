@@ -28,6 +28,8 @@ export class FireStorageService {
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private hasPendingLocalChanges = false;
+  /** 最近一次落盘请求：供同步/切账号前等待，避免旧数据回写覆盖新数据。 */
+  private pendingSave: Promise<void> | null = null;
 
   constructor() {
     this.loadFromLocalStorage();
@@ -156,7 +158,28 @@ export class FireStorageService {
     this.hasPendingLocalChanges = true;
     this.saveToLocalStorage();
     this.notifyListeners();
-    void this.saveToRemote();
+    this.pendingSave = this.saveToRemote();
+    void this.pendingSave;
+  }
+
+  /**
+   * 等待未落盘的改动真正写入后端。
+   *
+   * 「云端覆盖本地」用它先把手头的改动落盘，否则云端刚拉下来的数据会被
+   * 这份内存里的旧副本回写覆盖（与 StorageService.flushPendingSave 同理）。
+   */
+  public async flushPendingSave(): Promise<void> {
+    const pending = this.pendingSave;
+    if (pending) {
+      try {
+        await pending;
+      } catch {
+        /* saveToRemote 自身已兜错，这里只是保险 */
+      } finally {
+        if (this.pendingSave === pending) this.pendingSave = null;
+      }
+    }
+    if (this.hasPendingLocalChanges) await this.saveToRemote();
   }
 
   private async saveToRemote() {

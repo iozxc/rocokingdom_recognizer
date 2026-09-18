@@ -328,11 +328,13 @@ class CloudSyncService {
   /**
    * 只刷新云端元信息（版本 / 大小 / 最后更新时间），不拉取数据。
    *
-   * 「数据管理」打开时调用：这样用户在对比「本机最近上传 vs 云端最后更新」时，
-   * 看到的云端时间是**当前**的（可能是另一台设备刚传的），而不是上次同步时的旧值。
+   * 「数据管理」打开时、以及用户点「刷新」时调用：这样用户在对比
+   * 「本机最近上传 vs 云端最后更新」时，看到的是云端**当前**的时间，
+   * 而不是上次同步时的旧值。
    */
-  async refreshMeta(): Promise<void> {
-    if (!this.isAgreed() || !this.isBound()) return;
+  async refreshMeta(): Promise<{ ok: boolean; msg?: string }> {
+    if (!this.isAgreed()) return { ok: false, msg: '请先阅读并同意《云端同步协议》' };
+    if (!this.isBound()) return { ok: false, msg: '尚未绑定云端同步' };
     try {
       const res = await this.post('/api/user_data/meta', this.authBody());
       const cloudTs = Number(res.updated_at_ts) || 0;
@@ -349,8 +351,10 @@ class CloudSyncService {
         // 云端比"上次同步时看到的那份"更新 → 中间有别的设备写过
         cloudAhead: !!(res.exists && cloudTs > seen && seen > 0),
       });
-    } catch {
-      /* 元信息拉不到不影响使用 */
+      return { ok: true };
+    } catch (e) {
+      // 元信息拉不到不影响使用，但手动刷新时要把原因告诉用户
+      return { ok: false, msg: (e as Error)?.message || '云端不可达' };
     }
   }
 

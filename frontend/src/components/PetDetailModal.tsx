@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { X, Check, RotateCcw, Sparkles, Crown, Layers, Calendar, FileText, Info } from 'lucide-react';
-import confetti from 'canvas-confetti';
-import { MapConfig, PetItem, EncounterRecord } from '../types';
+import { MapConfig, PetItem, EncounterRecord, EffectLevel } from '../types';
 import { sound } from '../services/sound';
+import { storage } from '../services/storage';
+import { fireEncounterConfetti, fireUnencounterEffect } from '../services/effect';
 import { IS_STATIC } from '../services/staticMode';
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
@@ -72,11 +73,15 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
 
   const handleToggle = () => {
     sound.playClick();
+    // 特效等级跟随「系统设置 → 视觉与特效」：0=关闭 / 1=轻微 / 2=标准 / 3=丰富，
+    // 与首页、跟随识别面板用同一套动效（以前这里写死了固定的 60 粒彩花，设置不生效）。
+    const level = storage.getSetting<EffectLevel>('effectLevel', 0);
     if (!isEncountered) {
       sound.playEncounter();
-      confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
+      fireEncounterConfetti(level);
     } else {
       sound.playToggleOff();
+      fireUnencounterEffect(level);
     }
     onToggleEncounter(currentMap.id, pet.name);
   };

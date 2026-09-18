@@ -4,6 +4,7 @@ import axios from 'axios';
 import { X, Upload, Download, Database, CheckCircle2, AlertTriangle, FileJson, Plus, UserRound, Trash2, Pencil, Search, Cloud, RefreshCw, Unlink, KeyRound, ShieldAlert, MonitorSmartphone } from 'lucide-react';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
+import { fireStorage } from '../services/fireStorage';
 import { api } from '../services/api';
 import { IS_STATIC } from '../services/staticMode';
 import { webAccounts, DEFAULT_ACCOUNT } from '../services/webAccounts';
@@ -53,6 +54,8 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   const [cloudMsg, setCloudMsg] = useState('');
   const [cloudMsgType, setCloudMsgType] = useState<'ok' | 'err'>('ok');
   const [cloudBusy, setCloudBusy] = useState(false);
+  // 桌面端：正在手动刷新「云端最后更新」（只读元信息，不下载数据）
+  const [cloudRefreshing, setCloudRefreshing] = useState(false);
   // 桌面端：本机生成的配对码
   const [pairCode, setPairCode] = useState('');
   // 覆盖类操作的二次确认
@@ -68,29 +71,61 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     cloudAhead?: boolean; syncing?: boolean;
   }>({});
   // 桌面端的「已同意协议」标记。
-  // 与网页端一样独立存 key：appSettings 会被账号切换/云端覆盖整份替换掉，
-  // 放那里会出现「同意过又失效」的问题。
-  const [agreedLocal, setAgreedLocal] = useState<boolean>(() => {
+  //
+  // 存在**用户自己的 roco_user_data.json 顶层字段**（cloudSyncAgreed），不用
+  // localStorage：桌面端 WebView 是 private 模式，localStorage 关掉 App 就没了，
+  // 依赖它就会出现「每次打开都要重新同意一次」。
+  // null = 还没从本机接口读回来（此时不显示"请先同意"，避免闪一下）。
+  const [agreedLocal, setAgreedLocal] = useState<boolean | null>(null);
+
+  /** 从本机接口读一次协议同意状态（打开「数据管理」时调用）。 */
+  const loadAgreedLocal = async () => {
     try {
-      return localStorage.getItem('roco_cloud_sync_agreed_v1') === '1';
+      const res = await axios.get(`${api.getApiBase()}/api/cloud/agreement`, { timeout: 5000 });
+      const agreed = !!(res.data?.agreed ?? res.data?.data?.agreed);
+      setAgreedLocal(agreed);
     } catch {
+      // 本机服务不可用时保守处理：按「未同意」展示，用户仍可点同意重试
+      setAgreedLocal(false);
+    }
+  };
+
+  /** 把协议同意状态写进 roco_user_data.json（本机接口）。返回是否写入成功。 */
+  const writeAgreedLocal = async (v: boolean): Promise<boolean> => {
+    try {
+      await axios.post(`${api.getApiBase()}/api/cloud/agreement`, { agreed: v }, { timeout: 5000 });
+      setAgreedLocal(v);
+      return true;
+    } catch (e) {
+      console.warn('保存《云端同步协议》同意状态失败', e);
+      setCloudMsg('保存「已同意协议」状态失败，请确认本机服务正常后重试');
+      setCloudMsgType('err');
       return false;
     }
-  });
-
-  const writeAgreedLocal = (v: boolean) => {
-    try {
-      if (v) localStorage.setItem('roco_cloud_sync_agreed_v1', '1');
-      else localStorage.removeItem('roco_cloud_sync_agreed_v1');
-    } catch {
-      /* ignore */
-    }
-    setAgreedLocal(v);
   };
   const [renameValue, setRenameValue] = useState<string>('');
   const popoverRef = useRef<HTMLDivElement>(null);
   const accountItemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const prevAccountRects = useRef<Map<string, DOMRect>>(new Map());
+
+  /**
+   * 桌面端：本机后端的数据文件变了（云端覆盖本地 / 切账号 / 删账号 / 导入存档）之后，
+   * 必须让前端的两个 storage 服务重新拉一次。
+   *
+   * 两个服务都在内存里缓存了一份副本，不重新拉的话：
+   *   1) 界面还显示旧数据，要退出 App 重进才更新；
+   *   2) 更糟的是，下一次落盘会拿这份旧副本把刚写进来的数据覆盖回去。
+   * 草系走 storage（encounteredPets），火系走 fireStorage（encounteredPets2），两个都要刷。
+   */
+  const refreshLocalDataFromBackend = async () => {
+    if (IS_STATIC) return;
+    await storage.refreshFromServer();
+    try {
+      await fireStorage.fetchRemote();
+    } catch {
+      /* 火系数据拉取失败不影响草系刷新结果 */
+    }
+  };
 
   const refreshAccounts = async () => {
     if (!IS_STATIC) {
@@ -211,11 +246,8 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
       // 顺手刷新云端元信息，让「云端最后更新」显示的是当前值（便于和本机上传时间对比）
       void cloudSync.refreshMeta();
     } else {
-      try {
-        setAgreedLocal(localStorage.getItem('roco_cloud_sync_agreed_v1') === '1');
-      } catch {
-        /* ignore */
-      }
+      // 桌面端：协议状态存在用户自己的 roco_user_data.json 里，从本机接口读
+      void loadAgreedLocal();
     }
     if (!IS_STATIC) {
       void loadCloudStatus();
@@ -224,6 +256,12 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   }, [isOpen, bindingsLoaded]);
 
   if (!isOpen) return null;
+
+  // 云端同步协议是否已同意：网页端读 localStorage（cloudSync.agreed），
+  // 桌面端读 roco_user_data.json 顶层（上面的 agreedLocal）。
+  const cloudAgreed = IS_STATIC ? cloudState.agreed : agreedLocal === true;
+  // 桌面端协议状态还在读取中：此时不展示「请先同意」，避免闪一下
+  const cloudAgreedLoading = !IS_STATIC && agreedLocal === null;
 
   const handleCloudBind = async () => {
     sound.playClick();
@@ -310,6 +348,54 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     }
   };
 
+  /** 网页端：手动刷新「云端最后更新」（只读元信息，不下载/上传数据）。 */
+  const handleRefreshCloudMetaWeb = async () => {
+    sound.playClick();
+    setCloudRefreshing(true);
+    setCloudMsg('');
+    const res = await cloudSync.refreshMeta();
+    if (res.ok) {
+      setCloudMsg('已刷新云端最后更新时间');
+      setCloudMsgType('ok');
+    } else {
+      setCloudMsg(res.msg || '刷新云端时间失败');
+      setCloudMsgType('err');
+    }
+    setCloudRefreshing(false);
+  };
+
+  /** 桌面端：手动刷新「云端最后更新」（只读元信息，不下载/上传数据）。 */
+  const handleRefreshCloudMeta = async () => {
+    sound.playClick();
+    setCloudRefreshing(true);
+    setCloudMsg('');
+    try {
+      const res = await axios.post(`${api.getApiBase()}/api/cloud/refresh`, {}, { timeout: 20000 });
+      if (res.data?.status === 'success') {
+        const at = res.data?.cloudUpdatedAt || null;
+        setCloudStatusLocal((prev) => ({
+          ...prev,
+          cloudUpdatedAt: at,
+          cloudAhead: !!res.data?.cloudAhead,
+        }));
+        if (at) {
+          setCloudMsg(`云端最后更新：${at}`);
+          setCloudMsgType('ok');
+        } else {
+          setCloudMsg('云端还没有数据，请先点「本地覆盖云端」上传');
+          setCloudMsgType('err');
+        }
+      } else {
+        setCloudMsg(res.data?.message || '刷新云端时间失败');
+        setCloudMsgType('err');
+      }
+    } catch (e: any) {
+      setCloudMsg(`刷新云端时间失败：${e?.message || '云端不可达'}`);
+      setCloudMsgType('err');
+    }
+    setCloudRefreshing(false);
+  };
+
   /** 桌面端：拉取已配对的网页端列表。 */
   const loadBindings = async () => {
     if (IS_STATIC) return;
@@ -351,11 +437,20 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     setCloudBusy(true);
     setCloudMsg('');
     try {
+      // 先把本机还没落盘的改动写完：否则拉下来的云端数据可能被这份旧副本回写覆盖
+      await storage.flushPendingSave();
+      try {
+        await fireStorage.flushPendingSave();
+      } catch {
+        /* 火系落盘失败不阻塞拉取 */
+      }
       const res = await axios.post(`${api.getApiBase()}/api/cloud/pull`, {}, { timeout: 60000 });
       if (res.data?.status === 'success') {
         setCloudMsg('已用云端数据覆盖本地');
         setCloudMsgType('ok');
-        // 桌面端同步走本机后端，账号列表与同步时间都要立刻刷新
+        // 桌面端同步走本机后端：前端两个 storage 服务的内存副本、账号列表、
+        // 同步时间都要立刻刷新，否则界面还是旧数据（以前得退出 App 再进）
+        await refreshLocalDataFromBackend();
         await refreshAccounts();
         await loadCloudStatus();
       } else {
@@ -460,7 +555,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
           setMessage(`导入成功：共 ${result.count} 个账号，当前为「${result.current}」`);
         } else {
           const result = await api.accountImportArchive(parsed);
-          await storage.refreshFromServer();
+          await refreshLocalDataFromBackend();
           await refreshAccounts();
           setMessage(`导入成功：共 ${result.count ?? parsed.accounts.length} 个账号，当前为「${result.name || parsed.current}」`);
         }
@@ -543,7 +638,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     try {
       if (!IS_STATIC) {
         await api.accountSwitch(name); // 后端自动保存原账号
-        await storage.refreshFromServer();
+        await refreshLocalDataFromBackend();
       } else {
         webAccounts.switchTo(name);
       }
@@ -582,7 +677,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     try {
       if (!IS_STATIC) {
         const result = await api.accountDelete(name);
-        await storage.refreshFromServer();
+        await refreshLocalDataFromBackend();
         await refreshAccounts();
         setSwitchNotice(`账号「${name}」已删除${result?.name ? `，已切换到「${result.name}」` : ''}`);
       } else {
@@ -684,7 +779,11 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                     全程<b>整体覆盖</b>（不合并）——「云端覆盖本地」会丢掉本地未上传的改动。
                   </p>
 
-                  {!(IS_STATIC ? cloudState.agreed : agreedLocal) ? (
+                  {cloudAgreedLoading ? (
+                      <div className="rounded-2xl border-2 border-dashed border-[#BCD7F2] dark:border-sky-900/60 bg-[#F4F9FF] dark:bg-slate-800/90 p-3 text-[11px] text-slate-500 dark:text-slate-400">
+                        正在读取《云端同步协议》状态…
+                      </div>
+                  ) : !cloudAgreed ? (
                       <div className="rounded-2xl border-2 border-dashed border-[#BCD7F2] dark:border-sky-900/60 bg-[#F4F9FF] dark:bg-slate-800/90 p-3 space-y-2">
                         <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
                           云端同步会把你的<b>全部账号</b>图鉴记录上传到作者的云端服务器，
@@ -708,7 +807,19 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed space-y-0.5">
                           <div>本机最近上传：<span className="font-mono">{fmtMs(cloudStatusLocal.lastPushAt)}</span></div>
                           <div>本机上次同步：<span className="font-mono">{fmtMs(cloudStatusLocal.lastSyncAt)}</span></div>
-                          <div>云端最后更新：<span className="font-mono">{cloudStatusLocal.cloudUpdatedAt || '—'}</span></div>
+                          <div className="flex items-center gap-1.5">
+                            <span>云端最后更新：<span className="font-mono">{cloudStatusLocal.cloudUpdatedAt || '—'}</span></span>
+                            <button
+                                type="button"
+                                onClick={handleRefreshCloudMeta}
+                                disabled={cloudBusy || cloudRefreshing}
+                                title="从服务器重新获取云端的最后更新时间（只读元信息，不会下载或上传数据）"
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg border border-[#BCD7F2] dark:border-slate-700 bg-white dark:bg-slate-800 text-[10px] font-black text-[#1E5B99] dark:text-sky-400 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 disabled:opacity-50 cursor-pointer"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${cloudRefreshing ? 'animate-spin' : ''}`} />
+                              {cloudRefreshing ? '刷新中…' : '刷新'}
+                            </button>
+                          </div>
                         </div>
                         {(() => {
                           const newer = !!cloudStatusLocal.cloudAhead;
@@ -816,9 +927,21 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed space-y-0.5">
                           <div>本机最近上传：<span className="font-mono">{fmtMs(cloudState.lastPushAt)}</span></div>
                           <div>本机上次同步：<span className="font-mono">{fmtMs(cloudState.lastSyncAt)}</span></div>
-                          <div>
-                            云端最后更新：<span className="font-mono">{cloudState.cloudUpdatedAt || '—'}</span>
-                            {cloudState.cloudBytes > 0 && ` · 云端 ${(cloudState.cloudBytes / 1024).toFixed(1)} KB`}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span>
+                              云端最后更新：<span className="font-mono">{cloudState.cloudUpdatedAt || '—'}</span>
+                              {cloudState.cloudBytes > 0 && ` · 云端 ${(cloudState.cloudBytes / 1024).toFixed(1)} KB`}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleRefreshCloudMetaWeb}
+                                disabled={cloudBusy || cloudRefreshing}
+                                title="从服务器重新获取云端的最后更新时间（只读元信息，不会下载或上传数据）"
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg border border-[#BCD7F2] dark:border-slate-700 bg-white dark:bg-slate-800 text-[10px] font-black text-[#1E5B99] dark:text-sky-400 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 disabled:opacity-50 cursor-pointer"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${cloudRefreshing ? 'animate-spin' : ''}`} />
+                              {cloudRefreshing ? '刷新中…' : '刷新'}
+                            </button>
                           </div>
                         </div>
                         {(() => {
@@ -1162,7 +1285,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                 </div>
 
                 <div className="px-5 py-3.5 bg-[#F0F6FC] dark:bg-slate-800/80 border-t border-[#D5E3F0] dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0">
-                  {(IS_STATIC ? cloudState.agreed : agreedLocal) ? (
+                  {cloudAgreed ? (
                       <button type="button"
                               onClick={() => { sound.playClick(); setShowAgreement(false); }}
                               className="px-4 py-2 rounded-xl roco-btn-primary text-xs cursor-pointer">
@@ -1176,12 +1299,19 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                         </button>
                         <button type="button"
                                 onClick={() => {
-                                  sound.playClick();
-                                  if (IS_STATIC) cloudSync.setAgreed(true);
-                                  else writeAgreedLocal(true);
-                                  setCloudMsg('已同意《云端同步协议》，可以开始使用了');
-                                  setCloudMsgType('ok');
-                                  setShowAgreement(false);
+                                  void (async () => {
+                                    sound.playClick();
+                                    if (IS_STATIC) {
+                                      cloudSync.setAgreed(true);
+                                    } else {
+                                      // 桌面端写进用户自己的 roco_user_data.json，写失败就不放行
+                                      const ok = await writeAgreedLocal(true);
+                                      if (!ok) return;
+                                    }
+                                    setCloudMsg('已同意《云端同步协议》，可以开始使用了');
+                                    setCloudMsgType('ok');
+                                    setShowAgreement(false);
+                                  })();
                                 }}
                                 className="px-4 py-2 rounded-xl roco-btn-primary text-xs cursor-pointer">
                           同意并启用
