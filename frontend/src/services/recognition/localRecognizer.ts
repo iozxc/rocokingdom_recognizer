@@ -13,7 +13,9 @@
 import axios from 'axios';
 import { fetchJson } from '../secureFetch';
 import { featureStore, FeatureEntry } from './featureStore';
-import { buildWhitelist, isEntryInWhitelist, matchFeaturesEx } from './matcher';
+import { buildWhitelist, buildWhitelistFromEntries, isEntryInWhitelist, matchFeaturesEx } from './matcher';
+import { mapIdToNum, matchSceneUniqueChar } from './trialConfig';
+import type { YoloSections } from './yolo';
 import { splitPetFilename } from './petPath';
 import { formatPetName } from '../../utils/petHelper';
 import {
@@ -98,6 +100,59 @@ export interface RecognizeOptions {
 
 export const CANCELED = 'RECOGNITION_CANCELED';
 
+/**
+ * OCR 名字完全命中就直接给结果的「特殊条目」。
+ *
+ * 复刻 desktop/bridge.py::SPECIAL_DIRECT_MATCH：试炼画面里有些槽位不是精灵
+ * （道具/商人），特征库里没有它们的参考图，桌面端的做法是 OCR 读到的名字
+ * 与表里完全一致就直接返回满分结果，不再走特征检索。保持同样行为。
+ */
+export const SPECIAL_DIRECT_MATCH = ['魔力之源', '远行商人'];
+
+/** Worker 返回的一帧跟随识别原始结果（尚未做白名单匹配）。 */
+export interface FollowFrameResult {
+  detections: { box: [number, number, number, number]; conf: number; cls: number }[];
+  sections: YoloSections;
+  /** 关卡标题条 OCR 原文（未纠错） */
+  titleText: string;
+  /** 3 个槽位的名字条 OCR 原文（未纠错），缺位为空串 */
+  slotTexts: string[];
+  /** 3 个槽位头像的裁剪图（缺位为 null），用于界面里与候选并排核对 */
+  cropBlobs: (Blob | null)[];
+  /** 3×384 的 L2 归一化特征（按槽位下标存放，未检出槽位为全 0） */
+  feats: Float32Array;
+  ms: { total: number; yolo: number; title: number; names: number; dino: number };
+  backend: string;
+}
+
+/** 跟随识别一次调用的完整结果。 */
+export interface FollowOutcome {
+  /** 关卡判定结果：钉住时就是钉住的关卡，否则来自标题 OCR */
+  stageNum: number;
+  /** 是否由标题 OCR 判定（false = 用了钉住关卡或默认值） */
+  stageFromTitle: boolean;
+  titleText: string;
+  detections: FollowFrameResult['detections'];
+  sections: YoloSections;
+  /** 3 个槽位的头像裁剪图（Blob，缺位为 null），由上层决定怎么展示 */
+  cropBlobs: (Blob | null)[];
+  results: LocalResultItem[];
+  ms: FollowFrameResult['ms'] & { match: number };
+  backend: string;
+}
+
+/** 跟随识别的可调项（默认值与桌面端 bridge.py 保持一致）。 */
+export interface FollowOptions {
+  /** 钉住的关卡；null 表示按标题 OCR 自动判定 */
+  stageNum: number | null;
+  trialKey?: string;
+  threshold?: number;
+  topK?: number;
+  /** 版面检测输入边长；不传用清单里的默认值（1280）。降到 960 可显著提速。 */
+  imgsz?: number;
+  onProgress?: ProgressCb;
+}
+
 interface PerfSample {
   backend: string;
   totalMs: number;
@@ -132,6 +187,8 @@ class LocalRecognizerClass {
   private manifest: RecognizerManifest | null = null;
   private readyPromise: Promise<void> | null = null;
   private ocrReadyPromise: Promise<void> | null = null;
+  private scannerReadyPromise: Promise<void> | null = null;
+  private scannerImgsz = 1280;
   private ocrChars: string[] = [];
   private corrections: Corrections | null = null;
   private cancelToken = 0;
@@ -166,6 +223,26 @@ class LocalRecognizerClass {
           this.backend = msg.backend || this.backend;
           p.resolve({ data: msg.data, ms: msg.ms });
         }
+      } else if (msg?.kind === 'follow-result') {
+        if (p) {
+          this.pending.delete(msg.reqId);
+          this.backend = msg.backend || this.backend;
+          p.resolve({
+            detections: msg.detections || [],
+            sections: msg.sections,
+            titleText: msg.titleText || '',
+            slotTexts: msg.slotTexts || [],
+            cropBlobs: msg.cropBlobs || [],
+            feats: msg.feats as Float32Array,
+            ms: msg.ms,
+            backend: msg.backend,
+          } satisfies FollowFrameResult);
+        }
+      } else if (msg?.kind === 'follow-error') {
+        if (p) {
+          this.pending.delete(msg.reqId);
+          p.reject(new Error(msg.message));
+        }
       } else if (msg?.kind === 'ocr-result') {
         if (p) {
           this.pending.delete(msg.reqId);
@@ -187,7 +264,9 @@ class LocalRecognizerClass {
     onProgress?.('session', 0, '正在初始化识别模型');
     await new Promise<void>((resolve, reject) => {
       const worker = this.ensureWorker();
-      const timer = window.setTimeout(() => reject(new Error('识别模型初始化超时（120s）')), 120000);
+      // 外层超时要 > worker 内「WebGPU -> 多线程 WASM -> 单线程 WASM」三级兜底的耗时上限（约 155s），
+      // 否则内层还在换后端、外层已经先超时了。
+      const timer = window.setTimeout(() => reject(new Error('识别模型初始化超时（240s）')), 240000);
       const handler = (e: MessageEvent) => {
         if (e.data.kind === 'ready') {
           window.clearTimeout(timer);
@@ -354,6 +433,193 @@ class LocalRecognizerClass {
     onProgress?.('ocr', 100, 'OCR 就绪');
   }
 
+  // ------------------------------------------------------------------ //
+  // 跟随识别（纯前端版）：整帧 -> YOLO 切槽位 -> OCR + DINO -> 白名单匹配
+  // ------------------------------------------------------------------ //
+
+  /** 跟随识别的版面检测模型（YOLOv8）按需加载：不点跟随识别就不会下载这 12MB。 */
+  async ensureScannerReady(onProgress?: ProgressCb): Promise<void> {
+    if (this.scannerReadyPromise) return this.scannerReadyPromise;
+    this.scannerReadyPromise = this._initScanner(onProgress);
+    try {
+      await this.scannerReadyPromise;
+    } catch (e) {
+      this.scannerReadyPromise = null; // 失败允许下次重试
+      throw e;
+    }
+  }
+
+  private async _initScanner(onProgress?: ProgressCb): Promise<void> {
+    const version = this.manifest?.version ?? 0;
+    const scanner = this.manifest?.scanner || {};
+    const file = scanner.file;
+    if (!file) {
+      throw new Error('当前资产包不含跟随识别模型（请用 tools/export_web_recognizer.py 重新导出，不要加 --skip-scanner）');
+    }
+    this.scannerImgsz = typeof scanner.imgsz === 'number' && scanner.imgsz > 0 ? scanner.imgsz : 1280;
+
+    onProgress?.('model', 0, '正在加载版面检测模型');
+    const buf = await loadAsset(file, version, (p) => {
+      const pct = p.total ? Math.min(99, Math.round((p.loaded / p.total) * 100)) : 0;
+      onProgress?.('model', pct, p.fromCache
+          ? `正在读取本地缓存的版面检测模型（${mb(p.total)}）`
+          : `正在下载版面检测模型 ${mb(p.loaded)}/${mb(p.total)}`);
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      const worker = this.ensureWorker();
+      const timer = window.setTimeout(() => reject(new Error('版面检测模型初始化超时（120s）')), 120000);
+      const handler = (e: MessageEvent) => {
+        if (e.data?.kind === 'scanner-ready') {
+          window.clearTimeout(timer);
+          worker.removeEventListener('message', handler);
+          resolve();
+        } else if (e.data?.kind === 'scanner-init-error') {
+          window.clearTimeout(timer);
+          worker.removeEventListener('message', handler);
+          reject(new Error(e.data.message));
+        }
+      };
+      worker.addEventListener('message', handler);
+      worker.postMessage({ kind: 'scanner-init', scannerBuffer: buf, imgsz: this.scannerImgsz }, [buf]);
+    });
+    onProgress?.('model', 100, '版面检测就绪');
+  }
+
+  /** 把一帧整图交给 Worker 跑 YOLO + OCR + DINO（bitmap 所有权转移给 Worker）。 */
+  private recognizeFollowFrame(bitmap: ImageBitmap, imgsz?: number): Promise<FollowFrameResult> {
+    return new Promise((resolve, reject) => {
+      const reqId = ++this.reqSeq;
+      this.pending.set(reqId, { resolve: resolve as (v: unknown) => void, reject });
+      this.ensureWorker().postMessage(
+          { kind: 'follow-recognize', reqId, bitmap, imgsz: imgsz || this.scannerImgsz },
+          [bitmap],
+      );
+    });
+  }
+
+  /**
+   * 跟随识别一次完整流程（等价 desktop/bridge.py::capture_and_recognize 的后半段）。
+   *
+   * @param bitmap 游戏整帧（由 services/recognition/capture.ts 抓取）
+   */
+  async recognizeFollow(bitmap: ImageBitmap, options: FollowOptions): Promise<FollowOutcome> {
+    const token = ++this.cancelToken;
+    const trialKey = options.trialKey || 'grass';
+    const threshold = options.threshold ?? 0.25;
+    const topK = options.topK ?? 36;
+    const onProgress = options.onProgress;
+    const t0 = performance.now();
+
+    await this.ensureReady(onProgress);
+    if (this.isCanceled(token)) throw new Error(CANCELED);
+    await this.ensureOcrReady(onProgress);
+    if (this.isCanceled(token)) throw new Error(CANCELED);
+    await this.ensureScannerReady(onProgress);
+    if (this.isCanceled(token)) throw new Error(CANCELED);
+
+    onProgress?.('infer', 0, '正在切分游戏画面');
+    const frame = await this.recognizeFollowFrame(bitmap, options.imgsz);
+    if (this.isCanceled(token)) throw new Error(CANCELED);
+
+    // 关卡判定：钉住的关卡优先；否则用标题 OCR 命中独有字
+    const titleText = correctOcrText(frame.titleText || '', this.corrections);
+    let stageNum: number;
+    let stageFromTitle = false;
+    if (options.stageNum != null) {
+      stageNum = options.stageNum;
+    } else {
+      const mapId = matchSceneUniqueChar(titleText, trialKey);
+      stageNum = mapIdToNum(mapId, 1);
+      stageFromTitle = mapId != null;
+    }
+
+    // 白名单：与桌面端 filter_candidates_by_trial(map_name) 等价（来源同为 map_pets1.json）
+    const entries = featureStore.meta?.entries || [];
+    let wl = buildWhitelistFromEntries(entries, stageNum);
+    if (wl.id2seqs.size === 0 && wl.names.size === 0) {
+      // maps 字段缺失或该关卡白名单为空时退化为「全库」，避免一条候选都出不来
+      console.warn(`[localRecognizer] map${stageNum} 白名单为空，跟随识别退化为全图鉴匹配`);
+      wl = buildWhitelistFromEntries(entries, null);
+    }
+
+    const tMatch = performance.now();
+    const dim = 384;
+    const results: LocalResultItem[] = [];
+    for (let i = 0; i < 3; i++) {
+      if (this.isCanceled(token)) throw new Error(CANCELED);
+      const ocrName = frame.slotTexts[i] ? correctOcrText(frame.slotTexts[i], this.corrections) : '';
+
+      // 特殊条目（道具/商人）：OCR 完全命中直接给结果，与桌面端一致
+      if (ocrName && SPECIAL_DIRECT_MATCH.includes(ocrName)) {
+        const filename = `${ocrName}.png`;
+        results.push({
+          index: i,
+          status: 'matched',
+          filename,
+          score: 1,
+          view_url: '',
+          reason: '特殊条目（OCR 直接命中）',
+          crop_image: undefined,
+          candidates: [{ filename, score: 1, view_url: '' }],
+        });
+        continue;
+      }
+
+      const hasFeature = !!frame.sections.items[i];
+      const query = frame.sections.items[i]
+          ? frame.feats?.subarray(i * dim, (i + 1) * dim)
+          : undefined;
+      results.push(await this.buildSlotResult({
+        index: i,
+        query,
+        whitelist: wl,
+        threshold,
+        topK,
+        stageNum,
+        ocrText: ocrName,
+        hasFeature,
+      }));
+    }
+    const matchMs = performance.now() - tMatch;
+
+    const out: FollowOutcome = {
+      stageNum,
+      stageFromTitle,
+      titleText,
+      detections: frame.detections,
+      sections: frame.sections,
+      cropBlobs: frame.cropBlobs,
+      results,
+      ms: { ...frame.ms, match: matchMs },
+      backend: frame.backend || this.backend,
+    };
+
+    const totalMs = performance.now() - t0;
+    this.perf.push({ backend: out.backend, totalMs, featureMs: frame.ms.dino, ocrMs: frame.ms.title + frame.ms.names, at: Date.now() });
+    if (this.perf.length > 50) this.perf.shift();
+    const matched = results.filter((r) => r.status === 'matched').length;
+    console.info(`[localRecognizer] 跟随识别完成 ${Math.round(totalMs)}ms `
+        + `（YOLO ${Math.round(frame.ms.yolo)}ms / 标题OCR ${Math.round(frame.ms.title)}ms / `
+        + `名字OCR ${Math.round(frame.ms.names)}ms / DINO ${Math.round(frame.ms.dino)}ms）`
+        + `backend=${out.backend} map=${stageNum}${stageFromTitle ? '(标题判定)' : ''} `
+        + `槽位=${frame.sections.counts.item}/${frame.sections.counts.name} 命中=${matched}/3`
+        + (titleText ? ` 标题="${titleText}"` : ''));
+
+    return out;
+  }
+
+  /**
+   * 把 Worker 回传的裁剪图（Blob）转成可直接塞进 <img> 的 object URL 数组。
+   * 调用方负责在合适时机 revoke。
+   */
+  static blobsToObjectUrls(blobs: (Blob | null)[]): (string | null)[] {
+    if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      return blobs.map(() => null);
+    }
+    return blobs.map((b) => (b ? URL.createObjectURL(b) : null));
+  }
+
   /** 让进行中的识别作废（用户换图/取消时调用），旧任务的结果会被丢弃。 */
   cancelPending(): void {
     this.cancelToken++;
@@ -365,6 +631,7 @@ class LocalRecognizerClass {
     this.modelTier = tier;
     this.readyPromise = null;   // 强制重新按新档位加载模型
     this.ocrReadyPromise = null; // OCR 会话挂在同一个 worker 上，重建时一起重置
+    this.scannerReadyPromise = null;
     this.worker?.terminate();
     this.worker = null;
     this.pending.clear();
@@ -403,6 +670,11 @@ class LocalRecognizerClass {
 
   getManifest(): RecognizerManifest | null {
     return this.manifest;
+  }
+
+  /** 版面检测默认输入边长（清单里的值，加载后可用）。 */
+  getScannerImgsz(): number {
+    return this.scannerImgsz;
   }
 
   /** 耗时统计（P50/P95），M2 验收用。 */
@@ -595,7 +867,9 @@ class LocalRecognizerClass {
   /** 单个图位：特征候选 + （可选）OCR 名字候选融合，产出与后端同构的一条结果。 */
   private async buildSlotResult(args: {
     index: number;
-    query: Float32Array;
+    query?: Float32Array;
+    /** false 表示该槽位没检出头像（只走 OCR 候选），跟随识别里会用到 */
+    hasFeature?: boolean;
     whitelist: ReturnType<typeof buildWhitelist>;
     threshold: number;
     topK: number;
@@ -604,7 +878,10 @@ class LocalRecognizerClass {
     cropImage?: string;
   }): Promise<LocalResultItem> {
     const { index, query, whitelist: wl, threshold, topK, stageNum, ocrText, cropImage } = args;
-    const outcome = matchFeaturesEx(query, wl, threshold, topK);
+    const useFeature = args.hasFeature !== false && !!query;
+    const outcome = useFeature
+        ? matchFeaturesEx(query as Float32Array, wl, threshold, topK)
+        : { candidates: [], outOfMap: [], bestGlobal: null, libraryCount: 0, whitelistCount: 0 };
 
     const merged = new Map<string, LocalCandidate>();
     for (const c of outcome.candidates) {
@@ -640,6 +917,17 @@ class LocalRecognizerClass {
 
     const list = Array.from(merged.values()).sort((a, b) => b.score - a.score).slice(0, topK);
     if (!list.length) {
+      if (!useFeature && !ocrText) {
+        // 既没检出头像、也没读到名字：这条不是"识别失败"，而是这个槽位本来就没东西
+        return {
+          index,
+          status: 'unmatched',
+          view_url: '',
+          reason: '该槽位未检出精灵',
+          crop_image: cropImage,
+          candidates: [],
+        };
+      }
       const hint = outcome.bestGlobal
           ? `当前地图（map${stageNum ?? '?'}）没有可信候选，最相近的是 ${formatPetName(outcome.bestGlobal.candidate.filename)}` +
             `（${(outcome.bestGlobal.candidate.score * 100).toFixed(1)}%，不在本图白名单）`

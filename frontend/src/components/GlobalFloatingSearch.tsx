@@ -26,6 +26,7 @@ import { MAP_CONFIGS } from '../data/mockPets';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { openFollowScanner } from '../services/followScanner';
+import { isWebFollowSupported } from '../services/recognition/capture';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 
@@ -270,6 +271,13 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
     setIsOpen(false);
   };
 
+  /**
+   * 跟随识别悬浮按钮是否显示。
+   * 桌面版一直显示（点开的是 pywebview 悬浮窗）；纯前端版只在浏览器支持屏幕捕获时显示
+   * （点开的是网页版跟随识别面板）—— 入口完全一样，只是各自执行各自的效果。
+   */
+  const showFollowFab = !searchOnly || isWebFollowSupported();
+
   return (
       <>
         {/* 1. Global Floating Action Buttons (FABs) on Screen (Bottom-Right) */}
@@ -279,8 +287,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 id="global-floating-fabs-compact"
                 className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 select-none animate-in fade-in zoom-in-95 duration-200"
             >
-              {/* 1. 跟随识别 Icon（仅非 searchOnly 模式） */}
-              {!searchOnly && (
+              {/* 1. 跟随识别 Icon（桌面版常显；Web 版需浏览器支持屏幕捕获） */}
+              {showFollowFab && (
                   <button
                       type="button"
                       id="global-compact-follow-fab"
@@ -389,8 +397,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                       </button>
                     </div>
 
-                    {/* 1. 跟随识别（仅非 searchOnly 模式） */}
-                    {!searchOnly && (
+                    {/* 1. 跟随识别（桌面版常显；Web 版需浏览器支持屏幕捕获） */}
+                    {showFollowFab && (
                         <button
                             id="global-floating-follow-fab"
                             type="button"

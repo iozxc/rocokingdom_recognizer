@@ -47,6 +47,7 @@ export class StorageService {
     if (IS_STATIC) {
       // 纯前端静态版：无后端，仅本地 localStorage。
       this.loadFromLocalStorage();
+      this.bindCrossWindowSync();
       return;
     }
     // 远程优先：先拉 user_data.json 作为多端权威数据，拉到即覆盖本地；失败/无数据才回退本地缓存。
@@ -127,6 +128,29 @@ export class StorageService {
       }
     };
     poll();
+  }
+
+  /**
+   * 纯前端版：跨窗口同步（跟随识别面板 <-> 主页面）。
+   *
+   * localStorage 是同源的，但**每个窗口各有一份内存副本**：本窗口改了记录，另一个窗口
+   * 的内存副本不会自己更新 —— 表现就是「面板里点亮了，主页面的图鉴还是旧的，要刷新才变」。
+   * 浏览器在「别的文档」改了 localStorage 时会在本窗口派发 storage 事件，正是用来补这个
+   * 缺口的：收到就重读并通知订阅者，首页/面板的图鉴与地图随之刷新。
+   *
+   * 只在 IS_STATIC 下启用：桌面版的数据源是本机后端，localStorage 只是缓存，
+   * 用缓存去覆盖内存存在回退风险（桌面版本来就靠 startPoll 轮询后端）。
+   */
+  private bindCrossWindowSync(): void {
+    if (!IS_STATIC || typeof window === 'undefined') return;
+    const WATCHED = [LOCAL_STORAGE_KEY, THRESHOLDS_STORAGE_KEY, SETTINGS_STORAGE_KEY];
+    window.addEventListener('storage', (e) => {
+      // e.key === null 表示另一个窗口调用了 localStorage.clear()
+      if (e.key !== null && !WATCHED.includes(e.key)) return;
+      this.loadFromLocalStorage();
+      this.notifyListeners();
+      this.notifySettingsListeners();
+    });
   }
 
   private loadFromLocalStorage() {

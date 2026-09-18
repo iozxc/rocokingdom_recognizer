@@ -49,6 +49,8 @@ export const DET_CONFIG: DetConfig = {
 
 export const REC_HEIGHT = 48;
 export const REC_MAX_WIDTH = 320;
+/** 跟随识别的标题条允许的最大 rec 输入宽度（RapidOCR 按 w/h 自适应，这里给个安全上限）。 */
+export const REC_MAX_WIDTH_WIDE = 1024;
 
 const BLACKLIST = ['额外', '掉落', '获取', '碎片'];
 
@@ -147,14 +149,21 @@ export function dbPostprocess(
   return out;
 }
 
-/** rec 输入：高 48、宽等比（上限 320），mean/std=0.5，输出 NCHW + 实际宽度。 */
+/**
+ * rec 输入：高 48、宽等比（上限 maxWidth），mean/std=0.5，输出 NCHW + 实际宽度。
+ *
+ * maxWidth 默认 320（RapidOCR 的 rec_image_shape 宽度），沿用既有链路行为；
+ * 跟随识别的「关卡标题条」比名字条宽得多（w/h 常 > 8），320 会把标题横向压缩，
+ * 所以那条链路显式放宽上限（后端 RapidOCR 实际就是按 w/h 放宽输入宽度的）。
+ */
 export function recPreprocess(
     rgba: Uint8ClampedArray,
     w: number,
-    h: number
+    h: number,
+    maxWidth: number = REC_MAX_WIDTH
 ): { data: Float32Array; width: number } {
   const t = Math.max(1, h);
-  const targetW = Math.max(4, Math.min(REC_MAX_WIDTH, Math.ceil((REC_HEIGHT * w) / t)));
+  const targetW = Math.max(4, Math.min(maxWidth, Math.ceil((REC_HEIGHT * w) / t)));
   const px = REC_HEIGHT * targetW;
   const out = new Float32Array(3 * px);
   // 逐像素按比例回采样（与 cv2.resize INTER_LINEAR 的差别只在边界像素）

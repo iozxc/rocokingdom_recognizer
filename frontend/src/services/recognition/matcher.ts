@@ -70,6 +70,34 @@ export function isEntryInWhitelist(e: FeatureEntry, wl: MapWhitelist): boolean {
   return wl.names.has(base);
 }
 
+/**
+ * 按 features.meta 的 `maps` 字段构白名单（跟随识别用）。
+ *
+ * 桌面端跟随识别是「全图鉴特征库 Top-K -> filter_candidates_by_trial(按图白名单收窄)」，
+ * 白名单来自 datasets/map_pets1.json；Web 版导出时已经把同一份 map_pets1.json 的结果
+ * 落进了每个条目的 `maps` 字段，所以这里直接据此还原同一个白名单。
+ *
+ * @param stageNum 关卡序号（1/2/3）；传 null 表示「钉住/未知」-> 不按图收窄
+ */
+export function buildWhitelistFromEntries(entries: FeatureEntry[], stageNum: number | null): MapWhitelist {
+  const id2seqs = new Map<number, Set<number | null>>();
+  const names = new Set<string>();
+  for (const e of entries) {
+    // _shot 是同一只精灵的另一张参考图，本体是否在白名单由本体那行决定
+    if (stageNum != null) {
+      const maps = e.maps || [];
+      if (!maps.includes(stageNum)) continue;
+    }
+    if (e.id != null) {
+      const seq = e.seq == null ? null : Number(e.seq);
+      if (!id2seqs.has(Number(e.id))) id2seqs.set(Number(e.id), new Set());
+      id2seqs.get(Number(e.id))!.add(seq);
+    }
+    if (e.name) names.add(e.name.replace(/_shot$/i, '').toLowerCase());
+  }
+  return { id2seqs, names };
+}
+
 interface Merged {
   score: number;
   path: string;

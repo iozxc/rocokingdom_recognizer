@@ -24,10 +24,25 @@ import {
   dbPostprocess,
   recPreprocess,
   ctcDecode,
+  cleanOcrText,
   pickBottomItems,
   pickBottomText,
+  REC_HEIGHT,
+  REC_MAX_WIDTH,
+  REC_MAX_WIDTH_WIDE,
   type OcrBlock,
 } from '../services/recognition/ocr';
+import {
+  groupSections,
+  yoloLetterbox,
+  yoloPostprocess,
+  YOLO_CONF_THRESH,
+  YOLO_DEFAULT_IMGSZ,
+  YOLO_NMS_THRESH,
+  type Box,
+  type YoloDetection,
+  type YoloSections,
+} from '../services/recognition/yolo';
 import {
   hasCjk,
   segmentIcons,
@@ -56,7 +71,9 @@ type RecognizeMsg = {
   /** OCR 底行名字项（有则参与「名字锚定」兜底，和桌面端 /init_batch 一致）。 */
   nameItems?: NameAnchorItem[];
 };
-type InMsg = InitMsg | ExtractMsg | OcrInitMsg | OcrMsg | RecognizeMsg;
+type ScannerInitMsg = { kind: 'scanner-init'; scannerBuffer: ArrayBuffer; imgsz?: number };
+type FollowMsg = { kind: 'follow-recognize'; reqId: number; bitmap: ImageBitmap; imgsz?: number };
+type InMsg = InitMsg | ExtractMsg | OcrInitMsg | OcrMsg | RecognizeMsg | ScannerInitMsg | FollowMsg;
 
 let dinoSession: ort.InferenceSession | null = null;
 let dinoInput = 'batch';
@@ -65,6 +82,8 @@ let wasmPathsGlobal = '/wasm/';
 let detSession: ort.InferenceSession | null = null;
 let recSession: ort.InferenceSession | null = null;
 let ocrChars: string[] = [];
+let scannerSession: ort.InferenceSession | null = null;
+let scannerImgsz = YOLO_DEFAULT_IMGSZ;
 
 const workerScope = self as unknown as {
   postMessage(message: unknown, transfer?: Transferable[]): void;
@@ -97,7 +116,36 @@ async function createOrtSession(buffer: ArrayBuffer, label: string): Promise<ort
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
-/** DINO 会话：WebGPU -> 多线程 WASM -> 单线程 WASM。 */
+/**
+ * 单次建会话的超时上限。
+ *
+ * 为什么必须有：onnxruntime-web 的 WebGPU / 多线程 WASM 初始化在部分环境里会**卡住不返回**
+ * （实测 headless Chromium + 跨域隔离下，多线程 WASM 拉起子 Worker 后一直等不到 ready），
+ * 没有超时的话用户会干等到外层 120s 超时、一个结果都拿不到。加超时后表现为「慢一点但能出结果」。
+ */
+const DINO_ATTEMPT_TIMEOUT_MS: Record<string, number> = {
+  webgpu: 40000,          // 首次可能有 shader 编译，给宽一点
+  'wasm-threads': 25000,  // 正常几秒就能建好，超过说明子 Worker 卡住了
+  wasm: 90000,            // 单线程兜底，慢但最稳
+};
+
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} 初始化超时（${Math.round(ms / 1000)}s）`)), ms);
+    p.then(
+        (v) => {
+          clearTimeout(timer);
+          resolve(v);
+        },
+        (e) => {
+          clearTimeout(timer);
+          reject(e);
+        },
+    );
+  });
+}
+
+/** DINO 会话：WebGPU -> 多线程 WASM -> 单线程 WASM（逐个尝试，各自带超时）。 */
 async function createDinoSession(buffer: ArrayBuffer, wantThreads: number): Promise<void> {
   ort.env.wasm.wasmPaths = wasmPathsGlobal;
   const isolated = workerScope.crossOriginIsolated === true;
@@ -114,15 +162,21 @@ async function createDinoSession(buffer: ArrayBuffer, wantThreads: number): Prom
   attempts.push({ label: 'wasm', eps: ['wasm'], threads: 1 });
 
   let lastErr: unknown = null;
+  let settled = false;
   for (const attempt of attempts) {
     try {
-      // 会话创建会消费 ArrayBuffer，失败重试必须用副本
-      dinoSession = await createOrtSession(buffer.slice(0), `dino/${attempt.label}`);
-      if (attempt.threads !== ort.env.wasm.numThreads) {
-        ort.env.wasm.numThreads = attempt.threads;
-        dinoSession = await createOrtSession(buffer.slice(0), `dino/${attempt.label}#retry`);
-      }
-      dinoInput = dinoSession.inputNames[0] || 'batch';
+      if (attempt.threads !== ort.env.wasm.numThreads) ort.env.wasm.numThreads = attempt.threads;
+      // 会话创建会消费 ArrayBuffer，每次尝试都必须用副本
+      const session = await withTimeout(
+          createOrtSession(buffer.slice(0), `dino/${attempt.label}`),
+          DINO_ATTEMPT_TIMEOUT_MS[attempt.label] || 60000,
+          `dino/${attempt.label}`,
+      );
+      // 前面卡住的尝试可能在我们已经换后端之后才返回，这里只认第一个成功的
+      if (settled) return;
+      settled = true;
+      dinoSession = session;
+      dinoInput = session.inputNames[0] || 'batch';
       backend = attempt.label;
       return;
     } catch (err) {
@@ -131,6 +185,7 @@ async function createDinoSession(buffer: ArrayBuffer, wantThreads: number): Prom
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+
 }
 
 /** DINO 预处理：与后端一致的 518×518 拉伸 + ImageNet 归一化，NCHW。 */
@@ -337,6 +392,206 @@ async function runOcr(bitmap: ImageBitmap): Promise<{
   return { text, blocks, items, ms: performance.now() - t0 };
 }
 
+/**
+ * 跟随识别（Web 版）：整帧 -> YOLO 切槽位 -> 标题/名字 rec-only OCR + 头像位 DINO 批量提特征。
+ *
+ * 与桌面端的对应关系（desktop/bridge.py::capture_and_recognize）：
+ *   1) crop_sections_from_pil_by_YOLOv8  ->  runYolo + groupSections
+ *   2) 标题 recognize_crop_only + 关卡判定 ->  本函数只回传 titleText，判定在主线程做
+ *      （关卡判定要读试炼配置，配置在 services/recognition/trialConfig.ts，Worker 不该感知）
+ *   3) 槽位名字 recognize_crop_only       ->  recOnlyCrop
+ *   4) recognizer.get_feature_batch       ->  批量 DINO（cropToNchw + 一次前向）
+ *
+ * 三件模型（scanner / det+rec / dino）都挂在同一个 Worker 上，主线程按需初始化。
+ */
+
+/** 整帧像素取一次（RGBA），YOLO 预处理直接复用。 */
+function bitmapRgba(bitmap: ImageBitmap): { rgba: Uint8ClampedArray; w: number; h: number } {
+  const canvas = bitmapToCanvas(bitmap, bitmap.width, bitmap.height);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('无法读取整帧像素');
+  const w = canvas.width;
+  const h = canvas.height;
+  return { rgba: ctx.getImageData(0, 0, w, h).data, w, h };
+}
+
+/** [x1,y1,x2,y2] -> SegmentBox（cropToNchw 用的是 x/y/w/h 形式）。 */
+function boxToSegment(box: Box): SegmentBox {
+  const x = Math.max(0, Math.floor(box[0]));
+  const y = Math.max(0, Math.floor(box[1]));
+  const w = Math.max(1, Math.ceil(box[2]) - x);
+  const h = Math.max(1, Math.ceil(box[3]) - y);
+  return { x, y, w, h, area: w * h };
+}
+
+/**
+ * rec-only 文字识别：对已经裁好的文字条直接跑 rec（跳过 det/cls），
+ * 复刻 core/vision/ocr.py::OCREngine.recognize_crop_only。
+ *
+ * 输入宽度按 RapidOCR resize_norm_img 的规则对齐：
+ *   imgW = max(320, ceil(48 * w/h))，再上限到 maxWidth —— 标题条比名字条宽得多，
+ *   必须放宽，否则会被横向压缩到 320 而掉准确率。
+ */
+async function recOnlyCrop(bitmap: ImageBitmap, box: Box, maxWidth: number): Promise<string> {
+  if (!recSession) return '';
+  const x = Math.max(0, Math.floor(box[0]));
+  const y = Math.max(0, Math.floor(box[1]));
+  const w = Math.min(bitmap.width, Math.ceil(box[2])) - x;
+  const h = Math.min(bitmap.height, Math.ceil(box[3])) - y;
+  if (w < 2 || h < 2) return '';
+
+  const ratio = Math.max(REC_MAX_WIDTH / REC_HEIGHT, w / h);
+  const width = Math.max(4, Math.min(maxWidth, Math.ceil(REC_HEIGHT * ratio)));
+
+  const canvas = new OffscreenCanvas(width, REC_HEIGHT);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return '';
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'low';
+  ctx.drawImage(bitmap, x, y, w, h, 0, 0, width, REC_HEIGHT);
+
+  const rgba = ctx.getImageData(0, 0, width, REC_HEIGHT).data;
+  const px = width * REC_HEIGHT;
+  const data = new Float32Array(3 * px);
+  for (let p = 0; p < px; p++) {
+    const s = p * 4;
+    data[p] = (rgba[s] / 255 - 0.5) / 0.5;
+    data[px + p] = (rgba[s + 1] / 255 - 0.5) / 0.5;
+    data[2 * px + p] = (rgba[s + 2] / 255 - 0.5) / 0.5;
+  }
+
+  const tensor = new ort.Tensor('float32', data, [1, 3, REC_HEIGHT, width]);
+  const outs = await recSession.run({ [recSession.inputNames[0] || 'x']: tensor });
+  const out = outs[recSession.outputNames[0]];
+  const dims = out.dims as number[];
+  const steps = dims[dims.length - 2];
+  const classes = dims[dims.length - 1];
+  const { text } = ctcDecode(out.data as Float32Array, steps, classes, ocrChars);
+  // 对齐后端：clean_ocr_text 只保留中英数（纠错表在主线程应用，与 recognize_crop_only 等价）
+  return cleanOcrText(text);
+}
+
+/** YOLO 整帧推理 -> 原图坐标检测框。 */
+async function runYolo(
+    bitmap: ImageBitmap,
+    imgsz: number,
+): Promise<{ dets: YoloDetection[]; sections: YoloSections; ms: number }> {
+  if (!scannerSession) throw new Error('版面检测模型尚未初始化');
+  const t0 = performance.now();
+  const { rgba, w, h } = bitmapRgba(bitmap);
+  const { data, lb } = yoloLetterbox(rgba, w, h, imgsz);
+  const inputName = scannerSession.inputNames[0] || 'images';
+  const outs = await scannerSession.run({
+    [inputName]: new ort.Tensor('float32', data, [1, 3, imgsz, imgsz]),
+  });
+  const out = outs[scannerSession.outputNames[0] || 'output0'];
+  const dets = yoloPostprocess(
+      out.data as Float32Array,
+      out.dims as number[],
+      w,
+      h,
+      lb,
+      YOLO_CONF_THRESH,
+      YOLO_NMS_THRESH,
+  );
+  return { dets, sections: groupSections(dets), ms: performance.now() - t0 };
+}
+
+/** 跟随识别一次完整前向（不含候选匹配与白名单，那些在主线程做）。 */
+async function followRecognize(bitmap: ImageBitmap, imgsz: number): Promise<{
+  detections: YoloDetection[];
+  sections: YoloSections;
+  titleText: string;
+  slotTexts: string[];
+  cropBlobs: (Blob | null)[];
+  feats: Float32Array;
+  dim: number;
+  ms: { total: number; yolo: number; title: number; names: number; dino: number };
+}> {
+  if (!dinoSession) throw new Error('识别模型尚未初始化');
+  const t0 = performance.now();
+  const { dets, sections, ms: yoloMs } = await runYolo(bitmap, imgsz);
+
+  // 标题条 -> rec-only（关卡判定在主线程用 scene_features 做）
+  const tTitle = performance.now();
+  const titleText = sections.title ? await recOnlyCrop(bitmap, sections.title, REC_MAX_WIDTH_WIDE) : '';
+  const titleMs = performance.now() - tTitle;
+
+  // 3 个名字条 -> rec-only
+  const tNames = performance.now();
+  const slotTexts: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    const box = sections.names[i];
+    slotTexts.push(box ? await recOnlyCrop(bitmap, box, REC_MAX_WIDTH) : '');
+  }
+  const namesMs = performance.now() - tNames;
+
+  // 头像位 -> 批量 DINO（不足 3 个也按现有槽位下标放回原位，未检出的槽位保持全 0）
+  const tDino = performance.now();
+  const dim = 384;
+  const feats = new Float32Array(3 * dim);
+  const present = sections.items
+      .map((box, index) => ({ box, index }))
+      .filter((x): x is { box: Box; index: number } => !!x.box);
+  if (present.length && dinoSession) {
+    const inputName = dinoSession.inputNames[0] || dinoInput;
+    for (let start = 0; start < present.length; start += FEATURE_CHUNK) {
+      const chunk = present.slice(start, start + FEATURE_CHUNK);
+      const data = new Float32Array(chunk.length * 3 * INPUT_SIZE * INPUT_SIZE);
+      for (let i = 0; i < chunk.length; i++) {
+        data.set(cropToNchw(bitmap, boxToSegment(chunk[i].box)), i * 3 * INPUT_SIZE * INPUT_SIZE);
+      }
+      const tensor = new ort.Tensor('float32', data, [chunk.length, 3, INPUT_SIZE, INPUT_SIZE]);
+      const outs = await dinoSession.run({ [inputName]: tensor });
+      const out = outs[dinoSession.outputNames[0] || 'output'];
+      const raw = out.data as Float32Array;
+      for (let i = 0; i < chunk.length; i++) {
+        const base = i * dim;
+        let norm = 0;
+        for (let d = 0; d < dim; d++) norm += raw[base + d] * raw[base + d];
+        norm = Math.sqrt(norm) || 1;
+        const slot = chunk[i].index;
+        for (let d = 0; d < dim; d++) feats[slot * dim + d] = raw[base + d] / norm;
+      }
+    }
+  }
+  const dinoMs = performance.now() - tDino;
+
+  // 头像裁剪图：给界面里「识别到的画面」与候选并排核对用（缺位为 null）
+  const cropBlobs: (Blob | null)[] = [];
+  for (let i = 0; i < 3; i++) {
+    const box = sections.items[i];
+    if (!box) {
+      cropBlobs.push(null);
+      continue;
+    }
+    try {
+      const seg = boxToSegment(box);
+      const c = new OffscreenCanvas(seg.w, seg.h);
+      const cc = c.getContext('2d');
+      if (!cc) {
+        cropBlobs.push(null);
+        continue;
+      }
+      cc.drawImage(bitmap, seg.x, seg.y, seg.w, seg.h, 0, 0, seg.w, seg.h);
+      cropBlobs.push(await c.convertToBlob({ type: 'image/png' }));
+    } catch {
+      cropBlobs.push(null);
+    }
+  }
+
+  return {
+    detections: dets,
+    sections,
+    titleText,
+    slotTexts,
+    cropBlobs,
+    feats,
+    dim,
+    ms: { total: performance.now() - t0, yolo: yoloMs, title: titleMs, names: namesMs, dino: dinoMs },
+  };
+}
+
 workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
   const msg = e.data;
   try {
@@ -355,6 +610,17 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
         detInput: detSession.inputNames[0],
         recInput: recSession.inputNames[0],
         classes: ocrChars.length,
+      });
+      return;
+    }
+    if (msg.kind === 'scanner-init') {
+      scannerImgsz = msg.imgsz && msg.imgsz > 0 ? msg.imgsz : YOLO_DEFAULT_IMGSZ;
+      scannerSession = await createOrtSession(msg.scannerBuffer, 'scanner');
+      workerScope.postMessage({
+        kind: 'scanner-ready',
+        inputName: scannerSession.inputNames[0] || 'images',
+        outputName: scannerSession.outputNames[0] || 'output0',
+        imgsz: scannerImgsz,
       });
       return;
     }
@@ -383,6 +649,23 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
       }, [feats.buffer]);
       return;
     }
+    if (msg.kind === 'follow-recognize') {
+      const res = await followRecognize(msg.bitmap, msg.imgsz && msg.imgsz > 0 ? msg.imgsz : scannerImgsz);
+      workerScope.postMessage({
+        kind: 'follow-result',
+        reqId: msg.reqId,
+        backend,
+        dim: res.dim,
+        detections: res.detections,
+        sections: res.sections,
+        titleText: res.titleText,
+        slotTexts: res.slotTexts,
+        cropBlobs: res.cropBlobs,
+        feats: res.feats,
+        ms: res.ms,
+      }, [res.feats.buffer]);
+      return;
+    }
     if (msg.kind === 'ocr') {
       const { text, blocks, items, ms } = await runOcr(msg.bitmap);
       workerScope.postMessage({ kind: 'ocr-result', reqId: msg.reqId, ms, text, blocks, items });
@@ -393,7 +676,10 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
     const reqId = (msg as { reqId?: number }).reqId;
     if (msg.kind === 'init') workerScope.postMessage({ kind: 'init-error', message });
     else if (msg.kind === 'ocr-init') workerScope.postMessage({ kind: 'ocr-init-error', message });
-    else workerScope.postMessage({ kind: 'feature-error', reqId, message, source: msg.kind });
+    else if (msg.kind === 'scanner-init') workerScope.postMessage({ kind: 'scanner-init-error', message });
+    else if (msg.kind === 'follow-recognize') {
+      workerScope.postMessage({ kind: 'follow-error', reqId, message });
+    } else workerScope.postMessage({ kind: 'feature-error', reqId, message, source: msg.kind });
   } finally {
     const bmp = (msg as { bitmap?: ImageBitmap }).bitmap;
     bmp?.close?.();

@@ -22,6 +22,16 @@ export interface RecognizerManifest {
   recommended?: { webgpu?: string; wasm?: string };
   eval?: Record<string, { cosine_min?: number; cosine_mean?: number; top1_agreement?: number; bytes?: number }>;
   ocr?: Record<string, { file?: string; bytes?: number; count?: number } | null>;
+  /** 跟随识别用的 YOLOv8 版面检测模型（构建期由 tools/export_web_recognizer.py 写入） */
+  scanner?: {
+    file?: string;
+    bytes?: number;
+    /** 默认推理边长（正方形输入） */
+    imgsz?: number;
+    confThresh?: number;
+    nmsThresh?: number;
+    classes?: Record<string, string>;
+  } | null;
   assets?: { path: string; bytes: number; sha256: string }[];
 }
 
