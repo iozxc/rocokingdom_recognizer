@@ -63,7 +63,6 @@ export const AuthBadge: React.FC = () => {
   if (auth.status === 'pending') {
     return null;
   }
-  // 授权服务器故障（offline 且不需要右上角角标）：隐藏
   if (auth.status === 'offline' && !auth.offline_badge) {
     return null;
   }

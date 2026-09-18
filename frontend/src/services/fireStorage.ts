@@ -162,12 +162,6 @@ export class FireStorageService {
     void this.pendingSave;
   }
 
-  /**
-   * 等待未落盘的改动真正写入后端。
-   *
-   * 「云端覆盖本地」用它先把手头的改动落盘，否则云端刚拉下来的数据会被
-   * 这份内存里的旧副本回写覆盖（与 StorageService.flushPendingSave 同理）。
-   */
   public async flushPendingSave(): Promise<void> {
     const pending = this.pendingSave;
     if (pending) {

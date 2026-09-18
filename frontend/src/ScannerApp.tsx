@@ -481,7 +481,6 @@ export const ScannerApp: React.FC = () => {
     return unsub;
   }, []);
 
-  // 社区图鉴：合并本地投票 + 服务端权重后的展示态（算法与首页一致，本设备权重 app×1 / web×0.5）
   const communityAtlas = useMemo(() => {
     const map: Record<string, {
       confirmed_by: number;
@@ -532,8 +531,6 @@ export const ScannerApp: React.FC = () => {
         });
       });
     }
-    // 无服务端数据但有本地投票：按本设备权重合成展示态（agree → 100%/1票，disagree → 0%/1票），
-    // 否则无共创数据的卡投票后无条目，按钮不激活、进度条不出现（“点了没反应”）
     Object.entries(fireVotes || {}).forEach(([mapId, votes]) => {
       Object.entries(votes).forEach(([pk, v]) => {
         const key = `${mapId}:${pk}`;

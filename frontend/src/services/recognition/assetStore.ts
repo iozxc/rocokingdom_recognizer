@@ -309,7 +309,9 @@ export async function loadAsset(
 ): Promise<ArrayBuffer> {
   const key = `v${version}:${relPath}`;
   const cleanPath = relPath.replace(/^\/+/, '');
-  const url = `${assetBaseUrl()}${cleanPath}`;
+  // 带版本号请求：模型/特征库这类文件名固定但内容会随版本变化，
+  // 加 ?v=<清单版本> 后 CDN/浏览器就可以安全地长期缓存（换版本 URL 也随之变化）。
+  const url = `${assetBaseUrl()}${cleanPath}${version ? `?v=${version}` : ''}`;
   const expected = await expectedBytesFor(cleanPath);
 
   const cached = await idbGet(key);
@@ -318,8 +320,6 @@ export async function loadAsset(
       onProgress?.({ loaded: cached.bytes || cached.buf.byteLength, total: cached.bytes || cached.buf.byteLength, fromCache: true });
       return cached.buf;
     }
-    // 缓存内容与清单不符：曾经把「服务器返回的 HTML 兜底页」或半截文件缓存下来了，
-    // 丢掉重下，这样站点补齐文件后不用手动清缓存也能自动恢复。
     console.warn(`[assetStore] 丢弃异常的缓存资产 ${cleanPath}：缓存 ${cached.buf.byteLength} 字节 ≠ 清单 ${expected} 字节`);
     await idbDel(key);
   }

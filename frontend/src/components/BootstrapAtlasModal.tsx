@@ -19,7 +19,6 @@ interface BootstrapAtlasModalProps {
   /** 点击卡片点亮/取消点亮（与首页 PetGrid 同一状态机）。 */
   onToggleEncounter: (mapId: string, filename: string) => void;
   manualVotes: Record<string, Record<string, 'agree' | 'disagree'>>;
-  /** 刷新图鉴（从服务器拉取最新社区图鉴/赞同率）。 */
   onRefresh?: () => void;
   /** 首页图鉴赞同率筛选阈值（0~1）。 */
   minAgreeRatio?: number;

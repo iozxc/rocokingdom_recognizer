@@ -1,21 +1,8 @@
-/**
- * 「开荒图鉴」采集器（试炼图鉴 bootstrap 专用）。
- *
- * 新试炼（如火系）还没有完整 map_petsN.json，客户端在【跟随识别】与【首页识别】时
- * 把识别到的 {map_id, pet_id, filename, confidence} 批量上报到远端服务器，服务端聚合后
- * 生成社区版（部分）图鉴。
- *
- * 注意：
- * - 只采集“识别结果”（pet_id/置信度/所在图），不传截图/原图（隐私 & 版权更友好）。
- * - 识别本身仍走该试炼自己的 assets（title pkl / names_dic 等），本采集器只读结果，不碰识别资产。
- * - 有“贡献开荒数据”开关（默认开，可在设置关闭）；关闭后不入队不上报。
- */
 import { IS_STATIC, PLATFORM } from './staticMode';
 import { APP_VERSION } from '../version';
 import { authStore } from './auth';
 import { getWebDeviceCode } from './webDevice';
 
-// 远端统计/采集服务器（与 webTelemetry 同源），可用 VITE_ROCO_AUTH_SERVER 覆盖
 const ATLAS_SERVER: string =
     ((import.meta.env.VITE_ROCO_AUTH_SERVER as string | undefined) ?? '')
         .replace(/\/+$/, '') ||
@@ -256,7 +243,6 @@ export async function syncTrialAtlas(
   }
 }
 
-/** 关闭/卸载场景的静默同步：用 fetch keepalive 在页面销毁后仍把最新快照发到远端。 */
 export function syncTrialAtlasKeepalive(
     trial: string,
     maps: Record<string, string[]>,

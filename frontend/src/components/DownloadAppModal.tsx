@@ -29,14 +29,6 @@ interface DownloadAppModalProps {
   onClose: () => void;
 }
 
-/**
- * 桌面端相比网页版的优势。
- *
- * 网页版现在也能识别、也能云端同步了，所以这张卡片不再强调"能不能识别"，
- * 而是讲桌面端在**精度、体验、数据、反馈**四件事上仍然更好的地方。
- *
- * 每条的说明文字都保持一行（过长由 truncate 省略，鼠标悬停可看完整说明）。
- */
 const APP_FEATURES = [
   { icon: Cpu, title: '更精准的识别', desc: '本机原生推理，支持 GPU 加速' },
   { icon: Monitor, title: '更好的体验', desc: '免加载，不受服务器波动影响' },

@@ -111,7 +111,6 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       if (newSettings.searchFilterPosition === 'position1' || newSettings.searchFilterPosition === 'position2') {
         setSearchFilterPosition(newSettings.searchFilterPosition);
       }
-      // 多端同步：远端 user_data.json 拉到最新 fire 专属设置时刷新本地展示态
       const fs = newSettings.fireSettings || {};
       setMinAgreeRatio(fs.agreeRatio ?? 0);
       setShowAtlasVote(fs.showVote ?? true);
@@ -158,7 +157,6 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       return m ? parseInt(m[1], 10) : undefined;
     };
 
-    // 社区共创图鉴：以远端服务器实时聚合的 atlas（与共创图鉴弹窗同一份）为准，自动反映最新
     const buildAtlasItems = (entries: Record<string, AtlasEntry>): PetItem[] =>
         Object.entries(entries || {}).map(([pet_key, entry]) => {
           const pid = entry.id ?? parseInt(String(pet_key).split('_')[0], 10);
@@ -195,7 +193,6 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         out[mapId] = { count: items.length, items };
       });
     }
-    // 2) 本地无 map_pets2.json：走远端服务器 atlas（共创图鉴，自动最新）
     else if (serverAtlas?.maps && Object.keys(serverAtlas.maps).length > 0) {
       Object.entries(serverAtlas.maps).forEach(([mapId, entries]) => {
         const items = buildAtlasItems((entries || {}) as Record<string, AtlasEntry>);
@@ -305,7 +302,6 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         });
   };
 
-  // 刷新：从服务器拉取最新社区图鉴/赞同率
   const handleRefreshAtlas = () => {
     setUploadStatus('uploading');
     void fetchTrialAtlas('fire').then((a) => {
@@ -367,9 +363,6 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
           const serverVote = e.my_vote ?? 'none';
           const pet = (fireMapsPets[mapId]?.items || []).find((p) => petKeyOf(p.name, p.id, p.seq) === pk);
           const encName = pet?.name || '';
-          // 本地是否已「操作过」该精灵（有点亮/投票记录，即使已取消 vote）：
-          // - 有记录：说明本设备投过/取消过，用本地姿态替换服务端贡献；
-          // - 无记录：从未操作，直接采用服务端 agree_ratio（权威），避免“服务端 100% 却显示 0%”。
           const localRecord = encName ? records[`${mapId}_${encName}`] : undefined;
           let localRatio = e.agree_ratio ?? 0;
           let myVote = e.my_vote ?? 'none';
@@ -399,8 +392,6 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         });
       });
     }
-    // 无服务端数据但有本地投票：按本设备权重合成展示态（agree → 100%/1票，disagree → 0%/1票），
-    // 否则无共创数据的卡投票后无条目，按钮不激活、进度条不出现（“点了没反应”）
     Object.entries(manualVotes || {}).forEach(([mapId, votes]) => {
       Object.entries(votes).forEach(([pk, v]) => {
         const key = `${mapId}:${pk}`;
@@ -424,7 +415,6 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   useEffect(() => {
     const flush = () =>
         syncTrialAtlasKeepalive('fire', latestSyncRef.current.maps, latestSyncRef.current.votes);
-    // 窗口/页面关闭：用 keepalive 在销毁后仍把最新快照发到远端，避免“关闭窗口没上传”。
     window.addEventListener('beforeunload', flush);
     window.addEventListener('pagehide', flush);
     return () => {
@@ -522,7 +512,6 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       });
     });
 
-    // 限并发上报（避免瞬时打到 gunicorn 单 worker / sqlite 写锁）
     const CONCURRENCY = 8;
     let cursor = 0;
     const runner = async () => {

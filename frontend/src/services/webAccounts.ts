@@ -6,10 +6,6 @@ const PROFILES_KEY = 'roco_account_profiles_v1';
 const CURRENT_KEY = 'roco_current_account_name';
 export const DEFAULT_ACCOUNT = '默认账号';
 const MULTI_APP = 'roco-multi-account';
-/**
- * 账号数量上限（与服务端 MAX_USER_DATA_ACCOUNTS、桌面端 account_store.MAX_ACCOUNTS 一致）。
- * 只限制「新建」：历史遗留的多余账号不主动删除，但云端同步会拒绝上传并提示先删到 5 个。
- */
 export const MAX_ACCOUNTS = 5;
 const AUTOSAVE_DELAY = 400;
 
@@ -337,7 +333,6 @@ class WebAccounts {
     return true;
   }
 
-  /** 返回多账号存档**对象**（云端同步用，不转成字符串）。 */
   exportArchiveObject(): Record<string, unknown> {
     this.saveCurrent();
     return {
@@ -349,15 +344,10 @@ class WebAccounts {
     };
   }
 
-  /** 账号数量（云端同步前检查上限用）。 */
   countAccounts(): number {
     return readProfiles().length;
   }
 
-  /**
-   * 用存档**整体替换**本机全部账号（云端「覆盖」语义）。
-   * 与 importAll 的区别：importAll 是按名字合并、保留本机多出来的账号；这里会完全替换。
-   */
   replaceAllFromArchive(archive: any): { count: number; current: string } {
     if (!archive || archive.app !== MULTI_APP || !Array.isArray(archive.accounts)) {
       throw new Error('不是有效的多账号存档');

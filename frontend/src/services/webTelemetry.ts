@@ -2,22 +2,7 @@ import { IS_STATIC, PLATFORM } from './staticMode';
 import { APP_VERSION } from '../version';
 import { getWebDeviceCode } from './webDevice';
 
-/**
- * Web 端“打开 / 心跳”上报（仅统计流量，不做授权、存储、反馈）。
- *
- * 说明：
- * - 网页没有 App 内置的本地服务器，因此直接 POST 到【远端鉴权/统计服务器】的
- *   /api/auth/status 接口上报 open / heartbeat 事件。
- * - 由于签名密钥不能公开（桌面端刻意不写进源码），Web 端【不带 sign】；你需要让
- *   远端服务器对 platform=web 的事件放开签名校验，并允许跨域(CORS)，且必须是 HTTPS
- *   域名（网页为 https，不能请求明文 http，否则会被浏览器拦截为混合内容）。
- * - 默认打【同源】/api/auth/status（Vercel 的 serverless 代理转发到远端统计服务器）；
- *   也可用 Vercel 环境变量 VITE_ROCO_AUTH_SERVER 指定独立的 HTTPS 统计域名。
- * - machine_code 用浏览器本地持久化 ID 代替桌面端硬盘序列号，用于统计“web 设备/会话”。
- */
 
-// 优先用 VITE_ROCO_AUTH_SERVER（如需指定其它 HTTPS 统计域名）；
-// 否则默认直连 https://api.omisheep.cn（已是 HTTPS，浏览器可直接请求，无需 Vercel 代理）。
 const AUTH_SERVER: string =
     ((import.meta.env.VITE_ROCO_AUTH_SERVER as string | undefined) ?? '')
         .replace(/\/+$/, '') ||
@@ -29,7 +14,7 @@ let started = false;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let closed = false;
 
-async function report(event: 'open' | 'heartbeat' | 'close'): Promise<void> {
+async function report(event: 'open' | 'heartbeat' | 'close'): Promise<boolean> {
   if (!IS_STATIC || !AUTH_SERVER) return;
   const payload = {
     machine_code: getWebDeviceCode(),
@@ -39,8 +24,7 @@ async function report(event: 'open' | 'heartbeat' | 'close'): Promise<void> {
     platform: PLATFORM, // 'web'
   };
   try {
-    // fire-and-forget；仅统计，失败静默忽略
-    await fetch(`${AUTH_SERVER}${EVENT_PATH}`, {
+    const resp = await fetch(`${AUTH_SERVER}${EVENT_PATH}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -48,8 +32,16 @@ async function report(event: 'open' | 'heartbeat' | 'close'): Promise<void> {
       credentials: 'omit',
       keepalive: true,
     });
+    return resp.ok;
   } catch {
-    // 网络/跨域失败忽略
+    return false;
+  }
+}
+
+async function reportOpenWithRetry(attempts = 3): Promise<void> {
+  for (let i = 0; i < attempts; i++) {
+    if (await report('open')) return;
+    await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1)));
   }
 }
 
@@ -105,7 +97,7 @@ export function startWebTelemetry(): void {
     }
   };
 
-  void report('open');
+  void reportOpenWithRetry();
   startHeartbeat();
 
   // 页面真正关闭/卸载时上报 close（pagehide 在关闭/跳转时可靠触发）
@@ -124,7 +116,7 @@ export function startWebTelemetry(): void {
         stopHeartbeat();
         if (!closed) void report('close');
       } else if (!closed) {
-        void report('open');
+        void reportOpenWithRetry();
         startHeartbeat();
       }
     });

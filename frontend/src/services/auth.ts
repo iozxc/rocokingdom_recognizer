@@ -176,8 +176,6 @@ class AuthStore {
       if (JSON.stringify(next) !== JSON.stringify(this.state)) {
         this.setState(next);
       }
-      // 授权服务器故障/断网（offline 宽限）：继续每 10s 轮询，服务器/网络恢复后自动回正常。
-      // 不视为终态，也不受 2 分钟超时限制（无需用户手动点重试）。
       if (next.status === 'offline') {
         this._startTimer(OFFLINE_POLL_MS);
         return;
@@ -306,7 +304,6 @@ export function useAuthStatus(): AuthState {
 /** React Hook：识别类功能是否被锁定（未授权则锁定）。 */
 export function useFeatureLock(): { isAuthorized: boolean; locked: boolean } {
   const auth = useAuthStatus();
-  // 服务器故障（offline）也暂时放行：识别可用，但前端不会显示已授权/未授权角标。
   const usable = auth.status === 'authorized' || auth.status === 'offline';
   return {
     isAuthorized: usable,

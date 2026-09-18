@@ -66,7 +66,6 @@ export async function openFollowScanner(trialKey?: string): Promise<void> {
     return;
   }
   const st = authStore.getState().status;
-  // 授权服务器故障（offline 宽限）也放行；其余（含用户断网时的 error）仍锁定
   if (st !== 'authorized' && st !== 'offline') {
     showFeatureLockNotice();
     return;

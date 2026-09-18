@@ -70,7 +70,6 @@ export class ApiService {
   /** 识别类功能是否被锁定（未授权则锁定）。 */
   private _authLocked(): boolean {
     const st = authStore.getState().status;
-    // 授权服务器故障（offline 宽限）同样允许识别
     return st !== 'authorized' && st !== 'offline';
   }
 

@@ -13,15 +13,19 @@ import { ElementBadges, ElementBadge } from './ElementBadges';
 import { resolvePetSkillsAndTrait } from '../data/petSkillMock';
 import { TsIcon } from './TsIcon';
 import { TermHighlightText } from './TermHighlightText';
+import physicalIcon from '../assets/icon/physical.webp';
+import magicIcon from '../assets/icon/magic.webp';
+import statusIcon from '../assets/icon/status.webp';
+import defenseIcon from '../assets/icon/defense.webp';
+import energyIcon from '../assets/icon/energy.webp';
 
-const SKILL_ICON_BASE = `${import.meta.env.BASE_URL}icon/`;
 const SKILL_CATEGORY_ICONS = {
-  physical: { key: 'physical', src: `${SKILL_ICON_BASE}physical.webp`, label: '物理' },
-  magic: { key: 'magic', src: `${SKILL_ICON_BASE}magic.webp`, label: '魔法' },
-  status: { key: 'status', src: `${SKILL_ICON_BASE}status.webp`, label: '状态' },
-  defense: { key: 'defense', src: `${SKILL_ICON_BASE}defense.webp`, label: '防御' },
+  physical: { key: 'physical', src: physicalIcon, label: '物理' },
+  magic: { key: 'magic', src: magicIcon, label: '魔法' },
+  status: { key: 'status', src: statusIcon, label: '状态' },
+  defense: { key: 'defense', src: defenseIcon, label: '防御' },
 };
-const ENERGY_ICON_SRC = `${SKILL_ICON_BASE}energy.webp`;
+const ENERGY_ICON_SRC = energyIcon;
 // 参考 roco.world：白色分类图标垫在对应色圆底上才可辨识
 const SKILL_CATEGORY_COLORS: Record<string, string> = {
   physical: '#9a4238',

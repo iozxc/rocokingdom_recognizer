@@ -61,7 +61,6 @@ createRoot(rootElement).render(
   </StrictMode>,
 );
 
-// 纯前端版：上报“打开 / 心跳”到远端统计服务器（不含授权/存储/反馈）。
 if (IS_STATIC) {
   webAccounts.init();
   startWebTelemetry();

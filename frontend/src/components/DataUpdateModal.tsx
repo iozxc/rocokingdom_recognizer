@@ -84,7 +84,6 @@ export const DataUpdateModal: React.FC<DataUpdateModalProps> = ({
   })();
   const finished = !downloading && status && (status.state === 'done' || status.state === 'error');
   const failedFiles = (status?.files || []).filter((f) => f.status === 'error');
-  // 检测阶段连不上更新服务器（后端返回“未获取到远程数据清单”/API 返回“检查失败”），不能当成“已是最新”。
   const checkFailed = !!checkResult && !checkResult.has_update &&
       ((checkResult.message || '') === '检查失败' || (checkResult.message || '').includes('未获取'));
 

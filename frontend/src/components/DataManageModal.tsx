@@ -48,24 +48,20 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   const [accountMsgType, setAccountMsgType] = useState<'ok' | 'err'>('ok');
   const [switchNotice, setSwitchNotice] = useState<string>('');
   const [popover, setPopover] = useState<{ kind: 'rename' | 'delete'; name: string; x: number; y: number } | null>(null);
-  // 云端同步（仅纯前端版）：配对码输入 + 同步状态
   const [cloudState, setCloudState] = useState<CloudSyncState>(() => cloudSync.getState());
   const [cloudCode, setCloudCode] = useState('');
   const [cloudMsg, setCloudMsg] = useState('');
   const [cloudMsgType, setCloudMsgType] = useState<'ok' | 'err'>('ok');
   const [cloudBusy, setCloudBusy] = useState(false);
-  // 桌面端：正在手动刷新「云端最后更新」（只读元信息，不下载数据）
   const [cloudRefreshing, setCloudRefreshing] = useState(false);
   // 桌面端：本机生成的配对码
   const [pairCode, setPairCode] = useState('');
   // 覆盖类操作的二次确认
   const [cloudConfirm, setCloudConfirm] = useState<null | 'pull' | 'push' | { revoke: string }>(null);
-  // 《云端同步协议》弹窗（首次必须同意；之后点标题后的链接可再次查看）
   const [showAgreement, setShowAgreement] = useState(false);
   // 桌面端：已配对的网页端列表
   const [bindings, setBindings] = useState<Array<{ webCode: string; shortId: string; createdAt: string; lastUsedAt: string | null; ip: string }>>([]);
   const [bindingsLoaded, setBindingsLoaded] = useState(false);
-  // 桌面端：本机同步状态（最近上传 / 上次同步 / 云端最后更新）
   const [cloudStatusLocal, setCloudStatusLocal] = useState<{
     lastSyncAt?: number; lastPushAt?: number; cloudUpdatedAt?: string | null;
     cloudAhead?: boolean; syncing?: boolean;
@@ -217,13 +213,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     setPopover({ kind, name, x: rect.left, y: rect.bottom });
   };
 
-  /**
-   * 订阅云端同步状态。
-   *
-   * 注意：同步（尤其「云端覆盖本地」）会把本机账号列表整体换掉 —— 如果这里不同步刷新，
-   * 界面还显示同步前的旧账号，切过去就会提示「账号不存在」。所以盯住 lastSyncAt：
-   * 一变就重新拉一次账号列表。
-   */
   const lastSyncAtRef = useRef<number | null>(null);
   useEffect(() => {
     const unsub = cloudSync.subscribe((st) => {
@@ -243,7 +232,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     if (!isOpen) return;
     if (IS_STATIC) {
       cloudSync.refreshAgreed();
-      // 顺手刷新云端元信息，让「云端最后更新」显示的是当前值（便于和本机上传时间对比）
       void cloudSync.refreshMeta();
     } else {
       // 桌面端：协议状态存在用户自己的 roco_user_data.json 里，从本机接口读
@@ -257,8 +245,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
 
   if (!isOpen) return null;
 
-  // 云端同步协议是否已同意：网页端读 localStorage（cloudSync.agreed），
-  // 桌面端读 roco_user_data.json 顶层（上面的 agreedLocal）。
   const cloudAgreed = IS_STATIC ? cloudState.agreed : agreedLocal === true;
   // 桌面端协议状态还在读取中：此时不展示「请先同意」，避免闪一下
   const cloudAgreedLoading = !IS_STATIC && agreedLocal === null;
@@ -281,7 +267,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     const res = await cloudSync.pullOverwrite();
     setCloudMsg(res.msg);
     setCloudMsgType(res.ok ? 'ok' : 'err');
-    // 云端覆盖本地会把账号列表整体换掉，必须立刻刷新，否则列表还是旧的
     await refreshAccounts();
     setCloudBusy(false);
   };
@@ -329,7 +314,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     setCloudBusy(false);
   };
 
-  /** 桌面端：拉取本机云端同步状态（时间戳）。 */
   const loadCloudStatus = async () => {
     if (IS_STATIC) return;
     try {
@@ -348,7 +332,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     }
   };
 
-  /** 网页端：手动刷新「云端最后更新」（只读元信息，不下载/上传数据）。 */
   const handleRefreshCloudMetaWeb = async () => {
     sound.playClick();
     setCloudRefreshing(true);
@@ -364,7 +347,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     setCloudRefreshing(false);
   };
 
-  /** 桌面端：手动刷新「云端最后更新」（只读元信息，不下载/上传数据）。 */
   const handleRefreshCloudMeta = async () => {
     sound.playClick();
     setCloudRefreshing(true);
@@ -431,13 +413,11 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     setCloudBusy(false);
   };
 
-  /** 桌面端：云端 → 本地（覆盖）。 */
   const handleDesktopPull = async () => {
     sound.playClick();
     setCloudBusy(true);
     setCloudMsg('');
     try {
-      // 先把本机还没落盘的改动写完：否则拉下来的云端数据可能被这份旧副本回写覆盖
       await storage.flushPendingSave();
       try {
         await fireStorage.flushPendingSave();
@@ -464,7 +444,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     setCloudBusy(false);
   };
 
-  /** 桌面端：本地 → 云端（覆盖）。 */
   const handleDesktopPush = async () => {
     sound.playClick();
     setCloudBusy(true);
@@ -744,8 +723,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                 </button>
             )}
 
-            {/* 云端同步：桌面端与网页版共用同一份云端数据（网页端靠配对码绑定）
-                只能手动同步、语义是「覆盖」而不是合并；首次使用必须先同意《云端同步协议》。 */}
+            {}
             {(
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
@@ -945,8 +923,6 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                           </div>
                         </div>
                         {(() => {
-                          // cloudAhead 由「当前云端时间戳 vs 上次同步时看到的云端时间戳」得出，
-                          // 不受本机时区/时钟偏差影响（见 cloudSync.ts 的 LAST_SEEN_CLOUD_TS_KEY）
                           const newer = cloudState.cloudAhead;
                           return newer ? (
                               <div className="text-[11px] font-bold text-[#854D0E] dark:text-amber-200 bg-[#FEF9E6] dark:bg-amber-950/60 border border-[#E5C43B] dark:border-amber-700 rounded-xl px-2.5 py-1.5 leading-snug">
@@ -1210,14 +1186,13 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
             </div>
         )}
 
-        {/* 云端同步的确认弹窗统一 portal 到 body：
-            否则它们会嵌在「数据管理」弹窗里，点击冒泡到外层遮罩把整个弹窗关掉。 */}
+        {}
         {createPortal(
             /* React 的事件是按「React 树」冒泡的：portal 虽然挂到了 body，
                但它在 React 树里仍是本弹窗的子节点，点击会一路冒泡到外层遮罩的
                onClick={onClose} 把整个「数据管理」关掉。这里显式截断传播。 */
             <div onClick={(e) => e.stopPropagation()}>
-        {/* 云端同步：覆盖类操作的二次确认 */}
+        {}
         <ConfirmDialog
             isOpen={cloudConfirm !== null && cloudConfirm !== 'auto'}
             title={
@@ -1248,7 +1223,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
             onClose={() => setCloudConfirm(null)}
         />
 
-        {/* 《云端同步协议》：首次必须同意才能使用；之后点标题后的链接可再次查看 */}
+        {}
         {showAgreement && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
                  onWheel={(e) => e.stopPropagation()}>

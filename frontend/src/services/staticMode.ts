@@ -8,10 +8,4 @@
  */
 export const IS_STATIC: boolean = import.meta.env.MODE === 'web';
 
-/**
- * 平台标识（发送到开发者服务器）。
- * 未携带该字段的设备默认视为旧设备 / app；这里显式标注，便于服务端自动识别与存储。
- * - 桌面版（mode=production） -> 'app'
- * - 纯前端 web 版（mode=web）  -> 'web'
- */
 export const PLATFORM: 'app' | 'web' = IS_STATIC ? 'web' : 'app';
