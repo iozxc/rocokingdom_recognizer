@@ -18,8 +18,6 @@ DEFAULT_ACCOUNT = "默认账号"
 # 属于本机状态，导入时保留本地值，避免被外来存档覆盖。
 IMPORTABLE_KEYS = ("encounteredPets", "encounteredPets2", "thresholds", "appSettings")
 MULTI_APP_TAG = "roco-multi-account"
-# 账号数量上限（与网页端 webAccounts 的 MAX_ACCOUNTS、服务端 MAX_USER_DATA_ACCOUNTS 保持一致）
-# 只限制「新建」；历史遗留的多余账号不主动删除，但云端同步会上传失败并提示用户先删到 5 个。
 MAX_ACCOUNTS = 5
 _ILLEGAL = re.compile(r'[\\/:*?"<>|\s]+')
 _DIR = None
@@ -328,10 +326,6 @@ def import_archive(data: dict) -> dict:
 
 
 def export_archive() -> dict:
-    """把本机全部账号打包成与网页端同构的多账号存档（云端同步用）。
-
-    先把「当前账号」的最新主数据落盘，保证导出的是最新进度。
-    """
     _ensure_default()
     active = current_account()
     if active:
@@ -357,11 +351,6 @@ def export_archive() -> dict:
 
 
 def replace_from_archive(data: dict) -> dict:
-    """用存档**整体替换**本机全部账号（云端「覆盖」语义）。
-
-    与 import_archive 的区别：import_archive 是按名字合并、保留本机多出来的账号；
-    这里会把存档里没有的账号文件删掉，保证覆盖后两边完全一致。
-    """
     if not is_multi_archive(data):
         raise ValueError("不是有效的多账号存档")
     entries = [

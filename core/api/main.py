@@ -229,7 +229,6 @@ def api_app_agreement_accept():
 
 
 def _fetch_chat_json():
-    """并发尝试两个远端地址拉取 chat.json，校验为合法 JSON 后返回 bytes。"""
     import concurrent.futures
     import requests
     t = int(time.time())

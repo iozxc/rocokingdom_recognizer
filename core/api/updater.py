@@ -278,8 +278,6 @@ def _real_download_logic():
             if response.status_code not in (200, 206):
                 response.raise_for_status()
 
-            # 仅服务器返回 206（接受 Range）才追加续传；
-            # 若服务器忽略 Range 返回 200 完整内容，则必须从头覆盖，避免完整包拼到残片后损坏。
             if response.status_code == 206 and existing_size > 0:
                 resume_offset = existing_size
             else:
@@ -289,7 +287,6 @@ def _real_download_logic():
 
             open_mode = "ab" if resume_offset > 0 else "wb"
             if open_mode == "wb" and existing_size > 0:
-                # 服务器不支持 Range：旧的半截分片会被覆盖，进度同步回到“已完成分片”
                 updater.progress = finished_part_bytes
             with open(save_path, open_mode) as f:
                 current_file_downloaded = resume_offset

@@ -55,9 +55,7 @@ def _load_secret_key():
 
 
 SECRET_KEY = _load_secret_key()
-# 服务器地址：优先本地 config（环境变量/内置默认）；远程 meta 里的地址作为“主地址连不上”的备用。
 SERVER_BASE = config.ROCO_AUTH_SERVER.rstrip("/")
-# meta 下发的备用授权服务器（config 主地址连不上时回退；为空则无回退）
 _META_BASE = (getattr(config, "META_AUTH_SERVER", "") or "").rstrip("/") or None
 REQUEST_PATH = "/api/auth/request"
 STATUS_PATH = "/api/auth/status"
@@ -120,7 +118,6 @@ _LEGACY_CODE_CACHE = {"code": None, "ts": 0.0}
 
 
 def _read_legacy_code():
-    """读取旧版规范化短码（MC-<hash>，基于磁盘序列号），仅用于服务端认领老设备。"""
     import time
     if _LEGACY_CODE_CACHE["code"] and (time.time() - _LEGACY_CODE_CACHE["ts"] < 600):
         return _LEGACY_CODE_CACHE["code"]
@@ -154,7 +151,6 @@ def _read_raw_serials():
 
 
 def _canonicalize_mc(raw):
-    """与服务端 _canonicalize 完全一致：把序列号集合规范化成 MC-<hash>。"""
     if not raw:
         return None
     import hashlib
@@ -201,11 +197,6 @@ def make_sign(machine_code):
 
 
 def _post_api(path, payload, timeout=10):
-    """向授权服务器发请求；主地址(config)连不上时回退到 meta 备用地址。
-
-    仅对“连接层面”失败（ConnectionError / Timeout）回退，避免把服务器返回的
-    业务错误(4xx/5xx)误判为“地址失效”。meta 备用地址为空或与主地址相同则不回退。
-    """
     try:
         return requests.post(SERVER_BASE + path, json=payload, timeout=timeout, verify=False)
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
@@ -220,7 +211,6 @@ def _post_api(path, payload, timeout=10):
 
 
 def request_auth(machine_code=None, timeout=10):
-    """申请/查询授权码。返回服务端 JSON（含 auth_code / is_authorized）。"""
     mc = machine_code or get_machine_code()
     ts, sign = make_sign(mc)
     payload = {"machine_code": mc, "timestamp": ts, "sign": sign}
@@ -235,7 +225,6 @@ def request_auth(machine_code=None, timeout=10):
 
 
 def status_auth(machine_code=None, auth_code=None, event=None, timeout=10):
-    """查询授权状态；可携带 event（open/close）上报事件。返回服务端 JSON。"""
     mc = machine_code or get_machine_code()
     ts, sign = make_sign(mc)
     payload = {"machine_code": mc, "timestamp": ts, "sign": sign}
@@ -276,14 +265,6 @@ def refresh_code(machine_code=None, reset_binding=True, timeout=10):
 
 
 def report_app_event(event, machine_code=None, timeout=10):
-    """App 打开/关闭事件上报（新增，用于统计流量与使用时长）。
-
-    event = 'open'  : App 打开，记 1 次流量并开启会话
-    event = 'close' : App 关闭，关闭会话并计算使用时长
-    example:
-        report_app_event("open")   # 在 App 启动校验过期后调用
-        report_app_event("close")  # 在 App 退出前调用
-    """
     try:
         return status_auth(machine_code=machine_code, event=event, timeout=timeout)
     except Exception as e:

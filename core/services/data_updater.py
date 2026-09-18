@@ -1,13 +1,3 @@
-"""图鉴/关键数据更新服务：清单 md5 对比 + 异步下载替换。
-
-数据清单（data_manifest.json）由 tools/pack_update.py 生成，
-结构: {"version": "1.3.3", "files": [{"name": "datasets/datasets.db",
-"md5": "...", "url": "...", "size": 123}]}
-
-运行时可从服务器拉取远程清单，与本地清单中声明的 md5 逐项对比：
-不一致的文件下载回来，并把本地清单同步为远程清单声明的 md5。
-这里不校验本地文件本身的 md5，从而避免换行符/编码差异导致永远提示更新。
-"""
 import json
 import os
 import threading
@@ -46,7 +36,6 @@ def load_local_manifest():
 
 
 def fetch_remote_manifest():
-    """从服务器拉取数据清单；未配置 URL 或失败返回空列表。"""
     url = config.DATA_MANIFEST_URL
     if not url:
         return []

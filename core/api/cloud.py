@@ -1,8 +1,3 @@
-"""云端同步的本机接口（供前端「数据管理 → 云端同步」使用）。
-
-真正的同步逻辑在 core/services/cloud_sync.py：它用机器签名直连授权服务器的
-/api/user_data/*，本机这些接口只是把它暴露给前端 UI。
-"""
 from flask import Blueprint, request
 
 from core.api.response import success, error
@@ -12,18 +7,10 @@ from core.infra.logger import logger
 
 bp = Blueprint("cloud", __name__)
 
-# 《云端同步协议》同意标记在 roco_user_data.json 顶层用的键名
-# （列在 user_storage.CLIENT_LEVEL_KEYS 里，账号切换 / 云端覆盖时不会被换掉）
 AGREEMENT_KEY = CLOUD_SYNC_AGREED_KEY
 
 
 def _agreement_accepted() -> bool:
-    """《云端同步协议》是否已同意。
-
-    标记存在**用户自己的 roco_user_data.json 顶层**，不是 localStorage：
-    桌面端 WebView 是 private 模式，localStorage 关掉 App 就没了，
-    依赖它会出现「每次都重新弹协议」的问题。
-    """
     try:
         return bool((user_storage.load() or {}).get(AGREEMENT_KEY))
     except Exception as e:  # noqa: BLE001
@@ -40,17 +27,11 @@ def _agreement_required():
 
 @bp.route("/api/cloud/agreement", methods=["GET"])
 def api_cloud_agreement_get():
-    """读取《云端同步协议》的同意状态（桌面端）。"""
     return success(agreed=_agreement_accepted())
 
 
 @bp.route("/api/cloud/agreement", methods=["POST"])
 def api_cloud_agreement_set():
-    """写入《云端同步协议》的同意状态（桌面端，落在 roco_user_data.json 顶层）。
-
-    body = {"agreed": true/false}
-    user_storage.save 是「合并写入」：只更新这一个顶层字段，不会碰账号数据。
-    """
     body = request.get_json(silent=True) or {}
     agreed = bool(body.get("agreed"))
     try:
@@ -75,7 +56,6 @@ def api_cloud_pair_code():
 
 @bp.route("/api/cloud/pull", methods=["POST"])
 def api_cloud_pull():
-    """用云端那份直接覆盖本地（不合并）。"""
     gate = _agreement_required()
     if gate is not None:
         return gate
@@ -87,7 +67,6 @@ def api_cloud_pull():
 
 @bp.route("/api/cloud/push", methods=["POST"])
 def api_cloud_push():
-    """用本地那份直接覆盖云端（不合并）。"""
     gate = _agreement_required()
     if gate is not None:
         return gate
@@ -121,11 +100,6 @@ def api_cloud_bindings_revoke():
 
 @bp.route("/api/cloud/refresh", methods=["POST"])
 def api_cloud_refresh():
-    """手动刷新「云端最后更新时间」（只读元信息，不动任何数据）。
-
-    面板上原本显示的是「上次同步时看到的云端时间」，点这个按钮才会去服务器取当前值，
-    用户据此判断云端有没有被别的设备改过（cloudAhead）。
-    """
     gate = _agreement_required()
     if gate is not None:
         return gate

@@ -124,12 +124,10 @@ def _apply_renames(pets):
             out[new_key] = rec
     return out, changed
 
-# 客户端级顶层字段：属于「本机客户端状态」而不是账号数据，切换账号 / 云端覆盖本地
 # 时都不该跟着换掉。
 # 桌面端 WebView 是 private 模式（localStorage 关掉 App 就没了），所以这类状态必须
 # 落在用户自己的 roco_user_data.json 顶层，才能真正跨重启保留。
 CLOUD_SYNC_AGREED_KEY = "cloudSyncAgreed"
-# 桌面端云端同步的「最近上传 / 上次同步 / 云端最后更新」时间（cloud_sync 读写）
 CLOUD_SYNC_STATE_KEY = "cloudSyncState"
 CLIENT_LEVEL_KEYS = (CLOUD_SYNC_AGREED_KEY, CLOUD_SYNC_STATE_KEY)
 

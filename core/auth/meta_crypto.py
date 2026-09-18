@@ -1,18 +1,4 @@
 # -*- coding: utf-8 -*-
-"""resources/meta.bin 的加解密（纯标准库，无额外依赖）。
-
-把“可能会变”的地址（授权服务器、飞书 webhook 等）加密成二进制文件放在
-resources/meta.bin，客户端启动时拉取并解密。仓库 raw 上不再是明文 JSON，
-避免直接暴露内网地址/机器码等运营信息。
-
-注意：本模块的对称密钥（META_PASSPHRASE）在客户端源码里，开源环境下只是“混淆”，
-并非真正保密；目的只是让 raw 文件无法被直接当作文本浏览/复制。
-
-格式：
-    RKMC1 | nonce(16) | tag(32) | ct
-    - tag = HMAC-SHA256(key, nonce || ct)  完整性校验（可发现篡改/错钥）
-    - ct  = pt XOR keystream；keystream 由 HMAC-SHA256(key, nonce || counter) 生成
-"""
 import hashlib
 import hmac
 import json
@@ -84,13 +70,6 @@ def load_meta_local(path: str, passphrase: str = META_PASSPHRASE) -> dict:
 
 
 def load_meta_remote(url: str, timeout: float = 2.5, passphrase: str = META_PASSPHRASE):
-    """从远程拉取并解密 resources/meta.bin。
-
-    返回 (data, reached)：
-      - data   解密后的 dict，失败为 {}
-      - reached True 表示确实从远端拿到过响应（即客户端有正常外网/仓库可达），
-        用于把“授权服务器故障”和“用户主动断网”区分开。
-    """
     try:
         import requests
         import urllib3

@@ -1,14 +1,3 @@
-"""设备授权后台服务。
-
-App 启动时在后台线程完成：
-1. 申请/查询授权码（POST /api/auth/request）
-2. 未授权时每秒轮询 /api/auth/status，等待用户在 QQ 群 bind 绑定
-3. 已授权 / 绑定成功后上报 open 事件，并更新状态供前端展示
-
-前端通过本地 Flask 接口读取状态：
-- GET  /api/local/auth_status  -> 当前状态快照
-- POST /api/local/auth_retry   -> 网络异常后重试
-"""
 import threading
 import time
 import datetime
@@ -24,9 +13,7 @@ POLL_SLOW = 5.0
 # 等待授权上限（秒）：超过 2 分钟仍未授权，则停止轮询（不再发请求）。
 POLL_TIMEOUT = 120
 
-# 事件上报（open/close）使用较短超时，避免阻塞退出流程。
 EVENT_TIMEOUT = 2.0
-# 首次申请授权码的请求超时，避免服务器不可达时长期停在“校验中”。
 INITIAL_TIMEOUT = 6.0
 # 网络异常/设备被删除后的重新验证间隔（秒）；设为较快，让删除后尽快回到新用户授权流程。
 RETRY_DELAY = 1.0
@@ -45,7 +32,7 @@ class AuthState:
         self.msg = ""
         self.error = ""
         self.is_authorized = False
-        self.offline_badge = False   # offline 宽限时是否在右上角显示“未授权”（用户断网→True，服务器故障→False）
+        self.offline_badge = False   
 
     def update(self, **kwargs):
         with self._lock:
@@ -78,8 +65,7 @@ _force_rebind = False
 _wait_poll_interval = POLL_INTERVAL
 # 工作线程代数：刷新授权码/重新授权会自增，让旧轮询线程识别到后自行退出。
 _worker_gen = 0
-# 心跳线程：客户端运行期间定期上报，避免崩溃/息屏后“在线卡死、时长虚增”。
-_HEARTBEAT_INTERVAL = 180  # 秒（约 3 分钟；服务端 online_idle_timeout 设为心跳的 3 倍）
+_HEARTBEAT_INTERVAL = 180  
 _heartbeat_stop = threading.Event()
 _heartbeat_thread = None
 
@@ -91,19 +77,16 @@ def get_state():
 
 def is_authorized():
     s = _state.snapshot().get("status")
-    # 授权服务器故障（offline 宽限模式）也放行，确保“暂时可用”
     return s in ("authorized", "offline")
 
 
 def _report_open(machine_code):
-    """幂等上报 open 事件（每进程只成功发一次）。"""
     global _open_reported
     with _report_lock:
         if _open_reported:
             return
     try:
         result = auth.report_app_event("open", machine_code=machine_code, timeout=EVENT_TIMEOUT)
-        # report_app_event 内部会吞掉网络异常返回 None；只有服务端确认成功才标记，
         # 避免 open 未落库却在退出时补发一次无意义的 close。
         if result and result.get("ok"):
             with _report_lock:
@@ -113,7 +96,6 @@ def _report_open(machine_code):
 
 
 def report_app_close():
-    """App 退出前上报 close 事件（仅当已成功上报 open 时）。"""
     # 先停掉心跳，避免退出瞬间的心跳把刚关闭的会话又“重开”
     stop_heartbeat()
     with _report_lock:
@@ -136,12 +118,10 @@ def _handle_request_result(res, machine_code, force_rebind=False):
     _state.update(auth_code=auth_code, expire_time=expire_time)
     logger.info(f"本机授权码: {auth_code}")
 
-    # 无论是否授权，App 已经打开：上报一次 open（记录流量/会话/在线）。
     # _report_open 内部有 _open_reported 锁，只会真正上报一次。
     _report_open(machine_code)
 
     if res.get("is_authorized"):
-        # 防御：即便服务端标记已授权，若到期时间已过仍按过期处理（防止服务端未按 expire_time 判 false）
         if _is_expired_by_date(expire_time):
             _state.update(
                 status="expired", is_authorized=False,
@@ -157,7 +137,6 @@ def _handle_request_result(res, machine_code, force_rebind=False):
         _state.update(status="banned", msg=status_msg or "授权已被封禁")
         logger.info(f"授权已被封禁: {status_msg}")
         return False
-    # 主动“重新授权”：即使服务端标记已过期，也进入绑定流程（当作新设备），避免来回弹窗
     if force_rebind:
         _state.update(status="waiting", msg="重新授权，等待QQ群绑定授权码")
         logger.info("主动重新授权：进入绑定流程")
@@ -177,10 +156,6 @@ def _handle_request_result(res, machine_code, force_rebind=False):
 
 
 def _is_expired_by_date(expire_time):
-    """防御性判断：expire_time（YYYY-MM-DD）严格早于今天则视为已过期。
-
-    若日期无法解析或为空，返回 False（不误伤，仍交由服务端判定）。
-    """
     if not expire_time:
         return False
     try:
@@ -191,18 +166,12 @@ def _is_expired_by_date(expire_time):
 
 
 def _request_until_ok(machine_code):
-    """反复申请授权码，直到服务端 ok=True。
-
-    - 网络异常：保持 pending，稍后重试（不弹错误遮罩）。
-    - 其他 ok=False：转 error，返回 None。
-    """
     while True:
         try:
             res = auth.request_auth(machine_code, timeout=INITIAL_TIMEOUT)
         except Exception as e:
             logger.warning(f"无法连接授权服务器: {e}")
             if meta_reachable():
-                # 服务器故障（外网正常）：宽限模式，暂时可用、不显示认证角标
                 _state.update(
                     status="offline",
                     offline_badge=False,
@@ -344,7 +313,6 @@ def start_auth_check():
 
 
 def _heartbeat_loop():
-    """周期上报 heartbeat，供服务端维护“最近活跃时间”。"""
     while not _heartbeat_stop.wait(_HEARTBEAT_INTERVAL):
         try:
             auth.report_app_event(
@@ -373,7 +341,6 @@ def start_heartbeat():
 
 
 def stop_heartbeat():
-    """停止心跳线程（退出前调用，避免退出时心跳重开在线会话）。"""
     global _heartbeat_thread
     _heartbeat_stop.set()
     th = _heartbeat_thread
@@ -427,10 +394,6 @@ def set_poll_mode(mode):
 
 
 def refresh_auth_code():
-    """授权前“换授权码”：让服务端重新生成授权码并重置为未绑定，然后重新进入等待绑定。
-
-    旧授权码立即失效，防止被他人使用；操作后客户端会拿到新授权码提示重新绑定。
-    """
     global _worker_gen, _force_rebind, _thread
     machine_code = auth.get_machine_code()
     _state.update(machine_code=machine_code)
