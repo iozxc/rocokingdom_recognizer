@@ -50,10 +50,13 @@
 
 # 下载
 
-1. 【**推荐**】下载安装程序 `RocoKingdomRecognizer_Setup`
-2. 直接下载打包好的zip文件
+> 下面的链接**始终指向最新版本**，直接点进去就能看到当前最新版，不需要自己找版本号。
 
-- 由于仓库限制需要分别下载多个压缩文件然后一起选中再解压（gitee）
+1. 【**推荐**】下载安装程序 `RocoKingdomRecognizer_Setup`：[GitHub Releases（最新版）](https://github.com/iozxc/rocokingdom_recognizer/releases/latest)
+2. 下载免安装分卷压缩包：[Gitee Releases（最新版）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/latest)
+
+- 由于仓库限制，Gitee 的分卷（`RocoKingdomRecognizer_part.7z.001` 起）需要全部下载后一起选中再解压
+- 也可以直接加群下载：`723155657`
 
 
 # 🌟 项目简介
@@ -92,10 +95,12 @@
 
 # 📥 安装与运行
 
-1. 前往 [Releases（Github）](https://github.com/iozxc/rocokingdom_recognizer/releases/) 页面下载。
-1. 前往 [Releases（国内Gitee）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/) 页面下载。
-2. 运行安装程序，按照指引完成安装。
-3. 桌面双击 **RocoKingdomRecognizer** 即可启动。
+1. 前往 [Releases（GitHub，最新版）](https://github.com/iozxc/rocokingdom_recognizer/releases/latest) 页面下载。
+2. 前往 [Releases（国内 Gitee，最新版）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/latest) 页面下载。
+3. 运行安装程序，按照指引完成安装。
+4. 桌面双击 **RocoKingdomRecognizer** 即可启动。
+
+> 版本更新内容见 [CHANGELOG.md](CHANGELOG.md)，用户数据保存在 `roco_user_data.json`，覆盖安装或卸载都不会被删除。
 
 ---
 
