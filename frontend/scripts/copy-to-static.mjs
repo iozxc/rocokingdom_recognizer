@@ -51,15 +51,16 @@ const DESKTOP_UNUSED = [
   /^ort-wasm-.*\.(wasm|mjs)$/i,
   /^recognition\.worker-.*\.js$/i,
   /^dino\.worker-.*\.js$/i,
-  // 带 hash 的入口产物：只保留本次构建的，历史 index-*.js/css 一并清掉；
-  // 同时清掉改名前的固定名产物（index.js / index.css）
-  /^index(-.*)?\.(js|css)$/i,
 ];
+// 历史遗留的入口产物（改名/升级后会一直堆在 static 里）：只清「非本次构建」的那些
+const STALE_ENTRY = /^index(-.*)?\.(js|css)$/i;
 let pruned = 0;
 for (const name of readdirSync(dstAssets)) {
-  // 本次刚复制过来的文件永不删除
-  if (copiedAssets.has(name)) continue;
-  if (!DESKTOP_UNUSED.some((re) => re.test(name))) continue;
+  const fresh = copiedAssets.has(name);
+  const unused = DESKTOP_UNUSED.some((re) => re.test(name));
+  // 桌面端用不到的：无条件剔除（哪怕这次刚复制过来）
+  // 历史 index-*：只在不是本次产物时才清，避免把刚复制的新文件删掉
+  if (!unused && !(STALE_ENTRY.test(name) && !fresh)) continue;
   try {
     unlinkSync(join(dstAssets, name));
     pruned++;
