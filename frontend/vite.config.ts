@@ -52,9 +52,10 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       rollupOptions: {
         output: {
-          entryFileNames: 'assets/[name].js',
-          chunkFileNames: 'assets/[name].js',
-          assetFileNames: 'assets/[name].[ext]',
+          // 带内容 hash：/assets/* 才能安全地长期缓存（改代码 → 文件名变化 → index.html 引用新文件）
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]',
         },
       },
     },

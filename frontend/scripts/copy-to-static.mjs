@@ -36,8 +36,10 @@ copyFileSync(join(distDir, 'index.html'), join(staticDir, 'index.html'));
 
 const srcAssets = join(distDir, 'assets');
 const dstAssets = join(staticDir, 'assets');
+const copiedAssets = new Set();
 for (const name of readdirSync(srcAssets)) {
   copyFileSync(join(srcAssets, name), join(dstAssets, name));
+  copiedAssets.add(name);
 }
 
 // 桌面版（pywebview + Flask）不会用到浏览器内识别，走的是后端 /init_batch，
@@ -49,9 +51,14 @@ const DESKTOP_UNUSED = [
   /^ort-wasm-.*\.(wasm|mjs)$/i,
   /^recognition\.worker-.*\.js$/i,
   /^dino\.worker-.*\.js$/i,
+  // 带 hash 的入口产物：只保留本次构建的，历史 index-*.js/css 一并清掉；
+  // 同时清掉改名前的固定名产物（index.js / index.css）
+  /^index(-.*)?\.(js|css)$/i,
 ];
 let pruned = 0;
 for (const name of readdirSync(dstAssets)) {
+  // 本次刚复制过来的文件永不删除
+  if (copiedAssets.has(name)) continue;
   if (!DESKTOP_UNUSED.some((re) => re.test(name))) continue;
   try {
     unlinkSync(join(dstAssets, name));
