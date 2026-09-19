@@ -268,7 +268,11 @@ class LocalRecognizerClass {
       // 否则内层还在换后端、外层已经先超时了。
       const timer = window.setTimeout(() => reject(new Error('识别模型初始化超时（240s）')), 240000);
       const handler = (e: MessageEvent) => {
-        if (e.data.kind === 'ready') {
+        if (e.data.kind === 'init-progress') {
+          // worker 在建会话时会依次尝试 WebGPU / 多线程 WASM / 单线程 WASM，
+          // 把当前这一步显示出来，用户就不会以为"卡死"了。
+          onProgress?.('session', 0, String(e.data.text || '正在初始化识别模型'));
+        } else if (e.data.kind === 'ready') {
           window.clearTimeout(timer);
           this.backend = e.data.backend || '';
           this.threads = e.data.threads || 1;

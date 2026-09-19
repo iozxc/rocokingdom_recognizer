@@ -41,6 +41,52 @@ interface AssetItem {
   name: string;
   desc: string;
   parts: AssetPart[];
+  /**
+   * 'idb'  = 走 assetStore（下载后存进浏览器 IndexedDB，识别时直接用）
+   * 'http' = 只预热浏览器 HTTP 缓存（onnxruntime 的 wasm 由它自己 fetch，我们存不进 IndexedDB）
+   */
+  via?: 'idb' | 'http';
+}
+
+/** 站点内资源的绝对路径（wasm 与 ORT 加载路径一致，始终同源）。 */
+function siteUrl(relPath: string): string {
+  const base = import.meta.env.BASE_URL || '/';
+  return `${base}${relPath.replace(/^\/+/, '')}`;
+}
+
+/** 该 URL 是否已在浏览器 HTTP 缓存里：only-if-cached 命中就是有。 */
+async function httpCached(url: string): Promise<boolean> {
+  try {
+    const resp = await fetch(url, { cache: 'only-if-cached', mode: 'same-origin' });
+    return resp.ok || resp.type === 'opaque';
+  } catch {
+    return false;
+  }
+}
+
+/** 预热浏览器 HTTP 缓存（带进度；之后 onnxruntime 自己 fetch 就能直接命中）。 */
+async function prefetchHttp(
+    url: string,
+    onProgress: (p: { loaded: number; total: number }) => void,
+): Promise<void> {
+  const resp = await fetch(url, { cache: 'reload' }); // reload：绕过缓存取新的，并写入缓存
+  if (!resp.ok) throw new Error(`下载失败：HTTP ${resp.status}（${url}）`);
+  const total = Number(resp.headers.get('content-length') || 0);
+  if (!resp.body) {
+    await resp.arrayBuffer();
+    onProgress({ loaded: total, total });
+    return;
+  }
+  const reader = resp.body.getReader();
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) {
+      received += value.length;
+      onProgress({ loaded: received, total: total || received });
+    }
+  }
 }
 
 interface ItemState {
@@ -76,6 +122,29 @@ function buildItems(m: RecognizerManifest | null, tier: ModelTier): AssetItem[] 
       name: `精灵识别模型 ${key.toUpperCase()}`,
       desc: path === active ? '当前使用' : '备用档位',
       parts: [{ path, bytes: sizeOf(path) }],
+    });
+  }
+
+  // 浏览器识别运行时（onnxruntime 的 wasm + glue）：由 ORT 自己加载，不进 IndexedDB，
+  // 这里列出来只是让「全部下载」能提前把它放进 HTTP 缓存，省掉首次识别那 21.7MB 的等待。
+  const wasmWanted = [
+    'wasm/ort-wasm-simd-threaded.jsep.wasm',
+    'wasm/ort-wasm-simd-threaded.jsep.mjs',
+  ];
+  const wasmParts: AssetPart[] = wasmWanted
+      .map((path) => {
+        const hit = (m.assets || []).find((a) => a && a.path === path);
+        return hit ? { path, bytes: hit.bytes || 0 } : null;
+      })
+      .filter((x): x is AssetPart => !!x);
+  if (wasmParts.length) {
+    items.push({
+      key: 'ort-wasm',
+      group: 'recognize',
+      name: '推理运行时 WASM',
+      desc: '浏览器识别引擎',
+      via: 'http',
+      parts: wasmParts,
     });
   }
 
@@ -157,7 +226,9 @@ export const ModelAssetsModal: React.FC<ModelAssetsModalProps> = ({ isOpen, onCl
       }
       setStates(next);
       for (const it of list) {
-        const flags = await Promise.all(it.parts.map((p) => isAssetCached(p.path, v)));
+        const flags = it.via === 'http'
+            ? await Promise.all(it.parts.map((p) => httpCached(siteUrl(p.path))))
+            : await Promise.all(it.parts.map((p) => isAssetCached(p.path, v)));
         const cached = flags.length > 0 && flags.every(Boolean);
         setStates((cur) => ({
           ...cur,
@@ -182,6 +253,16 @@ export const ModelAssetsModal: React.FC<ModelAssetsModalProps> = ({ isOpen, onCl
     try {
       let base = 0;
       for (const part of item.parts) {
+        if (item.via === 'http') {
+          await prefetchHttp(siteUrl(part.path), (p) => {
+            setStates((cur) => ({
+              ...cur,
+              [item.key]: { cached: false, busy: true, loaded: base + p.loaded, total: total || p.total },
+            }));
+          });
+          base += part.bytes || 0;
+          continue;
+        }
         await loadAsset(part.path, version, (p) => {
           setStates((cur) => ({
             ...cur,
