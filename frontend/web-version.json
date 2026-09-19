@@ -1,0 +1,4 @@
+{
+  "version": "1.0.0",
+  "_comment": "纯 Web 版自己的版本号：与桌面 App 的 version.json 解耦，改 web 端功能/静态数据时递增，并会作为 /data/*.json 的缓存版本参数。"
+}

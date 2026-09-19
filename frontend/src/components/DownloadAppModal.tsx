@@ -109,13 +109,12 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
 
           {/* Content */}
           <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
-            {/* 版本 */}
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
-              <span className="text-slate-400">当前版本</span>
-              <span className="px-2 py-0.5 bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 rounded-lg border border-[#BCD7F2] dark:border-sky-800 font-black">
-                v{appInfo?.version ?? '1.4.4'}
-              </span>
-              <span className="text-slate-400">· 网页版已支持识别与云端同步</span>
+            {/*
+              * 这里刻意不显示版本号：这是「下载桌面版」的引导弹窗，
+              * 网页版与桌面版各有各的版本号，摆一个「当前版本」容易被误解成本页版本。
+              */}
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-slate-400">网页版已支持识别与云端同步</span>
             </div>
 
             {/* 功能补充介绍 */}

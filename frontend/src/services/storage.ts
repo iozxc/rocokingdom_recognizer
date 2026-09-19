@@ -24,7 +24,14 @@ export interface StoragePayload {
 }
 
 type StorageListener = (records: Record<string, EncounterRecord>) => void;
-type SettingsListener = (settings: AppSettings) => void;
+/**
+ * 设置变化回调。
+ *
+ * changedKeys：本次真正被写入的设置键。只有一个设置被改动时（setSetting）就是它自己；
+ * 批量改动（updateSettings）是这批键；跨窗口 storage 事件 / 远端同步这类「不知道具体谁变了」
+ * 的场景传 undefined。订阅方靠它区分「我关心的那个设置变了」和「别的设置变了顺带通知我」。
+ */
+type SettingsListener = (settings: AppSettings, changedKeys?: (keyof AppSettings)[]) => void;
 
 export class StorageService {
   private records: Record<string, EncounterRecord> = {};
@@ -202,11 +209,11 @@ export class StorageService {
     });
   }
 
-  private notifySettingsListeners() {
+  private notifySettingsListeners(changedKeys?: (keyof AppSettings)[]) {
     const copy = { ...this.appSettings };
     this.settingsListeners.forEach((listener) => {
       try {
-        listener(copy);
+        listener(copy, changedKeys);
       } catch (err) {
         console.error('Error notifying settings listener:', err);
       }
@@ -299,10 +306,10 @@ export class StorageService {
     void this.pendingSave;
   }
 
-  private triggerSettingsSave() {
+  private triggerSettingsSave(changedKeys?: (keyof AppSettings)[]) {
     this.hasPendingLocalChanges = true;
     this.saveToLocalStorage();
-    this.notifySettingsListeners();
+    this.notifySettingsListeners(changedKeys);
     void this.saveToRemote();
   }
 
@@ -353,7 +360,7 @@ export class StorageService {
     if (key === 'isSoundMuted' && typeof value === 'boolean') {
       sound.setMuted(value);
     }
-    this.triggerSettingsSave();
+    this.triggerSettingsSave([key]);
   }
 
   public updateSettings(partialSettings: Partial<AppSettings>): void {
@@ -361,7 +368,7 @@ export class StorageService {
     if (typeof partialSettings.isSoundMuted === 'boolean') {
       sound.setMuted(partialSettings.isSoundMuted);
     }
-    this.triggerSettingsSave();
+    this.triggerSettingsSave(Object.keys(partialSettings) as (keyof AppSettings)[]);
   }
 
   public getAll(): Record<string, EncounterRecord> {

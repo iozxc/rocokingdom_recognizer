@@ -11,6 +11,7 @@
  * M3：OCR 顶部懒加载，读到的名字参与候选融合（多形态/近似精灵更稳）。
  */
 import axios from 'axios';
+import { withVersionParam } from '../assetUrl';
 import { fetchJson } from '../secureFetch';
 import { featureStore, FeatureEntry } from './featureStore';
 import { buildWhitelist, buildWhitelistFromEntries, isEntryInWhitelist, matchFeaturesEx } from './matcher';
@@ -372,8 +373,8 @@ class LocalRecognizerClass {
     await featureStore.ensureLoaded(version, (p) => onProgress?.('features', p));
     this.readyMs = performance.now() - t0;
     onProgress?.('features', 100, '识别引擎就绪');
-    console.info(`[localRecognizer] 就绪：backend=${this.backend} model=${this.modelPath} ` +
-        `features=${featureStore.meta?.count} 耗时=${Math.round(this.readyMs)}ms ` +
+    console.info(`[localRecognizer] 就绪：backend=${this.backend} threads=${this.threads || 1} ` +
+        `model=${this.modelPath} features=${featureStore.meta?.count} 耗时=${Math.round(this.readyMs)}ms ` +
         `（跨域隔离=${isCrossOriginIsolated()}）`);
   }
 
@@ -403,14 +404,16 @@ class LocalRecognizerClass {
           `正在加载 OCR 检测模型 ${mb(p.loaded)}/${mb(p.total)}`)),
       loadAsset(rec, version, (p) => onProgress?.('ocr', p.total ? Math.min(90, 50 + Math.round((p.loaded / p.total) * 40)) : 50,
           `正在加载 OCR 识别模型 ${mb(p.loaded)}/${mb(p.total)}`)),
-      fetchJson<{ chars: string[] }>(`${import.meta.env.BASE_URL || '/'}${keysFile}`, 20000),
+      fetchJson<{ chars: string[] }>(
+          withVersionParam(`${import.meta.env.BASE_URL || '/'}${keysFile}`, version), 20000),
     ]);
     this.ocrChars = keysData?.chars || [];
     if (!this.ocrChars.length) throw new Error('OCR 字符表为空');
 
     const correctionsFile = ocr.corrections?.file || 'data/ocr_corrections.json';
     try {
-      const corrData = await fetchJson(`${import.meta.env.BASE_URL || '/'}${correctionsFile}`, 10000);
+      const corrData = await fetchJson(
+          withVersionParam(`${import.meta.env.BASE_URL || '/'}${correctionsFile}`, version), 10000);
       this.corrections = parseCorrections(corrData);
     } catch {
       this.corrections = null;

@@ -20,6 +20,8 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
   const [accepted, setAccepted] = useState(false);
   const [countdown, setCountdown] = useState(REQUIRED_READ_SECONDS);
   const [scrolledBottom, setScrolledBottom] = useState(false);
+  /** 纯 web 版点「关闭窗口」时的提示：浏览器不允许脚本关闭非脚本打开的标签页 */
+  const [exitHint, setExitHint] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -66,6 +68,12 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     } catch {
       /* 桥接调用失败时继续走兜底 */
+    }
+    // 纯 web 版：window.close() 对「不是脚本打开的标签页」会被浏览器拒绝，
+    // 静默失败会让用户以为按钮坏了；这里改成明确提示用户自己关标签页。
+    if (IS_STATIC) {
+      setExitHint(true);
+      return;
     }
     try {
       window.close();
@@ -139,6 +147,11 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
                     开源不收费 · 源码可见
                   </p>
                   <div className="flex flex-col items-stretch sm:items-end gap-1.5">
+                    {exitHint && (
+                        <span className="text-[10px] text-[#2B78C4] dark:text-sky-300 text-center sm:text-right font-bold">
+                          请直接关闭浏览器标签页（或按 Ctrl/Cmd + W）
+                        </span>
+                    )}
                     {!unlocked && (
                         <span className="text-[10px] text-slate-400 text-center sm:text-right">
                           滑动到底部或等待 {countdown}s 后即可同意

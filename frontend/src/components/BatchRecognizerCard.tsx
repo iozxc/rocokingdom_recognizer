@@ -539,6 +539,13 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           };
         });
 
+        // 调试环境守卫返回的占位结果（类型上不在 status 联合里，这里按字符串判断）
+        if ((raw.status as string) === 'debug_guard') {
+          console.warn('[batch] 识别被调试环境守卫跳过');
+          setScanError('检测到调试环境（DevTools 停靠或窗口被判定为调试窗口），已跳过识别；关闭后重试即可');
+          return;
+        }
+
         const bestCand = processedCandidates[0];
         const activeFilename = raw.filename || bestCand?.filename;
         const activeScore = raw.score ?? bestCand?.score;
@@ -622,6 +629,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         return;
       }
       const error = err as Error;
+      // 把完整堆栈打到控制台：只显示 message 时，定位问题非常困难
+      console.error('[batch] 批量识别失败：', err);
       setScanError(error.message || '批量识别请求失败，请检查网络或后端接口');
     } finally {
       setIsScanning(false);

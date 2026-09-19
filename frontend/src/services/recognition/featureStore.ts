@@ -9,6 +9,7 @@
  */
 import { loadAsset } from './assetStore';
 import { fetchJson } from '../secureFetch';
+import { withVersionParam } from '../assetUrl';
 
 export interface FeatureEntry {
   path: string;
@@ -57,7 +58,8 @@ class FeatureStoreClass {
 
   private async _load(version: number, onProgress?: (pct: number) => void): Promise<void> {
     const base = import.meta.env.BASE_URL || '/';
-    const meta = await fetchJson<FeatureMeta>(`${base}data/features.meta.json`, 20000);
+    // 带清单版本：/data/ 就可以长期缓存，改资产即换 URL
+    const meta = await fetchJson<FeatureMeta>(withVersionParam(`${base}data/features.meta.json`, version), 20000);
     if (!meta || !Array.isArray(meta.entries) || meta.dim <= 0) {
       throw new Error('特征库 meta 格式异常');
     }

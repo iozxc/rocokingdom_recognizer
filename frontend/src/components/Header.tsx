@@ -6,7 +6,7 @@ import { sound } from '../services/sound';
 import { useUpdateStore } from '../services/useUpdateStore';
 import { themeService } from '../services/theme';
 import { IS_STATIC } from '../services/staticMode';
-import { APP_VERSION } from '../version';
+import { APP_VERSION, WEB_VERSION } from '../version';
 
 export interface HeaderMapStat {
     num: number;
@@ -138,8 +138,16 @@ export const Header: React.FC<HeaderProps> = ({
                                 </div>
                                 <div className="hidden min-[840px]:flex items-center gap-1.5 text-[10px] text-white/80 dark:text-slate-400 font-medium whitespace-nowrap min-w-0">
                                     <span>图鉴识别 · 本地记录</span>
-                                    <span className="text-[9px] font-mono text-white/40 dark:text-slate-500 tracking-wider">
-                                        v{APP_VERSION}
+                                    {/*
+                                      * 纯 web 版显示「前端自己的版本号」：
+                                      * 网页是独立部署的，跟桌面 App 的版本号不同步，
+                                      * 显示 APP 版本会让人以为是同一个包。
+                                      */}
+                                    <span
+                                        className="text-[9px] font-mono text-white/40 dark:text-slate-500 tracking-wider"
+                                        title={IS_STATIC ? `网页版版本 v${WEB_VERSION}` : `客户端版本 v${APP_VERSION}`}
+                                    >
+                                        v{IS_STATIC ? WEB_VERSION : APP_VERSION}
                                     </span>
                                 </div>
                             </div>

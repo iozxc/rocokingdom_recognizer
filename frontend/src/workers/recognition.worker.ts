@@ -14,9 +14,21 @@
  *
  * 模型字节由主线程从 IndexedDB 缓存取好后 transfer 进来，worker 内不再联网。
  */
-// 用 webgpu 入口（wasm + WebGPU 两套 EP）：默认入口 ort.bundle 里没有 JSEP，
-// 会导致 executionProviders:['webgpu'] 必然失败、永远退回 WASM。
-import * as ort from 'onnxruntime-web/webgpu';
+/**
+ * ORT 入口必须用「非 bundle」版（见 vite.config.ts 的 ort-lazy-webgpu 别名）。
+ *
+ * bundle 版（onnxruntime-web/webgpu）会把 Emscripten 的 wasm 工厂**内联**进本 worker。
+ * 工厂里用 `new URL(import.meta.url)` 定位 pthread 子 Worker 脚本；而 Vite 默认把 worker
+ * 打成 iife，esbuild 只能把 import.meta.url 换成 self.location.href —— 于是多线程 WASM 的
+ * pthread 子 Worker 加载的是「识别 worker 自己」，它不会走 Emscripten 的 pthread 引导，
+ * 永远不回 ready：wasm-threads 建会话死锁 → 25s 超时 → 回落 numThreads=1，但 ORT 缓存了
+ * 那个挂起的初始化 Promise，单线程回落一起卡死 → 90s 超时 → 识别失败。
+ *
+ * 非 bundle 版在运行时 `import('/wasm/ort-wasm-simd-threaded.jsep.mjs')`，工厂是独立文件，
+ * import.meta.url 指向它自己，pthread 才能正常拉起。（webgpu / wasm 两套 EP 都还在。）
+ */
+import * as ort from 'ort-lazy-webgpu';
+import { ORT_VERSION } from '../version';
 import {
   DET_CONFIG,
   detPreprocess,
@@ -91,6 +103,24 @@ const workerScope = self as unknown as {
   crossOriginIsolated?: boolean;
 };
 
+/**
+ * 把「wasm 目录前缀」（主线程传进来的，默认 /wasm/）变成带版本参数的完整路径。
+ *
+ * 为什么要带版本参数：`ort-wasm-simd-threaded.jsep.wasm/.mjs` 是固定文件名，
+ * 内容却随 onnxruntime-web 版本变；不带参数就只能给它短缓存，否则升级 ORT 后
+ * 浏览器可能拿旧 wasm 配新 JS。带上 ?v=<ORT 版本> 后可以放心长期缓存。
+ *
+ * 注意必须用 { mjs, wasm } 对象形式（而不是字符串前缀）：字符串前缀拼不出查询串。
+ */
+function applyWasmPaths(): void {
+  const prefix = wasmPathsGlobal.endsWith('/') ? wasmPathsGlobal : `${wasmPathsGlobal}/`;
+  const v = encodeURIComponent(ORT_VERSION);
+  ort.env.wasm.wasmPaths = {
+    mjs: `${prefix}ort-wasm-simd-threaded.jsep.mjs?v=${v}`,
+    wasm: `${prefix}ort-wasm-simd-threaded.jsep.wasm?v=${v}`,
+  };
+}
+
 function runtimeEps(): string[] {
   const eps: string[] = [];
   if (typeof navigator !== 'undefined' && (navigator as Navigator & { gpu?: unknown }).gpu) eps.push('webgpu');
@@ -99,7 +129,7 @@ function runtimeEps(): string[] {
 }
 
 async function createOrtSession(buffer: ArrayBuffer, label: string): Promise<ort.InferenceSession> {
-  ort.env.wasm.wasmPaths = wasmPathsGlobal;
+  applyWasmPaths();
   ort.env.wasm.simd = true;
   let lastErr: unknown = null;
   for (const eps of [runtimeEps(), ['wasm']]) {
@@ -176,7 +206,7 @@ async function webGpuAdapterReady(): Promise<boolean> {
 }
 
 async function createDinoSession(buffer: ArrayBuffer, wantThreads: number): Promise<void> {
-  ort.env.wasm.wasmPaths = wasmPathsGlobal;
+  applyWasmPaths();
   const isolated = workerScope.crossOriginIsolated === true;
   const threads = isolated ? Math.max(1, wantThreads || 1) : 1;
   ort.env.wasm.numThreads = threads;

@@ -54,11 +54,19 @@ function siteUrl(relPath: string): string {
   return `${base}${relPath.replace(/^\/+/, '')}`;
 }
 
-/** 该 URL 是否已在浏览器 HTTP 缓存里：only-if-cached 命中就是有。 */
+/**
+ * 该 URL 是否已在浏览器 HTTP 缓存里。
+ *
+ * 不能用 `cache: 'only-if-cached'` 探测：未命中时 Chrome 会往控制台抛一条
+ * `net::ERR_CACHE_MISS` 报错（用户会以为坏了）。改用「HEAD 请求 + 资源计时」：
+ * 命中缓存时 `transferSize === 0`，未命中则会真的走一次网络（HEAD 很轻）。
+ */
 async function httpCached(url: string): Promise<boolean> {
   try {
-    const resp = await fetch(url, { cache: 'only-if-cached', mode: 'same-origin' });
-    return resp.ok || resp.type === 'opaque';
+    await fetch(url, { method: 'HEAD', cache: 'default' });
+    const entries = performance.getEntriesByName(url) as PerformanceResourceTiming[];
+    const last = entries[entries.length - 1];
+    return !!last && last.transferSize === 0;
   } catch {
     return false;
   }

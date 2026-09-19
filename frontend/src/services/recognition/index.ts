@@ -31,7 +31,15 @@ export async function recognizeImage(
 ): Promise<{ data: BatchInitApiResponse; isOfflineMock: boolean }> {
   if (IS_STATIC) {
     if (runtimeGuard.isActive) {
-      return { data: {} as BatchInitApiResponse, isOfflineMock: false };
+      // 判定为「调试环境」（F12 停靠 / debugger 被挂起）时不跑识别。
+      // 注意：必须返回**结构完整**的空结果 —— 之前返回 {} 会让调用方读
+      // data.results.length 时抛 "Cannot read properties of undefined"，
+      // 用户看到的是一句莫名其妙的报错，而不是"检测到调试环境"这个真实原因。
+      console.warn('[recognizeImage] 检测到调试环境，已跳过识别（关闭 DevTools 后重试）');
+      return {
+        data: { status: 'debug_guard', results: [], total_detected: 0 } as unknown as BatchInitApiResponse,
+        isOfflineMock: false,
+      };
     }
     const local = await localRecognizer.recognizeSingle(image, targetMapPets || [], threshold, topK, {
       stageNum,

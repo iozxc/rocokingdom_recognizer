@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { fetchJson } from './secureFetch';
+import { dataUrl } from './assetUrl';
 import { loadSpriteMeta, loadElementSprites, loadTsSprites } from './spriteMeta';
 import { loadGlossary } from './glossary';
 import {
@@ -337,7 +338,7 @@ export class ApiService {
         await loadElementSprites();
         await loadTsSprites();
         await loadGlossary();
-        const remoteData = await fetchJson<any>(`${import.meta.env.BASE_URL}data/icons.json`, 10000);
+        const remoteData = await fetchJson<any>(dataUrl('data/icons.json'), 10000);
         // icons.json 顶层按试炼分组：{ "t1": {map1,map2,map3}, "t2": {...} }
 
 

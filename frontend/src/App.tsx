@@ -41,6 +41,22 @@ import { PetSearchMode } from './utils/skillSearch';
 
 export default function App() {
   const [activeStageNum, setActiveStageNum] = useState<number>(1);
+
+  /**
+   * 上一次从「设置」里同步过来的当前试炼图号。
+   *
+   * 为什么要有它：storage 的设置订阅回调并不只在你改了图号时触发 —— 改主题、
+   * 切静音、调特效都会带着整份 settings 再来一次。之前这里无条件跟随
+   * `newSettings.activeStageNum`，于是跟随识别窗口早先写进去的旧图号会在你点
+   * 静音 / 切换明暗时被重新盖回当前选择：明明在 图2/图3，一下跳回 图1。
+   * 现在改为「只有图号这个键真的被改动，或跨窗口场景下值确实变了」才跟随，
+   * 既修掉跳图，又保留跟随识别 ↔ 主页面的地图联动。
+   */
+  const syncedStageRef = useRef<number | null>(
+      typeof storage.getSettings().activeStageNum === 'number'
+          ? (storage.getSettings().activeStageNum as number)
+          : null,
+  );
   // 首页批量识别进行中：锁定顶部 / 悬浮的地图切换
   const [isBatchScanning, setIsBatchScanning] = useState<boolean>(false);
   const [mapsData, setMapsData] = useState<Record<string, { count: number; items: PetItem[] }>>({});
@@ -272,7 +288,7 @@ export default function App() {
       setRecords(newRecords);
     });
 
-    const unsubscribeSettings = storage.subscribeSettings((newSettings) => {
+    const unsubscribeSettings = storage.subscribeSettings((newSettings, changedKeys) => {
       if (typeof newSettings.isSoundMuted === 'boolean') {
         setIsSoundMuted(newSettings.isSoundMuted);
       }
@@ -291,9 +307,18 @@ export default function App() {
       if (newSettings.searchFilterPosition === 'position1' || newSettings.searchFilterPosition === 'position2') {
         setSearchFilterPosition(newSettings.searchFilterPosition);
       }
-      if (typeof newSettings.activeStageNum === 'number' && [1, 2, 3].includes(newSettings.activeStageNum)) {
-        setActiveStageNum(newSettings.activeStageNum);
-        // activeStageNum 变化不再触发特效，避免扫描识别后弹出特效
+      // 只有「图号这个设置本身被改动」（changedKeys 里有 activeStageNum）才跟随；
+      // changedKeys 为空表示跨窗口 storage 事件 / 云端同步这类无法辨别具体键的场景，
+      // 此时退化为「值确实变了才跟随」，避免无关设置变化把旧图号盖回来。
+      const stage = newSettings.activeStageNum;
+      if (typeof stage === 'number' && [1, 2, 3].includes(stage)) {
+        const explicit = !!changedKeys?.includes('activeStageNum');
+        const changed = stage !== syncedStageRef.current;
+        if (explicit || changed) {
+          syncedStageRef.current = stage;
+          setActiveStageNum(stage);
+          // activeStageNum 变化不再触发特效，避免扫描识别后弹出特效
+        }
       }
     });
 

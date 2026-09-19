@@ -34,15 +34,40 @@ export default defineConfig(({ mode }) => {
   } catch {
     // 读不到时保持默认，不影响构建
   }
+  // 纯 Web 版自己的版本号（与桌面 App 版本解耦，见 frontend/web-version.json）。
+  let webVersion = '0.0.0';
+  try {
+    const wv = JSON.parse(readFileSync(path.resolve(__dirname, 'web-version.json'), 'utf-8'));
+    if (wv && typeof wv.version === 'string') webVersion = wv.version;
+  } catch {
+    // 读不到时保持默认，不影响构建
+  }
+  // onnxruntime-web 的版本：/wasm/* 是固定文件名，升级 ORT 时必须换 URL 才能安全长缓存。
+  let ortVersion = '0.0.0';
+  try {
+    const pkg = JSON.parse(readFileSync(
+        path.resolve(__dirname, 'node_modules/onnxruntime-web/package.json'), 'utf-8'));
+    if (pkg && typeof pkg.version === 'string') ortVersion = pkg.version;
+  } catch {
+    // 读不到时保持默认，不影响构建
+  }
   return {
     base: isWeb ? '/' : './', // web(纯前端)用绝对路径；桌面用相对路径以便 Flask 托管
     plugins: isWeb ? [react(), tailwindcss(), webTitlePlugin] : [react(), tailwindcss()],
     define: {
       __ROCO_VERSION__: JSON.stringify(appVersion),
+      __ROCO_WEB_VERSION__: JSON.stringify(webVersion),
+      __ROCO_ORT_VERSION__: JSON.stringify(ortVersion),
     },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        // onnxruntime-web 的 "./webgpu" 导出是 bundle 版：Emscripten 的 wasm 工厂会被内联进
+        // worker，Vite 打成 iife 后 import.meta.url 变成 self.location.href，多线程 WASM 的
+        // pthread 子 Worker 就会去加载识别 worker 自己而死锁。这里指向非 bundle 的 ESM 入口，
+        // 让工厂改由运行时从 /wasm/ 动态 import（import.meta.url 才是它自己的 URL）。
+        'ort-lazy-webgpu': path.resolve(
+            __dirname, 'node_modules/onnxruntime-web/dist/ort.webgpu.min.mjs'),
       },
     },
     publicDir: isWeb ? 'public-web' : 'public',
