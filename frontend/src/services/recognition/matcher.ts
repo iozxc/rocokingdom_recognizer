@@ -12,6 +12,7 @@
  *     让用户看到「识别到了谁，只是不在本图」而不是一句"未找到匹配"。
  */
 import { featureStore, FeatureEntry } from './featureStore';
+import { COLOR_DIM, COLOR_FUSE_W, normalizeColorSignature } from './colorSig';
 import { splitPetFilename } from './petPath';
 import { formatPetName } from '../../utils/petHelper';
 
@@ -154,7 +155,9 @@ export function matchFeaturesEx(
     query: Float32Array,
     whitelist: MapWhitelist,
     threshold: number,
-    topK: number
+    topK: number,
+    /** 颜色签名（72 维 uint8）：库里没有颜色数据时会被忽略 */
+    colorSig?: Uint8Array,
 ): MatchOutcome {
   const store = featureStore;
   if (!store.meta || !store.matrix) throw new Error('特征库未加载');
@@ -164,11 +167,39 @@ export function matchFeaturesEx(
 
   // 1) 全库点积（库行未归一化，直接点积即后端相似度）
   const sims = new Float32Array(n);
+  const corr = new Float32Array(n);
+  // 颜色签名融合（1+2+3）：只在近分候选之间起作用（有界微调，最多 ±2pp），
+  // 用来区分「同形态、只差眼环/花纹配色」的候选（如雪绒鸟 冬/春/夏/秋）。
+  const colorNorm = store.colorNorm;
+  const qColor = (colorNorm && colorSig) ? normalizeColorSignature(colorSig) : null;
+  // 先整体算一遍颜色相关度并取均值：融合时用「相对均值」而不是绝对值，
+  // 这样颜色只在近分候选之间重排，不会整体平移分数、也不会压过 DINO 的明显判断。
+  let colorCorrMean = 0;
   for (let i = 0; i < n; i++) {
     let s = 0;
     const base = i * dim;
     for (let d = 0; d < dim; d++) s += mat[base + d] * query[d];
+    if (colorNorm && qColor) {
+      let c = 0;
+      const cb = i * COLOR_DIM;
+      for (let d = 0; d < COLOR_DIM; d++) c += colorNorm[cb + d] * qColor[d];
+      corr[i] = c;
+      colorCorrMean += c;
+    }
     sims[i] = s;
+  }
+  if (colorNorm && qColor) {
+    // 只在「当前前 poolK 名」内部重排，并按池内均值中心化：
+    //   · 不会整体抬高分数（避免出现 >100% 的匹配度）
+    //   · 池外行保持原 DINO 分，颜色项掀不翻明显更好的匹配
+    const pool = Array.from({ length: n }, (_, i) => i)
+        .sort((a, b) => sims[b] - sims[a])
+        .slice(0, Math.min(Math.max(topK * 4, 24), n));
+    // 凸组合（不是相加）：匹配度 = (1-w)*余弦 + w*配色相关度，天然 ≤ 1，
+    // 不会出现 >100% 的匹配度。
+    for (const i of pool) {
+      sims[i] = (1 - COLOR_FUSE_W) * sims[i] + COLOR_FUSE_W * Math.max(0, Math.min(1, corr[i]));
+    }
   }
 
   // 2) 候选池 pool_k = min(max(topK*4,24), n)，按分降序（N≈6.3k，全排序开销可忽略）

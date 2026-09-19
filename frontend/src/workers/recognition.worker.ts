@@ -29,6 +29,7 @@
  */
 import * as ort from 'ort-lazy-webgpu';
 import { ORT_VERSION } from '../version';
+import { COLOR_DIM, colorSignatureFromRGBA } from '../services/recognition/colorSig';
 import {
   DET_CONFIG,
   detPreprocess,
@@ -335,7 +336,7 @@ async function recognizeBitmap(
     totalCount: number,
     nameItems: NameAnchorItem[],
     onProgress: (done: number, total: number) => void
-): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number }> {
+): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; sigs: Uint8Array }> {
   if (!dinoSession) throw new Error('识别模型尚未初始化完成');
   const t0 = performance.now();
   const w = bitmap.width;
@@ -374,6 +375,12 @@ async function recognizeBitmap(
 
   const dim = 384;
   const out = new Float32Array(boxes.length * dim);
+  // 颜色签名（1+2+3）：直接从已经取到的整图 RGBA 里按框统计，不额外解码；
+  // 主线程匹配时与 DINO 余弦做有界融合，专门区分「同形态、只差配色」的候选。
+  const sigs = new Uint8Array(boxes.length * COLOR_DIM);
+  for (let i = 0; i < boxes.length; i++) {
+    sigs.set(colorSignatureFromRGBA(rgba, w, h, boxes[i]), i * COLOR_DIM);
+  }
   const inputName = dinoSession.inputNames[0] || dinoInput;
   for (let start = 0; start < boxes.length; start += FEATURE_CHUNK) {
     const chunk = boxes.slice(start, start + FEATURE_CHUNK);
@@ -394,7 +401,7 @@ async function recognizeBitmap(
     }
     onProgress(Math.min(boxes.length, start + chunk.length), boxes.length);
   }
-  return { feats: out, boxes, mode, ms: performance.now() - t0 };
+  return { feats: out, boxes, mode, ms: performance.now() - t0, sigs };
 }
 
 /** 完整 OCR：返回底部名字行文本/逐条名字 + 所有文本块（原图坐标）。 */
@@ -574,6 +581,7 @@ async function followRecognize(bitmap: ImageBitmap, imgsz: number): Promise<{
   slotTexts: string[];
   cropBlobs: (Blob | null)[];
   feats: Float32Array;
+  sigs: Uint8Array;
   dim: number;
   ms: { total: number; yolo: number; title: number; names: number; dino: number };
 }> {
@@ -599,6 +607,7 @@ async function followRecognize(bitmap: ImageBitmap, imgsz: number): Promise<{
   const tDino = performance.now();
   const dim = 384;
   const feats = new Float32Array(3 * dim);
+  const sigs = new Uint8Array(3 * COLOR_DIM);   // 槽位颜色签名（缺位为全 0）
   const present = sections.items
       .map((box, index) => ({ box, index }))
       .filter((x): x is { box: Box; index: number } => !!x.box);
@@ -643,6 +652,11 @@ async function followRecognize(bitmap: ImageBitmap, imgsz: number): Promise<{
         continue;
       }
       cc.drawImage(bitmap, seg.x, seg.y, seg.w, seg.h, 0, 0, seg.w, seg.h);
+      try {
+        const id = cc.getImageData(0, 0, seg.w, seg.h);
+        sigs.set(colorSignatureFromRGBA(id.data, seg.w, seg.h, { x: 0, y: 0, w: seg.w, h: seg.h }),
+            i * COLOR_DIM);
+      } catch { /* 签名失败不影响识别 */ }
       cropBlobs.push(await c.convertToBlob({ type: 'image/png' }));
     } catch {
       cropBlobs.push(null);
@@ -656,6 +670,7 @@ async function followRecognize(bitmap: ImageBitmap, imgsz: number): Promise<{
     slotTexts,
     cropBlobs,
     feats,
+    sigs,
     dim,
     ms: { total: performance.now() - t0, yolo: yoloMs, title: titleMs, names: namesMs, dino: dinoMs },
   };
@@ -699,7 +714,7 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
       return;
     }
     if (msg.kind === 'recognize') {
-      const { feats, boxes, mode, ms } = await recognizeBitmap(
+      const { feats, boxes, mode, ms, sigs } = await recognizeBitmap(
           msg.bitmap,
           msg.totalCount ?? 12,
           msg.nameItems ?? [],
@@ -715,7 +730,8 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
         count: boxes.length,
         boxes,
         feats,
-      }, [feats.buffer]);
+        sigs,
+      }, [feats.buffer, sigs.buffer]);
       return;
     }
     if (msg.kind === 'follow-recognize') {

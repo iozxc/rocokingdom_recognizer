@@ -10,6 +10,8 @@
  *    Document PiP 小窗的，只有内联渲染才能同时出现在主页面和 PiP 小窗里。
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ORT_VERSION } from '../version';
+import { clearAssetsUsed, isAssetUsed } from '../services/assetUsed';
 import { X, Download, CheckCircle2, Trash2, Loader2, RefreshCw, Database, ScanSearch } from 'lucide-react';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
@@ -33,6 +35,8 @@ interface ModelAssetsModalProps {
 interface AssetPart {
   path: string;
   bytes: number;
+  /** 该文件只走 HTTP 缓存、不进 IndexedDB（如 colors.bin，由 featureStore/ORT 直接 fetch） */
+  http?: boolean;
 }
 
 interface AssetItem {
@@ -46,6 +50,8 @@ interface AssetItem {
    * 'http' = 只预热浏览器 HTTP 缓存（onnxruntime 的 wasm 由它自己 fetch，我们存不进 IndexedDB）
    */
   via?: 'idb' | 'http';
+  /** 该文件只走 HTTP 缓存、不进 IndexedDB（如 colors.bin，由 featureStore/ORT 直接 fetch） */
+  http?: boolean;
 }
 
 /** 站点内资源的绝对路径（wasm 与 ORT 加载路径一致，始终同源）。 */
@@ -61,7 +67,31 @@ function siteUrl(relPath: string): string {
  * `net::ERR_CACHE_MISS` 报错（用户会以为坏了）。改用「HEAD 请求 + 资源计时」：
  * 命中缓存时 `transferSize === 0`，未命中则会真的走一次网络（HEAD 很轻）。
  */
+/**
+ * 「已预热」本地记录：Chrome 无法查询某 URL 是否命中 HTTP 缓存（HEAD 走 CDN 命中时
+ * transferSize 同样 >0），所以改用「我们自己预热成功过」这一确定事实来判断，
+ * 并且和 IndexedDB 一样在「清除本机模型缓存」时一起清掉。
+ */
+const WARM_KEY = 'roco_http_warmed_v1';
+// 兼容：老的 warmed 记录 + 新的「识别时用过」标记，两者任一命中都算已缓存
+function warmedSet(): Set<string> {
+  try {
+    const raw = localStorage.getItem(WARM_KEY);
+    return new Set<string>(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch { return new Set<string>(); }
+}
+function markWarmed(url: string): void {
+  try {
+    const set = warmedSet(); set.add(url.split('?')[0]);
+    localStorage.setItem(WARM_KEY, JSON.stringify([...set]));
+  } catch { /* ignore */ }
+}
+export function clearWarmedHttpCache(): void {
+  try { localStorage.removeItem(WARM_KEY); } catch { /* ignore */ }
+}
 async function httpCached(url: string): Promise<boolean> {
+  const bare = url.split('?')[0];
+  if (warmedSet().has(bare) || isAssetUsed(bare)) return true;   // 预热过 / 识别时真的加载过
   try {
     await fetch(url, { method: 'HEAD', cache: 'default' });
     const entries = performance.getEntriesByName(url) as PerformanceResourceTiming[];
@@ -83,6 +113,7 @@ async function prefetchHttp(
   if (!resp.body) {
     await resp.arrayBuffer();
     onProgress({ loaded: total, total });
+    markWarmed(url);
     return;
   }
   const reader = resp.body.getReader();
@@ -95,6 +126,7 @@ async function prefetchHttp(
       onProgress({ loaded: received, total: total || received });
     }
   }
+  markWarmed(url);
 }
 
 interface ItemState {
@@ -118,7 +150,12 @@ function itemBytes(item: AssetItem): number {
 /** 从构建期清单里整理出「可以手动下载」的资产列表。 */
 function buildItems(m: RecognizerManifest | null, tier: ModelTier): AssetItem[] {
   if (!m) return [];
-  const sizeOf = (path?: string) => (path ? (m.assets || []).find((a) => a && a.path === path)?.bytes || 0 : 0);
+  // 清单里登记的路径不带 ?v=，这里统一忽略查询串再查（模型/特征库/颜色签名/wasm 都靠它取大小）
+  const sizeOf = (path?: string) => {
+    if (!path) return 0;
+    const bare = path.split('?')[0];
+    return (m.assets || []).find((a) => a && a.path === bare)?.bytes || 0;
+  };
   const items: AssetItem[] = [];
   const active = preferredModels(m, tier)[0];
 
@@ -135,13 +172,18 @@ function buildItems(m: RecognizerManifest | null, tier: ModelTier): AssetItem[] 
 
   // 浏览器识别运行时（onnxruntime 的 wasm + glue）：由 ORT 自己加载，不进 IndexedDB，
   // 这里列出来只是让「全部下载」能提前把它放进 HTTP 缓存，省掉首次识别那 21.7MB 的等待。
+  // 必须与识别 worker 里 ort.env.wasm.wasmPaths 的 URL 完全一致（都带 ?v=<ORT 版本>），
+  // 否则 httpCached 探测的是无参 URL → 命中不到缓存，界面永远显示「未下载」。
+  const _wasmVer = `?v=${encodeURIComponent(ORT_VERSION)}`;
   const wasmWanted = [
-    'wasm/ort-wasm-simd-threaded.jsep.wasm',
-    'wasm/ort-wasm-simd-threaded.jsep.mjs',
+    `wasm/ort-wasm-simd-threaded.jsep.wasm${_wasmVer}`,
+    `wasm/ort-wasm-simd-threaded.jsep.mjs${_wasmVer}`,
   ];
   const wasmParts: AssetPart[] = wasmWanted
       .map((path) => {
-        const hit = (m.assets || []).find((a) => a && a.path === path);
+        // 清单登记的是不带 ?v= 的路径；path 本身保留版本参数，供「探测/预热/缓存判定」使用
+        const bare = path.split('?')[0];
+        const hit = (m.assets || []).find((a) => a && a.path === bare);
         return hit ? { path, bytes: hit.bytes || 0 } : null;
       })
       .filter((x): x is AssetPart => !!x);
@@ -162,7 +204,17 @@ function buildItems(m: RecognizerManifest | null, tier: ModelTier): AssetItem[] 
       group: 'recognize',
       name: '精灵特征库',
       desc: `${m.features.count || 0} 条`,
-      parts: [{ path: m.features.file, bytes: m.features.bytes || sizeOf(m.features.file) }],
+      parts: [
+        { path: m.features.file, bytes: m.features.bytes || sizeOf(m.features.file) },
+        // 配色签名并进同一项：显示大小、预下载、缓存判定都算在一起（列表仍是 5 项）
+        ...(m.features.colorBytes
+            ? [{
+                path: `${m.features.colorFile || 'data/colors.bin'}?v=${encodeURIComponent(String(assetVersion(m)))}`,
+                bytes: m.features.colorBytes,
+                http: true,
+              }]
+            : []),
+      ],
     });
   }
 
@@ -234,9 +286,11 @@ export const ModelAssetsModal: React.FC<ModelAssetsModalProps> = ({ isOpen, onCl
       }
       setStates(next);
       for (const it of list) {
-        const flags = it.via === 'http'
-            ? await Promise.all(it.parts.map((p) => httpCached(siteUrl(p.path))))
-            : await Promise.all(it.parts.map((p) => isAssetCached(p.path, v)));
+        // 逐部件判断缓存位置：颜色签名/ORT wasm 只进 HTTP 缓存，模型/特征库在 IndexedDB
+        const flags = await Promise.all(it.parts.map((p) =>
+            (it.via === 'http' || p.http)
+                ? httpCached(siteUrl(p.path))
+                : isAssetCached(p.path, v)));
         const cached = flags.length > 0 && flags.every(Boolean);
         setStates((cur) => ({
           ...cur,
@@ -261,7 +315,7 @@ export const ModelAssetsModal: React.FC<ModelAssetsModalProps> = ({ isOpen, onCl
     try {
       let base = 0;
       for (const part of item.parts) {
-        if (item.via === 'http') {
+        if (item.via === 'http' || part.http) {
           await prefetchHttp(siteUrl(part.path), (p) => {
             setStates((cur) => ({
               ...cur,
@@ -312,6 +366,8 @@ export const ModelAssetsModal: React.FC<ModelAssetsModalProps> = ({ isOpen, onCl
     setClearing(true);
     try {
       await clearAssetCache();
+      clearWarmedHttpCache();   // 一并清掉 wasm/colors 的"已预热"记录
+    clearAssetsUsed();
       await refresh();
     } finally {
       setClearing(false);
@@ -342,15 +398,10 @@ export const ModelAssetsModal: React.FC<ModelAssetsModalProps> = ({ isOpen, onCl
                       <CheckCircle2 className="w-3.5 h-3.5" /> 已下载
                     </span>
                 ) : (
-                    <button
-                        type="button"
-                        disabled={st.busy || st.cached === null || !version}
-                        onClick={() => { sound.playClick(); void downloadOne(it); }}
-                        className="shrink-0 px-2.5 py-1 rounded-lg roco-btn-primary text-[10px] flex items-center gap-1 disabled:opacity-50 cursor-pointer"
-                    >
-                      {st.busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-                      {st.busy ? `${pct}%` : '下载'}
-                    </button>
+                    // 不再提供手动下载：模型统一在识别时按需下载（这里只显示状态）
+                    <span className="shrink-0 text-[10px] font-black text-slate-400 dark:text-slate-500">
+                      {st.busy ? `下载中 ${pct}%` : '识别时自动下载'}
+                    </span>
                 )}
               </div>
               {st.busy && (
@@ -402,12 +453,8 @@ export const ModelAssetsModal: React.FC<ModelAssetsModalProps> = ({ isOpen, onCl
             ) : (
                 <>
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                    <span>已下载 {cachedCount}/{items.length} 项{totalBytes ? ` · 合计 ${fmtBytes(totalBytes)}` : ''}</span>
-                    <button type="button" onClick={() => { sound.playClick(); void downloadAll(); }}
-                            disabled={loading || cachedCount >= items.length}
-                            className="px-2.5 py-1 rounded-lg roco-btn-primary text-[10px] flex items-center gap-1 disabled:opacity-50 cursor-pointer">
-                      <Download className="w-3 h-3" /> 全部下载
-                    </button>
+                    <span>已缓存 {cachedCount}/{items.length} 项{totalBytes ? ` · 合计 ${fmtBytes(totalBytes)}` : ''}</span>
+                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500">识别时自动下载</span>
                   </div>
 
                   <div className="space-y-1.5">

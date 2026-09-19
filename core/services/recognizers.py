@@ -44,6 +44,14 @@ class _ModelRegistry:
 
         scheme = "DINOv2"
         model_path, feature_path = config.DINO
+        color_path = None
+        det_feature = getattr(config, "DINO_FEATURE_DET", "")
+        det_color = getattr(config, "DINO_COLOR_DET", "")
+        if det_feature and os.path.exists(det_feature):
+            feature_path = det_feature
+            color_path = det_color if (det_color and os.path.exists(det_color)) else None
+            logger.info(f"使用确定性视角特征库: {os.path.basename(det_feature)}"
+                        f"（颜色签名={'有' if color_path else '无'}）")
         if not feature_path or not os.path.exists(feature_path):
             logger.warning(f"全图鉴图标特征库不存在: {feature_path}，跳过加载")
             return None
@@ -51,7 +59,7 @@ class _ModelRegistry:
         try:
             logger.info(f"正在加载 icon 识别器 backend={scheme}: 模型={model_path}, 特征库={feature_path}")
             self._icon_recognizer = ImageRecognizer(
-                model_path, feature_path, session=self._get_dino_session()
+                model_path, feature_path, session=self._get_dino_session(), color_path=color_path
             )
             logger.info(f"全图鉴图标特征库加载成功！(backend={scheme})")
             return self._icon_recognizer

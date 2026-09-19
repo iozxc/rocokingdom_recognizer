@@ -779,19 +779,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                   ? <Sun className="w-3.5 h-3.5 text-[#FEE061]" />
                   : <Moon className="w-3.5 h-3.5 text-white" />}
             </button>
-            <button
-                type="button"
-                id="scanner-model-assets-btn"
-                onClick={() => {
-                  sound.playClick();
-                  setIsModelAssetsOpen(true);
-                }}
-                className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center gap-1 text-xs font-black transition-all cursor-pointer border-2 border-white/40"
-                title="查看本地识别模型，并提前手动下载（跟随识别会用到版面检测模型）"
-            >
-              <Download className="w-3.5 h-3.5 text-[#FEE061]" />
-              <span>模型</span>
-            </button>
+            {/* 模型列表入口已移除：跟随识别用到的小模型在首次识别时自动下载 */}
             <button
                 type="button"
                 onClick={() => {

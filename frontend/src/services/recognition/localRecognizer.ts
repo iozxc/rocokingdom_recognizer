@@ -16,6 +16,8 @@ import { fetchJson } from '../secureFetch';
 import { featureStore, FeatureEntry } from './featureStore';
 import { buildWhitelist, buildWhitelistFromEntries, isEntryInWhitelist, matchFeaturesEx } from './matcher';
 import { mapIdToNum, matchSceneUniqueChar } from './trialConfig';
+import { COLOR_DIM } from './colorSig';
+import { markAssetUsed } from '../assetUsed';
 import type { YoloSections } from './yolo';
 import { splitPetFilename } from './petPath';
 import { formatPetName } from '../../utils/petHelper';
@@ -122,6 +124,8 @@ export interface FollowFrameResult {
   cropBlobs: (Blob | null)[];
   /** 3×384 的 L2 归一化特征（按槽位下标存放，未检出槽位为全 0） */
   feats: Float32Array;
+  /** 3×72 的颜色签名（按槽位下标存放，未检出槽位为全 0）——缺省表示拿不到颜色库 */
+  sigs?: Uint8Array;
   ms: { total: number; yolo: number; title: number; names: number; dino: number };
   backend: string;
 }
@@ -216,6 +220,7 @@ class LocalRecognizerClass {
             mode: msg.mode,
             ms: msg.ms,
             dim: msg.dim,
+            sigs: msg.sigs as Uint8Array | undefined,
           });
         }
       } else if (msg?.kind === 'feature') {
@@ -300,6 +305,8 @@ class LocalRecognizerClass {
    * 任一模型文件 404/建会话失败会自动换下一个候选模型。
    */
   async ensureReady(onProgress?: ProgressCb): Promise<void> {
+    markAssetUsed('wasm/ort-wasm-simd-threaded.jsep.wasm');
+    markAssetUsed('wasm/ort-wasm-simd-threaded.jsep.mjs');
     if (this.readyPromise) return this.readyPromise;
     // 用户上次选择的模型档位（localStorage），首次识别时生效
     try {
@@ -577,9 +584,11 @@ class LocalRecognizerClass {
       const query = frame.sections.items[i]
           ? frame.feats?.subarray(i * dim, (i + 1) * dim)
           : undefined;
+      const colorSig = frame.sigs ? frame.sigs.subarray(i * COLOR_DIM, (i + 1) * COLOR_DIM) : undefined;
       results.push(await this.buildSlotResult({
         index: i,
         query,
+        colorSig,
         whitelist: wl,
         threshold,
         topK,
@@ -704,7 +713,7 @@ class LocalRecognizerClass {
       totalCount: number,
       nameItems: { text: string; cx: number; cy: number; nw: number; nh: number }[],
       onChunk?: (done: number, total: number) => void
-  ): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; dim: number }> {
+  ): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; dim: number; sigs?: Uint8Array }> {
     return new Promise((resolve, reject) => {
       createImageBitmap(image)
           .then((bitmap) => {
@@ -825,7 +834,7 @@ class LocalRecognizerClass {
     }
 
     const featureStart = performance.now();
-    const { feats, boxes, mode, dim } = await this.recognizeBitmap(
+    const { feats, boxes, mode, dim, sigs } = await this.recognizeBitmap(
         image,
         options.totalCount ?? 12,
         anchorItems,
@@ -850,6 +859,7 @@ class LocalRecognizerClass {
         threshold,
         topK,
         stageNum: options.stageNum,
+        colorSig: sigs ? sigs.subarray(i * COLOR_DIM, (i + 1) * COLOR_DIM) : undefined,
         ocrText: mode === 'single' ? ocrText : (ocrItems[i]?.text || ''),
         cropImage: mode === 'batch' ? await this.cropDataUri(image, boxes[i]) : undefined,
       }));
@@ -883,11 +893,13 @@ class LocalRecognizerClass {
     stageNum?: number;
     ocrText: string;
     cropImage?: string;
+    /** 颜色签名（72 维，可选）：与 DINO 余弦做有界融合，专治「同形态不同配色」 */
+    colorSig?: Uint8Array;
   }): Promise<LocalResultItem> {
-    const { index, query, whitelist: wl, threshold, topK, stageNum, ocrText, cropImage } = args;
+    const { index, query, whitelist: wl, threshold, topK, stageNum, ocrText, cropImage, colorSig } = args;
     const useFeature = args.hasFeature !== false && !!query;
     const outcome = useFeature
-        ? matchFeaturesEx(query as Float32Array, wl, threshold, topK)
+        ? matchFeaturesEx(query as Float32Array, wl, threshold, topK, colorSig)
         : { candidates: [], outOfMap: [], bestGlobal: null, libraryCount: 0, whitelistCount: 0 };
 
     const merged = new Map<string, LocalCandidate>();

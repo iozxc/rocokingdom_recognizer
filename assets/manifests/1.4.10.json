@@ -2,8 +2,8 @@
   "version": "1.4.10",
   "files": {
     "RocoKingdomRecognizer.exe": {
-      "md5": "a0be26bffbb1c28acd7bc5fd32adcb52",
-      "size": 19622336
+      "md5": "19cdb9fc98cb204c6ddd108fb9ce231c",
+      "size": 19627708
     },
     "libs/api-ms-win-core-console-l1-1-0.dll": {
       "md5": "6758f8aee3488dbe68c9b474d11b7c09",
@@ -166,7 +166,7 @@
       "size": 22000
     },
     "libs/base_library.zip": {
-      "md5": "e78ca5caa1c2ebdedb9315d5578f2a45",
+      "md5": "ee94ed93a3f3819ab88de297b63be69a",
       "size": 1333490
     },
     "libs/ffi.dll": {
@@ -174,8 +174,8 @@
       "size": 41288
     },
     "libs/file_manifest.json": {
-      "md5": "7ed06d9b4df36149204308a5281620c9",
-      "size": 234014
+      "md5": "35ef1dd68ec57ab7ba5f6536449f8daf",
+      "size": 234141
     },
     "libs/LIBBZ2.dll": {
       "md5": "71e7c0f84d0a3d8ee0ffbdb60a36e504",
@@ -1029,9 +1029,13 @@
       "md5": "c80157a561eb429e6b1320975f567bab",
       "size": 4813
     },
-    "libs/onnx/feature_icon_dino_full.pkl": {
-      "md5": "34449d939d81aeb6edbb89b127a5e4ab",
-      "size": 9745973
+    "libs/onnx/feature_color_icon_det.npy": {
+      "md5": "a2e6a7f457dbfac65ae75364a5ac652c",
+      "size": 1212032
+    },
+    "libs/onnx/feature_icon_dino_det.pkl": {
+      "md5": "aa471505a244b16d7cdc7469ba78d7bc",
+      "size": 9777499
     },
     "libs/onnx/onnx_cpp2py_export.pyd": {
       "md5": "051b5c9877d233de0dd3e049b34485d2",
@@ -3118,7 +3122,7 @@
       "size": 137164
     },
     "libs/static/index.html": {
-      "md5": "efd9ab191e7468ed4cc279c941c9d94f",
+      "md5": "289e6e0959b52a8ee1fd3252452df05c",
       "size": 928
     },
     "libs/static/qrcode.png": {
@@ -3133,9 +3137,9 @@
       "md5": "0d27861c50220557c97fac05b093a718",
       "size": 203754
     },
-    "libs/static/assets/index-D4solcqO.js": {
-      "md5": "b53a8729bc4a740292696667e2b931c7",
-      "size": 946022
+    "libs/static/assets/index-D9DQujhX.js": {
+      "md5": "7cb1b99bcbce357fbf25a9562958019e",
+      "size": 946507
     },
     "libs/static/assets/test1.png": {
       "md5": "7c8f93a79431ddcdfa4b7ac23a25f4e3",

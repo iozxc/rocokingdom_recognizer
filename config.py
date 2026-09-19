@@ -270,6 +270,8 @@ TRAITS_SKILLS_JSON = get_resource_path('traits_skills.json')
 # 全局模型
 DINO_BACKBONE = get_resource_path(os.path.join('onnx', 'dino_backbone.onnx'))
 DINO_FEATURE_FULL = get_resource_path(os.path.join('onnx', 'feature_icon_dino_full.pkl'))
+DINO_FEATURE_DET = get_resource_path(os.path.join('onnx', 'feature_icon_dino_det.pkl'))
+DINO_COLOR_DET = get_resource_path(os.path.join('onnx', 'feature_color_icon_det.npy'))
 DINO = (DINO_BACKBONE, DINO_FEATURE_FULL)
 
 SCANNER_MODEL = get_resource_path(os.path.join('onnx', 'scanner.onnx'))

@@ -7,16 +7,23 @@ from core.infra.logger import logger
 from core.infra.ort_session import create_inference_session
 from core.infra.utils import strip_id_prefix
 from core.infra.pet_path import split_pet_filename
+from core.vision.color_feature import (
+    color_corr_batch,
+    color_rows_normalized,
+    color_signature,
+    query_normalized,
+)
 from PIL import Image
 
 
 class ImageRecognizer:
-    def __init__(self, onnx_model_path, database_path=None, session=None):
+    def __init__(self, onnx_model_path, database_path=None, session=None, color_path=None):
         """
         使用 ONNX Runtime 初始化识别器
         :param onnx_model_path: feature_extractor.onnx 的路径
         :param database_path: features_db.pkl (NumPy 格式) 的路径
         :param session: 可复用的 ONNX InferenceSession；传入时不再重复加载同一份 DINO 模型
+        :param color_path: 颜色签名矩阵（.npy，行序与特征库一致）；缺失时自动降级为纯 DINO 匹配
         """
         logger.info(f"初始化ImageRecognizer: 模型={onnx_model_path}, 特征库={database_path}")
 
@@ -51,6 +58,23 @@ class ImageRecognizer:
             self.load_db(database_path)
         else:
             logger.warning("ImageRecognizer初始化时特征库路径为空或不存在，需后续调用load_db")
+
+        # 颜色签名（可选）：存在才融合，缺失/行数不符就退回纯 DINO —— 保证旧资产也能跑
+        self.color_w = 0.10          # 配色在最终匹配度里的权重（其余给 DINO 余弦）
+        self.color_rows = None
+        self.color_norm = None
+        if color_path and os.path.exists(color_path):
+            try:
+                rows = np.load(color_path)
+                feat_count = len(self.database.get("features", []))
+                if rows.ndim == 2 and rows.shape[0] == feat_count:
+                    self.color_rows = rows.astype(np.uint8)
+                    self.color_norm = color_rows_normalized(rows)
+                    logger.info(f"颜色签名已加载: {os.path.basename(color_path)} {rows.shape}")
+                else:
+                    logger.warning(f"颜色签名行数不匹配（签名 {rows.shape} vs 特征 {feat_count}），已忽略")
+            except Exception as e:
+                logger.warning(f"颜色签名加载失败，退回纯 DINO 匹配: {e}")
 
     def load_db(self, path):
         """加载经过转换后的 pkl 特征库"""
@@ -164,7 +188,7 @@ class ImageRecognizer:
         logger.debug(f"ImageRecognizer批量特征提取: N={len(img_pils)}, 维度={feats.shape[1]}, 耗时={elapsed:.1f}ms")
         return feats
 
-    def _rank_features(self, query_feat, threshold, top_k):
+    def _rank_features(self, query_feat, threshold, top_k, query_color=None):
         """给定已归一化的 query 特征，在特征库里做余弦匹配并汇聚候选。"""
         t0 = time.perf_counter()
         db = self.database
@@ -172,6 +196,21 @@ class ImageRecognizer:
         logger.debug(f"ImageRecognizer.match: 特征库大小={db_size}")
 
         similarities = np.dot(db["features"], query_feat)
+        # 颜色签名融合：**只在前 pool_k 名候选内部重排**，且按池内均值中心化：
+        #   · 只奖励「比同批候选更贴合配色」的那些行，不会整体抬高分数（避免出现 101% 这种值）
+        #   · 池外行保持原 DINO 分，所以颜色项不可能掀翻一个明显更好的匹配
+        # 用来区分「同形态、只差眼环/花纹配色」的候选（雪绒鸟 冬/春/夏/秋 这类）。
+        if self.color_norm is not None and query_color is not None:
+            try:
+                pool_k = min(max(int(top_k) * 4, 24), len(similarities))
+                pool = np.argpartition(similarities, -pool_k)[-pool_k:]
+                corr = color_corr_batch(self.color_norm, query_normalized(query_color))
+                # 凸组合而不是相加：匹配度 = (1-w)*余弦 + w*配色相关度，天然落在 [0,1]，
+                # 不会出现 106% 这种越界百分比（与项目原有「匹配度=相似度」语义一致）。
+                similarities[pool] = ((1.0 - self.color_w) * similarities[pool]
+                                      + self.color_w * np.clip(corr[pool], 0.0, 1.0))
+            except Exception as e:
+                logger.debug(f"颜色融合失败，本次退回纯 DINO：{e}")
         # 放宽候选池：多视角特征库里同一 id/形态会有多条(icon + _shot截图)，
         # 先取足够多的原始候选，去重后再截 top_k。
         pool_k = max(top_k * 4, 24)
@@ -248,12 +287,12 @@ class ImageRecognizer:
                     f"候选数={len(results)}, 耗时={elapsed:.1f}ms")
         return results, None
 
-    def match_from_feature(self, query_feat, threshold=0.7, top_k=3):
+    def match_from_feature(self, query_feat, threshold=0.7, top_k=3, query_color=None):
         """用已算好的 query 特征直接排名（不复算特征），用于批量场景。"""
         db = self.database
         if not db or "features" not in db or len(db["features"]) == 0:
             return None, "特征库为空"
-        return self._rank_features(query_feat, threshold, top_k)
+        return self._rank_features(query_feat, threshold, top_k, query_color=query_color)
 
     def match(self, img_pil, threshold=0.7, top_k=3):
         t0 = time.perf_counter()
@@ -267,8 +306,11 @@ class ImageRecognizer:
         # 捕获图片处理异常，不再抛出cv2错误到上层
         try:
             query_feat = self.get_feature(img_pil)
+            # 颜色签名：与特征同一张图算一次；没有颜色库时 _rank_features 会自动忽略
+            query_color = (color_signature(np.asarray(img_pil.convert('RGB'), np.uint8))
+                           if self.color_norm is not None else None)
         except Exception as e:
             logger.error(f"ImageRecognizer.match 图片预处理失败: {e}", exc_info=True)
             return None, "图片预处理失败"
 
-        return self._rank_features(query_feat, threshold, top_k)
+        return self._rank_features(query_feat, threshold, top_k, query_color=query_color)

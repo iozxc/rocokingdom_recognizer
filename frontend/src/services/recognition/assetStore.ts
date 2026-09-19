@@ -17,7 +17,9 @@ export interface RecognizerManifest {
   version: number;
   builtAt?: string;
   scope?: string;
-  features: { file: string; meta: string; count: number; dim: number; bytes: number };
+  features: { file: string; meta: string; count: number; dim: number; bytes: number;
+    /** 配色签名（可选）：与 features.bin 行序一致，界面里并入「精灵特征库」同一项 */
+    colorBytes?: number; colorFile?: string };
   models: Record<string, string>;
   recommended?: { webgpu?: string; wasm?: string };
   eval?: Record<string, { cosine_min?: number; cosine_mean?: number; top1_agreement?: number; bytes?: number }>;

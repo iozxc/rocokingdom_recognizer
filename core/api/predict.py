@@ -20,6 +20,7 @@ from core.infra.utils import get_top_k_matches, get_icon_file_name, fuse_ocr_fea
 from core.infra.logger import logger
 from core.auth.service import is_authorized
 from core.services import recog_progress
+from core.vision.color_feature import color_signature
 
 bp = Blueprint("predict", __name__)
 
@@ -374,8 +375,14 @@ def predict_batch():
                     # 全图鉴匹配时多取候选，白名单过滤后仍能凑够 topk
                     match_pool_k = max(top_k * 4, 24)
                     if feat_matrix is not None:
+                        # 颜色签名与特征同源（同一张 icon_img），缺失时内部自动忽略
+                        try:
+                            _q_color = (color_signature(np.asarray(icon_img.convert('RGB'), np.uint8))
+                                        if getattr(recognizer, 'color_norm', None) is not None else None)
+                        except Exception:
+                            _q_color = None
                         raw_feat, err = recognizer.match_from_feature(
-                            feat_matrix[i], threshold, top_k=match_pool_k
+                            feat_matrix[i], threshold, top_k=match_pool_k, query_color=_q_color
                         )
                     else:
                         raw_feat, err = recognizer.match(icon_img, threshold, top_k=match_pool_k)

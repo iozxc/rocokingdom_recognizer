@@ -8,8 +8,10 @@
  * 内存里保持单例，识别期间不重复解析。
  */
 import { loadAsset } from './assetStore';
-import { fetchJson } from '../secureFetch';
+import { fetchJson, fetchArrayBuffer } from '../secureFetch';
 import { withVersionParam } from '../assetUrl';
+import { COLOR_DIM, normalizeColorRows } from './colorSig';
+import { markAssetUsed } from '../assetUsed';
 
 export interface FeatureEntry {
   path: string;
@@ -34,6 +36,11 @@ export interface FeatureMeta {
 class FeatureStoreClass {
   meta: FeatureMeta | null = null;
   matrix: Float32Array | null = null;
+  /**
+   * 颜色签名矩阵（每行去均值+L2 归一化，n×72）——**可选**：
+   * 站点上存在 data/colors.bin 才会加载，缺失时匹配完全退回纯 DINO（与今天一致）。
+   */
+  colorNorm: Float32Array | null = null;
   /** 已加载的资产版本，用于判断是否需要重载。 */
   loadedVersion: number | null = null;
   private loading: Promise<void> | null = null;
@@ -75,6 +82,25 @@ class FeatureStoreClass {
     }
     this.matrix = new Float32Array(buf);
     this.meta = meta;
+    markAssetUsed('data/features.bin');
+
+    // 颜色签名（1+2+3，可选增强）：缺失/行数不符都只是记一条日志，绝不打断识别。
+    this.colorNorm = null;
+    try {
+      const cbuf = await fetchArrayBuffer(
+          withVersionParam(`${base}data/colors.bin`, version), 20000);
+      const rows = new Uint8Array(cbuf);
+      const n = meta.entries.length;
+      if (rows.length === n * COLOR_DIM) {
+        this.colorNorm = normalizeColorRows(rows, n);
+        markAssetUsed('data/colors.bin');
+        console.info(`[featureStore] 颜色签名已加载：${n}×${COLOR_DIM}`);
+      } else {
+        console.warn(`[featureStore] 颜色签名行数不符（${rows.length} vs ${n * COLOR_DIM}），已跳过颜色融合`);
+      }
+    } catch {
+      /* 没有 colors.bin：保持纯 DINO 匹配 */
+    }
     this.loadedVersion = version;
     onProgress?.(100);
   }

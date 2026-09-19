@@ -51,6 +51,7 @@ app.spec
 /train/assets/
 /train/onnx/
 /train/onnx_dino/
+/train/_*
 
 keys/
 auth_secret.txt
