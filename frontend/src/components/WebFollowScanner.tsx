@@ -385,11 +385,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
       setErrorText(next.error);
       return;
     }
-    // 普通弹窗的地址栏/工具栏是浏览器画的，网页无权隐藏；
-    // 想彻底没有它们只能切到置顶小窗（Document PiP），这里提示一次入口。
-    if (next.active && pipSupported && !pipWindow) {
-      setHintText('已连接画面。点右上角 📌 可切成无边框置顶小窗（没有浏览器工具栏和地址栏）');
-    }
+    // 提示「点右上角可切置顶小窗」已按要求移除（置顶按钮本身仍在标题栏）
   };
 
   const handleStopCapture = () => {
