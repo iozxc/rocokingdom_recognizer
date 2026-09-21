@@ -88,7 +88,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
     const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
     const [isInstalling, setIsInstalling] = useState<boolean>(false);
     const [installSuccessMessage, setInstallSuccessMessage] = useState<string | null>(null);
-    const [showFullLog, setShowFullLog] = useState<boolean>(false);
+    const [showFullLog, setShowFullLog] = useState<boolean>(true); // 默认展开完整更新公告
     const [webPath, setWebPath] = useState<string>('https://roco.omisheep.cn/');
 
     const updateData = updateState.updateData;
@@ -245,6 +245,21 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         downloadStatus.startsWith('verifying');
 
     const hasChangelog = !!(updateData?.changelog && updateData.changelog.length > 0);
+
+    // update_log 支持 HTML 标签（内容来自自有更新源，可信）；不含任何标签时按纯文本渲染并保留换行。
+    const renderUpdateLog = (baseClass: string) => {
+        const log = updateData?.update_log || '';
+        const isHtml = /<[a-z][\s\S]*?>/i.test(log);
+        if (!isHtml) {
+            return <div className={`${baseClass} whitespace-pre-wrap`}>{log}</div>;
+        }
+        return (
+            <div
+                className={`${baseClass} [&_a]:text-[#1E5B99] dark:[&_a]:text-sky-400 [&_a]:underline [&_a]:break-all [&_a]:cursor-pointer [&_b]:text-slate-900 dark:[&_b]:text-slate-100 [&_p]:my-1`}
+                dangerouslySetInnerHTML={{ __html: log }}
+            />
+        );
+    };
 
     // 网页版与源码链接（左列底部，始终可见，不依赖是否检测到更新）
     const linksBlock = (
@@ -418,9 +433,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                         </button>
                                         {showFullLog && (
                                             <div className="px-3 pb-3">
-                                                <div className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-[#F8FAFC] dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800 font-medium">
-                                                    {updateData.update_log}
-                                                </div>
+                                                {renderUpdateLog('text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-[#F8FAFC] dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800 font-medium')}
                                             </div>
                                         )}
                                     </div>
@@ -430,9 +443,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                                             <Info className="w-4 h-4 text-[#2B78C4] dark:text-sky-400" />
                                             <span className="text-xs font-black text-slate-800 dark:text-slate-100">更新日志</span>
                                         </div>
-                                        <div className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800 font-medium">
-                                            {updateData.update_log}
-                                        </div>
+                                        {renderUpdateLog('text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-100 dark:border-slate-800 font-medium')}
                                     </div>
                                 )
                             )}
