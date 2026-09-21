@@ -343,21 +343,56 @@ class WindowManager:
         logger.info("主窗口创建完成")
         return self.main_window
 
+    def _is_main_window_minimized(self):
+        """判断主窗口当前是否处于“最小化”状态（Win32 IsIconic）。
+
+        关键：窗口最小化时，Win32 会把它挪到屏幕外（-32000,-32000）并给出一个
+        极小的占位矩形。此时若读取 win.x/y/width/height 落盘，会把“恢复大小”
+        污染成窗口最小值（555x300），下次启动就变成一个极小的窗口。
+        """
+        try:
+            win = self.main_window
+            if win is None:
+                return False
+            title = getattr(win, "title", None) or "洛克王国徽章试炼助手"
+            for hw in gw.getWindowsWithTitle(title):
+                try:
+                    if hw.isMinimized:
+                        return True
+                except Exception:
+                    continue
+        except Exception as e:
+            logger.debug(f"判断主窗口最小化状态失败: {e}")
+        return False
+
     def _collect_main_geometry(self):
-        """读取主窗口当前几何（逻辑像素）；窗口已销毁或读取失败时返回 None。"""
+        """读取主窗口当前几何（逻辑像素）；窗口已销毁、最小化或读取异常时返回 None。
+
+        最小化状态下窗口位置/尺寸是屏幕外的极小占位值，绝不能落盘，否则会把
+        下次启动的“恢复大小”错误记成窗口最小值（555x300）。
+        """
         win = self.main_window
         if win is None:
             return None
         try:
-            return {
-                "x": int(win.x),
-                "y": int(win.y),
-                "width": max(_MAIN_WINDOW_MIN_WIDTH, int(win.width)),
-                "height": max(_MAIN_WINDOW_MIN_HEIGHT, int(win.height)),
-            }
+            if self._is_main_window_minimized():
+                logger.debug("主窗口处于最小化状态，跳过本次几何保存")
+                return None
+            x, y = int(win.x), int(win.y)
+            width, height = int(win.width), int(win.height)
         except Exception as e:
             logger.debug(f"读取主窗口几何失败: {e}")
             return None
+
+        # 尺寸小于最小尺寸，或位置被系统放到屏幕外（最小化时的 -32000），
+        # 都视为异常状态，本次不落盘，保留上一次的正常几何。
+        if width < _MAIN_WINDOW_MIN_WIDTH or height < _MAIN_WINDOW_MIN_HEIGHT:
+            logger.debug(f"主窗口几何尺寸异常（{width}x{height}），跳过保存")
+            return None
+        if x < -1000 or y < -1000:
+            logger.debug(f"主窗口几何位置异常（{x},{y}），跳过保存")
+            return None
+        return {"x": x, "y": y, "width": width, "height": height}
 
     def _schedule_geometry_save(self, *args):
         """moved/resized 回调：0.8s 防抖后落盘，避免拖动过程中频繁写文件。"""
