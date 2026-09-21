@@ -130,8 +130,8 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                         </button>
                     )}
 
-                    {/* 4. 全域搜索（纯 Web 端不显示） */}
-                    {onOpenGlobalSearch && !IS_STATIC && (
+                    {/* 4. 全域搜索（两端均显示；纯 Web 端只隐藏 Ctrl+K 键帽） */}
+                    {onOpenGlobalSearch && (
                         <button
                             type="button"
                             id="sub-header-search-btn"
@@ -140,13 +140,15 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                                 onOpenGlobalSearch();
                             }}
                             className="px-2.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
-                            title="全域搜索 (Ctrl+K)"
+                            title={IS_STATIC ? '全域搜索' : '全域搜索 (Ctrl+K)'}
                         >
                             <Search className="w-3.5 h-3.5" />
                             <span>全域搜索</span>
-                            <kbd className="hidden md:inline-flex items-center text-[10px] font-mono bg-white/20 px-1 py-0.2 rounded">
-                                Ctrl+K
-                            </kbd>
+                            {!IS_STATIC && (
+                                <kbd className="hidden md:inline-flex items-center text-[10px] font-mono bg-white/20 px-1 py-0.2 rounded">
+                                    Ctrl+K
+                                </kbd>
+                            )}
                         </button>
                     )}
                 </div>

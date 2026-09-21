@@ -124,13 +124,13 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
   // Global Shortcut listener (Ctrl+K, Cmd+K, or '/')
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 纯 Web 端不提供全域搜索（入口已移除），不拦截 Ctrl+K / 斜杠
-      if (IS_STATIC) return;
       // Don't trigger if user is already typing in an input/textarea (unless it's our search modal)
       const target = e.target as HTMLElement;
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        // 浏览器保留 Ctrl+K 给地址栏搜索，纯 Web 端不拦截（键帽提示也只在桌面端显示）
+        if (IS_STATIC) return;
         e.preventDefault();
         sound.playClick();
         setIsOpen(!isSearchOpen);
@@ -278,10 +278,9 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
    * 桌面版一直显示（点开的是 pywebview 悬浮窗）；纯前端版只在浏览器支持屏幕捕获时显示
    * （点开的是网页版跟随识别面板）—— 入口完全一样，只是各自执行各自的效果。
    */
-  // 纯 Web 端（浏览器托管）不提供「跟随识别」（全局热键 / 屏幕捕获小窗是桌面壳能力），
-  // 也不显示右下角「全域图鉴搜索」，只保留数据管理等不依赖桌面壳的入口。
-  const showFollowFab = !IS_STATIC && (!searchOnly || isWebFollowSupported());
-  const showSearchFab = !IS_STATIC;
+  const showFollowFab = !searchOnly || isWebFollowSupported();
+  // 全域搜索两端都提供；纯 Web 端只隐藏 Ctrl+K 键帽（浏览器占用该组合键），功能本身保留。
+  const showSearchFab = true;
 
   return (
       <>
@@ -324,7 +323,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   </button>
               )}
 
-              {/* 5. 全域搜索 Icon（纯 Web 端不显示） */}
+              {/* 5. 全域搜索 Icon */}
               {showSearchFab && (
               <button
                   type="button"
@@ -334,7 +333,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                     setIsOpen(true);
                   }}
                   className="w-11 h-11 rounded-full bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white flex items-center justify-center shadow-xl shadow-sky-500/20 border-2 border-white dark:border-slate-700 transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                  title="全域图鉴搜索 (Ctrl+K)"
+                  title={IS_STATIC ? '全域图鉴搜索' : '全域图鉴搜索 (Ctrl+K)'}
               >
                 <Search className="w-5 h-5" />
               </button>
@@ -471,7 +470,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         </>
                     )}
 
-                    {/* 5. 全域图鉴搜索（纯 Web 端不显示） */}
+                    {/* 5. 全域图鉴搜索 */}
                     {showSearchFab && (
                     <button
                         id="global-floating-search-fab"
@@ -481,7 +480,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           setIsOpen(true);
                         }}
                         className="relative flex items-center gap-2 px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] hover:from-[#5DA8E8] hover:to-[#2B78C4] text-white font-black rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-slate-700 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 cursor-pointer"
-                        title="全局全图鉴智能搜索 (快捷键: Ctrl+K 或 /)"
+                        title={IS_STATIC ? '全局全图鉴智能搜索' : '全局全图鉴智能搜索 (快捷键: Ctrl+K 或 /)'}
                     >
                       {/* Pulsing ring indicator */}
                       <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
@@ -497,10 +496,12 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   全域图鉴搜索
                 </span>
 
-                      <span className="hidden sm:inline-flex items-center gap-0.5">
-                        <kbd className="inline-flex items-center text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded-lg border border-white/40 shadow-xs">Ctrl</kbd>
-                        <kbd className="inline-flex items-center text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded-lg border border-white/40 shadow-xs">K</kbd>
-                      </span>
+                      {!IS_STATIC && (
+                        <span className="hidden sm:inline-flex items-center gap-0.5">
+                          <kbd className="inline-flex items-center text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded-lg border border-white/40 shadow-xs">Ctrl</kbd>
+                          <kbd className="inline-flex items-center text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded-lg border border-white/40 shadow-xs">K</kbd>
+                        </span>
+                      )}
                     </button>
                     )}
 
@@ -528,8 +529,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
             </div>
         )}
 
-        {/* 2. Global Floating Search Modal Palette（纯 Web 端不渲染） */}
-        {isSearchOpen && !IS_STATIC && (
+        {/* 2. Global Floating Search Modal Palette */}
+        {isSearchOpen && (
             <div
                 className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-12 sm:pt-20 bg-slate-900/65 backdrop-blur-xs overflow-y-auto overscroll-contain animate-in fade-in duration-150"
                 onClick={() => setIsOpen(false)}
@@ -879,7 +880,11 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   </div>
 
                   <div className="text-[11px] text-slate-400">
-                    支持拼音与模糊查询 · 随时随地按 <kbd className="font-mono bg-white dark:bg-slate-700 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600">Ctrl+K</kbd> 唤出
+                    {IS_STATIC ? (
+                      <>支持拼音与模糊查询</>
+                    ) : (
+                      <>支持拼音与模糊查询 · 随时随地按 <kbd className="font-mono bg-white dark:bg-slate-700 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600">Ctrl+K</kbd> 唤出</>
+                    )}
                   </div>
                 </div>
               </div>

@@ -12,6 +12,7 @@ import {
   Database,
   Sparkles,
   Monitor,
+  Keyboard,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { api } from '../services/api';
@@ -33,7 +34,7 @@ const APP_FEATURES = [
   { icon: Cpu, title: '更精准的识别', desc: '本机原生推理，支持 GPU 加速' },
   { icon: Monitor, title: '更好的体验', desc: '免加载，不受服务器波动影响' },
   { icon: Database, title: '数据同步', desc: '多账号、多设备共用一份数据' },
-  { icon: MessageCircle, title: '及时的反馈', desc: '软件内直接反馈，更新更快' },
+  { icon: Keyboard, title: '快捷键支持', desc: '跟随识别一键触发，按键可自定义' },
 ];
 
 export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onClose }) => {
