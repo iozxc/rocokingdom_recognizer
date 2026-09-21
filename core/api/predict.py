@@ -162,13 +162,18 @@ def predict():
         match_pool_k = max(top_k * 4, 24)
         feat_results, err = recognizer.match(img, threshold, top_k=match_pool_k)
         logger.debug(f"[/predict] 特征匹配: 结果数={len(feat_results) if feat_results else 0}, err={err}")
+        # 低于阈值无候选时 match 可能返回 None，统一归一化为 []，避免后续相加 500。
+        feat_results = feat_results or []
 
-        if err:
+        # 低于阈值无候选是正常结果（截图里没有可识别的精灵），不是服务端错误；
+        # 继续走 OCR，最终无候选时在下面返回 404。只有「特征库为空/预处理失败」这类真错误才 500。
+        no_match_msg = "未找到匹配程度足够高的图标"
+        if err and err != no_match_msg:
             logger.warning(f"[/predict] 特征匹配返回错误: {err}")
             return error(err, 500)
 
         recog_progress.update(task_id, phase='ocr', pct=60, text='正在识别精灵名文字')
-        ocr_results = ocr_top_k_match(temp_path, stage_num, top_k, trial_key)
+        ocr_results = ocr_top_k_match(temp_path, stage_num, top_k, trial_key) or []
         logger.debug(f"[/predict] OCR匹配结果数: {len(ocr_results)}")
 
         recog_progress.update(task_id, phase='merge', pct=85, text='正在融合候选结果')
@@ -253,7 +258,7 @@ def predict_batch():
     recog_progress.begin(task_id, phase='prepare', text='正在读取整页截图')
     try:
         from core.vision.ocr import ocr
-        from core.vision.processor import segment_icons, segment_icons_by_name_anchors
+        from core.vision.processor import segment_icons, segment_icons_by_name_anchors, detect_placeholder_icons
         from core.services.recognizers import models
         with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
             temp_path = tmp.name
@@ -298,6 +303,32 @@ def predict_batch():
                         f"(锚定{len(anchored_icons)} 原{len(pil_icons)} 名字{len(anchor_items)})，保留原分割"
                     )
 
+        # 空槽/空白裁剪兜底：在「提特征之前」识别纯色空槽（均匀绿底「?」或纯白）。
+        # 空槽的 DINO 特征会和立绘共享的绿色底块高相似，得到 90%+ 的错误高分，
+        # 门槛挡不住；这里直接标记，跳过特征匹配（若该槽位 OCR 读到了名字，仍走 OCR）。
+        # 空槽/占位符批量判定（在「提特征之前」）：
+        #  - 纯色平铺槽（均匀绿底「?」、纯白）；
+        #  - 同排重复出现的灰色「?」未遇见布袋（同一个占位符，缩略图两两几乎一致）。
+        # 这些槽位若直接提 DINO 特征，会和立绘共享的底色/圆形构图高相似，拿到 90%+ 的
+        # 错误高分（门槛挡不住）；这里直接标记并跳过特征匹配（OCR 读到名字仍走 OCR）。
+        try:
+            blank_flags, _ph_info, _ph_reason = detect_placeholder_icons(pil_icons)
+        except Exception:
+            logger.warning("[/init_batch] 占位符检测异常，回退为全部提特征", exc_info=True)
+            blank_flags, _ph_info, _ph_reason = [False] * len(pil_icons), [], [""] * len(pil_icons)
+        for _i, _b in enumerate(blank_flags):
+            if _b:
+                _info = _ph_info[_i] if _i < len(_ph_info) else {}
+                logger.info(
+                    f"[/init_batch] 槽位{_i} 判定为空槽/占位符({_ph_reason[_i]}, "
+                    f"std={_info.get('std', 0):.1f}, dom_fg={_info.get('dominant_fg', 0):.2f}, "
+                    f"sat={_info.get('mean_sat', 0):.2f}, gray={_info.get('gray_frac', 0):.2f})"
+                )
+        active_idx = [i for i in range(len(pil_icons)) if not blank_flags[i]]
+        active_pil = [pil_icons[i] for i in active_idx]
+        feat_pos = {i: pos for pos, i in enumerate(active_idx)}
+        num_active = len(active_pil)
+
         num_ocr = len(ocr_names)
         num_pil = len(pil_icons)
 
@@ -319,8 +350,9 @@ def predict_batch():
         # 所以大头给 OCR 与 features 两段，features 再按分块上报，避免"走到三四十就突然结束"。
         recog_progress.update(
             task_id, phase='features', pct=45,
-            total=num_pil, done=0,
-            text=f'正在提取 {num_pil} 个图标的图像特征' if num_pil else '正在准备特征匹配',
+            total=num_active, done=0,
+            text=(f'正在提取 {num_active} 个图标的图像特征'
+                  if num_active else f'共 {num_pil} 个图位，均为空槽'),
         )
         batch_results = []
         map_name = f"map{stage_num}"
@@ -334,24 +366,26 @@ def predict_batch():
         # 所有图标一次性/分块提取特征（单次 ONNX 推理），随后逐槽仅做特征检索，
         # 避免每个图标单独 preprocess + onnx session.run 的开销。
         feat_matrix = None
-        if num_pil and recognizer is not None:
+        # 空槽不提特征，只对 active_pil 跑 DINO；feat_matrix 行序与 active_idx 对齐。
+        if num_active and recognizer is not None:
             try:
                 # 分块调用（每块 4 张）以便上报进度；结果与一次性批量完全等价
                 # （get_feature_batch 内部本来也是按 batch_size 分块，逐行归一化后可拼接）
                 chunks = []
                 step = 4
-                for start in range(0, num_pil, step):
-                    part = recognizer.get_feature_batch(pil_icons[start:start + step], batch_size=step)
+                for start in range(0, num_active, step):
+                    part = recognizer.get_feature_batch(active_pil[start:start + step], batch_size=step)
                     chunks.append(part)
-                    done_n = min(num_pil, start + step)
+                    done_n = min(num_active, start + step)
                     recog_progress.update(
                         task_id, phase='features',
-                        pct=45 + int(50 * done_n / max(1, num_pil)),
-                        done=done_n, total=num_pil,
-                        text=f'正在提取图像特征 {done_n}/{num_pil}',
+                        pct=45 + int(50 * done_n / max(1, num_active)),
+                        done=done_n, total=num_active,
+                        text=f'正在提取图像特征 {done_n}/{num_active}',
                     )
                 feat_matrix = np.concatenate(chunks, axis=0) if chunks else None
-                logger.debug(f"[/init_batch] 批量特征提取完成: N={num_pil}, shape={feat_matrix.shape}")
+                logger.debug(f"[/init_batch] 批量特征提取完成: active={num_active}/{num_pil} 空槽, "
+                             f"shape={feat_matrix.shape if feat_matrix is not None else None}")
             except Exception as e:
                 logger.error(f"[/init_batch] 批量特征提取失败，回退为逐图标匹配: {e}", exc_info=True)
                 feat_matrix = None
@@ -367,7 +401,8 @@ def predict_batch():
             )
             # A. 获取图像块进行特征匹配（如果 i 超过了分割块数量，则不进行图像匹配）
             feat_results = []
-            if i < num_pil:
+            is_blank_slot = i < num_pil and bool(blank_flags[i])
+            if i < num_pil and not is_blank_slot:
                 icon_img = pil_icons[i]
                 if recognizer is None:
                     logger.warning(f"试炼 {trial_key} 的图标特征库不可用，跳过特征匹配")
@@ -381,12 +416,17 @@ def predict_batch():
                                         if getattr(recognizer, 'color_norm', None) is not None else None)
                         except Exception:
                             _q_color = None
+                        # feat_matrix 行序与 active_idx 对齐（空槽已跳过）
                         raw_feat, err = recognizer.match_from_feature(
-                            feat_matrix[i], threshold, top_k=match_pool_k, query_color=_q_color
+                            feat_matrix[feat_pos[i]], threshold, top_k=match_pool_k, query_color=_q_color
                         )
                     else:
                         raw_feat, err = recognizer.match(icon_img, threshold, top_k=match_pool_k)
-                    feat_results = filter_candidates_by_allowed(raw_feat, allowed_names)
+                    # 无任何候选（低于阈值的杂图/UI 碎片，比如把 App 界面截图喂进来）时，
+                    # filter 会原样返回 None，这里统一归一化为 []，否则后面 feat_results + ocr 会 500。
+                    feat_results = filter_candidates_by_allowed(raw_feat, allowed_names) or []
+            elif is_blank_slot:
+                logger.debug(f"[/init_batch] 槽位{i}: 空槽，跳过特征匹配")
 
             # B. 获取 OCR 文字进行模糊匹配
             ocr_match_results = []
@@ -408,7 +448,8 @@ def predict_batch():
                         })
 
             # B'  OCR 结果也按当前 map 白名单过滤（复用一次性算好的白名单）
-            ocr_match_results = filter_candidates_by_allowed(ocr_match_results, allowed_names)
+            # 归一化为 []，避免 filter 返回 None 时与 feat_results 相加触发 500。
+            ocr_match_results = filter_candidates_by_allowed(ocr_match_results, allowed_names) or []
 
             # C. 合并与去重 (按文件名去重，保留最高分)
             ocr_match_results = fuse_ocr_feat(ocr_match_results, feat_results)
@@ -430,7 +471,11 @@ def predict_batch():
                 crop_uri = _pil_to_data_uri(pil_icons[i])
                 if crop_uri:
                     res_item["crop_image"] = crop_uri
-            if final_candidates:
+            # 空槽且 OCR 也没读到名字：明确标注「未检出」，前端据此渲染成「疑似占位符/空槽」。
+            if is_blank_slot and not ocr_match_results:
+                res_item.update({"status": "unmatched", "reason": "该槽位未检出精灵"})
+                logger.debug(f"[/init_batch] 槽位{i}: 空槽占位符（未检出精灵）")
+            elif final_candidates:
                 # 检查最高置信度是否满足你的 80% 要求 (可选)
                 # if final_candidates[0]['score'] < 0.8: ...
 

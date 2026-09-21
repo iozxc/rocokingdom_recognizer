@@ -61,6 +61,7 @@ import {
   segmentIcons,
   segmentIconsByNameAnchors,
   segmentLooksBad,
+  detectBlankBoxes,
   type NameAnchorItem,
   type SegmentBox,
 } from '../services/recognition/segments';
@@ -336,7 +337,7 @@ async function recognizeBitmap(
     totalCount: number,
     nameItems: NameAnchorItem[],
     onProgress: (done: number, total: number) => void
-): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; sigs: Uint8Array }> {
+): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; sigs: Uint8Array; blankFlags: Uint8Array }> {
   if (!dinoSession) throw new Error('识别模型尚未初始化完成');
   const t0 = performance.now();
   const w = bitmap.width;
@@ -375,6 +376,13 @@ async function recognizeBitmap(
 
   const dim = 384;
   const out = new Float32Array(boxes.length * dim);
+  // 空槽 / 空白裁剪兜底：纯色（均匀绿底「?」或纯白）的图位不是精灵，直接标记并跳过提特征。
+  // 否则纯色绿底的 DINO 特征会和大量立绘的「绿色底块」高相似，把空槽误判成 90%+ 的精灵。
+  const { flags: blankFlags } = detectBlankBoxes(rgba, w, h, boxes);
+  const activeIdx: number[] = [];
+  for (let i = 0; i < boxes.length; i++) {
+    if (!blankFlags[i]) activeIdx.push(i);
+  }
   // 颜色签名（1+2+3）：直接从已经取到的整图 RGBA 里按框统计，不额外解码；
   // 主线程匹配时与 DINO 余弦做有界融合，专门区分「同形态、只差配色」的候选。
   const sigs = new Uint8Array(boxes.length * COLOR_DIM);
@@ -382,26 +390,30 @@ async function recognizeBitmap(
     sigs.set(colorSignatureFromRGBA(rgba, w, h, boxes[i]), i * COLOR_DIM);
   }
   const inputName = dinoSession.inputNames[0] || dinoInput;
-  for (let start = 0; start < boxes.length; start += FEATURE_CHUNK) {
-    const chunk = boxes.slice(start, start + FEATURE_CHUNK);
-    const data = new Float32Array(chunk.length * 3 * INPUT_SIZE * INPUT_SIZE);
-    for (let i = 0; i < chunk.length; i++) {
-      data.set(cropToNchw(bitmap, chunk[i]), i * 3 * INPUT_SIZE * INPUT_SIZE);
+  let doneCount = boxes.length - activeIdx.length;
+  for (let cStart = 0; cStart < activeIdx.length; cStart += FEATURE_CHUNK) {
+    const chunkIdx = activeIdx.slice(cStart, cStart + FEATURE_CHUNK);
+    const data = new Float32Array(chunkIdx.length * 3 * INPUT_SIZE * INPUT_SIZE);
+    for (let j = 0; j < chunkIdx.length; j++) {
+      data.set(cropToNchw(bitmap, boxes[chunkIdx[j]]), j * 3 * INPUT_SIZE * INPUT_SIZE);
     }
-    const tensor = new ort.Tensor('float32', data, [chunk.length, 3, INPUT_SIZE, INPUT_SIZE]);
+    const tensor = new ort.Tensor('float32', data, [chunkIdx.length, 3, INPUT_SIZE, INPUT_SIZE]);
     const outs = await dinoSession.run({ [inputName]: tensor });
     const outTensor = outs[dinoSession.outputNames[0] || 'output'];
     const raw = outTensor.data as Float32Array;
-    for (let i = 0; i < chunk.length; i++) {
-      const base = i * dim;
+    for (let j = 0; j < chunkIdx.length; j++) {
+      const srcBase = j * dim;
+      const dstBase = chunkIdx[j] * dim;
       let norm = 0;
-      for (let d = 0; d < dim; d++) norm += raw[base + d] * raw[base + d];
+      for (let d = 0; d < dim; d++) norm += raw[srcBase + d] * raw[srcBase + d];
       norm = Math.sqrt(norm) || 1;
-      for (let d = 0; d < dim; d++) out[(start + i) * dim + d] = raw[base + d] / norm;
+      for (let d = 0; d < dim; d++) out[dstBase + d] = raw[srcBase + d] / norm;
     }
-    onProgress(Math.min(boxes.length, start + chunk.length), boxes.length);
+    doneCount += chunkIdx.length;
+    onProgress(Math.min(boxes.length, doneCount), boxes.length);
   }
-  return { feats: out, boxes, mode, ms: performance.now() - t0, sigs };
+  if (activeIdx.length === 0) onProgress(boxes.length, boxes.length);
+  return { feats: out, boxes, mode, ms: performance.now() - t0, sigs, blankFlags };
 }
 
 /** 完整 OCR：返回底部名字行文本/逐条名字 + 所有文本块（原图坐标）。 */
@@ -714,7 +726,7 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
       return;
     }
     if (msg.kind === 'recognize') {
-      const { feats, boxes, mode, ms, sigs } = await recognizeBitmap(
+      const { feats, boxes, mode, ms, sigs, blankFlags } = await recognizeBitmap(
           msg.bitmap,
           msg.totalCount ?? 12,
           msg.nameItems ?? [],
@@ -731,7 +743,8 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
         boxes,
         feats,
         sigs,
-      }, [feats.buffer, sigs.buffer]);
+        blankFlags,
+      }, [feats.buffer, sigs.buffer, blankFlags.buffer]);
       return;
     }
     if (msg.kind === 'follow-recognize') {

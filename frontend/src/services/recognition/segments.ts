@@ -331,3 +331,164 @@ export function segmentIcons(
   }
   return out;
 }
+
+
+/**
+ * 空槽 / 空白裁剪判定（纯前端兜底）。
+ *
+ * 背景：游戏里「空槽」是一个几乎单色的浅绿色圆角方块（有时带个很淡的「?」），
+ * 而所有精灵参考立绘也都垫在同一种浅绿色圆角方块上。对一块纯色空槽提 DINO 特征时，
+ * 特征几乎全是「绿色底块」，会和大量立绘高相似，从而把空槽误判成 90%+ 的精灵。
+ *
+ * 判定（真实游戏截图标定，见 preview-seg）：
+ *   - 真精灵：灰度标准差 std ≥ 55、主色占比 dominant ≤ 0.44；
+ *   - 纯色空槽/空白：std ≈ 22、主色占比 ≈ 0.80；
+ *   - 纯白：std ≈ 0、白像素占比 ≈ 1。
+ * 在两组之间取保守分隔线，宁可放过也不误杀真精灵。
+ */
+export interface BlankCropStats {
+  std: number;
+  dominant: number;
+  whiteFrac: number;
+  meanSat: number;
+  grayFrac: number;
+  blank: boolean;
+}
+
+/** 统计一个裁剪框的平坦度指标（灰度 std / 主色占比 / 近白占比）。 */
+export function cropBlankStats(
+    rgba: Uint8ClampedArray,
+    width: number,
+    height: number,
+    box: SegmentBox
+): BlankCropStats {
+  const x0 = Math.max(0, box.x);
+  const y0 = Math.max(0, box.y);
+  const x1 = Math.min(width, box.x + box.w);
+  const y1 = Math.min(height, box.y + box.h);
+  const bw = x1 - x0;
+  const bh = y1 - y0;
+  const n = Math.max(1, bw * bh);
+  let sum = 0;
+  let sum2 = 0;
+  let white = 0;
+  // 饱和度/灰度统计（用于识别重复的灰色「?」未遇见布袋）
+  let chromaSum = 0;
+  let chromaGray = 0;
+  let nonWhite = 0;
+  // 每个通道 4 级量化（>>6），共 64 桶，纯色抗锯齿也会集中在同一桶附近。
+  const buckets = new Uint32Array(64);
+  let dominant = 0;
+  for (let y = y0; y < y1; y++) {
+    const rowBase = y * width;
+    for (let x = x0; x < x1; x++) {
+      const p = (rowBase + x) * 4;
+      const r = rgba[p];
+      const g = rgba[p + 1];
+      const b = rgba[p + 2];
+      // 与 toGray 一致的定点灰度
+      const gr = (4899 * r + 9617 * g + 1868 * b + (1 << 13)) >> 14;
+      sum += gr;
+      sum2 += gr * gr;
+      if (gr > 235) white++;
+      const cmax = Math.max(r, g, b);
+      const cmin = Math.min(r, g, b);
+      const chroma = cmax - cmin;
+      if (cmin < 240) {
+        nonWhite++;
+        chromaSum += cmax > 0 ? chroma / cmax : 0;
+        if (chroma < 18) chromaGray++;
+      }
+      const key = ((r >> 6) << 4) | ((g >> 6) << 2) | (b >> 6);
+      const v = buckets[key] + 1;
+      buckets[key] = v;
+      if (v > dominant) dominant = v;
+    }
+  }
+  const mean = sum / n;
+  const std = Math.sqrt(Math.max(0, sum2 / n - mean * mean));
+  const dominantFrac = dominant / n;
+  const whiteFrac = white / n;
+  const meanSat = nonWhite > 0 ? chromaSum / nonWhite : 0;
+  const grayFrac = nonWhite > 0 ? chromaGray / nonWhite : 1;
+  // 保守分隔线：std 低于 34 且主色占比高于 0.72（平坦单色），或近白占比极高（>96.5%）。
+  const blank = (std < 34 && dominantFrac > 0.72) || whiteFrac > 0.965;
+  return { std, dominant: dominantFrac, whiteFrac, meanSat, grayFrac, blank };
+}
+
+/** 裁剪框的灰度指纹（缩放到 S×S 后零均值单位向量），用于“重复占位符”比对。 */
+function boxFingerprint(
+    rgba: Uint8ClampedArray,
+    width: number,
+    height: number,
+    box: SegmentBox,
+    S = 48
+): Float32Array {
+  const x0 = Math.max(0, box.x);
+  const y0 = Math.max(0, box.y);
+  const x1 = Math.min(width, box.x + box.w);
+  const y1 = Math.min(height, box.y + box.h);
+  const bw = Math.max(1, x1 - x0);
+  const bh = Math.max(1, y1 - y0);
+  const v = new Float32Array(S * S);
+  let sum = 0;
+  for (let oy = 0; oy < S; oy++) {
+    const sy = y0 + Math.min(bh - 1, (oy * bh) / S | 0);
+    const rowBase = sy * width;
+    for (let ox = 0; ox < S; ox++) {
+      const sx = x0 + Math.min(bw - 1, (ox * bw) / S | 0);
+      const p = (rowBase + sx) * 4;
+      const gr = (4899 * rgba[p] + 9617 * rgba[p + 1] + 1868 * rgba[p + 2] + (1 << 13)) >> 14;
+      v[oy * S + ox] = gr;
+      sum += gr;
+    }
+  }
+  const mean = sum / (S * S);
+  let norm = 0;
+  for (let i = 0; i < v.length; i++) {
+    v[i] -= mean;
+    norm += v[i] * v[i];
+  }
+  norm = Math.sqrt(norm);
+  if (norm > 1e-6) for (let i = 0; i < v.length; i++) v[i] /= norm;
+  return v;
+}
+
+/** 批量：按框统计并返回每个框是否为空槽/空白（与 boxes 等长，1 = 空槽）。 */
+export function detectBlankBoxes(
+    rgba: Uint8ClampedArray,
+    width: number,
+    height: number,
+    boxes: SegmentBox[]
+): { flags: Uint8Array; stats: BlankCropStats[] } {
+  const flags = new Uint8Array(boxes.length);
+  const stats: BlankCropStats[] = new Array(boxes.length);
+  for (let i = 0; i < boxes.length; i++) {
+    const st = cropBlankStats(rgba, width, height, boxes[i]);
+    stats[i] = st;
+    flags[i] = st.blank ? 1 : 0;
+  }
+  // 重复占位符（同排灰色「?」布袋）：同一占位符缩略图几乎完全一致（实测≈0.99），
+  // 不同精灵两两不同（实测≤0.77）；再叠加“低信息量（去饱和/高灰度）”门槛。
+  const n = boxes.length;
+  if (n >= 2) {
+    const fps: Float32Array[] = [];
+    for (let i = 0; i < n; i++) fps.push(boxFingerprint(rgba, width, height, boxes[i]));
+    for (let i = 0; i < n; i++) {
+      if (flags[i]) continue;
+      const st = stats[i];
+      const lowInfo = st.meanSat < 0.18 || st.grayFrac > 0.42;
+      if (!lowInfo) continue;
+      for (let j = 0; j < n; j++) {
+        if (j === i) continue;
+        let dot = 0;
+        for (let k = 0; k < fps[i].length; k++) dot += fps[i][k] * fps[j][k];
+        if (dot >= 0.9) {
+          flags[i] = 1;
+          break;
+        }
+      }
+    }
+  }
+  return { flags, stats };
+}

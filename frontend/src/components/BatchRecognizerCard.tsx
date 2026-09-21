@@ -65,16 +65,16 @@ import { ElementBadges } from './ElementBadges';
 import { PetSpecialTag } from './PetSpecialTag';
 import { DuplicatePetHintToast } from './DuplicatePetHintToast';
 
-/** 占位符/空槽判定：识别失败里，若没有任何文字（OCR）线索、且最高候选分极低，
+/** 占位符/空槽判定：没有任何精灵名（OCR）线索，且最高候选分低于「识别门槛」（或本就没检出头像），
  *  说明这一格是游戏里的「?」占位符或空槽、并不是精灵——不应按红色「未匹配」告警。 */
-const PLACEHOLDER_BEST_SCORE = 0.45;
-function isPlaceholderSlot(item: BatchInitReviewItem): boolean {
+function isPlaceholderSlot(item: BatchInitReviewItem, threshold: number): boolean {
   if (item.status !== 'unmatched') return false;
   if (item.reason && item.reason.includes('未检出')) return true; // 纯前端：该槽位本就没检出头像
   const cands = item.candidates || [];
   if (cands.some((c) => c.source === 'ocr' || c.source === 'both')) return false; // 读到了精灵名，按真精灵处理
   const best = cands[0]?.score;
-  return best == null || best < PLACEHOLDER_BEST_SCORE;
+  // 最高候选仍低于识别门槛（或根本没有候选）：疑似占位符 / 空槽
+  return best == null || best < threshold;
 }
 
 interface BatchRecognizerCardProps {
@@ -105,10 +105,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [selectedMapNum, setSelectedMapNum] = useState<number>(currentMap.num);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [threshold, setThreshold] = useState<number>(() => storage.getThreshold('batch_threshold', 0.25));
+  const [threshold, setThreshold] = useState<number>(() => storage.getThreshold('batch_threshold', 0.6));
   const [topK, setTopK] = useState<number>(() => storage.getTopK(3));
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanError, setScanError] = useState<string | null>(null);
+  /** 识别成功但图里 0 个图位（空白/碎片截图）：给一个中性提示，不渲染假结果。 */
+  const [scanEmpty, setScanEmpty] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   /** 纯前端版：模型/特征库加载与推理阶段进度（桌面版不显示）。 */
   const [scanProgress, setScanProgress] = useState<{ phase: string; pct: number; text?: string } | null>(null);
@@ -484,6 +486,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     sound.playScan();
     setIsScanning(true);
     setScanError(null);
+    setScanEmpty(null);
     if (progressHideTimerRef.current !== null) {
       window.clearTimeout(progressHideTimerRef.current);
       progressHideTimerRef.current = null;
@@ -606,18 +609,30 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           }
         }
 
-        const isGoodMatch = raw.status === 'matched' && (activeScore ?? 1) >= threshold;
+        // 识别门槛是「是否为真精灵」的判定线：Top1 仍低于门槛、且没有 OCR 读到精灵名时，
+        // 这一格更可能是游戏里的「?」占位符 / 空槽，而不是一只低置信度精灵——按空槽处理。
+        const bestScore = activeScore ?? bestCand?.score ?? 0;
+        const hasOcrName = processedCandidates.some(
+          (c) => c.source === 'ocr' || c.source === 'both'
+        );
+        const weakAsPlaceholder =
+          raw.status === 'matched' && bestScore < threshold && !hasOcrName;
+        const effectiveStatus: 'matched' | 'unmatched' =
+          weakAsPlaceholder ? 'unmatched' : raw.status;
+
         const petName = matchedPet?.name || activeFilename || '';
         const alreadyEncountered = checkAlreadyEncountered(targetMap.id, petName);
 
         return {
           index: raw.index,
-          status: raw.status,
+          status: effectiveStatus,
           filename: activeFilename,
           score: activeScore,
           view_url: activeViewUrl,
           crop_image: raw.crop_image,
-          reason: raw.reason,
+          reason: weakAsPlaceholder
+            ? `最高候选匹配度仅 ${Math.round(bestScore * 100)}%，低于识别门槛 ${Math.round(threshold * 100)}%`
+            : raw.reason,
           matchedPet,
           candidates: processedCandidates,
           isAlreadyEncountered: alreadyEncountered,
@@ -628,6 +643,15 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
       setReviewItems(processed);
       setDupHintDismissed(false);
+      if (processed.length === 0) {
+        // 后端未检出任何图位（空白/碎片截图）：清空旧结果并提示，绝不保留上一张图的假数据。
+        setScanError(null);
+        setScanEmpty(
+          '未检测到精灵图位。请确认截图里包含完整的精灵图鉴格子（而不是空白画面或界面碎片），再重新识别。'
+        );
+        return;
+      }
+      setScanEmpty(null);
       sound.playClick();
 
       // 开荒采集：无完整图鉴的试炼（如火系），把识别到的 (图, 精灵id, 置信度) 上报用于聚合
@@ -661,6 +685,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
       // 把完整堆栈打到控制台：只显示 message 时，定位问题非常困难
       console.error('[batch] 批量识别失败：', err);
       setScanError(error.message || '批量识别请求失败，请检查网络或后端接口');
+      // 新图识别失败/未检出时，清空上一张图的结果，避免把旧图（或演示假数据）当成新图的识别结果。
+      setReviewItems([]);
     } finally {
       setIsScanning(false);
       setScanProgress(null);
@@ -1548,6 +1574,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 <span>{scanError}</span>
               </div>
           )}
+          {scanEmpty && (
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center gap-2">
+                <Info className="w-4 h-4 shrink-0 text-amber-500" />
+                <span>{scanEmpty}</span>
+              </div>
+          )}
         </div>
 
         {/* High-Resolution Lightbox Modal for Uploaded Screenshot */}
@@ -1733,7 +1765,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   const scorePercent = item.score ? (item.score * 100).toFixed(1) : '0';
                   const isHighScore = (item.score || 0) >= 0.88;
                   const isAlready = !!item.isAlreadyEncountered;
-                  const isPlaceholder = isPlaceholderSlot(item);
+                  const isPlaceholder = isPlaceholderSlot(item, threshold);
                   const displayName = formatPetName(item.matchedPet?.name || item.filename);
 
                   return (

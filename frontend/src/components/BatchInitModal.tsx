@@ -63,7 +63,7 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
   const [selectedMapNum, setSelectedMapNum] = useState<number>(currentMap.num);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [threshold, setThreshold] = useState<number>(() => storage.getThreshold('batch_threshold', 0.25));
+  const [threshold, setThreshold] = useState<number>(() => storage.getThreshold('batch_threshold', 0.6));
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);

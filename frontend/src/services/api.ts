@@ -460,7 +460,7 @@ export class ApiService {
   public async predictPet(
       imageFile: File | Blob,
       stageNum: number,
-      threshold: number = 0.25,
+      threshold: number = 0.6,
       topK: number = 3,
       trialKey: string = 'grass',
       /** PC 端进度条：带上任务号，后端会把阶段进度写进可轮询的快照。 */
@@ -547,6 +547,26 @@ export class ApiService {
       throw new Error('识别接口返回数据异常');
     } catch (err: unknown) {
       const error = err as AxiosError;
+      const httpStatus = error.response?.status;
+
+      // 桌面打包版（生产）：绝不伪造识别结果。
+      //  - 404 = 后端在图里没找到可识别的精灵（占位符/杂图），透出友好提示；
+      //  - 5xx = 后端处理出错，透传后端真实原因；
+      //  - 无响应 = 后端没启动/超时。
+      // 仅开发环境保留下面的内置演示结果，方便离线调试 UI。
+      if (import.meta.env.PROD) {
+        const serverMsg = (error.response?.data as { message?: string } | undefined)?.message;
+        if (httpStatus === 404) {
+          throw new Error(serverMsg || '未识别到匹配的精灵（截图里没有可识别的精灵图位）');
+        }
+        if (typeof httpStatus === 'number') {
+          throw new Error(`识别后端处理失败（HTTP ${httpStatus}）${serverMsg ? `：${serverMsg}` : ''}`);
+        }
+        throw new Error(
+          `无法连接本地识别后端 ${this.apiBase}/predict（${error.code || error.message}），请确认后端已启动。`
+        );
+      }
+
       console.warn('API predictPet failed, generating simulated smart match for demo:', error.message);
 
       // Offline simulation helper with top-k candidates
@@ -589,7 +609,7 @@ export class ApiService {
   public async initBatch(
       imageFile: File | Blob,
       stageNum: number,
-      threshold: number = 0.25,
+      threshold: number = 0.6,
       topK: number = 3,
       trialKey: string = 'grass',
       /** PC 端进度条：带上任务号，后端会把阶段进度写进可轮询的快照。 */
@@ -706,7 +726,38 @@ export class ApiService {
       throw new Error('批量初始化接口返回数据格式不符合规范');
     } catch (err: unknown) {
       const error = err as AxiosError;
-      console.warn('API initBatch failed, generating offline simulated detection:', error.message);
+      const httpStatus = error.response?.status;
+
+      // 后端明确返回 404（“No icons or text detected”）：这张图里没有任何精灵图位
+      // （空白截图 / 碎片 / UI 边缘）。这是合法的「未检出」，返回空结果即可，
+      // 绝不能落到下面的内置演示数据——否则会把假精灵当成真实识别结果展示。
+      if (httpStatus === 404) {
+        console.warn('API initBatch: 后端未在图中检出任何图位（404），返回空结果');
+        return {
+          data: { status: 'success', total_detected: 0, results: [] } as BatchInitApiResponse,
+          isOfflineMock: false,
+        };
+      }
+
+      // 真正的网络/后端不可用（后端没启动、超时等）：
+      //  - 桌面打包版（生产）不伪造任何识别结果，直接抛错让用户看到真实原因；
+      //  - 仅开发环境保留内置演示数据，便于离线调试 UI。
+      if (import.meta.env.PROD) {
+        const serverMsg = (error.response?.data as { message?: string } | undefined)?.message;
+        if (typeof httpStatus === 'number') {
+          // 后端有响应但处理出错（5xx 等）：透出后端真实原因，不能误导成「后端没启动」
+          throw new Error(
+            `识别后端处理失败（HTTP ${httpStatus}）${serverMsg ? `：${serverMsg}` : ''}；` +
+            '本次没有生成任何识别结果。'
+          );
+        }
+        throw new Error(
+          `无法连接本地识别后端 ${this.apiBase}/init_batch（${error.code || error.message}），` +
+          '请确认后端已启动；本次没有生成任何识别结果。'
+        );
+      }
+
+      console.warn('API initBatch failed (dev), generating offline simulated detection:', error.message);
 
       // Simulated batch detection for testing/offline mode
       const mapKey = `map${stageNum}`;

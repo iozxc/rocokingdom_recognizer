@@ -197,3 +197,154 @@ def segment_icons_by_name_anchors(image_bytes, name_items, k_diam=4.2, k_gap=0.1
 
     logger.debug(f"segment_icons_by_name_anchors: 切割完成, 输出图标={len(extracted)}")
     return extracted
+
+def is_blank_icon(pil_img, std_max=42.0, fg_dom_min=0.82, white_frac_max=0.97):
+    """空槽 / 空白裁剪判定：纯色（均匀绿底带淡「?」、或纯白）的图位不是精灵。
+
+    背景：纯色空槽（游戏里的「?」占位符）切成图位后，整块几乎都是同一个绿色圆角
+    底块，DINO 特征会和大量立绘共享的绿色背景高相似，反而得到 90%+ 的错误高分。
+    本函数在「提特征之前」就识别这类空槽，用两个互补判据：
+      - 灰度标准差 std：纹理量。空槽是大面积纯色，std 极低；真精灵有眼睛/描边/
+        多色块，std 明显更高。
+      - 前景主色占比 dominant_fg：只在「非白像素」里统计同一量化颜色（每通道 4 级，
+        共 64 桶）的占比，剔除白色 padding/圆角背景；空槽的非白部分几乎全是同一种
+        绿（≈0.99），真精灵则被多色精灵打散。
+    两个条件用 AND 连接，避免把「颜色很简单的真精灵」误杀（这类精灵 std 稍高或
+    主色占比稍低）。纯白占比极高时直接视为空槽。
+    返回 (is_blank, info)。
+    """
+    arr = np.asarray(pil_img.convert("RGB"), dtype=np.uint8)
+    gray = (
+        arr[:, :, 0].astype(np.int32) * 4899
+        + arr[:, :, 1].astype(np.int32) * 9617
+        + arr[:, :, 2].astype(np.int32) * 1868
+    ) >> 14
+    gray = gray.astype(np.float64)
+    std = float(gray.std())
+    white_frac = float((gray > 235).mean())
+    if white_frac > white_frac_max:
+        return True, {"std": std, "dominant_fg": 1.0, "white": white_frac}
+
+    q = arr.astype(np.uint32) >> 6
+    keys = (q[:, :, 0] << 4) | (q[:, :, 1] << 2) | q[:, :, 2]
+    fg = gray < 235
+    fg_n = int(fg.sum())
+    if fg_n > 16:
+        bins = np.bincount(keys[fg].ravel(), minlength=64)
+        dominant_fg = float(bins.max()) / float(fg_n)
+    else:
+        dominant_fg = 1.0
+    is_blank = (std < std_max) and (dominant_fg > fg_dom_min)
+    return is_blank, {"std": std, "dominant_fg": dominant_fg, "white": white_frac}
+
+
+def _placeholder_stats(pil_img):
+    """空槽/占位符的单图统计：std、白色占比、前景主色占比、平均饱和度、灰度像素占比。
+
+    灰度公式与前端一致 (4899R+9617G+1868B)>>14；饱和度用 HSV 简化的 chroma/max。
+    """
+    arr = np.asarray(pil_img.convert("RGB"), dtype=np.int32)
+    r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
+    gray = ((r * 4899 + g * 9617 + b * 1868) >> 14).astype(np.float64)
+    std = float(gray.std())
+    white_frac = float((gray > 235).mean())
+
+    q = arr.astype(np.uint32) >> 6
+    keys = (q[:, :, 0] << 4) | (q[:, :, 1] << 2) | q[:, :, 2]
+    fg = gray < 235
+    fg_n = int(fg.sum())
+    if fg_n > 16:
+        dominant_fg = float(np.bincount(keys[fg].ravel(), minlength=64).max()) / float(fg_n)
+    else:
+        dominant_fg = 1.0
+
+    mx = arr.max(2).astype(np.float32)
+    mn = arr.min(2).astype(np.float32)
+    chroma = mx - mn
+    nonwhite = mn < 240
+    if nonwhite.any():
+        sat = np.where(mx > 0, chroma / np.maximum(mx, 1.0), 0.0)
+        mean_sat = float(sat[nonwhite].mean())
+        gray_frac = float((chroma[nonwhite] < 18).mean())
+    else:
+        mean_sat, gray_frac = 0.0, 1.0
+
+    return {
+        "std": std,
+        "white": white_frac,
+        "dominant_fg": dominant_fg,
+        "mean_sat": mean_sat,
+        "gray_frac": gray_frac,
+    }
+
+
+def _placeholder_fingerprint(pil_img, size=48):
+    """缩放到固定尺寸的灰度零均值单位向量，用来比对两个图位是否“同一个占位符”。"""
+    g = np.asarray(
+        pil_img.convert("L").resize((size, size), Image.BILINEAR),
+        dtype=np.float32,
+    ).reshape(-1)
+    g = g - g.mean()
+    norm = float(np.linalg.norm(g))
+    return g / norm if norm > 1e-6 else g
+
+
+def detect_placeholder_icons(
+    icons,
+    std_max=42.0,
+    fg_dom_min=0.82,
+    white_frac_max=0.97,
+    dup_thr=0.90,
+    mean_sat_gate=0.18,
+    gray_frac_gate=0.42,
+):
+    """批量判定空槽/占位符（游戏里的「?」未遇见占位），返回 (flags, infos)。
+
+    比 is_blank_icon（只能认纯色平铺槽）更全，多一层“重复占位符”检测：
+
+    1) 单图纯色平铺：均匀绿底「?」、纯白等，几乎无纹理、前景主色高度集中。
+    2) 批量重复占位符：图鉴/背包里的“未遇见”是同一个灰色「?」布袋，同排会重复出现，
+       归一化缩略图几乎完全一致（实测相关系数 ≈0.99）；而不同精灵两两不同（实测 ≤0.77）。
+       再叠加“低信息量（去饱和/高灰度）”门槛，避免把重复出现的同色真精灵误判。
+       实测：灰色布袋 mean_sat≈0.07、gray_frac≈0.53；真彩精灵 mean_sat 更高、gray_frac
+       更低；最灰的真精灵（棋棋_黑子等）虽然也去饱和，但同屏只出现一只，不会被当成重复。
+    """
+    n = len(icons)
+    flags = [False] * n
+    reasons = [""] * n
+    infos = []
+    for im in icons:
+        try:
+            st = _placeholder_stats(im)
+        except Exception:
+            st = {"std": 0.0, "white": 0.0, "dominant_fg": 0.0,
+                  "mean_sat": 0.0, "gray_frac": 0.0}
+        infos.append(st)
+
+    # 1) 单图纯色平铺
+    for i in range(n):
+        st = infos[i]
+        if st["white"] > white_frac_max or (st["std"] < std_max and st["dominant_fg"] > fg_dom_min):
+            flags[i] = True
+            reasons[i] = "uniform"
+
+    # 2) 批量重复占位符（同一排的灰色「?」布袋）
+    if n >= 2:
+        try:
+            vec = np.array([_placeholder_fingerprint(im) for im in icons], dtype=np.float32)
+            sim = vec @ vec.T
+            np.fill_diagonal(sim, -1.0)
+            for i in range(n):
+                if flags[i]:
+                    continue
+                st = infos[i]
+                low_info = (st["mean_sat"] < mean_sat_gate) or (st["gray_frac"] > gray_frac_gate)
+                if not low_info:
+                    continue
+                if int((sim[i] >= dup_thr).sum()) >= 1:
+                    flags[i] = True
+                    reasons[i] = "duplicate"
+        except Exception:
+            logger.warning("detect_placeholder_icons: 重复占位符检测异常，已跳过", exc_info=True)
+
+    return flags, infos, reasons

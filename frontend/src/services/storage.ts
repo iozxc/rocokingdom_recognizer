@@ -173,6 +173,7 @@ export class StorageService {
       if (thresholdsData) {
         this.thresholds = JSON.parse(thresholdsData);
       }
+      this.migrateBatchThresholdDefault();
 
       const settingsData = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (settingsData) {
@@ -594,7 +595,26 @@ export class StorageService {
     return { encounteredCount: count, percentage };
   }
 
-  public getThreshold(key: string, defaultValue = 0.25): number {
+  /**
+   * 默认识别门槛从 25% 提升到 60%：把「仍停留在旧默认值 0.25」的 batch_threshold
+   * 一次性迁移到新默认 0.6；打标后无论用户再怎么调都不再改动。
+   * 没存过门槛的用户直接拿到调用处的新默认值 0.6。
+   */
+  private migrateBatchThresholdDefault(): void {
+    const flag = '__batch_threshold_v2';
+    if (this.thresholds[flag]) return;
+    if (this.thresholds['batch_threshold'] === 0.25) {
+      this.thresholds['batch_threshold'] = 0.6;
+    }
+    this.thresholds[flag] = 1;
+    try {
+      localStorage.setItem(THRESHOLDS_STORAGE_KEY, JSON.stringify(this.thresholds));
+    } catch {
+      /* 写入失败时忽略，本次会话仍用新默认值 */
+    }
+  }
+
+  public getThreshold(key: string, defaultValue = 0.6): number {
     return typeof this.thresholds[key] === 'number' ? this.thresholds[key] : defaultValue;
   }
 

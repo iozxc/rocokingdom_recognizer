@@ -221,6 +221,7 @@ class LocalRecognizerClass {
             ms: msg.ms,
             dim: msg.dim,
             sigs: msg.sigs as Uint8Array | undefined,
+            blankFlags: msg.blankFlags as Uint8Array | undefined,
           });
         }
       } else if (msg?.kind === 'feature') {
@@ -713,7 +714,7 @@ class LocalRecognizerClass {
       totalCount: number,
       nameItems: { text: string; cx: number; cy: number; nw: number; nh: number }[],
       onChunk?: (done: number, total: number) => void
-  ): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; dim: number; sigs?: Uint8Array }> {
+  ): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; dim: number; sigs?: Uint8Array; blankFlags?: Uint8Array }> {
     return new Promise((resolve, reject) => {
       createImageBitmap(image)
           .then((bitmap) => {
@@ -834,7 +835,7 @@ class LocalRecognizerClass {
     }
 
     const featureStart = performance.now();
-    const { feats, boxes, mode, dim, sigs } = await this.recognizeBitmap(
+    const { feats, boxes, mode, dim, sigs, blankFlags } = await this.recognizeBitmap(
         image,
         options.totalCount ?? 12,
         anchorItems,
@@ -851,10 +852,14 @@ class LocalRecognizerClass {
     const results: LocalResultItem[] = [];
     for (let i = 0; i < slots; i++) {
       if (this.isCanceled(token)) throw new Error(CANCELED);
+      // 空槽/空白裁剪：worker 已跳过提特征，这里按「未检出」处理（展示成空槽）；
+      // 若该位置恰好 OCR 读到了精灵名，仍会走 OCR 候选，不会被误杀。
+      const isBlankSlot = !!(blankFlags && blankFlags[i]);
       const query = feats.subarray(i * dim, (i + 1) * dim);
       results.push(await this.buildSlotResult({
         index: i,
         query,
+        hasFeature: !isBlankSlot,
         whitelist: wl,
         threshold,
         topK,
