@@ -11,6 +11,7 @@ import { useUpdateStore } from '../services/useUpdateStore';
 import { IS_STATIC } from '../services/staticMode';
 import { SyncPopType } from './SyncPopNotification';
 import { UserAgreementModal } from './UserAgreementModal';
+import { HotkeySetting } from './HotkeySetting';
 
 interface AppSettingsModalProps {
   isOpen: boolean;
@@ -47,6 +48,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   });
   const [showSamples, setShowSamples] = useState<boolean>(() => {
     return storage.getSetting<boolean>('showRecognitionSamples', true);
+  });
+  const [showDuplicateHint, setShowDuplicateHint] = useState<boolean>(() => {
+    return storage.getSetting<boolean>('showDuplicatePetHint', true);
   });
   const [showPetSkillHover, setShowPetSkillHover] = useState<boolean>(() => {
     return storage.getSetting<boolean>('showPetSkillHover', true);
@@ -90,6 +94,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (typeof settings.isSoundMuted === 'boolean') setIsSoundMuted(settings.isSoundMuted);
       if (settings.captureMode === 'hwnd' || settings.captureMode === 'grab') setCaptureMode(settings.captureMode);
       if (typeof settings.showRecognitionSamples === 'boolean') setShowSamples(settings.showRecognitionSamples);
+      if (typeof settings.showDuplicatePetHint === 'boolean') setShowDuplicateHint(settings.showDuplicatePetHint);
       if (typeof settings.showPetSkillHover === 'boolean') setShowPetSkillHover(settings.showPetSkillHover);
       if (typeof settings.showHomeScrollbar === 'boolean') setShowHomeScrollbar(settings.showHomeScrollbar);
       if (typeof settings.homeScrollbarWidth === 'number') setHomeScrollbarWidth(settings.homeScrollbarWidth);
@@ -116,6 +121,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       setCaptureMode(savedCaptureMode);
     }
     setShowSamples(storage.getSetting<boolean>('showRecognitionSamples', true));
+    setShowDuplicateHint(storage.getSetting<boolean>('showDuplicatePetHint', true));
     setShowPetSkillHover(storage.getSetting<boolean>('showPetSkillHover', true));
     setShowHomeScrollbar(storage.getSetting<boolean>('showHomeScrollbar', false));
     setHomeScrollbarWidth(storage.getSetting<number>('homeScrollbarWidth', 10));
@@ -293,6 +299,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     const next = !showSamples;
     setShowSamples(next);
     storage.setSetting('showRecognitionSamples', next);
+  };
+
+  const handleToggleDuplicateHint = () => {
+    sound.playClick();
+    const next = !showDuplicateHint;
+    setShowDuplicateHint(next);
+    storage.setSetting('showDuplicatePetHint', next);
   };
 
   const handleTogglePetSkillHover = () => {
@@ -554,6 +567,24 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                         />
                       </button>
                     </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">重复精灵提醒</div>
+                        <div className="text-[10px] text-slate-400">批量初始化时若识别到疑似重复精灵，弹出提醒（默认开启）</div>
+                      </div>
+                      <button
+                          type="button"
+                          id="settings-duplicate-hint-switch-btn"
+                          onClick={handleToggleDuplicateHint}
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showDuplicateHint ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                          title={showDuplicateHint ? '点击关闭重复精灵提醒' : '点击开启重复精灵提醒'}
+                      >
+                        <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showDuplicateHint ? 'translate-x-4' : 'translate-x-0'}`}
+                        />
+                      </button>
+                    </div>
                   </div>
 
                   {/* 界面 */}
@@ -580,6 +611,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                         />
                       </button>
                     </div>
+
+                    {/* 跟随识别全局热键：浏览器无法注册系统级热键，Web 版隐藏 */}
+                    {!IS_STATIC && <HotkeySetting />}
 
                     {/* 精灵技能悬浮提示（界面展示） */}
                     <div className="flex items-center justify-between">

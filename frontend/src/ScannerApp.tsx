@@ -54,6 +54,7 @@ import {
   getBasePetName,
 } from './utils/petHelper';
 import { ELEMENT_EN_TO_CN } from './utils/elements';
+import { DEFAULT_FOLLOW_HOTKEY, formatChord } from './utils/hotkey';
 
 interface DetectedPetSlot {
   id: string;
@@ -298,6 +299,20 @@ export const ScannerApp: React.FC = () => {
   const [isRecognizingNow, setIsRecognizingNow] = useState<boolean>(false);
   const [showRadarAnimation, setShowRadarAnimation] = useState<boolean>(false);
   const [lastScanTime, setLastScanTime] = useState<string>('未识别');
+  // 全局热键（桌面端）触发一次跟随识别的入口：用 ref 持有最新闭包，
+  // 后端在跟随识别窗口可见时调用 window.__rocoTriggerSingleScan()
+  const externalScanTriggerRef = useRef<() => void>(() => {});
+  // 当前全局热键（仅桌面端），用于「立即识别」按钮上的快捷键提示；设置改动即同步
+  const [followHotkey, setFollowHotkey] = useState<string>(() =>
+    IS_STATIC ? '' : storage.getSetting<string>('followScannerHotkey', DEFAULT_FOLLOW_HOTKEY)
+  );
+  useEffect(() => {
+    if (IS_STATIC) return;
+    const unsub = storage.subscribeSettings((st) => {
+      setFollowHotkey(st.followScannerHotkey ?? DEFAULT_FOLLOW_HOTKEY);
+    });
+    return unsub;
+  }, []);
   /** 推理设备状态（GPU/CPU）：底部状态栏展示，与首页识别卡共用同一个后端接口。 */
   const [inferBackend, setInferBackend] = useState<{
     activeLabel: string;
@@ -1150,6 +1165,27 @@ export const ScannerApp: React.FC = () => {
     }
   };
 
+  // 热键触发：始终复用「立即识别」按钮的最新逻辑（含当前地图/钉住状态）
+  externalScanTriggerRef.current = () => executeSingleRecognition(activeStageNum || undefined);
+  useEffect(() => {
+    const w = window as any;
+    // 后端 RegisterHotKey 在跟随识别窗口可见时调用：执行一次识别，不弹窗口
+    w.__rocoTriggerSingleScan = (): boolean => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        return false;
+      }
+      externalScanTriggerRef.current();
+      return true;
+    };
+    return () => {
+      try {
+        if (w.__rocoTriggerSingleScan) delete w.__rocoTriggerSingleScan;
+      } catch (e) {
+        w.__rocoTriggerSingleScan = undefined;
+      }
+    };
+  }, []);
+
   const handleCloseWindow = async () => {
     sound.playClick();
     const pyApi = (window as any).pywebview?.api?.close_current_window;
@@ -1670,7 +1706,7 @@ export const ScannerApp: React.FC = () => {
                   id="scanner-single-recognize-btn"
                   onClick={() => executeSingleRecognition(activeStageNum || undefined)}
                   disabled={isRecognizingNow}
-                  className={`py-2.5 px-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`relative py-2.5 px-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       hasPendingMapChange
                           ? 'bg-[#FEE061] hover:bg-[#F4D349] text-[#854D0E] border-2 border-[#E5C43B] shadow-sm active:scale-[0.99]'
                           : 'roco-btn-primary'
@@ -1696,6 +1732,18 @@ export const ScannerApp: React.FC = () => {
                       <Camera className="w-4 h-4" />
                       <span>立即识别当前游戏画面</span>
                     </>
+                )}
+                {followHotkey && !isRecognizingNow && !hasPendingMapChange && pinnedMapNum === null && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none select-none">
+                    {formatChord(followHotkey).split(' + ').map((part, i) => (
+                      <kbd
+                          key={i}
+                          className="inline-flex items-center justify-center h-[18px] min-w-[20px] px-1.5 rounded-lg text-[10px] font-mono font-bold text-white bg-white/25 border border-white/40 shadow-xs"
+                      >
+                        {part}
+                      </kbd>
+                    ))}
+                  </span>
                 )}
               </button>
             </div>

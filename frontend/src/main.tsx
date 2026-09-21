@@ -86,5 +86,31 @@ if (typeof window !== 'undefined') {
       e.preventDefault();
     }
   });
+
+  // 纯 Web 版：禁用浏览器原生右键菜单，但保留精灵卡片（PetGrid）的自定义右键菜单
+  if (IS_STATIC) {
+    window.addEventListener('contextmenu', (e) => {
+      const target = e.target as HTMLElement | null;
+      if (target && typeof target.closest === 'function' && target.closest('[id^="pet-card-"]')) {
+        return; // 精灵卡片：交给 PetGrid 自己的 onContextMenu（弹自定义菜单）
+      }
+      e.preventDefault();
+    }, true);
+  }
+
+  // 纯 Web 版跟随识别窗口：屏蔽 F12 / 开发者工具 / 查看源码快捷键
+  if (IS_STATIC && isStandaloneScanner) {
+    window.addEventListener('keydown', (e) => {
+      const key = (e.key || '').toUpperCase();
+      const isDevtoolsKey =
+        key === 'F12' ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'J', 'C'].includes(key)) ||
+        ((e.ctrlKey || e.metaKey) && key === 'U');
+      if (isDevtoolsKey) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  }
 }
 

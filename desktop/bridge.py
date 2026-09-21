@@ -113,6 +113,27 @@ class AppApi:
     def resize_scanner_window(self, width, height):
         return self._windows.resize_scanner(width, height)
 
+    def set_follow_hotkey(self, chord: str = ""):
+        """设置/更换跟随识别全局热键（规范串如 "Ctrl+Alt+R"；空串=禁用）。
+
+        返回 status=ok 时注册成功；reason=conflict 表示该组合键已被其他程序
+        （QQ/微信等）占用，前端应提示用户更换。
+        """
+        result = self._windows.apply_hotkey(chord or "")
+        if result.get("status") == "ok":
+            # 同时落盘到 appSettings，保证下次启动按此注册（前端也会再写一次，幂等）
+            try:
+                from core.services.user_storage import user_storage
+                user_storage.update_app_settings({"followScannerHotkey": chord or ""})
+            except Exception as e:
+                logger.warning(f"保存跟随识别热键设置失败: {e}")
+        return result
+
+    def get_follow_hotkey(self):
+        """返回当前已注册的跟随识别热键规范串。"""
+        chord = getattr(self._windows.hotkey, "_current_chord", "")
+        return {"status": "ok", "chord": chord or ""}
+
     # ---------------- 截图识别 ----------------
 
     def capture_and_recognize(self, target_title="计算器", stage_num=None, trial_key="grass"):

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   UploadCloud,
   Sparkles,
@@ -27,6 +27,8 @@ import {
   Eye,
   Maximize2,
   ArrowLeftRight,
+  Copy,
+  ImageOff,
   Image as ImageIcon,
 } from 'lucide-react';
 import { ImageZoom } from './ImageZoom';
@@ -62,6 +64,18 @@ import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 import { ModelAssetsModal } from './ModelAssetsModal';
 import { ElementBadges } from './ElementBadges';
 import { PetSpecialTag } from './PetSpecialTag';
+
+/** 占位符/空槽判定：识别失败里，若没有任何文字（OCR）线索、且最高候选分极低，
+ *  说明这一格是游戏里的「?」占位符或空槽、并不是精灵——不应按红色「未匹配」告警。 */
+const PLACEHOLDER_BEST_SCORE = 0.45;
+function isPlaceholderSlot(item: BatchInitReviewItem): boolean {
+  if (item.status !== 'unmatched') return false;
+  if (item.reason && item.reason.includes('未检出')) return true; // 纯前端：该槽位本就没检出头像
+  const cands = item.candidates || [];
+  if (cands.some((c) => c.source === 'ocr' || c.source === 'both')) return false; // 读到了精灵名，按真精灵处理
+  const best = cands[0]?.score;
+  return best == null || best < PLACEHOLDER_BEST_SCORE;
+}
 
 interface BatchRecognizerCardProps {
   currentMap: MapConfig;
@@ -158,6 +172,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [totalDetected, setTotalDetected] = useState<number>(0);
   const [filterTab, setFilterTab] = useState<'all' | 'unencountered' | 'alreadyEncountered' | 'checked' | 'unmatched'>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
+
+  // 批量初始化「疑似重复精灵」提醒：设置开关（默认开）+ 本次结果内手动关闭
+  const [showDuplicateHint, setShowDuplicateHint] = useState<boolean>(() =>
+    storage.getSetting<boolean>('showDuplicatePetHint', true)
+  );
+  const [dupHintDismissed, setDupHintDismissed] = useState<boolean>(false);
 
   // Help modal
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
@@ -349,6 +369,14 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         })
     );
   }, [selectedMapNum]);
+
+  // 设置里「重复精灵提醒」开关变化时实时同步（设置弹窗/跨窗口修改也生效）
+  useEffect(() => {
+    const unsub = storage.subscribeSettings((s) => {
+      if (typeof s.showDuplicatePetHint === 'boolean') setShowDuplicateHint(s.showDuplicatePetHint);
+    });
+    return () => unsub();
+  }, []);
 
   // Keyboard Escape listener for Lightbox
   useEffect(() => {
@@ -599,6 +627,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
       });
 
       setReviewItems(processed);
+      setDupHintDismissed(false);
       sound.playClick();
 
       // 开荒采集：无完整图鉴的试炼（如火系），把识别到的 (图, 精灵id, 置信度) 上报用于聚合
@@ -819,6 +848,38 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const unencounteredNewCount = reviewItems.filter((i) => i.status === 'matched' && !i.isAlreadyEncountered).length;
   const alreadyEncounteredCount = reviewItems.filter((i) => i.status === 'matched' && i.isAlreadyEncountered).length;
   const unmatchedCount = reviewItems.filter((i) => i.status === 'unmatched').length;
+
+  // 疑似重复精灵：同一只精灵（按 id，缺失时按文件名）在两个及以上图位命中
+  const duplicateGroups = useMemo(() => {
+    const groups = new Map<string, { name: string; indexes: number[] }>();
+    for (const item of reviewItems) {
+      if (item.status !== 'matched' || !item.matchedPet) continue;
+      const key = item.matchedPet.id != null ? `id:${item.matchedPet.id}` : `name:${item.filename || item.matchedPet.name}`;
+      if (!key) continue;
+      const name = formatPetName(item.matchedPet.name || item.filename);
+      const g = groups.get(key) ?? { name, indexes: [] };
+      g.indexes.push(item.index);
+      groups.set(key, g);
+    }
+    return Array.from(groups.values()).filter((g) => g.indexes.length > 1);
+  }, [reviewItems]);
+
+  const hasDuplicateTop1 = duplicateGroups.length > 0;
+  // 用户场景：批量初始化应全部是新精灵，若所有图位都命中却出现「已在图鉴」（未遇见 < 全部），
+  // 往往是某一格重复或误识别。
+  const allMatchedNoUnmatched = unmatchedCount === 0 && reviewItems.length > 0;
+  const hasAlreadyWhenAllMatched = allMatchedNoUnmatched && alreadyEncounteredCount > 0;
+  const showDuplicateBanner =
+    showDuplicateHint &&
+    !dupHintDismissed &&
+    reviewItems.length >= 2 &&
+    (hasDuplicateTop1 || hasAlreadyWhenAllMatched);
+
+  const handleDontShowDuplicateHint = () => {
+    storage.setSetting('showDuplicatePetHint', false);
+    setShowDuplicateHint(false);
+    setDupHintDismissed(true);
+  };
 
   // 卡片宽度随【结果区容器自身宽度】弹性变化（非固定像素、不看整个窗口）：
   // 祖先用 @container 建立容器查询上下文，这里按“结果容器宽度”选每行列数上限 N，
@@ -1525,6 +1586,76 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         {/* Review Workbench (Filtered, Actions & STRICTLY 3 COLUMNS) */}
         {reviewItems.length > 0 && (
             <div ref={reviewSectionRef} className="mt-5 space-y-4 animate-in fade-in duration-300 scroll-mt-20">
+              {/* 疑似重复精灵提醒：全部命中但有「已在图鉴」/ 同一精灵命中多格时弹出 */}
+              {showDuplicateBanner && (
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-300/80 bg-amber-50 dark:bg-amber-950/30 px-3.5 py-3 shadow-xs animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="mt-0.5 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
+                    <Copy className="w-4 h-4 text-amber-600 dark:text-amber-300" />
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="text-xs font-black text-amber-800 dark:text-amber-200">
+                      可能存在重复精灵，请核对
+                    </div>
+                    {hasDuplicateTop1 ? (
+                      <>
+                        <p className="mt-0.5 text-[11px] leading-relaxed text-amber-700/90 dark:text-amber-300/90">
+                          以下图位被识别成了同一只精灵；批量初始化时同一只通常只应有一个，可能是重复或切分/识别有误：
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {duplicateGroups.map((g) => (
+                            <button
+                              key={g.name}
+                              type="button"
+                              onClick={() => setFilterTab('all')}
+                              className="inline-flex items-center gap-1 rounded-full bg-amber-100/80 dark:bg-amber-900/50 border border-amber-300/70 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-200 hover:bg-amber-200/80 dark:hover:bg-amber-800/60 cursor-pointer"
+                              title="切到「全部」核对这些图位"
+                            >
+                              {g.name}
+                              <span className="font-mono font-black">（图位 {g.indexes.map((i) => i + 1).join('、')}）</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-amber-700/90 dark:text-amber-300/90">
+                        本次 {reviewItems.length} 个图位已全部识别，但「未遇见」只有
+                        <span className="font-black mx-0.5">{unencounteredNewCount}</span>
+                        个、还有
+                        <span className="font-black mx-0.5">{alreadyEncounteredCount}</span>
+                        个显示「已在图鉴」。批量初始化通常应全是新精灵，这可能是有图位重复或误识别，建议重点核对。
+                      </p>
+                    )}
+                    {!hasDuplicateTop1 && hasAlreadyWhenAllMatched && (
+                      <button
+                        type="button"
+                        onClick={() => setFilterTab('alreadyEncountered')}
+                        className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-100/80 dark:bg-amber-900/50 border border-amber-300/70 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-200 hover:bg-amber-200/80 dark:hover:bg-amber-800/60 cursor-pointer"
+                      >
+                        查看「已在图鉴」的 {alreadyEncounteredCount} 个图位
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleDontShowDuplicateHint}
+                      className="text-[10px] font-bold text-amber-700/80 dark:text-amber-300/80 hover:text-amber-900 dark:hover:text-amber-200 underline decoration-dotted underline-offset-2 cursor-pointer"
+                      title="关闭后不再自动弹出，可在「设置 → 提示与示例」里重新开启"
+                    >
+                      不再提示
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDupHintDismissed(true)}
+                      className="w-6 h-6 rounded-full text-amber-700/80 dark:text-amber-300/80 hover:bg-amber-200/70 dark:hover:bg-amber-800/60 flex items-center justify-center cursor-pointer"
+                      title="仅关闭本次提醒"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Integrated Control & Filter Strip (Tabs + Search Bar + Batch Actions) */}
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/90 dark:bg-slate-800/90 p-2 sm:p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
                 {/* 1. Left: Filter Tabs */}
@@ -1648,20 +1779,23 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   const scorePercent = item.score ? (item.score * 100).toFixed(1) : '0';
                   const isHighScore = (item.score || 0) >= 0.88;
                   const isAlready = !!item.isAlreadyEncountered;
+                  const isPlaceholder = isPlaceholderSlot(item);
                   const displayName = formatPetName(item.matchedPet?.name || item.filename);
 
                   return (
                       <div
                           key={item.index}
-                          onClick={() => handleToggleCheck(item.index)}
-                          className={`relative rounded-2xl border-3 p-3 transition-colors duration-150 flex flex-col justify-between cursor-pointer select-none group/card hover:shadow-md ${getCardBasisClass(filteredItems.length)} ${
+                          onClick={isPlaceholder ? undefined : () => handleToggleCheck(item.index)}
+                          className={`relative rounded-2xl border-3 p-3 transition-colors duration-150 flex flex-col justify-between ${isPlaceholder ? 'cursor-default' : 'cursor-pointer'} select-none group/card hover:shadow-md ${getCardBasisClass(filteredItems.length)} ${
                               item.isChecked
                                   ? 'border-[#95D151] bg-[#F9FEF8] dark:bg-emerald-950/40 shadow-xs ring-2 ring-[#95D151]/30'
-                                  : item.status === 'unmatched'
-                                      ? 'border-rose-300 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30 hover:border-rose-400'
-                                      : isAlready
-                                          ? 'border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/70 opacity-90 hover:border-slate-400'
-                                          : 'border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 opacity-80 hover:border-[#7ABCF4]'
+                                  : isPlaceholder
+                                      ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 hover:border-slate-400'
+                                      : item.status === 'unmatched'
+                                          ? 'border-rose-300 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30 hover:border-rose-400'
+                                          : isAlready
+                                              ? 'border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/70 opacity-90 hover:border-slate-400'
+                                              : 'border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 opacity-80 hover:border-[#7ABCF4]'
                           }`}
                       >
                         <div>
@@ -1670,13 +1804,14 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                             <label
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleToggleCheck(item.index);
+                                  if (!isPlaceholder) handleToggleCheck(item.index);
                                 }}
-                                className="flex items-center gap-1.5 cursor-pointer select-none"
+                                className={`flex items-center gap-1.5 select-none ${isPlaceholder ? 'cursor-default opacity-40' : 'cursor-pointer'}`}
                             >
                               <input
                                   type="checkbox"
                                   checked={item.isChecked}
+                                  disabled={isPlaceholder}
                                   onChange={() => {}}
                                   className="w-4 h-4 rounded text-[#95D151] accent-[#95D151] cursor-pointer"
                               />
@@ -1697,6 +1832,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                     }`}
                                 >
                                   {item.isManuallyEdited ? '已选定' : `Top 1: ${scorePercent}%`}
+                                </span>
+                            ) : isPlaceholder ? (
+                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
+                                  空槽
                                 </span>
                             ) : (
                                 <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300">
@@ -1744,6 +1883,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                           />
                                       }
                                   />
+                              ) : isPlaceholder ? (
+                                  <ImageOff className="w-7 h-7 text-slate-300 dark:text-slate-600" />
                               ) : (
                                   <HelpCircle className="w-8 h-8 text-rose-300 dark:text-rose-600" />
                               )}
@@ -1781,6 +1922,16 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                         pet={item.matchedPet}
                                         filename={item.filename}
                                     />
+                                  </div>
+                              ) : isPlaceholder ? (
+                                  <div className="w-full">
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">疑似占位符 / 空槽</p>
+                                    <p
+                                        className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 truncate"
+                                        title="该位置不是精灵（可能是游戏的「?」占位或空图位），已自动忽略；若确为精灵可在下方人工挑选"
+                                    >
+                                      不是精灵，已忽略 · 可人工挑选
+                                    </p>
                                   </div>
                               ) : (
                                   <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold truncate" title={item.reason || '特征不匹配'}>

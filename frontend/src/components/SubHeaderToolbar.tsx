@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { openFollowScanner } from '../services/followScanner';
+import { IS_STATIC } from '../services/staticMode';
 
 interface SubHeaderToolbarProps {
     filterMode: 'all' | 'encountered' | 'unencountered';
@@ -129,8 +130,8 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                         </button>
                     )}
 
-                    {/* 4. 全域搜索 */}
-                    {onOpenGlobalSearch && (
+                    {/* 4. 全域搜索（纯 Web 端不显示） */}
+                    {onOpenGlobalSearch && !IS_STATIC && (
                         <button
                             type="button"
                             id="sub-header-search-btn"

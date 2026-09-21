@@ -38,6 +38,17 @@ def run(app, hint=None) -> None:
     api = AppApi(window_manager=window_manager)
     window_manager.js_api = api
 
+    # 注册跟随识别全局热键（默认 Ctrl+Alt+S；读取用户设置；注册失败不阻断启动）
+    try:
+        from core.services.user_storage import user_storage
+        from desktop.hotkey import DEFAULT_FOLLOW_HOTKEY
+        saved_chord = user_storage.get_app_settings().get("followScannerHotkey")
+        window_manager.start_hotkey(
+            saved_chord if isinstance(saved_chord, str) and saved_chord else DEFAULT_FOLLOW_HOTKEY
+        )
+    except Exception as e:
+        logger.warning(f"启动跟随识别全局热键失败: {e}")
+
     logger.info("启动主窗口...")
     window_manager.create_main_window()
     _install_exit_watchdog(window_manager.main_window)

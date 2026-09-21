@@ -9,7 +9,6 @@ import {
   ArrowRight,
   ExternalLink,
   SlidersHorizontal,
-  Command,
   HelpCircle,
   Layers,
   ChevronRight,
@@ -29,6 +28,7 @@ import { openFollowScanner } from '../services/followScanner';
 import { isWebFollowSupported } from '../services/recognition/capture';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
+import { IS_STATIC } from '../services/staticMode';
 
 export interface GlobalSearchPetResult {
   pet: PetItem;
@@ -124,6 +124,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
   // Global Shortcut listener (Ctrl+K, Cmd+K, or '/')
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 纯 Web 端不提供全域搜索（入口已移除），不拦截 Ctrl+K / 斜杠
+      if (IS_STATIC) return;
       // Don't trigger if user is already typing in an input/textarea (unless it's our search modal)
       const target = e.target as HTMLElement;
       const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
@@ -276,7 +278,10 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
    * 桌面版一直显示（点开的是 pywebview 悬浮窗）；纯前端版只在浏览器支持屏幕捕获时显示
    * （点开的是网页版跟随识别面板）—— 入口完全一样，只是各自执行各自的效果。
    */
-  const showFollowFab = !searchOnly || isWebFollowSupported();
+  // 纯 Web 端（浏览器托管）不提供「跟随识别」（全局热键 / 屏幕捕获小窗是桌面壳能力），
+  // 也不显示右下角「全域图鉴搜索」，只保留数据管理等不依赖桌面壳的入口。
+  const showFollowFab = !IS_STATIC && (!searchOnly || isWebFollowSupported());
+  const showSearchFab = !IS_STATIC;
 
   return (
       <>
@@ -319,7 +324,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   </button>
               )}
 
-              {/* 5. 全域搜索 Icon */}
+              {/* 5. 全域搜索 Icon（纯 Web 端不显示） */}
+              {showSearchFab && (
               <button
                   type="button"
                   id="global-compact-search-fab"
@@ -332,6 +338,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
               >
                 <Search className="w-5 h-5" />
               </button>
+              )}
 
               {/* 火系共创图鉴相关按钮 */}
               {hasFireAtlas && (
@@ -464,7 +471,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         </>
                     )}
 
-                    {/* 5. 全域图鉴搜索 */}
+                    {/* 5. 全域图鉴搜索（纯 Web 端不显示） */}
+                    {showSearchFab && (
                     <button
                         id="global-floating-search-fab"
                         type="button"
@@ -489,10 +497,12 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   全域图鉴搜索
                 </span>
 
-                      <kbd className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-mono font-bold bg-white/25 px-2 py-0.5 rounded-lg border border-white/40 shadow-xs">
-                        <Command className="w-2.5 h-2.5" /> K
-                      </kbd>
+                      <span className="hidden sm:inline-flex items-center gap-0.5">
+                        <kbd className="inline-flex items-center text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded-lg border border-white/40 shadow-xs">Ctrl</kbd>
+                        <kbd className="inline-flex items-center text-[10px] font-mono font-bold bg-white/25 px-1.5 py-0.5 rounded-lg border border-white/40 shadow-xs">K</kbd>
+                      </span>
                     </button>
+                    )}
 
                     {/* 切换图鉴：放在全域搜索按钮下方 */}
                     {onToggleAtlasMode && (
@@ -518,8 +528,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
             </div>
         )}
 
-        {/* 2. Global Floating Search Modal Palette */}
-        {isSearchOpen && (
+        {/* 2. Global Floating Search Modal Palette（纯 Web 端不渲染） */}
+        {isSearchOpen && !IS_STATIC && (
             <div
                 className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-12 sm:pt-20 bg-slate-900/65 backdrop-blur-xs overflow-y-auto overscroll-contain animate-in fade-in duration-150"
                 onClick={() => setIsOpen(false)}

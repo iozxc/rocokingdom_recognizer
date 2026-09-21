@@ -10,6 +10,7 @@ import webview
 
 import config
 from core.infra.logger import logger
+from desktop.hotkey import DEFAULT_FOLLOW_HOTKEY, GlobalHotkeyManager
 
 # 主窗口的默认配置尺寸；低分辨率屏幕下会自动降级为全屏
 _MAIN_WINDOW_WIDTH = 1680
@@ -174,6 +175,72 @@ class WindowManager:
         # closing 事件来不及触发，只在关闭时保存会导致下次启动“读不到”上次位置
         self._geom_timer = None
         self._geom_timer_lock = threading.Lock()
+        # 全局热键（跟随识别）：独立线程 + 系统 RegisterHotKey。
+        # 热键按下时不弹窗口，而是在跟随识别窗口已开启时执行一次识别
+        self._hotkey_scan_lock = threading.Lock()
+        self.hotkey = GlobalHotkeyManager(on_trigger=self._on_hotkey_trigger)
+
+    def start_hotkey(self, chord: str = DEFAULT_FOLLOW_HOTKEY):
+        """启动全局热键线程并按设置里的组合键注册（失败不阻断主程序）。"""
+        try:
+            self.hotkey.start()
+            result = self.hotkey.set_chord(chord or DEFAULT_FOLLOW_HOTKEY)
+            if result.get("status") != "ok":
+                logger.warning(
+                    f"跟随识别全局热键注册失败（{chord}）：{result.get('reason')}，"
+                    "可在系统设置里更换快捷键"
+                )
+        except Exception as e:
+            logger.warning(f"初始化跟随识别全局热键失败: {e}")
+
+    def apply_hotkey(self, chord: str):
+        """设置里修改热键时调用：重新注册；空串表示禁用。"""
+        try:
+            return self.hotkey.set_chord(chord or "")
+        except Exception as e:
+            logger.error(f"应用跟随识别热键异常: {e}", exc_info=True)
+            return {"status": "error", "reason": "exception", "message": str(e)}
+
+    def _on_hotkey_trigger(self):
+        """热键按下（热键线程）：切到工作线程执行一次识别，避免阻塞消息循环。"""
+        threading.Thread(
+            target=self.trigger_follow_scan, name="hotkey-follow-scan", daemon=True
+        ).start()
+
+    def _is_scanner_visible(self) -> bool:
+        """用原生 IsWindowVisible 判断跟随识别窗口当前是否可见（隐藏复用也能识别）。"""
+        if self.scanner_window is None:
+            return False
+        try:
+            windows = gw.getWindowsWithTitle('精灵识别跟随')
+            if not windows:
+                return False
+            return bool(ctypes.windll.user32.IsWindowVisible(int(windows[0]._hWnd)))
+        except Exception as e:
+            logger.debug(f"读取跟随识别窗口可见性失败: {e}")
+            return False
+
+    def trigger_follow_scan(self):
+        """全局热键：跟随识别窗口已开启且可见时，执行一次识别（等价于点「立即识别」）。
+
+        窗口未打开/被隐藏时不做任何事——不会主动弹出窗口，避免打扰游戏画面。
+        """
+        with self._hotkey_scan_lock:
+            if not self._is_scanner_visible() or self.scanner_window is None:
+                logger.debug("跟随识别热键按下，但窗口未打开/不可见，忽略")
+                return
+            try:
+                ok_raw = self.scanner_window.evaluate_js(
+                    "(window.__rocoTriggerSingleScan && window.__rocoTriggerSingleScan()) || false"
+                )
+                # 兼容 pywebview 返回原生 bool 或字符串 "true"/"false"
+                ok = ok_raw is True or str(ok_raw).strip().lower() == "true"
+                if ok:
+                    logger.info("全局热键已触发一次跟随识别")
+                else:
+                    logger.warning("跟随识别窗口未就绪（未注册扫描入口），本次热键忽略")
+            except Exception as e:
+                logger.warning(f"全局热键触发跟随识别失败: {e}")
 
     @property
     def base_url(self) -> str:

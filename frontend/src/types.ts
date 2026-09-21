@@ -262,6 +262,7 @@ export interface AppSettings {
   activeStageNum?: number; // 当前选中的试炼关卡编号（图1-3，用于主页面与ScannerApp识别时自动联动）
   scannerPinnedStageNum?: number | null; // ScannerApp 钉住的试炼关卡编号（非 null 时识别后视图不跳回）
   showRecognitionSamples?: boolean; // 首页识别示例截图提示（test1~5）是否显示
+  showDuplicatePetHint?: boolean; // 首页批量识别发现疑似重复精灵时是否弹出小提醒（默认开启）
   effectLevel?: EffectLevel; // 0: 关闭, 1: 轻微 (默认), 2: 标准, 3: 丰富
   floatingButtonsMode?: FloatingButtonsMode; // 'normal' 正常完整 | 'compact' 紧凑缩小 | 'hidden' 彻底隐藏
   isSimplifiedFABs?: boolean; // 快捷面板是否开启精简模式（隐藏数据管理等次要入口）
@@ -270,6 +271,7 @@ export interface AppSettings {
   hideUpdateDot?: boolean; // 是否隐藏更新提示红点（默认不隐藏）
   showHints?: boolean; // 启动/退出提示窗口是否显示（默认关闭，首次启动强制显示一次）
   followTopMost?: boolean; // 跟随识别窗口是否默认置顶（默认开启）
+  followScannerHotkey?: string; // 全局显示/隐藏跟随识别窗口的快捷键（规范串，如 "Ctrl+Alt+R"）；空串=禁用；仅桌面版生效
   gpuAcceleration?: boolean; // 推理是否使用 GPU 加速（默认开启；关闭后强制 CPU，功能一致）
   debugImageCap?: number; // debug 截图保留上限（张），0 = 关闭不保存（默认 0）
   fireSettings?: FireSettings; // 火系徽章试炼专属设置
