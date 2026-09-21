@@ -33,7 +33,7 @@ import {
 import { ImageZoom } from './ImageZoom';
 import { PetSprite } from './PetSprite';
 import { collectAtlasObservation } from '../services/atlasCollector';
-import confetti from 'canvas-confetti';
+import { fireEncounterConfetti } from '../services/effect';
 import { ThresholdSlider } from './ThresholdSlider';
 import { HintTooltip } from './HintTooltip';
 import {
@@ -42,6 +42,7 @@ import {
   BatchInitReviewItem,
   BatchInitCandidateItem,
   EncounterRecord,
+  EffectLevel,
 } from '../types';
 import {
   cancelLocalRecognition,
@@ -833,12 +834,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
 
     sound.playEncounter();
 
-    confetti({
-      particleCount: 120,
-      spread: 90,
-      origin: { y: 0.5 },
-      colors: ['#10b981', '#38bdf8', '#fbbf24', '#f43f5e', '#a855f7'],
-    });
+    // 特效等级跟随「系统设置 → 视觉与特效」（0 关闭 / 1 轻微 / 2 标准 / 3 丰富），
+    // 与首页、跟随识别、精灵详情用同一套彩花；以前这里写死 120 粒，设置不生效。
+    fireEncounterConfetti(storage.getSetting<EffectLevel>('effectLevel', 0));
 
     const payload = selectedToEncounter.map((item) => ({
       mapId: targetMap.id,
@@ -1043,8 +1041,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 <button
                     type="button"
                     onClick={handleClearUpload}
-                    className="text-xs font-black text-rose-600 dark:text-rose-400 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/60 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                    title="清空当前截图与识别列表"
+                    disabled={isScanning}
+                    className="text-xs font-black text-rose-600 dark:text-rose-400 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/60 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-rose-50 dark:disabled:hover:bg-rose-950/40 disabled:hover:text-rose-600 dark:disabled:hover:text-rose-400"
+                    title={isScanning ? '识别进行中，请稍候或等待识别完成' : '清空当前截图与识别列表'}
                 >
                   <Trash2 className="w-3.5 h-3.5 text-rose-500" />
                   <span>清空</span>
@@ -1405,8 +1404,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         <button
                             type="button"
                             onClick={handleClearUpload}
-                            className="p-1 rounded-lg bg-white dark:bg-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-600 hover:border-rose-200 text-slate-400 hover:text-rose-600 shadow-2xs transition-colors cursor-pointer"
-                            title="移除图片"
+                            disabled={isScanning}
+                            className="p-1 rounded-lg bg-white dark:bg-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-600 hover:border-rose-200 text-slate-400 hover:text-rose-600 shadow-2xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-700 disabled:hover:text-slate-400"
+                            title={isScanning ? '识别进行中，请稍候' : '移除图片'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

@@ -527,6 +527,28 @@ export class StorageService {
     }
   }
 
+  /**
+   * 更新某条遇见记录的备注（精灵详情页使用）。
+   * 传空串/纯空白视为清除备注；记录不存在（尚未点亮）时忽略。
+   * 与 getRecord 一样会回退到形态变体键，避免备注写到另一条记录上。
+   */
+  public updateNote(mapId: string, filename: string, note: string): void {
+    const key = this.getKey(mapId, filename);
+    let targetKey = key;
+    if (!this.records[targetKey]) {
+      const matchingKeys = findMatchingRecordKeys(this.records, mapId, filename);
+      if (matchingKeys.length > 0) targetKey = matchingKeys[0];
+    }
+    const existing = this.records[targetKey];
+    if (!existing) return;
+    const trimmed = note.trim();
+    this.records[targetKey] = {
+      ...existing,
+      note: trimmed ? trimmed : undefined,
+    };
+    this.triggerSave();
+  }
+
   public resetMap(mapId: string): void {
     const now = new Date().toISOString();
     Object.keys(this.records).forEach((key) => {

@@ -147,7 +147,7 @@ export const HotkeySetting: React.FC = () => {
               type="button"
               onClick={handleReset}
               className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#7ABCF4] text-slate-500 hover:text-[#2B78C4] cursor-pointer transition-colors"
-              title="恢复默认 Ctrl+Alt+S"
+              title={`恢复默认 ${formatChord(DEFAULT_FOLLOW_HOTKEY)}`}
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>

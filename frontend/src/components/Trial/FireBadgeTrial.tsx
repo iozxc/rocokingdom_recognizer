@@ -748,6 +748,9 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
             onToggleEncounter={(mapId, filename) => {
               fireStorage.toggleEncountered(mapId, filename, '详情页');
             }}
+            onUpdateNote={(mapId, filename, note) => {
+              fireStorage.updateNote(mapId, filename, note);
+            }}
         />
 
         {/* 共创图鉴弹窗（含刷新图鉴/隐藏投票/赞同率筛选控制） */}

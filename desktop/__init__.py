@@ -38,7 +38,7 @@ def run(app, hint=None) -> None:
     api = AppApi(window_manager=window_manager)
     window_manager.js_api = api
 
-    # 注册跟随识别全局热键（默认 Ctrl+Alt+S；读取用户设置；注册失败不阻断启动）
+    # 注册跟随识别全局热键（默认 Ctrl+D；读取用户设置；注册失败不阻断启动）
     try:
         from core.services.user_storage import user_storage
         from desktop.hotkey import DEFAULT_FOLLOW_HOTKEY

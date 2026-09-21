@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { X, Check, RotateCcw, Sparkles, Crown, Layers, Calendar, FileText, Info } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Check, RotateCcw, Sparkles, Crown, Layers, Calendar, FileText, Info, Pencil } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, EffectLevel } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
@@ -29,18 +29,34 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
   currentMap,
   record,
   onToggleEncounter,
+  onUpdateNote,
 }) => {
+  // 备注编辑态：打开弹窗/切换精灵时重置，避免把上一只的草稿带进来
+  const [noteEditing, setNoteEditing] = useState(false);
+  const [noteDraft, setNoteDraft] = useState('');
+
   // 监听 ESC 键关闭
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // 正在编辑备注时，Esc 优先退出编辑而不是整个弹窗
+        if (noteEditing) {
+          setNoteEditing(false);
+          return;
+        }
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, noteEditing]);
+
+  // 每次打开弹窗或切换到另一只精灵，退出编辑态并清空草稿
+  useEffect(() => {
+    setNoteEditing(false);
+    setNoteDraft('');
+  }, [isOpen, pet, currentMap?.id]);
 
   if (!isOpen || !pet) return null;
 
@@ -84,6 +100,24 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
       fireUnencounterEffect(level);
     }
     onToggleEncounter(currentMap.id, pet.name);
+  };
+
+  const handleStartEditNote = () => {
+    sound.playClick();
+    setNoteDraft(record?.note || '');
+    setNoteEditing(true);
+  };
+
+  const handleSaveNote = () => {
+    sound.playClick();
+    onUpdateNote?.(currentMap.id, pet.name, noteDraft.trim());
+    setNoteEditing(false);
+  };
+
+  const handleCancelEditNote = () => {
+    sound.playClick();
+    setNoteEditing(false);
+    setNoteDraft('');
   };
 
   return (
@@ -201,17 +235,65 @@ export const PetDetailModal: React.FC<PetDetailModalProps> = ({
                   {formatTime(record.lastSeenAt)}
                 </span>
               </div>
-              {record.note && (
-                <div className="pt-1.5 border-t border-sky-100 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-semibold">
-                  <div className="flex items-center gap-1">
+              <div className="pt-1.5 border-t border-sky-100 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-semibold">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="flex items-center gap-1">
                     <FileText className="w-3.5 h-3.5 text-sky-500 shrink-0" />
                     <span>标记备注</span>
+                  </span>
+                  {!noteEditing && (
+                    <button
+                      type="button"
+                      id="pet-detail-edit-note-btn"
+                      onClick={handleStartEditNote}
+                      className="inline-flex items-center gap-0.5 text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 cursor-pointer transition-colors"
+                      title={record.note ? '编辑备注' : '添加备注'}
+                    >
+                      <Pencil className="w-3 h-3" />
+                      {record.note ? '编辑' : '添加'}
+                    </button>
+                  )}
+                </div>
+                {noteEditing ? (
+                  <div className="mt-1.5 space-y-1" onClick={(e) => e.stopPropagation()}>
+                    <textarea
+                      value={noteDraft}
+                      onChange={(e) => setNoteDraft(e.target.value)}
+                      rows={3}
+                      maxLength={200}
+                      autoFocus
+                      placeholder="记录这只精灵的备注，如捕捉地点、性格、用途等"
+                      className="w-full rounded-lg border border-sky-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1.5 text-[11px] text-slate-700 dark:text-slate-200 font-medium leading-relaxed resize-none outline-none focus:border-[#2B78C4] focus:ring-2 focus:ring-sky-100 dark:focus:ring-slate-700"
+                    />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-normal text-slate-400">{noteDraft.length}/200</span>
+                      <span className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={handleCancelEditNote}
+                          className="px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                        >
+                          取消
+                        </button>
+                        <button
+                          type="button"
+                          id="pet-detail-save-note-btn"
+                          onClick={handleSaveNote}
+                          className="px-2 py-0.5 rounded-md text-[10px] font-bold text-white bg-sky-500 hover:bg-sky-600 cursor-pointer transition-colors"
+                        >
+                          保存
+                        </button>
+                      </span>
+                    </div>
                   </div>
+                ) : record.note ? (
                   <p className="mt-1 text-slate-700 dark:text-slate-200 font-medium leading-relaxed break-words whitespace-pre-wrap">
                     {record.note}
                   </p>
-                </div>
-              )}
+                ) : (
+                  <p className="mt-1 text-[11px] font-normal text-slate-400 dark:text-slate-500 italic">暂无备注</p>
+                )}
+              </div>
             </div>
           )}
 

@@ -264,6 +264,22 @@ export class FireStorageService {
     return !wasEncountered;
   }
 
+  /**
+   * 更新某条遇见记录的备注（精灵详情页使用）。
+   * 传空串/纯空白视为清除备注；记录不存在（尚未点亮）时忽略。
+   */
+  public updateNote(mapId: string, filename: string, note: string): void {
+    const key = `${mapId}_${filename}`;
+    const existing = this.records[key];
+    if (!existing) return;
+    const trimmed = note.trim();
+    this.records[key] = {
+      ...existing,
+      note: trimmed ? trimmed : undefined,
+    };
+    this.triggerSave();
+  }
+
   /** 写入投票（并入 encounteredPets2 记录；未点亮且清票时删除占位记录）。 */
   public updateVote(mapId: string, filename: string, vote?: 'agree' | 'disagree'): void {
     const key = `${mapId}_${filename}`;
