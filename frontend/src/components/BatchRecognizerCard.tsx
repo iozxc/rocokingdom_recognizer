@@ -161,6 +161,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [batchInfo, setBatchInfo] = useState<{ count: number; mode: 'single' | 'batch' } | null>(null);
   /** 纯前端版：OCR 名字融合开关（关掉可省 15MB 下载与每次几百 ms 推理）。 */
   const [ocrEnabled, setOcrEnabled] = useState<boolean>(() => storage.getSetting<boolean>('webEnableOcr', true));
+  /** 视角自动归位：识别完成自动下滚到结果区、确认点亮后回到识别区；关闭后识别全程不自动滚动。 */
+  const [autoReturnView, setAutoReturnView] = useState<boolean>(() =>
+    storage.getSetting<boolean>('autoReturnView', true)
+  );
 
   // 识别参数小弹窗（识别门槛 / 候选数量收进此处，正常使用无需展开）
   const [showRecogSettings, setShowRecogSettings] = useState<boolean>(false);
@@ -666,15 +670,17 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         }
       });
 
-      // 识别完成后平滑往下滚到候选/结果区，方便直接核对候选
-      setTimeout(() => {
-        if (reviewSectionRef.current) {
-          const rect = reviewSectionRef.current.getBoundingClientRect();
-          // Leave comfortable 75px headroom so the entire control toolbar is fully visible
-          const targetY = window.pageYOffset + rect.top - 75;
-          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-        }
-      }, 120);
+      // 识别完成后平滑往下滚到候选/结果区，方便直接核对候选（可在「识别参数」里关掉视角自动归位）
+      if (autoReturnView) {
+        setTimeout(() => {
+          if (reviewSectionRef.current) {
+            const rect = reviewSectionRef.current.getBoundingClientRect();
+            // Leave comfortable 75px headroom so the entire control toolbar is fully visible
+            const targetY = window.pageYOffset + rect.top - 75;
+            window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+          }
+        }, 120);
+      }
     } catch (err: unknown) {
       if (isRecognitionCanceled(err)) {
         // 用户换图/主动取消：静默放弃，不当作错误提示
@@ -845,12 +851,14 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     onBatchEncounterSuccess(payload);
     handleClearUpload();
 
-    // 确认后回到「游戏画面识别」区，让它显示在最上面
-    requestAnimationFrame(() => {
-      if (gameViewRef.current) {
-        gameViewRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
+    // 确认后回到「游戏画面识别」区，让它显示在最上面（关闭视角自动归位时不动）
+    if (autoReturnView) {
+      requestAnimationFrame(() => {
+        if (gameViewRef.current) {
+          gameViewRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
   };
 
   const filteredItems = reviewItems.filter((item) => {
@@ -1170,6 +1178,34 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         ))}
                       </div>
                     </div>
+
+                    {/* 视角自动归位：识别完自动下滚到结果、确认后回到识别区；关闭后全程不自动滚动（桌面 / Web 都生效） */}
+                    <label className="flex items-start gap-2 cursor-pointer select-none pt-1 border-t border-slate-100 dark:border-slate-700">
+                      <input
+                          type="checkbox"
+                          checked={autoReturnView}
+                          disabled={isScanning}
+                          onChange={(e) => {
+                            const next = e.target.checked;
+                            setAutoReturnView(next);
+                            storage.setSetting('autoReturnView', next);
+                          }}
+                          className="mt-0.5 w-3.5 h-3.5 accent-[#7ABCF4] cursor-pointer"
+                      />
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <HintTooltip
+                            side="bottom"
+                            content="开启后：识别完成自动把视角带到结果区，确认点亮后自动回到识别区（归位）。关闭后识别全程不自动滚动，视角停在你当前的位置。"
+                            className="cursor-help"
+                        >
+                          <span className="font-black text-slate-600 dark:text-slate-300 underline decoration-dotted decoration-slate-300 underline-offset-2 flex items-center gap-0.5">
+                            视角自动归位<Info className="w-3 h-3 text-slate-400" />
+                          </span>
+                        </HintTooltip>
+                        <br />
+                        识别完成自动定位到结果区、确认点亮后回到识别区；关闭后识别全程视角不自动滚动。
+                      </span>
+                    </label>
 
                     {/* 纯前端版：不再提供模型切换（部署包只带 int8，受 Pages 单文件 25MiB 限制），
                         只显示当前实际生效的模型 + OCR 增强开关。桌面版没有这一块。 */}

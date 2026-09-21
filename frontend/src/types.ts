@@ -263,6 +263,7 @@ export interface AppSettings {
   scannerPinnedStageNum?: number | null; // ScannerApp 钉住的试炼关卡编号（非 null 时识别后视图不跳回）
   showRecognitionSamples?: boolean; // 首页识别示例截图提示（test1~5）是否显示
   showDuplicatePetHint?: boolean; // 首页批量识别发现疑似重复精灵时是否弹出小提醒（默认开启）
+  autoReturnView?: boolean; // 首页批量识别「视角自动归位」：识别完成自动下滚到结果区、确认点亮后回到识别区（默认开启；关闭后识别全程不自动滚动）
   effectLevel?: EffectLevel; // 0: 关闭, 1: 轻微 (默认), 2: 标准, 3: 丰富
   floatingButtonsMode?: FloatingButtonsMode; // 'normal' 正常完整 | 'compact' 紧凑缩小 | 'hidden' 彻底隐藏
   isSimplifiedFABs?: boolean; // 快捷面板是否开启精简模式（隐藏数据管理等次要入口）
