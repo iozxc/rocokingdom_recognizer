@@ -280,11 +280,24 @@ export interface AppSettings {
   [key: string]: unknown;
 }
 
+// 极简结构化更新日志（时间线），由远程 version.json 的 changelog 字段提供
+export interface UpdateLogItem {
+  k?: string; // 分类：新功能 / 重要 / 优化 / 修复 / 网页 / 注意
+  t: string; // 一句话说明
+}
+export interface UpdateLogEntry {
+  version: string;
+  date?: string;
+  tag?: string; // 角标，如 重大 / 推荐
+  items: UpdateLogItem[];
+}
+
 export interface CheckUpdateResponse {
   has_update: boolean;
   latest_version?: string;
   current_version?: string;
   update_log?: string;
+  changelog?: UpdateLogEntry[];
   mirrors?: Record<string, string>;
   auto_update?: {
     base_url?: string;

@@ -153,6 +153,11 @@ UPDATE_CHECK_URL = _env(
     "ROCO_UPDATE_CHECK_URL",
     "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
 )
+# 极简更新日志时间线（独立文件，与 version.json 分离，避免清单过大；读取失败不影响更新检测）
+CHANGELOG_URL = _env(
+    "ROCO_CHANGELOG_URL",
+    "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/changelog.json",
+)
 FEISHU_WEBHOOK_URL = _env("ROCO_FEISHU_WEBHOOK_URL", _meta("feishu_webhook"))
 DATA_MANIFEST_URL = _env("ROCO_DATA_MANIFEST_URL",
                          "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/data_manifest.json")
