@@ -1,27 +1,27 @@
 {
-  "version": "1.4.8",
+  "version": "1.4.10",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "",
+  "update_log": "【v1.4.10 更新公告】\n\n【功能新增】\n1、新增了首页中对重复识别的提醒\n2、增加了跟随识别快捷键，可在设置中修改\n3、新增了更新时间线\n\n【优化&修复】\n4、优化了模型，增强了对雪绒鸟等多形态精灵的识别\n5、修复了最小化退出再打开时的异常窗口记录\n6、优化了首页识别的体验",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.10/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "d60a1fbdff78d658174a9811ab9569b1",
+        "md5": "f5c73d67d0fc3ff60ce2998adabed0a4",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "ff566cba671b4c098da34e0d1f97990c",
+        "md5": "3d446589eb1349790133b3a510c15ec1",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "1a014242319129a71a5737b4d895a07b",
-        "size": 65329846
+        "md5": "0fc6fa62e3c9f0e84ebd264b5861ba8e",
+        "size": 65365613
       }
     ]
   },
@@ -29,40 +29,40 @@
     {
       "base_version": "1.4.9",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.10/RocoKingdomRecognizer_delta_1.4.9.7z",
-      "md5": "4fec8fc99d64c06918e825852d090fad",
-      "size": 28647088,
+      "md5": "9adcd3b3790cdef503cb90231c8e1c21",
+      "size": 28654490,
       "changed": 9,
       "removed": 3
     },
     {
       "base_version": "1.4.8",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.10/RocoKingdomRecognizer_delta_1.4.8.7z",
-      "md5": "3b6470a464d9b6aee1bb9b5018963679",
-      "size": 28647087,
+      "md5": "0d7125f47dcac42868bee39af772fd5f",
+      "size": 28654493,
       "changed": 9,
       "removed": 3
     },
     {
       "base_version": "1.4.7",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.10/RocoKingdomRecognizer_delta_1.4.7.7z",
-      "md5": "40f06f87b5faa3b5f89a660716ce8540",
-      "size": 44784053,
+      "md5": "5e7fe045d63697186c3447f15e5e3d95",
+      "size": 44787910,
       "changed": 67,
       "removed": 12
     },
     {
       "base_version": "1.4.6",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.10/RocoKingdomRecognizer_delta_1.4.6.7z",
-      "md5": "112943c0e2d827017b73c63a23088ad8",
-      "size": 44783956,
+      "md5": "f764a70c86a8fc0dbcd091999ea89b04",
+      "size": 44787869,
       "changed": 67,
       "removed": 13
     },
     {
       "base_version": "1.4.5",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.4.10/RocoKingdomRecognizer_delta_1.4.5.7z",
-      "md5": "534eee05340b99f0043da8f5b45dbf1b",
-      "size": 68520057,
+      "md5": "e68943073088b93874e713ac0e297b1a",
+      "size": 68541531,
       "changed": 78,
       "removed": 13
     }
