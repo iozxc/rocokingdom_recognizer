@@ -543,6 +543,12 @@ export default function App() {
     refreshRecords();
   };
 
+  // 详情弹窗内修改备注（弹窗自己播放音效，这里只落库刷新）
+  const handleDetailUpdateNote = (mapId: string, filename: string, note: string) => {
+    storage.updateNote(mapId, filename, note);
+    refreshRecords();
+  };
+
   // Reset Encounters for Current Map
   const handleResetCurrentMap = () => {
     storage.resetMap(currentMap.id);
@@ -897,6 +903,7 @@ export default function App() {
             currentMap={currentMap}
             record={detailPet ? storage.getRecord(currentMap.id, detailPet.name) : undefined}
             onToggleEncounter={handleDetailToggleEncounter}
+            onUpdateNote={handleDetailUpdateNote}
         />
 
         {/* Check Update Modal */}

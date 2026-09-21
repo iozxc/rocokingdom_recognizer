@@ -12,11 +12,14 @@ import config
 from core.infra.logger import logger
 from desktop.hotkey import DEFAULT_FOLLOW_HOTKEY, GlobalHotkeyManager
 
-# 主窗口的默认配置尺寸；低分辨率屏幕下会自动降级为全屏
-_MAIN_WINDOW_WIDTH = 1680
-_MAIN_WINDOW_HEIGHT = 1080
+# 主窗口最小尺寸（min_size 与异常几何判定共用）
 _MAIN_WINDOW_MIN_WIDTH = 555
 _MAIN_WINDOW_MIN_HEIGHT = 300
+# 首次打开时窗口占屏幕工作区（排除任务栏后的可用区域）的比例上限
+_MAIN_WINDOW_DESKTOP_COVERAGE = 0.9
+# 超大屏（如 4K）上首次打开窗口的最大尺寸，避免窗口被放得过大
+_MAIN_WINDOW_MAX_WIDTH = 1920
+_MAIN_WINDOW_MAX_HEIGHT = 1080
 _MAIN_WINDOW_STATE_FILE = "window_state.json"
 _MAIN_WINDOW_STATE_KEY = "mainWindow"
 
@@ -31,6 +34,27 @@ def _get_screen_size():
     except Exception as e:
         logger.warning(f"读取屏幕分辨率失败，使用默认 1920x1080: {e}")
     return 1920, 1080
+
+
+def _get_work_area_rect():
+    """返回主显示器工作区 (左, 上, 宽, 高)，物理像素；已排除任务栏/停靠栏。
+
+    SystemParametersInfoW 的 SPI_GETWORKAREA 在 System-DPI-Aware 进程里
+    返回物理像素，需要再除以 DPI 缩放比换算成 pywebview 使用的逻辑像素。
+    """
+    try:
+        from ctypes import wintypes
+        rect = wintypes.RECT()
+        ok = ctypes.windll.user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0)
+        if ok:
+            width = rect.right - rect.left
+            height = rect.bottom - rect.top
+            if width > 0 and height > 0:
+                return rect.left, rect.top, width, height
+    except Exception as e:
+        logger.warning(f"读取屏幕工作区失败，使用整屏: {e}")
+    width, height = _get_screen_size()
+    return 0, 0, width, height
 
 
 def _get_virtual_screen_bounds():
@@ -91,6 +115,50 @@ def _get_logical_virtual_screen_bounds():
         int(round(width / scale)),
         int(round(height / scale)),
     )
+
+
+def _get_logical_work_area():
+    """返回主显示器工作区的逻辑 (左, 上, 宽, 高)，已排除任务栏。"""
+    left, top, width, height = _get_work_area_rect()
+    scale = _get_dpi_scale()
+    return (
+        int(round(left / scale)),
+        int(round(top / scale)),
+        int(round(width / scale)),
+        int(round(height / scale)),
+    )
+
+
+def _compute_default_window_geometry():
+    """首次打开时按屏幕工作区计算 16:9 窗口大小并居中。
+
+    小屏幕不再直接全屏：取工作区的 90% 作为可用范围，在其中放入最大的
+    16:9 矩形；同时钳制在 [最小尺寸, 1920x1080] 之间，避免 4K 屏窗口过大。
+    工作区本身已排除任务栏，窗口不会遮挡任务栏。
+    """
+    work_x, work_y, work_w, work_h = _get_logical_work_area()
+
+    max_w = int(work_w * _MAIN_WINDOW_DESKTOP_COVERAGE)
+    max_h = int(work_h * _MAIN_WINDOW_DESKTOP_COVERAGE)
+
+    # 先按宽度铺满，超高则按高度反推宽度，保证严格 16:9
+    width = max_w
+    height = int(round(width * 9 / 16))
+    if height > max_h:
+        height = max_h
+        width = int(round(height * 16 / 9))
+
+    # 超大屏上限
+    width = min(width, _MAIN_WINDOW_MAX_WIDTH)
+    height = min(height, _MAIN_WINDOW_MAX_HEIGHT)
+
+    # 屏幕过小放不下最小窗口时，由调用方退化为全屏兜底
+    if width < _MAIN_WINDOW_MIN_WIDTH or height < _MAIN_WINDOW_MIN_HEIGHT:
+        return None
+
+    x = work_x + int(round((work_w - width) / 2))
+    y = work_y + int(round((work_h - height) / 2))
+    return {"x": x, "y": y, "width": width, "height": height}
 
 
 def _load_main_window_geometry():
@@ -291,8 +359,9 @@ class WindowManager:
     def create_main_window(self):
         """创建主窗口。
 
-        如果配置的窗口尺寸大于桌面分辨率（低分辨率小屏幕），
-        则直接以全屏方式显示，避免窗口超出屏幕无法操作。
+        首次打开（没有保存过窗口状态）时，按屏幕工作区（排除任务栏）自适应
+        计算一个 16:9 的窗口并居中，不再在小屏幕上强制全屏；
+        只有工作区连最小窗口尺寸都放不下（极少见的超低分辨率）时才全屏兜底。
         """
         # 默认窗口常量与 pywebview 坐标都是逻辑像素，屏幕尺寸也取逻辑分辨率
         screen_w, screen_h = _get_logical_screen_size()
@@ -314,25 +383,29 @@ class WindowManager:
                 f"{saved_geometry['width']}x{saved_geometry['height']} "
                 f"@ ({saved_geometry['x']}, {saved_geometry['y']})"
             )
-        elif _MAIN_WINDOW_WIDTH > screen_w or _MAIN_WINDOW_HEIGHT > screen_h:
-            logger.info(
-                f"桌面分辨率 {screen_w}x{screen_h} 小于配置窗口尺寸，"
-                f"主窗口改为全屏显示"
-            )
-            window_kwargs.update({
-                "width": screen_w,
-                "height": screen_h,
-            })
-            window_kwargs["fullscreen"] = True
         else:
-            window_kwargs.update({
-                "width": _MAIN_WINDOW_WIDTH,
-                "height": _MAIN_WINDOW_HEIGHT,
-            })
-            window_kwargs["min_size"] = (
-                _MAIN_WINDOW_MIN_WIDTH,
-                _MAIN_WINDOW_MIN_HEIGHT,
-            )
+            default_geometry = _compute_default_window_geometry()
+            if default_geometry is None:
+                logger.info(
+                    f"桌面工作区 {screen_w}x{screen_h} 小于最小窗口尺寸，"
+                    "主窗口改为全屏显示"
+                )
+                window_kwargs.update({
+                    "width": screen_w,
+                    "height": screen_h,
+                })
+                window_kwargs["fullscreen"] = True
+            else:
+                logger.info(
+                    "首次打开，按屏幕工作区自适应主窗口（16:9）: "
+                    f"{default_geometry['width']}x{default_geometry['height']} "
+                    f"@ ({default_geometry['x']}, {default_geometry['y']})"
+                )
+                window_kwargs.update(default_geometry)
+                window_kwargs["min_size"] = (
+                    _MAIN_WINDOW_MIN_WIDTH,
+                    _MAIN_WINDOW_MIN_HEIGHT,
+                )
 
         self.main_window = webview.create_window(**window_kwargs)
         self.main_window.events.closing += self._on_main_closing
