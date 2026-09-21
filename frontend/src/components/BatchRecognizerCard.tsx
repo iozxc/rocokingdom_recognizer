@@ -27,7 +27,6 @@ import {
   Eye,
   Maximize2,
   ArrowLeftRight,
-  Copy,
   ImageOff,
   Image as ImageIcon,
 } from 'lucide-react';
@@ -64,6 +63,7 @@ import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 import { ModelAssetsModal } from './ModelAssetsModal';
 import { ElementBadges } from './ElementBadges';
 import { PetSpecialTag } from './PetSpecialTag';
+import { DuplicatePetHintToast } from './DuplicatePetHintToast';
 
 /** 占位符/空槽判定：识别失败里，若没有任何文字（OCR）线索、且最高候选分极低，
  *  说明这一格是游戏里的「?」占位符或空槽、并不是精灵——不应按红色「未匹配」告警。 */
@@ -874,6 +874,13 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     !dupHintDismissed &&
     reviewItems.length >= 2 &&
     (hasDuplicateTop1 || hasAlreadyWhenAllMatched);
+  // 提醒内容随批次变化即重新挂载，从而重新计算 3s 自动淡出
+  const dupHintToastKey = useMemo(() => {
+    if (hasDuplicateTop1) {
+      return 'g:' + duplicateGroups.map((g) => g.name + '-' + g.indexes.join('')).join('|');
+    }
+    return `a:${reviewItems.length}:${alreadyEncounteredCount}`;
+  }, [hasDuplicateTop1, duplicateGroups, reviewItems.length, alreadyEncounteredCount]);
 
   const handleDontShowDuplicateHint = () => {
     storage.setSetting('showDuplicatePetHint', false);
@@ -1586,74 +1593,21 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         {/* Review Workbench (Filtered, Actions & STRICTLY 3 COLUMNS) */}
         {reviewItems.length > 0 && (
             <div ref={reviewSectionRef} className="mt-5 space-y-4 animate-in fade-in duration-300 scroll-mt-20">
-              {/* 疑似重复精灵提醒：全部命中但有「已在图鉴」/ 同一精灵命中多格时弹出 */}
+              {/* 疑似重复精灵提醒：全局顶部悬浮 toast（自动停留 3s 并缓缓淡出，鼠标移上暂停） */}
               {showDuplicateBanner && (
-                <div className="flex items-start gap-3 rounded-2xl border border-amber-300/80 bg-amber-50 dark:bg-amber-950/30 px-3.5 py-3 shadow-xs animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="mt-0.5 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
-                    <Copy className="w-4 h-4 text-amber-600 dark:text-amber-300" />
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <div className="text-xs font-black text-amber-800 dark:text-amber-200">
-                      可能存在重复精灵，请核对
-                    </div>
-                    {hasDuplicateTop1 ? (
-                      <>
-                        <p className="mt-0.5 text-[11px] leading-relaxed text-amber-700/90 dark:text-amber-300/90">
-                          以下图位被识别成了同一只精灵；批量初始化时同一只通常只应有一个，可能是重复或切分/识别有误：
-                        </p>
-                        <div className="mt-1.5 flex flex-wrap gap-1.5">
-                          {duplicateGroups.map((g) => (
-                            <button
-                              key={g.name}
-                              type="button"
-                              onClick={() => setFilterTab('all')}
-                              className="inline-flex items-center gap-1 rounded-full bg-amber-100/80 dark:bg-amber-900/50 border border-amber-300/70 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-200 hover:bg-amber-200/80 dark:hover:bg-amber-800/60 cursor-pointer"
-                              title="切到「全部」核对这些图位"
-                            >
-                              {g.name}
-                              <span className="font-mono font-black">（图位 {g.indexes.map((i) => i + 1).join('、')}）</span>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <p className="mt-0.5 text-[11px] leading-relaxed text-amber-700/90 dark:text-amber-300/90">
-                        本次 {reviewItems.length} 个图位已全部识别，但「未遇见」只有
-                        <span className="font-black mx-0.5">{unencounteredNewCount}</span>
-                        个、还有
-                        <span className="font-black mx-0.5">{alreadyEncounteredCount}</span>
-                        个显示「已在图鉴」。批量初始化通常应全是新精灵，这可能是有图位重复或误识别，建议重点核对。
-                      </p>
-                    )}
-                    {!hasDuplicateTop1 && hasAlreadyWhenAllMatched && (
-                      <button
-                        type="button"
-                        onClick={() => setFilterTab('alreadyEncountered')}
-                        className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-100/80 dark:bg-amber-900/50 border border-amber-300/70 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-200 hover:bg-amber-200/80 dark:hover:bg-amber-800/60 cursor-pointer"
-                      >
-                        查看「已在图鉴」的 {alreadyEncounteredCount} 个图位
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={handleDontShowDuplicateHint}
-                      className="text-[10px] font-bold text-amber-700/80 dark:text-amber-300/80 hover:text-amber-900 dark:hover:text-amber-200 underline decoration-dotted underline-offset-2 cursor-pointer"
-                      title="关闭后不再自动弹出，可在「设置 → 提示与示例」里重新开启"
-                    >
-                      不再提示
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDupHintDismissed(true)}
-                      className="w-6 h-6 rounded-full text-amber-700/80 dark:text-amber-300/80 hover:bg-amber-200/70 dark:hover:bg-amber-800/60 flex items-center justify-center cursor-pointer"
-                      title="仅关闭本次提醒"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
+                <DuplicatePetHintToast
+                  key={dupHintToastKey}
+                  hasDuplicateTop1={hasDuplicateTop1}
+                  duplicateGroups={duplicateGroups}
+                  reviewCount={reviewItems.length}
+                  unencounteredNewCount={unencounteredNewCount}
+                  alreadyEncounteredCount={alreadyEncounteredCount}
+                  hasAlreadyWhenAllMatched={hasAlreadyWhenAllMatched}
+                  onViewGroup={() => setFilterTab('all')}
+                  onViewAlready={() => setFilterTab('alreadyEncountered')}
+                  onDontShow={handleDontShowDuplicateHint}
+                  onClose={() => setDupHintDismissed(true)}
+                />
               )}
 
               {/* Integrated Control & Filter Strip (Tabs + Search Bar + Batch Actions) */}
