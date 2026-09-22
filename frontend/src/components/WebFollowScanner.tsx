@@ -290,10 +290,10 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
   >([]);
   const [tickSeconds, setTickSeconds] = useState<number>(() => {
     try {
-      const v = storage.getSetting<number>('autoWatchTickSeconds', 0.5);
-      return typeof v === 'number' && v >= 0.2 && v <= 5 ? v : 0.5;
+      const v = storage.getSetting<number>('autoWatchTickSeconds', 0.25);
+      return typeof v === 'number' && v >= 0.2 && v <= 5 ? v : 0.25;
     } catch {
-      return 0.5;
+      return 0.25;
     }
   });
   const busyRef = useRef(false);

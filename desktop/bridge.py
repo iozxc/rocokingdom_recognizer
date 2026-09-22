@@ -137,7 +137,7 @@ class AppApi:
 
     # ---------------- 自动模式 ----------------
 
-    def start_auto_watch(self, auto_scan=True, auto_mark=True, tick_seconds=0.5):
+    def start_auto_watch(self, auto_scan=True, auto_mark=True, tick_seconds=0.25):
         """开启跟随识别自动模式：自动识别选择界面 + 自动点亮对战精灵。"""
         try:
             self._windows.auto_watch.start(bool(auto_scan), bool(auto_mark), tick_seconds)

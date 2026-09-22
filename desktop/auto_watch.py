@@ -1,4 +1,4 @@
-"""跟随识别「自动模式」监控：每 0.5 秒截图一次，纯固定 ROI 门控（不跑 YOLO）。
+"""跟随识别「自动模式」监控：每 0.25 秒截图一次，纯固定 ROI 门控（不跑 YOLO）。
 
 两个子功能：
 1. 自动识别（auto_scan）：检测到三卡选择界面（三个黑色卡面板的暗像素门，含「重置奖励」）
@@ -71,7 +71,7 @@ VOTE_CONFIRM = 2            # 双模态一致：连续 2 帧确认
 VOTE_CONFIRM_DINO_ONLY = 3  # 仅 DINO 高分：连续 3 帧确认
 BATTLE_MARK_TIMEOUT = 30    # 战斗开始后最多尝试确认的秒数
 CACHE_TTL = 1800            # 识别结果缓存有效期（秒）
-TICK_SECONDS = 0.5          # 轮询间隔默认值：越快越早发现选择界面/刷新（可在前端设置里改，运行时生效）
+TICK_SECONDS = 0.25         # 轮询间隔默认值：越快越早发现选择界面/刷新（可在前端设置里改，运行时生效）
 TICK_MIN = 0.2              # 允许的最小轮询间隔（再小会频繁截图/占用 GPU，性价比低）
 TICK_MAX = 5.0              # 允许的最大轮询间隔
 MIN_SCAN_INTERVAL = 4.0     # 两次自动识别的最小间隔，防单帧抖动导致同界面重复触发
@@ -80,9 +80,9 @@ CARD_TILE_BLUR = 3          # 高斯模糊半径：吃掉 ±2px 位移/压缩噪
 CARD_CHANGE_MIN = 0.08      # 换卡差异（HSV 与 RGB 差异取大者）：同卡地板 0.04、亮度±5% 0.04，
                             # 实测换卡最低 0.147（毛毛→石肤蜥这类同亮度换色 0.185）
 CARD_STABLE_MAX = 0.05      # 相邻帧差小于该值视为翻牌动画结束、画面稳定
-CARD_CONFIRM_FRAMES = 2     # 刷新后的卡需连续稳定帧数（0.5s 轮询下≈1s）
+CARD_CONFIRM_FRAMES = 2     # 刷新后的卡需连续稳定帧数（0.25s 默认轮询下≈0.5s）
 PANEL_DARK_MIN = 0.40       # 单个卡面板暗像素占比阈值：三卡实测最低 0.506，NPC/走路/战斗<0.35
-SELECT_ABSENT_FRAMES = 3    # 三卡面板连续消失帧数（≈1.5s）才视为离开选择界面
+SELECT_ABSENT_FRAMES = 3    # 三卡面板连续消失帧数（0.25s 默认轮询下≈0.75s）才视为离开选择界面
 SKILL_BTN_MIN = 0.20        # 技能选择弹窗底部「选择」按钮亮黄占比：技能弹窗 0.43，精灵三卡/走路=0
 
 SCANNER_WINDOW_TITLE = '精灵识别跟随'
@@ -132,7 +132,7 @@ class AutoWatchManager:
         # 子功能开关
         self.auto_scan = True
         self.auto_mark = True
-        # 轮询间隔（可在前端设置里改，运行时生效），默认 0.5 秒
+        # 轮询间隔（可在前端设置里改，运行时生效），默认 0.25 秒
         self.tick_seconds = float(TICK_SECONDS)
 
         # 最近一次识别缓存（识别按钮，无论手动/热键/自动，都会经 remember_cards 写入）
@@ -546,7 +546,7 @@ class AutoWatchManager:
             # 模态不一致或不达标：清空连续确认，绝不点亮
             self._vote_slot = None
             self._vote_count = 0
-            # 每 5 秒（10 tick）打一次失败诊断，便于定位是 OCR 还是 DINO 拖后腿
+            # 每 10 个 tick 打一次失败诊断（0.25s 默认轮询下≈2.5s），便于定位是 OCR 还是 DINO 拖后腿
             if self._battle_ticks % 10 == 1:
                 scores = info.get('dino_sims') or []
                 score_str = ', '.join(

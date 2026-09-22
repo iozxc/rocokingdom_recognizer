@@ -350,11 +350,11 @@ export const ScannerApp: React.FC = () => {
     const v = storage.getSettingCached<unknown>('autoWatchMark', true);
     return typeof v === 'boolean' ? v : true;
   });
-  // 自动模式后台扫描间隔（秒）：越小发现选择界面/刷新越快，默认 0.5s，持久化到设置
+  // 自动模式后台扫描间隔（秒）：越小发现选择界面/刷新越快，默认 0.25s，持久化到设置
   const [autoTickInterval, setAutoTickInterval] = useState<number>(() => {
-    if (IS_STATIC) return 0.5;
-    const v = storage.getSettingCached<number>('autoWatchTickSeconds', 0.5);
-    return typeof v === 'number' && v >= 0.2 && v <= 5 ? v : 0.5;
+    if (IS_STATIC) return 0.25;
+    const v = storage.getSettingCached<number>('autoWatchTickSeconds', 0.25);
+    return typeof v === 'number' && v >= 0.2 && v <= 5 ? v : 0.25;
   });
   const [autoStatus, setAutoStatus] = useState<AutoStatus | null>(null);
   const [autoPanelOpen, setAutoPanelOpen] = useState<boolean>(true);
@@ -383,7 +383,7 @@ export const ScannerApp: React.FC = () => {
     let alive = true;
     void storage.initialLoad.then(() => {
       if (!alive || autoPrefsTouchedRef.current) return;
-      const t = storage.getSetting<number>('autoWatchTickSeconds', 0.5);
+      const t = storage.getSetting<number>('autoWatchTickSeconds', 0.25);
       if (typeof t === 'number' && t >= 0.2 && t <= 5) setAutoTickInterval(t);
       const scan = storage.getSetting<unknown>('autoWatchScan', true);
       if (typeof scan === 'boolean') setAutoScanOn(scan);
