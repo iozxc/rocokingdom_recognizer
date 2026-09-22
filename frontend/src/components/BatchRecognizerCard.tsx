@@ -29,6 +29,7 @@ import {
   ArrowLeftRight,
   ImageOff,
   Image as ImageIcon,
+  MonitorPlay,
 } from 'lucide-react';
 import { ImageZoom } from './ImageZoom';
 import { PetSprite } from './PetSprite';
@@ -65,6 +66,12 @@ import { ModelAssetsModal } from './ModelAssetsModal';
 import { ElementBadges } from './ElementBadges';
 import { PetSpecialTag } from './PetSpecialTag';
 import { DuplicatePetHintToast } from './DuplicatePetHintToast';
+import {
+  VideoGuideModal,
+  DEFAULT_VIDEO_GUIDE_ITEMS,
+  parseVideoGuide,
+  type VideoGuideItem,
+} from './VideoGuideModal';
 
 /** 占位符/空槽判定：没有任何精灵名（OCR）线索，且最高候选分低于「识别门槛」（或本就没检出头像），
  *  说明这一格是游戏里的「?」占位符或空槽、并不是精灵——不应按红色「未匹配」告警。 */
@@ -178,7 +185,6 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const [reviewItems, setReviewItems] = useState<BatchInitReviewItem[]>([]);
   const [totalDetected, setTotalDetected] = useState<number>(0);
   const [filterTab, setFilterTab] = useState<'all' | 'unencountered' | 'alreadyEncountered' | 'checked' | 'unmatched'>('all');
-  const [searchFilter, setSearchFilter] = useState<string>('');
 
   // 批量初始化「疑似重复精灵」提醒：设置开关（默认开）+ 本次结果内手动关闭
   const [showDuplicateHint, setShowDuplicateHint] = useState<boolean>(() =>
@@ -186,10 +192,12 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   );
   const [dupHintDismissed, setDupHintDismissed] = useState<boolean>(false);
 
-  // Help modal
-  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
   // 纯前端版：模型列表弹窗（查看缓存状态 / 提前手动下载模型）
   const [showModelAssets, setShowModelAssets] = useState<boolean>(false);
+
+  // 视频攻略弹窗：视频源由 resources/chat.json 的 video_guide 动态下发
+  const [showVideoGuide, setShowVideoGuide] = useState<boolean>(false);
+  const [videoGuideItems, setVideoGuideItems] = useState<VideoGuideItem[]>(DEFAULT_VIDEO_GUIDE_ITEMS);
 
   // Editing single item modal/picker
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
@@ -383,6 +391,20 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
       if (typeof s.showDuplicatePetHint === 'boolean') setShowDuplicateHint(s.showDuplicatePetHint);
     });
     return () => unsub();
+  }, []);
+
+  // 视频攻略源：从 resources/videos.json 读取（Gitee raw 热更，改 JSON + push 即生效）。
+  // 覆盖内置兜底配置；远程拉不到就继续用兜底，保证按钮点开一定有内容。
+  useEffect(() => {
+    let canceled = false;
+    api.getVideos()
+        .then((raw) => {
+          if (canceled || !raw) return;
+          const items = parseVideoGuide(raw);
+          if (items.length > 0) setVideoGuideItems(items);
+        })
+        .catch(() => { /* 拉取失败保持兜底配置 */ });
+    return () => { canceled = true; };
   }, []);
 
   // Keyboard Escape listener for Lightbox
@@ -860,15 +882,6 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   };
 
   const filteredItems = reviewItems.filter((item) => {
-    if (searchFilter.trim()) {
-      const q = searchFilter.toLowerCase().trim();
-      const cleanName = formatPetName(item.matchedPet?.name || item.filename).toLowerCase();
-      const rawName = (item.matchedPet?.name || item.filename || '').toLowerCase();
-      const reasonMatch = (item.reason || '').toLowerCase().includes(q);
-      const idMatch = String(item.matchedPet?.id ?? '').includes(q);
-      if (!cleanName.includes(q) && !rawName.includes(q) && !reasonMatch && !idMatch) return false;
-    }
-
     if (filterTab === 'unencountered') return item.status === 'matched' && !item.isAlreadyEncountered;
     if (filterTab === 'alreadyEncountered') return item.status === 'matched' && item.isAlreadyEncountered;
     if (filterTab === 'checked') return item.isChecked;
@@ -1017,24 +1030,24 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
             </div>
           </div>
 
-          {/* Action Controls & Help Button on Top Right */}
+          {/* Action Controls on Top Right */}
           <div className="flex items-center gap-2 flex-wrap">
             {/* 截图格式示例：悬停查看 5 张正确截图，点击可直接加载测试识别 */}
             <RecognitionSamplesHint onLoadSample={handleFileSelect} />
 
-            {/* Help Button */}
+            {/* 视频攻略：打开内置播放器弹窗，视频源可远程动态更换 */}
             <button
                 type="button"
-                id="batch-help-btn"
+                id="batch-video-guide-btn"
                 onClick={() => {
                   sound.playClick();
-                  setShowHelpModal(true);
+                  setShowVideoGuide(true);
                 }}
-                className="text-xs font-black text-[#2B78C4] dark:text-sky-300 hover:text-white bg-[#EBF4FE] dark:bg-slate-800 hover:bg-[#7ABCF4] dark:hover:bg-sky-600 border border-[#BCD7F2] dark:border-slate-700 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                title="查看图鉴批量识别使用指南与快捷键"
+                className="text-xs font-black text-[#2B78C4] dark:text-sky-300 hover:text-white dark:hover:text-white bg-[#EBF4FE] dark:bg-sky-950/60 hover:bg-[#7ABCF4] dark:hover:bg-sky-600 border border-[#BCD7F2] dark:border-sky-800 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                title="查看首页识别的视频攻略"
             >
-              <HelpCircle className="w-4 h-4" />
-              <span>帮助提示</span>
+              <MonitorPlay className="w-3.5 h-3.5" />
+              <span>视频攻略</span>
             </button>
 
             {(selectedFile || previewUrl || reviewItems.length > 0) && (
@@ -1052,8 +1065,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           </div>
         </div>
 
-        {/* Target Map Selector & Threshold Bar */}
-        <div className="mt-4 p-4 sm:p-5 bg-[#F5F9FF] dark:bg-slate-800/80 rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700">
+        {/* Target Map Selector Bar（识别区不再套一层底色描边框，仅保留一条分隔线） */}
+        <div className="mt-4">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pb-3.5 border-b border-[#E2EAF4] dark:border-slate-700">
             {/* Target Map Selector（标签置于横向滚动容器之外，避免悬停气泡被 overflow 裁剪） */}
             <HintTooltip
@@ -1368,7 +1381,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 /* When Image is Selected: Large High-Clarity Viewport + Compact Control Station */
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
                   {/* Left: High-Clarity Image Viewport (Supports Click-to-Zoom / Full Preview) */}
-                  <div className="lg:col-span-7 xl:col-span-8 bg-slate-900/5 dark:bg-slate-950/20 rounded-2xl border-2 border-[#BCD7F2] dark:border-slate-700 p-2.5 flex flex-col justify-between relative group overflow-hidden bg-[#FBFDFF] dark:bg-slate-800">
+                  <div className="lg:col-span-7 xl:col-span-8 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs p-2.5 flex flex-col justify-between relative group overflow-hidden">
                     {/* Viewport Action Badges */}
                     <div className="flex items-center justify-between gap-2 mb-2 px-1">
                       <div className="flex items-center gap-2 min-w-0">
@@ -1416,7 +1429,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                     {/* Image Viewport: Height increased, object-contain, hover to zoom hint */}
                     <div
                         onClick={() => setShowOriginalImageLightbox(true)}
-                        className="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-[#E6EEF8] dark:border-slate-700 flex items-center justify-center cursor-zoom-in group/img shadow-inner"
+                        className="relative w-full h-48 sm:h-56 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/60 flex items-center justify-center cursor-zoom-in group/img"
                     >
                       <img
                           src={previewUrl}
@@ -1440,7 +1453,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   </div>
 
                   {/* Right: Control Station with Well-Proportioned Start Button */}
-                  <div className="lg:col-span-5 xl:col-span-4 bg-white dark:bg-slate-800 rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                  <div className="lg:col-span-5 xl:col-span-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs p-4 sm:p-5 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9] dark:border-slate-700">
                         <span className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
@@ -1453,7 +1466,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       </div>
 
                       <div className="mt-3 space-y-2.5">
-                        <div className="p-2.5 rounded-xl bg-[#F8FBFE] dark:bg-slate-900 border border-[#E6EEF8] dark:border-slate-700 text-xs">
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 text-xs">
                           <div className="flex items-center justify-between text-slate-600 dark:text-slate-300 mb-1">
                             <HintTooltip side="top" content="只在该地图图鉴范围内匹配，可在上方“目标地图”行切换。" className="cursor-help">
                               <span className="font-bold flex items-center gap-0.5">识别目标地图<Info className="w-3 h-3 text-slate-400" /></span>
@@ -1483,7 +1496,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           )}
                         </div>
 
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed bg-[#FFFDF5] dark:bg-amber-950/20 border border-[#FEE061]/50 dark:border-amber-700/50 rounded-xl p-2.5 space-y-1">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed bg-[#FFFDF5] dark:bg-amber-950/20 rounded-xl p-2.5 space-y-1">
                           <div>✨ 识别完成后，系统将自动定位精灵候选并标出未遇状态，您可以勾选需要点亮的精灵。</div>
                           <div className="text-[10px] text-amber-700 dark:text-amber-400 font-medium pt-1 border-t border-amber-200/50 dark:border-amber-800/50">
                             💡 提示：首次识别时加载特征库可能较慢，请耐心等待片刻，后续识别将显著提速。
@@ -1658,6 +1671,13 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
             </div>
         )}
 
+        {/* Video Guide Modal（视频攻略） */}
+        <VideoGuideModal
+            isOpen={showVideoGuide}
+            onClose={() => setShowVideoGuide(false)}
+            items={videoGuideItems}
+        />
+
         {/* Review Workbench (Filtered, Actions & STRICTLY 3 COLUMNS) */}
         {reviewItems.length > 0 && (
             <div ref={reviewSectionRef} className="mt-5 space-y-4 animate-in fade-in duration-300 scroll-mt-20">
@@ -1678,7 +1698,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                 />
               )}
 
-              {/* Integrated Control & Filter Strip (Tabs + Search Bar + Batch Actions) */}
+              {/* Integrated Control & Filter Strip (Tabs + Batch Actions) */}
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/90 dark:bg-slate-800/90 p-2 sm:p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
                 {/* 1. Left: Filter Tabs */}
                 <div className="flex items-center gap-1 p-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto shrink-0 custom-scrollbar shadow-2xs">
@@ -1729,27 +1749,6 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           }`}
                       >
                         未匹配 ({unmatchedCount})
-                      </button>
-                  )}
-                </div>
-
-                {/* 2. Middle: Large Search Input */}
-                <div className="relative flex-1 min-w-[200px]">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                      type="text"
-                      value={searchFilter}
-                      onChange={(e) => setSearchFilter(e.target.value)}
-                      placeholder="搜索精灵名称、编号..."
-                      className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-hidden focus:border-[#2B78C4] focus:ring-2 focus:ring-[#2B78C4]/15 text-slate-800 dark:text-slate-100 font-medium transition-all shadow-2xs placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                  />
-                  {searchFilter && (
-                      <button
-                          type="button"
-                          onClick={() => setSearchFilter('')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg text-xs font-bold cursor-pointer"
-                      >
-                        <X className="w-3.5 h-3.5" />
                       </button>
                   )}
                 </div>
@@ -1808,15 +1807,15 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       <div
                           key={item.index}
                           onClick={isPlaceholder ? undefined : () => handleToggleCheck(item.index)}
-                          className={`relative rounded-2xl border-3 p-3 transition-colors duration-150 flex flex-col justify-between ${isPlaceholder ? 'cursor-default' : 'cursor-pointer'} select-none group/card hover:shadow-md ${getCardBasisClass(filteredItems.length)} ${
+                          className={`relative rounded-2xl border shadow-xs p-3 transition-colors duration-150 flex flex-col justify-between ${isPlaceholder ? 'cursor-default' : 'cursor-pointer'} select-none group/card hover:shadow-md ${getCardBasisClass(filteredItems.length)} ${
                               item.isChecked
                                   ? 'border-[#95D151] bg-[#F9FEF8] dark:bg-emerald-950/40 shadow-xs ring-2 ring-[#95D151]/30'
                                   : isPlaceholder
-                                      ? 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 hover:border-slate-400'
+                                      ? 'border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 hover:border-slate-400'
                                       : item.status === 'unmatched'
-                                          ? 'border-rose-300 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30 hover:border-rose-400'
+                                          ? 'border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/30 hover:border-rose-400'
                                           : isAlready
-                                              ? 'border-slate-300 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/70 opacity-90 hover:border-slate-400'
+                                              ? 'border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/70 opacity-90 hover:border-slate-400'
                                               : 'border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 opacity-80 hover:border-[#7ABCF4]'
                           }`}
                       >
@@ -2140,72 +2139,6 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       </div>
                   );
                 })}
-              </div>
-            </div>
-        )}
-
-        {/* Help Modal */}
-        {showHelpModal && (
-            <div
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
-                onClick={() => setShowHelpModal(false)}
-            >
-              <div
-                  className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl p-6 flex flex-col space-y-4"
-                  onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between pb-3 border-b-2 border-[#E6EEF8] dark:border-slate-800">
-                  <div className="flex items-center gap-2">
-                    <HelpCircle className="w-6 h-6 text-[#2B78C4] dark:text-sky-400" />
-                    <h3 className="text-lg font-black text-slate-800 dark:text-slate-100">游戏画面识别使用指南</h3>
-                  </div>
-                  <button
-                      onClick={() => setShowHelpModal(false)}
-                      className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center cursor-pointer"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
-                  <div className="p-3 bg-[#F5F9FF] dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 rounded-xl">
-                    <h4 className="font-black text-[#2B78C4] dark:text-sky-400 mb-1">1. 如何获取最佳识别效果？</h4>
-                    <p>
-                      截取洛克王国游戏内<strong>清晰的地图全景或含有精灵名称、头像的画面</strong>。支持 PNG 和 JPG 格式。
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[#F5F9FF] dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 rounded-xl">
-                    <h4 className="font-black text-[#2B78C4] dark:text-sky-400 mb-1">2. 快捷粘贴截图</h4>
-                    <p>
-                      使用截图工具（如微信截图、QQ截图或 Win+Shift+S）完成截屏后，直接在页面上按下 <strong>Ctrl + V</strong> 即可快速加载图片。
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[#F5F9FF] dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 rounded-xl">
-                    <h4 className="font-black text-[#2B78C4] dark:text-sky-400 mb-1">3. 勾选与挑选未遇精灵</h4>
-                    <p>
-                      识别完成后，系统会自动区分<strong>【未遇新宠】</strong>与<strong>【已在图鉴中】</strong>的精灵，您可以直接勾选或使用一键<strong>【选未遇见】</strong>批量点亮。
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[#F5F9FF] dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-700 rounded-xl">
-                    <h4 className="font-black text-[#2B78C4] dark:text-sky-400 mb-1">4. 候选切换与手工挑选</h4>
-                    <p>
-                      每张卡片下方均提供候选列表与置信度，点击即可快速切换；若识别有偏差，点击<strong>【人工挑选修正】</strong>即可精准搜索替换。
-                    </p>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex justify-end">
-                  <button
-                      type="button"
-                      onClick={() => setShowHelpModal(false)}
-                      className="px-5 py-2 roco-btn-primary text-xs font-black rounded-xl cursor-pointer"
-                  >
-                    我知道了
-                  </button>
-                </div>
               </div>
             </div>
         )}

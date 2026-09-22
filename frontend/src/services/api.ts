@@ -1477,6 +1477,54 @@ export class ApiService {
     }
   }
 
+  /**
+   * 读取首页「视频攻略」清单（resources/videos.json）。
+   * 与 version.json / changelog.json 同款热更方式：改 Gitee 上的 JSON 再 push 即生效，无需发版。
+   * - 桌面端：走本地接口 /api/videos（后端远程优先、本地兜底，带 10 分钟缓存）
+   * - 纯前端版：优先 Gitee raw，失败回退打包副本
+   * 拿不到时返回 null，由调用方回退到内置兜底配置。
+   */
+  public async getVideos(): Promise<any | null> {
+    const pick = (data: any): any | null => {
+      const list = data?.videos ?? data?.video_guide ?? data?.data?.videos;
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(list)) return list;
+      return null;
+    };
+
+    if (IS_STATIC) {
+      const t = Date.now();
+      const remoteUrls = [
+        `https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/videos.json?_t=${t}`,
+        `https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/videos.json?_t=${t}`,
+      ];
+      for (const url of remoteUrls) {
+        try {
+          const res = await axios.get(url, { timeout: 4000 });
+          const list = pick(res.data);
+          if (list) return list;
+        } catch {
+          // 继续 fallback
+        }
+      }
+      try {
+        const data = await fetchJson<any>(`${import.meta.env.BASE_URL}resources/videos.json?_t=${t}`, 6000);
+        return pick(data);
+      } catch (err: unknown) {
+        console.warn('静态 videos 配置加载失败:', (err as AxiosError).message);
+        return null;
+      }
+    }
+
+    try {
+      const res = await axios.get<any>(`${this.apiBase}/api/videos`, { timeout: 8000 });
+      return pick(res.data);
+    } catch (err: unknown) {
+      console.warn('API getVideos failed:', (err as AxiosError).message);
+      return null;
+    }
+  }
+
   /** 生成 resources 目录下静态资源（如二维码图片）的访问地址（走本地接口，后端负责远程兜底） */
   public resourceUrl(filename: string): string {
     if (IS_STATIC) {

@@ -158,6 +158,16 @@ CHANGELOG_URL = _env(
     "ROCO_CHANGELOG_URL",
     "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/changelog.json",
 )
+# 首页「视频攻略」清单：与 version.json / changelog.json 同样是 Gitee raw 热更配置，
+# 改完 push 即可，客户端无需发版。读取失败时前端回退到打包进应用的副本。
+VIDEOS_URL = _env(
+    "ROCO_VIDEOS_URL",
+    "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/videos.json",
+)
+# B 站封面图防盗链：hdslb 会对本机/无 Referer 的请求返回 403（已实测），
+# 因此桌面端封面统一走后端代理，由后端带上 Referer 取图。
+BILI_COVER_REFERER = _env("ROCO_BILI_COVER_REFERER", "https://www.bilibili.com/")
+BILI_COVER_HOSTS = ("hdslb.com",)
 FEISHU_WEBHOOK_URL = _env("ROCO_FEISHU_WEBHOOK_URL", _meta("feishu_webhook"))
 DATA_MANIFEST_URL = _env("ROCO_DATA_MANIFEST_URL",
                          "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/datasets/data_manifest.json")

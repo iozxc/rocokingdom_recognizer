@@ -8,6 +8,7 @@ from core.api.trials import bp as trials_bp
 from core.api.updater import bp as updater_bp
 from core.api.auth import bp as auth_bp
 from core.api.cloud import bp as cloud_bp
+from core.api.videos import bp as videos_bp
 
 
 def register_blueprints(app):
@@ -22,3 +23,4 @@ def register_blueprints(app):
     app.register_blueprint(updater_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(cloud_bp)
+    app.register_blueprint(videos_bp)
