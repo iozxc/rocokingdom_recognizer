@@ -28,6 +28,7 @@ import {
   Trial,
   DataUpdateCheckData,
   DataUpdateStatusData,
+  UpdateLogEntry,
 } from '../types';
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { formatPetName } from '../utils/petHelper';
@@ -1514,6 +1515,48 @@ export class ApiService {
       return null;
     } catch (err: unknown) {
       console.warn('版本信息加载失败（远程与本地兜底均失败）:', (err as AxiosError).message);
+      return null;
+    }
+  }
+
+  /**
+   * 纯前端版：读取结构化更新日志（独立 changelog.json）。
+   * 优先 Gitee 远程 raw，失败回退打包进 public-web/resources/changelog.json 的静态副本。
+   * 桌面版不使用（其更新弹窗走本地接口 checkUpdate）。
+   */
+  public async getChangelog(): Promise<{ updated?: string; changelog: UpdateLogEntry[] } | null> {
+    if (!IS_STATIC) {
+      return null;
+    }
+    const normalize = (data: any): { updated?: string; changelog: UpdateLogEntry[] } | null => {
+      const list: any[] = Array.isArray(data) ? data : Array.isArray(data?.changelog) ? data.changelog : [];
+      if (!list.length) return null;
+      const valid = list.filter((e) => e && typeof e.version === 'string' && Array.isArray(e.items));
+      if (!valid.length) return null;
+      return {
+        updated: typeof data?.updated === 'string' ? data.updated : undefined,
+        changelog: valid as UpdateLogEntry[],
+      };
+    };
+    const t = Date.now();
+    const remoteUrls = [
+      `https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/changelog.json?_t=${t}`,
+      `https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/changelog.json?_t=${t}`,
+    ];
+    for (const url of remoteUrls) {
+      try {
+        const res = await axios.get(url, { timeout: 6000 });
+        const parsed = normalize(res.data);
+        if (parsed) return parsed;
+      } catch {
+        // 继续尝试下一个镜像 / 本地兜底
+      }
+    }
+    try {
+      const data = await fetchJson<any>(`${import.meta.env.BASE_URL}resources/changelog.json?_t=${t}`, 6000);
+      return normalize(data);
+    } catch (err: unknown) {
+      console.warn('更新日志加载失败（远程与本地兜底均失败）:', (err as AxiosError).message);
       return null;
     }
   }

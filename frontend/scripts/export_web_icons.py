@@ -400,6 +400,11 @@ def prepare_public_assets(icons_dir, elements_dir, resources_dir):
     if ver_json.exists():
         shutil.copy2(ver_json, resources_dir / "version.json")
 
+    # 结构化更新日志（前端「更新历史」的本地兜底；远程 gitee 拉取失败时使用）
+    changelog_json = ROOT / "changelog.json"
+    if changelog_json.exists():
+        shutil.copy2(changelog_json, resources_dir / "changelog.json")
+
     icon_jpg = OUT / "icon.jpg"
     if not icon_jpg.exists():
         try:

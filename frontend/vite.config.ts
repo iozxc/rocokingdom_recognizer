@@ -34,14 +34,6 @@ export default defineConfig(({ mode }) => {
   } catch {
     // 读不到时保持默认，不影响构建
   }
-  // 纯 Web 版自己的版本号（与桌面 App 版本解耦，见 frontend/web-version.json）。
-  let webVersion = '0.0.0';
-  try {
-    const wv = JSON.parse(readFileSync(path.resolve(__dirname, 'web-version.json'), 'utf-8'));
-    if (wv && typeof wv.version === 'string') webVersion = wv.version;
-  } catch {
-    // 读不到时保持默认，不影响构建
-  }
   // onnxruntime-web 的版本：/wasm/* 是固定文件名，升级 ORT 时必须换 URL 才能安全长缓存。
   let ortVersion = '0.0.0';
   try {
@@ -56,7 +48,6 @@ export default defineConfig(({ mode }) => {
     plugins: isWeb ? [react(), tailwindcss(), webTitlePlugin] : [react(), tailwindcss()],
     define: {
       __ROCO_VERSION__: JSON.stringify(appVersion),
-      __ROCO_WEB_VERSION__: JSON.stringify(webVersion),
       __ROCO_ORT_VERSION__: JSON.stringify(ortVersion),
     },
     resolve: {

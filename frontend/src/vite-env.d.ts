@@ -2,8 +2,6 @@
 
 /** 构建期注入的真实 App 版本（来自仓库根 version.json），仅用于显示。 */
 declare const __ROCO_VERSION__: string;
-/** 纯 Web 版自己的版本号（frontend/web-version.json），仅 web 构建展示与做缓存版本参数。 */
-declare const __ROCO_WEB_VERSION__: string;
 /** onnxruntime-web 的版本号（构建时从 node_modules 读取），用于 /wasm/* 的版本参数。 */
 declare const __ROCO_ORT_VERSION__: string;
 

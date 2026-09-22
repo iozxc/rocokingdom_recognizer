@@ -7,14 +7,8 @@
  */
 export const APP_VERSION: string = __ROCO_VERSION__ || '1.4.4';
 
-/**
- * 纯 Web 版自己的版本号。
- *
- * 网页版是独立部署的（改一次前端就发一次），跟桌面 App 的版本号不是一回事，
- * 所以单独维护在 frontend/web-version.json：由 vite.config.ts 读入后注入。
- * 它同时用作 /data/*.json 的缓存版本参数（改动前端静态数据时递增即可）。
- */
-export const WEB_VERSION: string = __ROCO_WEB_VERSION__ || '0.0.0';
+// 注：网页版不再使用独立版本号，统一读仓库根 version.json（即 APP_VERSION，与桌面一致）。
+// 原 frontend/web-version.json 已弃用；/data/*.json 的缓存版本参数也直接用 APP_VERSION。
 
 /**
  * onnxruntime-web 的版本号（构建时从 node_modules 读出并注入）。

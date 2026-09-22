@@ -1,5 +1,5 @@
 import { IS_STATIC } from './staticMode';
-import { WEB_VERSION } from '../version';
+import { APP_VERSION } from '../version';
 
 /**
  * Web 端静态数据 URL（自动带缓存版本参数）。
@@ -14,7 +14,7 @@ import { WEB_VERSION } from '../version';
 export function dataUrl(relPath: string): string {
   const base = import.meta.env.BASE_URL || '/';
   const url = `${base}${relPath.replace(/^\/+/, '')}`;
-  return IS_STATIC ? `${url}?v=${encodeURIComponent(WEB_VERSION)}` : url;
+  return IS_STATIC ? `${url}?v=${encodeURIComponent(APP_VERSION)}` : url;
 }
 
 /** 给任意 URL 追加版本参数（已带查询串时用 & 连接）。 */

@@ -18,6 +18,7 @@ import { UserManualModal } from './components/UserManualModal';
 import { UpdateModal } from './components/UpdateModal';
 import { DataUpdateModal } from './components/DataUpdateModal';
 import { DownloadAppModal } from './components/DownloadAppModal';
+import { WebUpdateModal } from './components/WebUpdateModal';
 import { DataManageModal } from './components/DataManageModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { HomeScrollbar } from './components/HomeScrollbar';
@@ -108,6 +109,7 @@ export default function App() {
   const [feedbackInitialType, setFeedbackInitialType] = useState<string>('');
   const [isUpdateOpen, setIsUpdateOpen] = useState<boolean>(false);
   const [isDownloadOpen, setIsDownloadOpen] = useState<boolean>(false);
+  const [isChangelogOpen, setIsChangelogOpen] = useState<boolean>(false);
   const [isDataManageOpen, setIsDataManageOpen] = useState<boolean>(false);
   const [isDataUpdateOpen, setIsDataUpdateOpen] = useState<boolean>(false);
   const [dataUpdateAvailable, setDataUpdateAvailable] = useState<boolean>(false);
@@ -171,6 +173,7 @@ export default function App() {
     isFeedbackOpen ||
     isUpdateOpen ||
     isDownloadOpen ||
+    isChangelogOpen ||
     isDataManageOpen ||
     isDataUpdateOpen ||
     isSettingsOpen ||
@@ -643,6 +646,7 @@ export default function App() {
               setIsUpdateOpen(true);
             }}
             onOpenDownloadApp={IS_STATIC ? () => setIsDownloadOpen(true) : undefined}
+            onOpenChangelog={IS_STATIC ? () => setIsChangelogOpen(true) : undefined}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenHub={() => {
               // 先归零滚动，避免切换后内容高度变化导致浏览器夹回滚动位置产生跳动
@@ -921,6 +925,12 @@ export default function App() {
         <DownloadAppModal
             isOpen={isDownloadOpen}
             onClose={() => setIsDownloadOpen(false)}
+        />
+
+        {/* 更新历史弹窗（web 版专用，复用桌面版时间线，无下载流） */}
+        <WebUpdateModal
+            isOpen={isChangelogOpen}
+            onClose={() => setIsChangelogOpen(false)}
         />
 
         {/* 数据管理弹窗（web 版：导入/导出） */}
