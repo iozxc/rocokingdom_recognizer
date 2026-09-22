@@ -32,7 +32,6 @@ import {
 } from '../types';
 import { FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { formatPetName } from '../utils/petHelper';
-import { authStore } from './auth';
 import { IS_STATIC, PLATFORM } from './staticMode';
 
 const DEFAULT_API_BASE = 'http://127.0.0.1:5000';
@@ -67,12 +66,6 @@ export class ApiService {
   public resetApiBase() {
     this.apiBase = this.resolveDefaultApiBase();
     localStorage.removeItem('roco_api_base');
-  }
-
-  /** 识别类功能是否被锁定（未授权则锁定）。 */
-  private _authLocked(): boolean {
-    const st = authStore.getState().status;
-    return st !== 'authorized' && st !== 'offline';
   }
 
   // Health / Connection check
@@ -467,9 +460,6 @@ export class ApiService {
       /** PC 端进度条：带上任务号，后端会把阶段进度写进可轮询的快照。 */
       taskId?: string
   ): Promise<{ result: PredictResult; isOfflineMock: boolean }> {
-    if (this._authLocked()) {
-      throw new Error('请授权，解锁更多功能');
-    }
     const clampedK = Math.max(1, Math.min(6, Math.round(topK || 3)));
     const formData = new FormData();
     formData.append('image', imageFile);
@@ -616,9 +606,6 @@ export class ApiService {
       /** PC 端进度条：带上任务号，后端会把阶段进度写进可轮询的快照。 */
       taskId?: string
   ): Promise<{ data: BatchInitApiResponse; isOfflineMock: boolean }> {
-    if (this._authLocked()) {
-      throw new Error('请授权，解锁更多功能');
-    }
     const clampedK = Math.max(1, Math.min(6, Math.round(topK || 3)));
     const formData = new FormData();
     formData.append('image', imageFile);

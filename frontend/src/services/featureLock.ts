@@ -10,7 +10,7 @@ function emit() {
   listeners.forEach((l) => l());
 }
 
-/** 触发一次“请授权，解锁更多功能”提示（限时自动消失）。 */
+/** 触发一次“请授权后使用跟随识别”提示（限时自动消失）。 */
 export function showFeatureLockNotice() {
   visible = true;
   emit();

@@ -165,7 +165,7 @@ const AuthorizedInfoDialog: React.FC<AuthorizedInfoDialogProps> = ({ expireTime,
               {!confirming ? (
                 <button
                     onClick={() => setConfirming(true)}
-                    title="解绑当前设备，解绑后需重新绑定才能继续使用"
+                    title="解绑当前设备，解绑后将无法使用「跟随识别」"
                     className="inline-flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-2xl bg-red-50 text-red-600 border border-red-200 font-black text-sm hover:bg-red-100 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
@@ -174,8 +174,8 @@ const AuthorizedInfoDialog: React.FC<AuthorizedInfoDialogProps> = ({ expireTime,
               ) : (
                 <div className="text-center">
                   <p className="text-xs text-slate-500 leading-relaxed">
-                    解绑后本机将失去授权，需要{" "}
-                    <span className="text-slate-700 font-bold">重新绑定</span> 才能继续使用。确定解绑吗？
+                    解绑后本机将失去授权，<span className="text-slate-700 font-bold">「跟随识别」将不可用</span>
+                    （首页截图识别不受影响），如需继续使用跟随识别请重新绑定。确定解绑吗？
                   </p>
                   <div className="mt-3 flex items-center gap-2 justify-center">
                     <button

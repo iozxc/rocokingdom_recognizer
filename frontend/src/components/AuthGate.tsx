@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, ShieldCheck, ShieldX, X } from 'lucide-react';
 import { authStore, useAuthStatus } from '../services/auth';
-import { showFeatureLockNotice, useFeatureLockNotice } from '../services/featureLock';
+import { useFeatureLockNotice } from '../services/featureLock';
 
 
 interface AuthGateProps {
@@ -12,7 +12,8 @@ interface AuthGateProps {
  * 授权门控（软限制）：
  * - 只有「拉黑/封禁」才全屏阻断（显示“设备已被禁止”，不给重试）；
  * - 未授权/等待绑定/过期/异常 不遮罩：App 可用（首页图鉴可浏览），
- *   右上角显示红色「未授权」角标，点击可打开授权/绑定对话框；识别功能被锁定；
+ *   右上角显示红色「未授权」角标，点击可打开授权/绑定对话框；仅「跟随识别」被锁定，
+ *   首页截图识别照常可用；
  * - 授权成功后展示一次性“绑定成功”弹窗，由用户手动关闭。
  */
 export const AuthGate: React.FC<AuthGateProps> = ({ children }) => {
@@ -59,7 +60,7 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children }) => {
             </div>
         )}
 
-        {/* “请授权，解锁更多功能” 提示 */}
+        {/* “请授权后使用跟随识别” 提示 */}
         <FeatureLockToast />
       </>
   );
@@ -78,7 +79,7 @@ const BannedCard: React.FC = () => (
 );
 
 
-/** 全局“请授权，解锁更多功能”提示条（触发后显示约 2.6 秒）。 */
+/** 全局“请授权后使用跟随识别”提示条（触发后显示约 2.6 秒）。 */
 const FeatureLockToast: React.FC = () => {
   const visible = useFeatureLockNotice();
   if (!visible) {
@@ -86,7 +87,7 @@ const FeatureLockToast: React.FC = () => {
   }
   return (
       <div className="fixed top-[72px] left-1/2 -translate-x-1/2 z-[990] bg-slate-900/90 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl">
-        请授权，解锁更多功能
+        请授权后使用「跟随识别」
       </div>
   );
 };

@@ -18,7 +18,6 @@ from core.services.trial_filter import (
 )
 from core.infra.utils import get_top_k_matches, get_icon_file_name, fuse_ocr_feat
 from core.infra.logger import logger
-from core.auth.service import is_authorized
 from core.services import recog_progress
 from core.vision.color_feature import color_signature
 
@@ -112,8 +111,6 @@ def ocr_top_k_match(image, stage_num, top_k=6, trial_key="grass"):
 
 @bp.route('/predict', methods=['POST'])
 def predict():
-    if not is_authorized():
-        return error("请授权，解锁更多功能", 200)
     logger.info(f"[/predict] 请求开始, stage_num={request.form.get('stage_num')}, "
                 f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
                 f"trial={request.form.get('trial', 'grass')}")
@@ -233,8 +230,6 @@ def predict():
 
 @bp.route('/init_batch', methods=['POST'])
 def predict_batch():
-    if not is_authorized():
-        return error("请授权，解锁更多功能", 200)
     logger.info(f"[/init_batch] 请求开始, stage_num={request.form.get('stage_num')}, "
                 f"threshold={request.form.get('threshold')}, top_k={request.form.get('top_k')}, "
                 f"total_count={request.form.get('total_count')}, trial={request.form.get('trial', 'grass')}")

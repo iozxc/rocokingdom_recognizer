@@ -24,8 +24,6 @@ import { HomeScrollbar } from './components/HomeScrollbar';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
 import { AuthBadge } from './components/AuthBadge';
-import { useFeatureLock } from './services/auth';
-import { showFeatureLockNotice } from './services/featureLock';
 import { FireBadgeTrial } from './components/Trial/FireBadgeTrial';
 import { MAP_CONFIGS } from './data/mockPets';
 import { resolveTrialMaps } from './data/trials';
@@ -197,16 +195,6 @@ export default function App() {
       };
     }
   }, [isAnyModalOpen]);
-
-  // 未授权时锁定“识别”相关功能：点击弹“请授权，解锁更多功能”，不执行。
-  const { locked } = useFeatureLock();
-  const guardRecognition = useCallback((action: () => void) => {
-    if (locked) {
-      showFeatureLockNotice();
-      return;
-    }
-    action();
-  }, [locked]);
 
   // Trigger celebration confetti & sleek pop notification
   const triggerScanSyncEffect = useCallback(
