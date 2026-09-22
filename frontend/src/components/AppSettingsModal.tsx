@@ -1131,19 +1131,11 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   <span>免责与开发者声明</span>
                 </div>
                 <p className="leading-relaxed text-slate-500 dark:text-slate-400 text-[10px]">
-                  <strong>声明：</strong>本项目为<strong>个人玩家独立开发的图像识别技术演示作品</strong>，仅用于编程学习与技术交流，<strong>不存在任何商业盈利行为，未获得腾讯官方授权</strong>。
+                  <strong>声明：</strong>本项目为<strong>个人玩家独立开发的图像识别练习作品</strong>，仅用于编程学习与技术交流，<strong>不存在任何商业盈利行为，未获得腾讯官方授权</strong>。
                   游戏官方用户协议禁止各类第三方工具，使用者确认已充分知晓该规则，如仍自愿使用本项目，由此产生的账号限制、封禁等全部风险与后果均由使用者本人独立承担，本项目开发者不承担任何责任。
                 </p>
                 <p className="leading-relaxed text-slate-500 dark:text-slate-400 text-[10px]">
-                  参考说明：页面部分内容参考来自第三方社区
-                  <a
-                    href="https://wiki.biligame.com/rocom"
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                    className="text-sky-600 dark:text-sky-400 font-medium hover:underline mx-1"
-                  >
-                    Bilibili游戏‑RocoWiki
-                  </a>，本站仅作引用参考，不对第三方内容的真实性、完整性承担责任。游戏相关全部素材、商标、知识产权均归腾讯公司《洛克王国：世界》所有。
+                  本应用部分数据来源于 GitHub 开源社区及 Wiki 平台，相关内容版权归原作者所有，本作品仅作引用参考，不对第三方内容的真实性、完整性承担责任。游戏相关全部素材、商标、知识产权均归腾讯公司《洛克王国：世界》所有。
                 </p>
               </div>
             </div>
