@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Sparkles, Check, Sparkle, Info, Bug, RotateCcw } from 'lucide-react';
-import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState, SearchFilterPosition } from '../types';
+import { Sparkles, Check, Sparkle, Info, Bug, RotateCcw, MapPin, ArrowUpCircle } from 'lucide-react';
+import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState, SearchFilterPosition, StatsLayoutMode } from '../types';
 import { sound } from '../services/sound';
 import { IS_STATIC } from '../services/staticMode';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecialType } from '../utils/petHelper';
@@ -12,6 +12,7 @@ import { PetSkillPanel } from './PetSkillPanel';
 import { petKeyOf } from '../services/atlasCollector';
 import { storage } from '../services/storage';
 import { SearchFilterToolbar } from './SearchFilterToolbar';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface PetGridProps {
   currentMap: MapConfig;
@@ -28,6 +29,16 @@ interface PetGridProps {
   advancedFilters: AdvancedFilterState;
   /** 搜索/筛选位置：position2 时显示在 PetGrid 标题栏右侧。 */
   searchFilterPosition?: SearchFilterPosition;
+  /** 地图信息栏布局：merged=地图信息/进度卡并入本组件标题区（默认）| separate=顶部独立 StatsBanner 经典版。 */
+  statsLayoutMode?: StatsLayoutMode;
+  /** 遇见进度百分比（merged 模式进度卡使用；缺省时按已遇见/总数现算）。 */
+  percentage?: number;
+  /** merged 模式：清空当前地图遇见记录（提供后进度卡显示「重置记录」并弹确认框）。 */
+  onResetEncounters?: () => void;
+  /** merged 模式：图鉴数据库有更新时显示提示条。 */
+  dataUpdateAvailable?: boolean;
+  /** merged 模式：点击「前往更新」。 */
+  onOpenDataUpdate?: () => void;
   /** 顶部悬浮搜索栏出现时，隐藏原位搜索框（避免重复）。 */
   hideSearchInput?: boolean;
   onSearchChange?: (query: string) => void;
@@ -61,6 +72,11 @@ export const PetGrid: React.FC<PetGridProps> = ({
   onOpenFeedback,
   advancedFilters,
   searchFilterPosition = 'position2',
+  statsLayoutMode = 'merged',
+  percentage: percentageProp,
+  onResetEncounters,
+  dataUpdateAvailable = false,
+  onOpenDataUpdate,
   hideSearchInput = false,
   onSearchChange,
   onSearchModeChange,
@@ -74,6 +90,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
   const [animatingKeys, setAnimatingKeys] = useState<Record<string, boolean>>({});
   const [unanimatingKeys, setUnanimatingKeys] = useState<Record<string, boolean>>({});
   const [contextMenu, setContextMenu] = useState<{ pet: PetItem; x: number; y: number } | null>(null);
+  // merged 模式：清空当前地图遇见记录的确认框
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
   const [showSkillHover, setShowSkillHover] = useState<boolean>(() => storage.getSetting<boolean>('showPetSkillHover', true));
 
   // 智能悬浮面板位置状态
@@ -87,8 +105,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const totalCount = pets.length;
+  // merged 模式下 StatsBanner 已消失，搜索/筛选栏固定渲染在标题区；separate 经典版仅 position2 渲染在此
   const showSearchFilterToolbar = Boolean(
-    searchFilterPosition === 'position2' && onSearchChange && onSearchModeChange && onAdvancedFilterChange,
+    onSearchChange && onSearchModeChange && onAdvancedFilterChange &&
+    (statsLayoutMode === 'merged' || searchFilterPosition === 'position2'),
   );
 
   useEffect(() => {
@@ -144,6 +164,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
     return pets.filter((p) => isPetEncounteredInRecords(records, currentMap.id, p.name)).length;
   }, [pets, records, currentMap.id]);
   const unencounteredCount = Math.max(0, totalCount - encounteredCount);
+  const percentage = percentageProp ?? (totalCount > 0 ? Math.round((encounteredCount / totalCount) * 100) : 0);
+  const mapEmoji = currentMap.num === 1 ? '🌿' : currentMap.num === 2 ? '🗿' : currentMap.num === 3 ? '🌱' : '🔥';
 
   const handleCardClick = (petName: string, currentlyEncountered: boolean) => {
     const key = `${currentMap.id}_${petName}`;
@@ -229,54 +251,200 @@ export const PetGrid: React.FC<PetGridProps> = ({
   return (
       <div className="bg-white dark:bg-slate-800 roco-card p-5 sm:p-6 border-2 border-transparent dark:border-slate-700/80 transition-colors">
         {/* Section Header */}
-        <div className="pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        {statsLayoutMode === 'merged' ? (
+          <div className="relative pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
+            {/* Decorative gradient aura (clipped to header area) */}
+            <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
               <div
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0 shadow-xs"
-                  style={{ backgroundColor: currentMap.themeColor }}
-              >
-                {currentMap.num}
-              </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 flex-wrap">
-                  <span>{currentMap.name}</span>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] dark:bg-slate-800 text-[#2B78C4] dark:text-sky-300 font-mono font-black border border-[#E6EEF8] dark:border-slate-700 flex items-center gap-1">
-                    <span>已遇见 <strong className="text-[#2D6613] dark:text-emerald-400 font-black">{encounteredCount}</strong> / {totalCount}</span>
-                    {filterMode !== 'all' && (
-                        <span className="text-[10px] text-slate-400 dark:text-slate-400 font-normal">
-                          (当前显示 {filteredPets.length})
-                        </span>
-                    )}
-                  </span>
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  点击卡片即可直接切换【已遇见 / 未遇见】状态
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {showSearchFilterToolbar && (
-            <div className="w-full pt-3 mt-3 border-t border-slate-100 dark:border-slate-700/70">
-              <SearchFilterToolbar
-                pets={pets}
-                encounteredCount={encounteredCount}
-                totalCount={totalCount}
-                filterMode={filterMode}
-                onFilterChange={onFilterChange || (() => {})}
-                searchQuery={searchQuery}
-                searchMode={searchMode}
-                onSearchChange={onSearchChange!}
-                onSearchModeChange={onSearchModeChange!}
-                advancedFilters={advancedFilters}
-                onAdvancedFilterChange={onAdvancedFilterChange!}
-                layout="grid"
-                hideSearchInput={hideSearchInput}
+                className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${currentMap.bgGradient} rounded-full blur-3xl -mr-20 -mt-20 opacity-40 dark:opacity-20`}
               />
             </div>
-          )}
-        </div>
+
+            <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
+              {/* Left: Map Information & Level Badge (merged from StatsBanner) */}
+              <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 flex-1 min-w-0">
+                <div
+                  className="w-10 h-10 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center text-xl sm:text-2xl border-2 shrink-0 bg-[#F5F9FF] dark:bg-slate-800 shadow-xs"
+                  style={{ borderColor: currentMap.themeColor }}
+                >
+                  {mapEmoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <span className={`text-[10px] sm:text-[11px] font-black px-1.5 sm:px-2 py-0.5 rounded-lg border ${currentMap.badgeBg} dark:bg-slate-800 dark:border-slate-700`}>
+                      地图 #{currentMap.num}
+                    </span>
+                    <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-1.5 truncate">
+                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7ABCF4] shrink-0" />
+                      <span>{currentMap.name}</span>
+                    </h3>
+                  </div>
+
+                  {/* 合并版不展示地图描述（描述保留在经典版顶部统计栏） */}
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 sm:mt-1 flex items-center gap-1.5 flex-wrap">
+                    <span>点击卡片即可直接切换【已遇见 / 未遇见】状态</span>
+                    {filterMode !== 'all' && (
+                      <span className="text-[10px] font-mono">（当前显示 {filteredPets.length}）</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Map Dex Completion Progress Card (merged from StatsBanner) */}
+              <div className="shrink-0 w-full md:w-72 lg:w-80">
+                <div className="p-2.5 sm:p-3 bg-gradient-to-b from-[#F5F9FF] to-[#EFF6FF] dark:from-slate-800/90 dark:to-slate-800/50 rounded-2xl border border-[#D5E2F0] dark:border-slate-700 shadow-xs space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-black text-slate-700 dark:text-slate-200">
+                    <span className="flex items-center gap-1.5 text-[#2B78C4] dark:text-sky-400">
+                      <Sparkles className="w-3.5 h-3.5 text-[#FEE061]" />
+                      <span>本图遇见进度</span>
+                    </span>
+                    <span className="font-mono text-[#2B78C4] dark:text-sky-300 font-black text-xs">
+                      {encounteredCount} / {totalCount} ({percentage}%)
+                    </span>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full h-2.5 bg-slate-200/90 dark:bg-slate-700 rounded-full overflow-hidden p-0.5">
+                    <div
+                      className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-[#95D151] to-[#7ABCF4]"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+
+                  {/* Progress Footer: Remaining count & Subtle Reset link */}
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-400 font-medium pt-0.5">
+                    <span>{unencounteredCount === 0 ? '🎉 已全部遇见' : `还差 ${unencounteredCount} 只完成`}</span>
+                    {onResetEncounters && encounteredCount > 0 ? (
+                      <button
+                        type="button"
+                        id="reset-map-encounters-btn"
+                        onClick={() => {
+                          sound.playClick();
+                          setIsResetConfirmOpen(true);
+                        }}
+                        title="清空当前关卡遇见记录"
+                        className="text-[10px] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-1 cursor-pointer hover:underline"
+                      >
+                        <RotateCcw className="w-2.5 h-2.5 text-slate-400" />
+                        <span>重置记录</span>
+                      </button>
+                    ) : (
+                      <span className="text-slate-400">{percentage >= 100 ? '已完成' : '收集进行中'}</span>
+                    )}
+                  </div>
+
+                  {/* Optional subtle data update alert */}
+                  {dataUpdateAvailable && onOpenDataUpdate && (
+                    <div className="pt-1.5 mt-1 border-t border-[#D5E2F0]/70 dark:border-slate-700 flex items-center justify-between">
+                      <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        图鉴数据库有更新
+                      </span>
+                      <button
+                        type="button"
+                        id="data-update-btn"
+                        onClick={() => {
+                          sound.playClick();
+                          onOpenDataUpdate();
+                        }}
+                        className="text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-1 cursor-pointer hover:underline"
+                      >
+                        <ArrowUpCircle className="w-3 h-3 text-sky-500" />
+                        <span>前往更新</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Filter tabs + search controls */}
+            {showSearchFilterToolbar && (
+              <div className="relative z-10 w-full pt-3 mt-3 border-t border-slate-100 dark:border-slate-700/70">
+                <SearchFilterToolbar
+                  pets={pets}
+                  encounteredCount={encounteredCount}
+                  totalCount={totalCount}
+                  filterMode={filterMode}
+                  onFilterChange={onFilterChange || (() => {})}
+                  searchQuery={searchQuery}
+                  searchMode={searchMode}
+                  onSearchChange={onSearchChange!}
+                  onSearchModeChange={onSearchModeChange!}
+                  advancedFilters={advancedFilters}
+                  onAdvancedFilterChange={onAdvancedFilterChange!}
+                  layout="grid"
+                  hideSearchInput={hideSearchInput}
+                />
+              </div>
+            )}
+
+            {/* Reset Confirmation Dialog */}
+            <ConfirmDialog
+              isOpen={isResetConfirmOpen}
+              title="重置当前关卡遇见记录"
+              description={`确定要清空【${currentMap.name}】的遇见记录吗？（已遇见 ${encounteredCount} 只）`}
+              detail="此操作无法撤销，清空后该地图所有精灵的遇见记录与绿勾标记将重置。"
+              confirmText="确认重置"
+              cancelText="取消"
+              danger
+              onConfirm={() => {
+                onResetEncounters?.();
+              }}
+              onClose={() => setIsResetConfirmOpen(false)}
+            />
+          </div>
+        ) : (
+          /* Classic header: number badge + name + encounter pill (separate StatsBanner above) */
+          <div className="pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0 shadow-xs"
+                    style={{ backgroundColor: currentMap.themeColor }}
+                >
+                  {currentMap.num}
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2 flex-wrap">
+                    <span>{currentMap.name}</span>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F5F9FF] dark:bg-slate-800 text-[#2B78C4] dark:text-sky-300 font-mono font-black border border-[#E6EEF8] dark:border-slate-700 flex items-center gap-1">
+                      <span>已遇见 <strong className="text-[#2D6613] dark:text-emerald-400 font-black">{encounteredCount}</strong> / {totalCount}</span>
+                      {filterMode !== 'all' && (
+                          <span className="text-[10px] text-slate-400 dark:text-slate-400 font-normal">
+                            (当前显示 {filteredPets.length})
+                          </span>
+                      )}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    点击卡片即可直接切换【已遇见 / 未遇见】状态
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {showSearchFilterToolbar && (
+              <div className="w-full pt-3 mt-3 border-t border-slate-100 dark:border-slate-700/70">
+                <SearchFilterToolbar
+                  pets={pets}
+                  encounteredCount={encounteredCount}
+                  totalCount={totalCount}
+                  filterMode={filterMode}
+                  onFilterChange={onFilterChange || (() => {})}
+                  searchQuery={searchQuery}
+                  searchMode={searchMode}
+                  onSearchChange={onSearchChange!}
+                  onSearchModeChange={onSearchModeChange!}
+                  advancedFilters={advancedFilters}
+                  onAdvancedFilterChange={onAdvancedFilterChange!}
+                  layout="grid"
+                  hideSearchInput={hideSearchInput}
+                />
+              </div>
+            )}
+          </div>
+        )}
         {/* Empty State */}
         {filteredPets.length === 0 ? (
             <div className="py-16 text-center text-slate-400 flex flex-col items-center">

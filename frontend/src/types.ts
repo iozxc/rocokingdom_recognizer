@@ -247,6 +247,8 @@ export type FloatingButtonsMode = 'normal' | 'compact' | 'hidden';
 export type CaptureMode = 'hwnd' | 'grab';
 export type ThemeMode = 'light' | 'dark';
 export type SearchFilterPosition = 'position1' | 'position2';
+/** 地图信息栏布局：merged=信息并入 PetGrid 标题区（默认）| separate=顶部独立 StatsBanner 经典版 */
+export type StatsLayoutMode = 'merged' | 'separate';
 
 export interface FireSettings {
   agreeRatio?: number; // 火系赞同率阈值 0~1（默认 0）
@@ -283,6 +285,7 @@ export interface AppSettings {
   showHomeScrollbar?: boolean; // 首页自定义滚动条是否显示（默认关闭）
   homeScrollbarWidth?: number; // 首页自定义滚动条宽度 px（默认 10）
   searchFilterPosition?: SearchFilterPosition; // 搜索/筛选位置：position1=统计栏，position2=PetGrid 右上角（默认）
+  statsLayoutMode?: StatsLayoutMode; // 地图信息栏布局：merged=并入 PetGrid（默认）| separate=顶部独立统计栏经典版
   [key: string]: unknown;
 }
 

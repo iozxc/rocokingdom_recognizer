@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode, AdvancedFilterState, FireSettings, SearchFilterPosition } from '../../types';
+import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode, AdvancedFilterState, FireSettings, SearchFilterPosition, StatsLayoutMode } from '../../types';
 import { fireStorage } from '../../services/fireStorage';
 import { getCachedFirePets, getFireTrialPetsCached, getFireMapPets } from '../../services/fireTrialData';
 import { storage } from '../../services/storage';
@@ -46,6 +46,10 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
   const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
   const [searchFilterPosition, setSearchFilterPosition] = useState<SearchFilterPosition>(() => {
     return storage.getSetting<SearchFilterPosition>('searchFilterPosition', 'position2');
+  });
+  // 地图信息栏布局：merged=并入 PetGrid 标题区（默认）| separate=顶部独立统计栏经典版
+  const [statsLayoutMode, setStatsLayoutMode] = useState<StatsLayoutMode>(() => {
+    return storage.getSetting<StatsLayoutMode>('statsLayoutMode', 'merged');
   });
   const [loaded, setLoaded] = useState<boolean>(initialPets !== null);
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
@@ -110,6 +114,9 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
       }
       if (newSettings.searchFilterPosition === 'position1' || newSettings.searchFilterPosition === 'position2') {
         setSearchFilterPosition(newSettings.searchFilterPosition);
+      }
+      if (newSettings.statsLayoutMode === 'merged' || newSettings.statsLayoutMode === 'separate') {
+        setStatsLayoutMode(newSettings.statsLayoutMode);
       }
       const fs = newSettings.fireSettings || {};
       setMinAgreeRatio(fs.agreeRatio ?? 0);
@@ -619,23 +626,26 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
         )}
 
         <main className="flex-1 w-full mx-auto px-8 sm:px-16 pt-6">
-          <StatsBanner
-              currentMap={currentMap}
-              encounteredCount={currentMapStats.encounteredCount}
-              totalMapPets={currentMapStats.totalMapPets}
-              pets={currentMapPets}
-              searchMode={searchMode}
-              onSearchModeChange={setSearchMode}
-              percentage={currentMapStats.percentage}
-              filterMode={filterMode}
-              onFilterChange={(mode) => setFilterMode(mode)}
-              searchQuery={searchQuery}
-              onSearchChange={(q) => setSearchQuery(q)}
-              onResetEncounters={handleResetCurrentMap}
-              advancedFilters={advancedFilters}
-              onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
-              searchFilterPosition={searchFilterPosition}
-          />
+          {/* 经典版（separate）：顶部独立统计栏；合并版（merged，默认）已把这些信息并入 PetGrid 标题区 */}
+          {statsLayoutMode === 'separate' && (
+            <StatsBanner
+                currentMap={currentMap}
+                encounteredCount={currentMapStats.encounteredCount}
+                totalMapPets={currentMapStats.totalMapPets}
+                pets={currentMapPets}
+                searchMode={searchMode}
+                onSearchModeChange={setSearchMode}
+                percentage={currentMapStats.percentage}
+                filterMode={filterMode}
+                onFilterChange={(mode) => setFilterMode(mode)}
+                searchQuery={searchQuery}
+                onSearchChange={(q) => setSearchQuery(q)}
+                onResetEncounters={handleResetCurrentMap}
+                advancedFilters={advancedFilters}
+                onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
+                searchFilterPosition={searchFilterPosition}
+            />
+          )}
 
           {/* 游戏画面识别（与草系一致；使用火系图鉴，trialKey=fire） */}
           {!IS_STATIC && (
@@ -664,6 +674,9 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               searchMode={searchMode}
               advancedFilters={advancedFilters}
               searchFilterPosition={searchFilterPosition}
+              statsLayoutMode={statsLayoutMode}
+              percentage={currentMapStats.percentage}
+              onResetEncounters={handleResetCurrentMap}
               onSearchChange={setSearchQuery}
               onSearchModeChange={setSearchMode}
               onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}

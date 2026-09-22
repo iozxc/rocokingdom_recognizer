@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import {
     X,
-    MessageCircle,
+    Users,
     Bug,
+    BookOpenCheck,
+    Lightbulb,
     Copy,
     Check,
     Send,
     RefreshCw,
     QrCode,
+    Sparkles,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { api } from '../services/api';
@@ -19,6 +22,13 @@ interface FeedbackContactModalProps {
     onClose: () => void;
     initialType?: string;
 }
+
+/** 反馈类型：用图标 + 语义色描述，避免三个彩色按钮拼成「彩虹」。 */
+const FEEDBACK_TYPES = [
+    { id: '识别异常Bug', label: '识别异常', icon: Bug, tint: 'rose' },
+    { id: '精灵图鉴纠错', label: '图鉴纠错', icon: BookOpenCheck, tint: 'amber' },
+    { id: '功能体验建议', label: '功能建议', icon: Lightbulb, tint: 'sky' },
+] as const;
 
 
 export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
@@ -49,6 +59,16 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
             api.getChatConfig().then((cfg) => setChatConfig(cfg));
         }
     }, [isOpen]);
+
+    // Esc 关闭（与其它弹窗保持一致）
+    React.useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
 
     if (!isOpen) return null;
 
@@ -107,244 +127,245 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/55 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={onClose}
             onWheel={(e) => e.stopPropagation()}
         >
             <div
-                className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col transition-colors"
+                className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-w-[540px] w-full overflow-hidden flex flex-col transition-colors"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header */}
-                <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
-                            <MessageCircle className="w-4 h-4 text-white" />
+                {/* ── Header：柔和渐变，去掉厚重的描边 ───────────────── */}
+                <div className="relative bg-gradient-to-br from-[#8FC7F7] via-[#7ABCF4] to-[#5DA8E8] dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 px-5 py-4 text-white">
+                    {/* 右上角柔光，避免大色块显得死板 */}
+                    <div className="pointer-events-none absolute -top-10 -right-6 w-32 h-32 rounded-full bg-white/15 blur-2xl" />
+                    <div className="relative flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-2xl bg-white/20 ring-1 ring-inset ring-white/30 backdrop-blur-sm flex items-center justify-center shrink-0">
+                                <Users className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="text-[15px] font-black tracking-tight leading-tight">联系与反馈</h3>
+                                <p className="text-[11px] text-white/85 font-medium mt-0.5">
+                                    加入玩家群交流，或直接提交问题与建议
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-base font-black tracking-tight">联系与反馈 · 洛克交流</h3>
-                            <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">加入玩家QQ群 · 提出意见或报告异常</p>
-                        </div>
+                        <button
+                            type="button"
+                            aria-label="关闭"
+                            onClick={() => {
+                                sound.playClick();
+                                onClose();
+                            }}
+                            className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            sound.playClick();
-                            onClose();
-                        }}
-                        className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
                 </div>
 
-                {/* Content */}
-                <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-                    {/* QQ 群列表（支持多个群） */}
-                    <div className="space-y-3">
+                {/* ── Content ───────────────────────────────────────── */}
+                <div className="px-5 py-4 space-y-5 max-h-[76vh] overflow-y-auto custom-roco-scrollbar">
+                    {/* QQ 群 */}
+                    <section className="space-y-2.5">
+                        <SectionLabel icon={Users} text="玩家交流群" hint="官方群 · 随时答疑" />
+
                         {groups.length === 0 ? (
-                            <div className="p-4 bg-[#F0F6FC] dark:bg-slate-800/80 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 text-center text-xs text-slate-400 dark:text-slate-500">
+                            <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 px-4 py-5 text-center text-xs text-slate-400 dark:text-slate-500">
                                 暂无群信息，请稍后重试或从官网获取。
                             </div>
                         ) : groups.map((g: any, idx: number) => {
                             const gid: string = String(g?.group_id ?? '');
                             const gname: string = g?.name ?? '加入交流群';
                             const qrSrc: string = g?.qrcode ? api.resourceUrl(g.qrcode) : './qrcode.png';
+                            const copied = copiedGroupId === gid;
+                            const qrOpen = qrOpenIndex === idx;
                             return (
                                 <div
                                     key={gid || idx}
-                                    className="p-4 bg-[#F0F6FC] dark:bg-slate-800/90 rounded-2xl border-2 border-[#D5E3F0] dark:border-slate-700 flex flex-col gap-3"
+                                    className="rounded-2xl bg-gradient-to-br from-sky-50 to-white dark:from-slate-800 dark:to-slate-800/60 ring-1 ring-sky-100 dark:ring-slate-700 overflow-hidden"
                                 >
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-11 h-11 rounded-2xl bg-[#7ABCF4] dark:bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-xs border-2 border-[#5DA8E8] dark:border-sky-500">
-                                                <MessageCircle className="w-6 h-6" />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">{gname}</span>
-                                                    <span className="text-[10px] font-black px-1.5 py-0.2 bg-[#FEE061] text-[#854D0E] rounded-md shrink-0">官方群</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    {gid && (
-                                                        <span className="text-xs font-mono font-black text-[#1E5B99] dark:text-sky-300 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-[#BCD7F2] dark:border-slate-700">{gid}</span>
-                                                    )}
-                                                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">随时交流/汇报Bug</span>
-                                                </div>
-                                            </div>
+                                    <div className="p-3.5 flex items-center gap-3">
+                                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7ABCF4] to-[#5DA8E8] text-white flex items-center justify-center shrink-0 shadow-sm">
+                                            <Users className="w-[22px] h-[22px]" />
                                         </div>
 
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <button
-                                                type="button"
-                                                onClick={() => handleToggleQRCode(idx)}
-                                                title={qrOpenIndex === idx ? '收起二维码' : '扫码进群'}
-                                                className={`p-2 rounded-xl text-xs font-black flex items-center justify-center transition-all cursor-pointer border-2 ${
-                                                    qrOpenIndex === idx
-                                                        ? 'bg-[#7ABCF4] dark:bg-sky-600 text-white border-[#5DA8E8] dark:border-sky-500 shadow-xs'
-                                                        : 'bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 text-[#1E5B99] dark:text-sky-300 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 shadow-xs'
-                                                }`}
-                                            >
-                                                <QrCode className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleCopyQQGroup(gid)}
-                                                className={`px-3 py-2 rounded-xl text-xs font-black flex items-center gap-1 transition-all cursor-pointer border-2 ${
-                                                    copiedGroupId === gid
-                                                        ? 'bg-[#95D151] dark:bg-emerald-600 text-white border-[#76B032] dark:border-emerald-500'
-                                                        : 'bg-white dark:bg-slate-800 hover:bg-[#EBF4FE] dark:hover:bg-slate-700 text-[#1E5B99] dark:text-sky-300 border-[#BCD7F2] dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 shadow-xs'
-                                                }`}
-                                            >
-                                                {copiedGroupId === gid ? (
-                                                    <>
-                                                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                                        <span>已复制</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Copy className="w-3.5 h-3.5" />
-                                                        <span>复制群号</span>
-                                                    </>
-                                                )}
-                                            </button>
+                                        <div className="min-w-0 flex-1">
+                                            {/* 群名不再截断成「…」：允许换行，最多两行 */}
+                                            <div className="flex items-start gap-1.5">
+                                                <span className="text-[13px] font-black text-slate-800 dark:text-slate-100 leading-snug line-clamp-2">
+                                                    {gname}
+                                                </span>
+                                                <span className="shrink-0 mt-px text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-200/70 dark:ring-amber-800/60">
+                                                    官方群
+                                                </span>
+                                            </div>
+                                            {gid && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleCopyQQGroup(gid)}
+                                                    title="点击复制群号"
+                                                    className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 hover:text-[#2B78C4] dark:hover:text-sky-300 transition-colors cursor-pointer group/gid"
+                                                >
+                                                    <span>群号 {gid}</span>
+                                                    {copied
+                                                        ? <Check className="w-3 h-3 text-emerald-500 stroke-[3]" />
+                                                        : <Copy className="w-3 h-3 opacity-60 group-hover/gid:opacity-100" />}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {qrOpenIndex === idx && (
-                                        <div className="pt-3 border-t border-[#D5E3F0] dark:border-slate-700 flex flex-col sm:flex-row items-center justify-center gap-4 bg-white/80 dark:bg-slate-900/80 p-3.5 rounded-xl border border-white dark:border-slate-700 shadow-inner animate-in fade-in zoom-in-95 duration-200">
-                                            <div className="p-2 bg-white dark:bg-slate-800 rounded-2xl border-2 border-[#BCD7F2] dark:border-slate-700 shadow-sm flex items-center justify-center">
+                                    {/* 两个等宽按钮：不再是一「图标方块」+一「宽按钮」的失衡布局 */}
+                                    <div className="px-3.5 pb-3.5 grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCopyQQGroup(gid)}
+                                            className={`h-9 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ring-1 ring-inset ${
+                                                copied
+                                                    ? 'bg-emerald-500 text-white ring-emerald-500 shadow-sm'
+                                                    : 'bg-white dark:bg-slate-900 text-[#2B78C4] dark:text-sky-300 ring-sky-200 dark:ring-slate-700 hover:bg-sky-50 dark:hover:bg-slate-800 hover:ring-sky-300 shadow-xs'
+                                            }`}
+                                        >
+                                            {copied
+                                                ? <><Check className="w-3.5 h-3.5 stroke-[3]" /><span>已复制</span></>
+                                                : <><Copy className="w-3.5 h-3.5" /><span>复制群号</span></>}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleToggleQRCode(idx)}
+                                            className={`h-9 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ring-1 ring-inset ${
+                                                qrOpen
+                                                    ? 'bg-[#5DA8E8] text-white ring-[#5DA8E8] shadow-sm'
+                                                    : 'bg-white dark:bg-slate-900 text-[#2B78C4] dark:text-sky-300 ring-sky-200 dark:ring-slate-700 hover:bg-sky-50 dark:hover:bg-slate-800 hover:ring-sky-300 shadow-xs'
+                                            }`}
+                                        >
+                                            <QrCode className="w-3.5 h-3.5" />
+                                            <span>{qrOpen ? '收起二维码' : '扫码进群'}</span>
+                                        </button>
+                                    </div>
+
+                                    {/* 二维码面板：浅色留白，不再套「框里的框」 */}
+                                    {qrOpen && (
+                                        <div className="px-3.5 pb-3.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                                            <div className="rounded-xl bg-white dark:bg-slate-900 p-3 flex items-center gap-4 ring-1 ring-sky-100 dark:ring-slate-700">
                                                 <img
                                                     src={qrSrc}
                                                     alt="QQ群二维码"
-                                                    className="w-36 h-36 object-contain rounded-lg"
+                                                    className="w-28 h-28 object-contain rounded-lg shrink-0"
                                                     onError={(e) => {
                                                         (e.target as HTMLImageElement).src = `https://dummyimage.com/200x200/7abcf4/ffffff.png&text=QQ+Group:+${gid}`;
                                                     }}
                                                 />
-                                            </div>
-                                            <div className="text-center sm:text-left space-y-1">
-                                                <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-black text-slate-800 dark:text-slate-100">
-                                                    <QrCode className="w-4 h-4 text-[#2B78C4] dark:text-sky-400" />
-                                                    <span>扫一扫加入交流群</span>
-                                                </div>
-                                                <p className="text-[11px] text-slate-500 dark:text-slate-400">使用手机 QQ 扫描上方二维码即可一键加入</p>
-                                                {gid && (
-                                                    <p className="text-[10px] text-[#2B78C4] dark:text-sky-300 font-mono font-bold bg-[#EBF4FE] dark:bg-sky-950/70 px-2 py-0.5 rounded-md inline-block border border-transparent dark:border-sky-900/50">
-                                                        群号: {gid}
+                                                <div className="min-w-0 space-y-1">
+                                                    <p className="text-xs font-black text-slate-700 dark:text-slate-200">手机 QQ 扫码加入</p>
+                                                    <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
+                                                        打开手机 QQ → 右上角「+」→ 扫一扫
                                                     </p>
-                                                )}
+                                                    {gid && (
+                                                        <p className="text-[10px] font-mono font-bold text-[#2B78C4] dark:text-sky-300">
+                                                            {gid}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
                                 </div>
                             );
                         })}
-                    </div>
+                    </section>
 
-                    {/* Online Feedback Form（web 版隐藏：无后端接收，改为引导到 QQ 群） */}
+                    {/* 在线反馈（web 版无后端接收，隐藏） */}
                     {!IS_STATIC && (
-                    <form onSubmit={handleSubmitFeedback} className="space-y-3 pt-1">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                                <Bug className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
-                                在线 Bug 反馈 / 优化建议
-                            </span>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500">匿名快速提交</span>
-                        </div>
+                        <form onSubmit={handleSubmitFeedback} className="space-y-3">
+                            <SectionLabel icon={Sparkles} text="在线反馈" hint="匿名快速提交" />
 
-                        {/* Type selector */}
-                        <div className="grid grid-cols-3 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setFeedbackType('识别异常Bug')}
-                                className={`py-1.5 px-2 rounded-xl text-xs font-black border-2 transition-all cursor-pointer ${
-                                    feedbackType === '识别异常Bug'
-                                        ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 dark:border-rose-500 text-rose-700 dark:text-rose-300 shadow-xs'
-                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                }`}
-                            >
-                                🐞 识别异常Bug
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFeedbackType('精灵图鉴纠错')}
-                                className={`py-1.5 px-2 rounded-xl text-xs font-black border-2 transition-all cursor-pointer ${
-                                    feedbackType === '精灵图鉴纠错'
-                                        ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-400 dark:border-amber-500 text-amber-800 dark:text-amber-300 shadow-xs'
-                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                }`}
-                            >
-                                📝 精灵图鉴纠错
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFeedbackType('功能体验建议')}
-                                className={`py-1.5 px-2 rounded-xl text-xs font-black border-2 transition-all cursor-pointer ${
-                                    feedbackType === '功能体验建议'
-                                        ? 'bg-[#EBF4FE] dark:bg-sky-950/50 border-[#7ABCF4] dark:border-sky-500 text-[#1E5B99] dark:text-sky-300 shadow-xs'
-                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                }`}
-                            >
-                                💡 功能体验建议
-                            </button>
-                        </div>
+                            {/* 类型选择：单色 segmented control，选中态用白底浮起 */}
+                            <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
+                                {FEEDBACK_TYPES.map((t) => {
+                                    const Icon = t.icon;
+                                    const active = feedbackType === t.id;
+                                    const activeTone =
+                                        t.tint === 'rose'
+                                            ? 'text-rose-600 dark:text-rose-400'
+                                            : t.tint === 'amber'
+                                                ? 'text-amber-600 dark:text-amber-400'
+                                                : 'text-[#2B78C4] dark:text-sky-400';
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => setFeedbackType(t.id as string)}
+                                            className={`h-9 rounded-xl text-[11px] font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                                active
+                                                    ? `bg-white dark:bg-slate-900 shadow-sm ${activeTone}`
+                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                            }`}
+                                        >
+                                            <Icon className="w-3.5 h-3.5" />
+                                            <span>{t.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-                        {/* Textarea */}
-                        <div>
                             <textarea
                                 value={feedbackContent}
                                 onChange={(e) => setFeedbackContent(e.target.value)}
                                 placeholder="请详细描述您遇到的问题（如：识别哪只精灵不准、按钮点击异常、期望新增的功能等）..."
-                                rows={3}
-                                className="w-full text-xs p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-500 focus:outline-hidden bg-slate-50/70 dark:bg-slate-800/80 focus:bg-white dark:focus:bg-slate-800 resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium"
+                                rows={4}
+                                className="w-full text-xs p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-[#7ABCF4] dark:focus:ring-sky-600 focus:bg-white dark:focus:bg-slate-800 outline-hidden resize-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium leading-relaxed transition-all"
                             />
-                        </div>
 
-                        {/* Contact Info (Optional) */}
-                        <div>
                             <input
                                 type="text"
                                 value={contactInfo}
                                 onChange={(e) => setContactInfo(e.target.value)}
                                 placeholder="您的 QQ号 / 邮箱（选填，方便核实与答复）"
-                                className="w-full text-xs px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-500 focus:outline-hidden bg-slate-50/70 dark:bg-slate-800/80 focus:bg-white dark:focus:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium"
+                                className="w-full text-xs px-3.5 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800/70 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-[#7ABCF4] dark:focus:ring-sky-600 focus:bg-white dark:focus:bg-slate-800 outline-hidden text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium transition-all"
                             />
-                        </div>
 
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={!feedbackContent.trim() || isSubmitting || isSubmitted}
-                            className={`w-full py-2.5 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all border-2 cursor-pointer ${
-                                isSubmitted
-                                    ? 'bg-[#95D151] dark:bg-emerald-600 text-white border-[#76B032] dark:border-emerald-500'
-                                    : isSubmitting
-                                        ? 'bg-[#7ABCF4]/70 dark:bg-sky-600/70 text-white border-[#5DA8E8] dark:border-sky-500'
-                                        : 'bg-[#7ABCF4] hover:bg-[#68AEEB] dark:bg-sky-600 dark:hover:bg-sky-500 text-white border-[#5DA8E8] dark:border-sky-500 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed'
-                            }`}
-                        >
-                            {isSubmitted ? (
-                                <>
-                                    <Check className="w-4 h-4 stroke-[3]" />
-                                    <span>{submitMessage || '反馈已提交，感谢您的支持！'}</span>
-                                </>
-                            ) : isSubmitting ? (
-                                <>
-                                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                                    <span>正在提交中...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Send className="w-3.5 h-3.5" />
-                                    <span>提交反馈</span>
-                                </>
-                            )}
-                        </button>
-                    </form>
+                            <button
+                                type="submit"
+                                disabled={!feedbackContent.trim() || isSubmitting || isSubmitted}
+                                className={`w-full h-11 rounded-2xl text-[13px] font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                                    isSubmitted
+                                        ? 'bg-emerald-500 text-white shadow-sm'
+                                        : isSubmitting
+                                            ? 'bg-[#7ABCF4]/75 text-white cursor-wait'
+                                            : 'bg-gradient-to-r from-[#7ABCF4] to-[#5DA8E8] dark:from-sky-600 dark:to-sky-700 text-white shadow-md hover:shadow-lg hover:brightness-[1.04] active:scale-[0.99] disabled:from-slate-200 disabled:to-slate-200 dark:disabled:from-slate-800 dark:disabled:to-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed'
+                                }`}
+                            >
+                                {isSubmitted ? (
+                                    <><Check className="w-4 h-4 stroke-[3]" /><span>{submitMessage || '反馈已提交，感谢您的支持！'}</span></>
+                                ) : isSubmitting ? (
+                                    <><RefreshCw className="w-3.5 h-3.5 animate-spin" /><span>正在提交…</span></>
+                                ) : (
+                                    <><Send className="w-4 h-4" /><span>提交反馈</span></>
+                                )}
+                            </button>
+                        </form>
                     )}
                 </div>
             </div>
         </div>
     );
 };
+
+
+/** 区块小标题：统一「图标 + 标题 + 右侧提示」的层级，替代原来零散的小红字。 */
+const SectionLabel: React.FC<{
+    icon: React.ComponentType<{ className?: string }>;
+    text: string;
+    hint?: string;
+}> = ({ icon: Icon, text, hint }) => (
+    <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+            <Icon className="w-3.5 h-3.5 text-[#2B78C4] dark:text-sky-400" />
+            {text}
+        </span>
+        {hint && <span className="text-[10px] text-slate-400 dark:text-slate-500">{hint}</span>}
+    </div>
+);
