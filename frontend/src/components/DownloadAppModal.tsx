@@ -13,9 +13,14 @@ import {
   Sparkles,
   Monitor,
   Keyboard,
+  ScrollText,
+  RefreshCw,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { api } from '../services/api';
+import { UpdateTimeline } from './UpdateTimeline';
+import { APP_VERSION } from '../version';
+import type { UpdateLogEntry } from '../types';
 
 /** Gitee（码云）标志图标：红色旗形，避免复用通用下载图标。 */
 const GiteeIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -42,6 +47,9 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
   const [groups, setGroups] = useState<any[]>([]);
   const [copiedGroupId, setCopiedGroupId] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
+  const [changelog, setChangelog] = useState<UpdateLogEntry[] | null>(null);
+  const [clLoading, setClLoading] = useState<boolean>(false);
+  const [clError, setClError] = useState<boolean>(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -49,6 +57,20 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
     api.getChatConfig().then((cfg) => {
       setGroups(Array.isArray(cfg?.qq_group) ? cfg.qq_group : []);
     });
+    // 与桌面版「检查更新」弹窗一致：在下载弹窗里直接内嵌版本时间线
+    setChangelog(null);
+    setClError(false);
+    setClLoading(true);
+    api.getChangelog()
+      .then((data) => {
+        if (data && Array.isArray(data.changelog) && data.changelog.length > 0) {
+          setChangelog(data.changelog);
+        } else {
+          setClError(true);
+        }
+      })
+      .catch(() => setClError(true))
+      .finally(() => setClLoading(false));
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -71,6 +93,18 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
 
   const mirrors = appInfo?.mirrors ?? {};
 
+  // changelog.json 按新到旧排列；防御写反顺序，取最大版本号为「最新」
+  const latestVersion = changelog && changelog.length
+    ? changelog.reduce((a, b) => {
+        const pa = String(a).split('.').map((x) => parseInt(x, 10) || 0);
+        const pb = String(b.version).split('.').map((x) => parseInt(x, 10) || 0);
+        for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+          if ((pb[i] || 0) !== (pa[i] || 0)) return (pb[i] || 0) > (pa[i] || 0) ? b.version : a;
+        }
+        return a;
+      }, changelog[0].version)
+    : APP_VERSION;
+
   return (
       <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
@@ -78,7 +112,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
           onClick={onClose}
       >
         <div
-            className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col transition-colors"
+            className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col transition-colors"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -108,8 +142,10 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
             </button>
           </div>
 
-          {/* Content */}
-          <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
+          {/* Content —— 左侧下载内容（独立滚动）+ 右侧更新日志（与桌面版检查更新弹窗一致） */}
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_340px] gap-4 p-4 sm:p-5 md:max-h-[78vh] overflow-hidden">
+            {/* 左：下载内容（独立滚动） */}
+            <div className="space-y-5 min-h-0 overflow-y-auto md:pr-1.5 [scrollbar-width:thin]">
             {/*
               * 这里刻意不显示版本号：这是「下载桌面版」的引导弹窗，
               * 网页版与桌面版各有各的版本号，摆一个「当前版本」容易被误解成本页版本。
@@ -266,6 +302,31 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                 )}
               </div>
             </div>
+            </div>{/* /左列：下载内容 */}
+
+            {/* 右：更新日志（与桌面版一致：右栏全高、内部滚动；窄屏降级为下方定高块） */}
+            <aside className="relative min-h-0 h-[46vh] md:h-auto">
+              <div className="relative h-full md:absolute md:inset-0 min-h-0">
+                {clLoading && !changelog ? (
+                  <div className="h-full flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500 bg-[#F8FAFC] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span className="text-xs font-bold">正在加载更新日志…</span>
+                  </div>
+                ) : clError && (!changelog || changelog.length === 0) ? (
+                  <div className="h-full flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500 bg-[#F8FAFC] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 px-4 text-center">
+                    <ScrollText className="w-5 h-5" />
+                    <span className="text-xs font-bold">暂时拉取不到更新日志，可进 QQ 群查看</span>
+                  </div>
+                ) : (
+                  <UpdateTimeline
+                    changelog={changelog || []}
+                    currentVersion={APP_VERSION}
+                    latestVersion={latestVersion}
+                    hasUpdate={false}
+                  />
+                )}
+              </div>
+            </aside>
           </div>
         </div>
       </div>

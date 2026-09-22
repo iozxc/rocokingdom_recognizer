@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings, BookOpen, History, Download, Sun, Moon, ScrollText} from 'lucide-react';
+import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings, BookOpen, History, Download, Sun, Moon} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { MapConfig, ThemeMode } from '../types';
 import { sound } from '../services/sound';
@@ -27,8 +27,6 @@ interface HeaderProps {
     onOpenManual?: () => void;
     onOpenFeedback?: () => void;
     onOpenUpdate?: () => void;
-    /** Web 端「更新历史」按钮回调（桌面版不传，其更新弹窗走下载流程）。 */
-    onOpenChangelog?: () => void;
     onOpenDownloadApp?: () => void;
     onOpenSettings?: () => void;
     onOpenHub?: () => void;
@@ -55,7 +53,6 @@ export const Header: React.FC<HeaderProps> = ({
                                                   onOpenManual,
                                                   onOpenFeedback,
                                                   onOpenUpdate,
-                                                  onOpenChangelog,
                                                   onOpenDownloadApp,
                                                   onOpenSettings,
                                                   onOpenHub,
@@ -251,23 +248,6 @@ export const Header: React.FC<HeaderProps> = ({
                                 <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
                                 <span className="hidden min-[1100px]:inline">群聊反馈</span>
                                 <span className="hidden min-[480px]:inline min-[1100px]:hidden">反馈</span>
-                            </button>
-                        )}
-
-                        {/* Web 端独立的「更新历史」按钮（桌面版不渲染，其在检查更新弹窗里看时间线） */}
-                        {onOpenChangelog && (
-                            <button
-                                id="changelog-toggle-btn"
-                                onClick={() => {
-                                    sound.playClick();
-                                    onOpenChangelog();
-                                }}
-                                title="查看更新历史"
-                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
-                            >
-                                <ScrollText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
-                                <span className="hidden min-[1100px]:inline">更新历史</span>
-                                <span className="hidden min-[540px]:inline min-[1100px]:hidden">更新</span>
                             </button>
                         )}
 
