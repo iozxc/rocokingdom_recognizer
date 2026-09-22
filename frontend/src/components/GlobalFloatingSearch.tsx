@@ -31,6 +31,31 @@ import { ElementBadges } from './ElementBadges';
 import { IS_STATIC } from '../services/staticMode';
 import { BackToTopHeaderButton, BackToTopCircle } from './BackToTopButton';
 
+/**
+ * 地图主题色，按图号区分。
+ *
+ * 必须用 Tailwind 类而不是内联色值：内联 style 优先级最高且不认 `dark:`，
+ * 原来写死 #E1F7DB/#FEF9E6 等浅色，导致暗黑模式下这几个地图 tag 变成刺眼的亮块。
+ */
+function mapTone(num: number) {
+  if (num === 1) {
+    return {
+      tag: 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30',
+      chip: 'bg-emerald-100 text-emerald-800 ring-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-200 dark:ring-emerald-500/40',
+    };
+  }
+  if (num === 2) {
+    return {
+      tag: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
+      chip: 'bg-amber-100 text-amber-800 ring-amber-300 dark:bg-amber-500/20 dark:text-amber-200 dark:ring-amber-500/40',
+    };
+  }
+  return {
+    tag: 'bg-sky-100 text-sky-800 border-sky-300 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
+    chip: 'bg-sky-100 text-sky-800 ring-sky-300 dark:bg-sky-500/20 dark:text-sky-200 dark:ring-sky-500/40',
+  };
+}
+
 export interface GlobalSearchPetResult {
   pet: PetItem;
   mapConfig: MapConfig;
@@ -557,46 +582,53 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
         {/* 2. Global Floating Search Modal Palette */}
         {isSearchOpen && (
             <div
-                className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-12 sm:pt-20 bg-slate-900/65 backdrop-blur-xs overflow-y-auto overscroll-contain animate-in fade-in duration-150"
+                className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 pt-12 sm:pt-20 bg-slate-900/55 backdrop-blur-sm overflow-y-auto overscroll-contain animate-in fade-in duration-150"
                 onClick={() => setIsOpen(false)}
             >
               <div
-                  className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 transition-colors"
+                  className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 transition-colors"
                   onClick={(e) => e.stopPropagation()}
               >
                 {/* Top Search Input Bar */}
-                <div className="p-4 sm:p-5 bg-gradient-to-r from-[#F5F9FF] to-white dark:from-slate-800 dark:to-slate-900 border-b-2 border-[#E6EEF8] dark:border-slate-800 shrink-0">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-[#7ABCF4] text-white flex items-center justify-center shadow-xs">
-                        <Search className="w-4 h-4" />
+                <div className="relative bg-gradient-to-br from-[#8FC7F7] via-[#7ABCF4] to-[#5DA8E8] dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 px-4 sm:px-5 pt-3.5 pb-4 text-white shrink-0">
+                  <div className="pointer-events-none absolute -top-10 -right-6 w-32 h-32 rounded-full bg-white/15 blur-2xl" />
+                  <div className="relative flex items-center justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-white/20 ring-1 ring-inset ring-white/30 backdrop-blur-sm flex items-center justify-center shadow-xs shrink-0">
+                        <Search className="w-5 h-5 text-white" />
                       </div>
-                      <div>
-                        <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                      <div className="min-w-0">
+                        <h3 className="text-[15px] font-black tracking-tight leading-tight flex items-center gap-2 flex-wrap">
                           全域精灵图鉴检索
-                          <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
-                        跨 {maps.length} 张地图共 {totalAllPets} 只精灵
-                      </span>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/20 ring-1 ring-inset ring-white/25">
+                            跨 {maps.length} 张地图 · 共 {totalAllPets} 只
+                          </span>
                         </h3>
+                        <p className="text-[11px] text-white/85 font-medium mt-0.5">支持拼音与模糊查询，方向键选择、回车跳转</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 hidden sm:inline-block">
-                    按 <kbd className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">ESC</kbd> 退出
+                    <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[11px] text-white/80 hidden sm:inline-block">
+                    按 <kbd className="font-mono bg-white/20 px-1 py-0.5 rounded text-white ring-1 ring-inset ring-white/25">ESC</kbd> 退出
                   </span>
                       <button
+                          type="button"
+                          aria-label="关闭"
                           onClick={() => {
                             sound.playClick();
                             setIsOpen(false);
                           }}
-                          className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
                       >
                         <X className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
+                </div>
 
+                {/* ── 搜索与筛选面板（独立于渐变头部，保持输入区可读性） ── */}
+                <div className="px-4 sm:px-5 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 shrink-0">
                   {/* Large Input Box */}
                   <div className="relative">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5">
@@ -613,10 +645,10 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                         }}
                         onKeyDown={handleKeyDownInInput}
                         placeholder={searchMode === 'skill' ? '输入技能/特性名或描述，查找拥有它的精灵...' : '输入精灵名、图鉴id实时查找...'}
-                        className={`w-full pl-12 ${searchQuery ? 'pr-24' : 'pr-14'} py-3 text-sm sm:text-base bg-white dark:bg-slate-800 border-2 rounded-2xl outline-hidden text-slate-800 dark:text-slate-100 font-bold shadow-inner transition-colors duration-200 placeholder:font-normal ${
+                        className={`w-full pl-12 ${searchQuery ? 'pr-24' : 'pr-14'} h-12 text-sm sm:text-[15px] bg-white dark:bg-slate-800 ring-1 ring-inset rounded-2xl outline-hidden text-slate-800 dark:text-slate-100 font-bold transition-all duration-200 placeholder:font-normal shadow-sm ${
                             searchMode === 'skill'
-                                ? 'border-violet-300 dark:border-violet-500/60 focus:border-violet-500 dark:focus:border-violet-400 bg-violet-50/50 dark:bg-slate-800 placeholder:text-violet-400'
-                                : 'border-[#BCD7F2] dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-400 placeholder:text-slate-400'
+                                ? 'ring-violet-300 dark:ring-violet-500/60 focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 bg-violet-50/60 dark:bg-slate-800 placeholder:text-violet-400'
+                                : 'ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-[#7ABCF4] dark:focus:ring-sky-500 placeholder:text-slate-400'
                         }`}
                     />
                     <button
@@ -628,7 +660,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                           inputRef.current?.focus();
                         }}
                         title={searchMode === 'skill' ? '当前为技能/特性搜索，点击切回精灵名/图鉴id搜索' : '开启技能/特性搜索（按技能名、技能描述、特性名、特性描述查找精灵）'}
-                        className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer border focus:outline-none ${
+                        className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer border focus:outline-none ${
                             searchMode === 'skill'
                                 ? 'bg-violet-100 dark:bg-violet-500/25 border-violet-300 text-violet-600 dark:text-violet-300'
                                 : 'bg-transparent border-transparent text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-500/10'
@@ -642,7 +674,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                               setSearchQuery('');
                               inputRef.current?.focus();
                             }}
-                            className="absolute right-12 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer focus:outline-none"
+                            className="absolute right-[52px] top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer focus:outline-none"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -650,23 +682,23 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   </div>
 
                   {/* Filter Tabs Row */}
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                     {/* Map Filter */}
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[11px] font-black text-slate-400">地图:</span>
+                      <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 shrink-0">地图</span>
                       <button
                           onClick={() => {
                             sound.playClick();
                             setSelectedMapFilter('all');
                             setFocusedIndex(0);
                           }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                          className={`h-7 px-2.5 rounded-lg text-[11px] font-black transition-all cursor-pointer ring-1 ring-inset ${
                               selectedMapFilter === 'all'
-                                  ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white shadow-xs'
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                  ? 'bg-slate-700 dark:bg-sky-600 text-white ring-transparent shadow-sm'
+                                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600'
                           }`}
                       >
-                        全部地图
+                        全部
                       </button>
                       {maps.map((m) => (
                           <button
@@ -676,10 +708,10 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                                 setSelectedMapFilter(m.num);
                                 setFocusedIndex(0);
                               }}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
+                              className={`h-7 px-2.5 rounded-lg text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ring-1 ring-inset ${
                                   selectedMapFilter === m.num
-                                      ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white shadow-xs'
-                                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                      ? `${mapTone(m.num).chip} shadow-sm`
+                                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600'
                               }`}
                           >
                             <span>{m.num}、{m.name.replace('记忆中的', '')}</span>
@@ -689,57 +721,42 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
 
                     {/* Status Filter */}
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[11px] font-black text-slate-400">状态:</span>
-                      <button
-                          onClick={() => {
-                            sound.playClick();
-                            setSelectedStatusFilter('all');
-                            setFocusedIndex(0);
-                          }}
-                          className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                              selectedStatusFilter === 'all'
-                                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-xs'
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                          }`}
-                      >
-                        全部
-                      </button>
-                      <button
-                          onClick={() => {
-                            sound.playClick();
-                            setSelectedStatusFilter('unencountered');
-                            setFocusedIndex(0);
-                          }}
-                          className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
-                              selectedStatusFilter === 'unencountered'
-                                  ? 'bg-[#95D151] text-white shadow-xs'
-                                  : 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 hover:bg-[#d5f3cb]'
-                          }`}
-                      >
-                        <Sparkles className="w-2.5 h-2.5" />
-                        未遇见 ({totalUnencounteredAll})
-                      </button>
-                      <button
-                          onClick={() => {
-                            sound.playClick();
-                            setSelectedStatusFilter('encountered');
-                            setFocusedIndex(0);
-                          }}
-                          className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
-                              selectedStatusFilter === 'encountered'
-                                  ? 'bg-slate-600 dark:bg-slate-600 text-white shadow-xs'
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                          }`}
-                      >
-                        <Check className="w-2.5 h-2.5" />
-                        已遇见 ({totalEncounteredAll})
-                      </button>
+                      <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 shrink-0">状态</span>
+                      <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
+                        {([
+                          { id: 'all', label: '全部', count: totalAllPets, tone: 'text-[#2B78C4] dark:text-sky-400', icon: null },
+                          { id: 'unencountered', label: '未遇见', count: totalUnencounteredAll, tone: 'text-emerald-600 dark:text-emerald-400', icon: Sparkles },
+                          { id: 'encountered', label: '已遇见', count: totalEncounteredAll, tone: 'text-amber-600 dark:text-amber-400', icon: Check },
+                        ] as const).map((s) => {
+                          const active = selectedStatusFilter === s.id;
+                          const Icon = s.icon;
+                          return (
+                            <button
+                              key={s.id}
+                              onClick={() => {
+                                sound.playClick();
+                                setSelectedStatusFilter(s.id);
+                                setFocusedIndex(0);
+                              }}
+                              className={`h-7 px-2 rounded-lg text-[11px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                                active
+                                  ? `bg-white dark:bg-slate-900 shadow-sm ${s.tone}`
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                              }`}
+                            >
+                              {Icon && <Icon className="w-2.5 h-2.5" />}
+                              {s.label}
+                              <span className={`text-[10px] font-mono ${active ? 'opacity-70' : 'opacity-60'}`}>{s.count}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Results Counter Banner */}
-                <div className="px-5 py-2 bg-[#F5F9FF] dark:bg-slate-800/80 border-b border-[#E6EEF8] dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold shrink-0">
+                <div className="px-5 py-2 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold shrink-0">
                   <span>
                     {searchMode === 'skill' ? '找到 ' : '找到 '}
                     <strong className="text-[#2B78C4] dark:text-sky-400">{filteredResults.length}</strong>
@@ -775,18 +792,18 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                             <div
                                 key={`${item.mapConfig.id}_${item.rawName}`}
                                 onClick={() => handleSelectPet(item)}
-                                className={`group relative p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                                className={`group relative p-3 rounded-2xl ring-inset transition-all flex items-center justify-between gap-3 cursor-pointer ${
                                     isFocused
-                                        ? 'border-[#7ABCF4] dark:border-sky-400 bg-[#F0F7FF] dark:bg-slate-800 shadow-md ring-2 ring-[#7ABCF4]/40'
+                                        ? 'bg-sky-50 dark:bg-sky-950/40 ring-2 ring-[#7ABCF4] dark:ring-sky-500 shadow-sm'
                                         : item.isEncountered
-                                            ? 'border-[#95D151]/50 dark:border-emerald-600/50 bg-[#F9FEF8] dark:bg-emerald-950/20 hover:border-[#95D151] hover:shadow-sm'
-                                            : 'border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#7ABCF4] dark:hover:border-sky-400 hover:bg-[#F8FAFC] dark:hover:bg-slate-700 hover:shadow-sm'
+                                            ? 'bg-emerald-50/50 dark:bg-emerald-950/20 ring-1 ring-emerald-100 dark:ring-emerald-900/40 hover:ring-emerald-300 dark:hover:ring-emerald-700'
+                                            : 'bg-white dark:bg-slate-800/70 ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 hover:shadow-sm'
                                 }`}
                             >
                               {/* Left: Avatar + Details */}
                               <div className="flex items-center gap-3.5 min-w-0">
                                 {/* Pet Image Avatar */}
-                                <div className="relative w-12 h-12 rounded-xl bg-white dark:bg-slate-900 p-1 border border-[#E6EEF8] dark:border-slate-700 shadow-inner flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <div className="relative w-12 h-12 rounded-xl bg-white dark:bg-slate-900 p-1 ring-1 ring-inset ring-slate-200/70 dark:ring-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                   <PetSprite
                                       pet={item.pet}
                                       alt={item.cleanName}
@@ -818,12 +835,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
 
                                     {/* Map Tag */}
                                     <span
-                                        className="text-[10px] font-black px-2 py-0.5 rounded-md border flex items-center gap-1 dark:bg-slate-800"
-                                        style={{
-                                          backgroundColor: item.mapConfig.num === 1 ? '#E1F7DB' : item.mapConfig.num === 2 ? '#FEF9E6' : '#EBF4FE',
-                                          color: item.mapConfig.num === 1 ? '#2D6613' : item.mapConfig.num === 2 ? '#854D0E' : '#1D5E9E',
-                                          borderColor: item.mapConfig.num === 1 ? '#95D151' : item.mapConfig.num === 2 ? '#FEE061' : '#7ABCF4',
-                                        }}
+                                        className={`text-[10px] font-black px-2 py-0.5 rounded-md border flex items-center gap-1 ${mapTone(item.mapConfig.num).tag}`}
                                     >
                               <MapPin className="w-2.5 h-2.5" />
                                       {item.mapConfig.num}、{item.mapConfig.name.replace('记忆中的', '')}
@@ -891,7 +903,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 </div>
 
                 {/* Bottom Keyboard Hints & Summary */}
-                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border-t-2 border-[#E6EEF8] dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 shrink-0">
                   <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <kbd className="font-mono bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 shadow-2xs">↑</kbd>

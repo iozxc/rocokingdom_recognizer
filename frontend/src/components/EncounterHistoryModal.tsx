@@ -77,11 +77,30 @@ function formatTimeParts(timeStr?: string): { absolute: string; relative: string
   return { absolute, relative, tooltip };
 }
 
-/** 地图主题色（浅底 + 深字 + 描边），按图号区分。 */
+/**
+ * 地图主题色，按图号区分。
+ *
+ * 注意：这里必须返回 **Tailwind 类**而不是内联色值。
+ * 原来用 style={{ backgroundColor: '#E1F7DB' }} 写死浅色，内联样式优先级最高、
+ * 又不认 `dark:` 前缀，于是暗黑模式下这几个 tag 就变成刺眼的亮色块（用户反馈的问题）。
+ */
 function mapTone(num: number) {
-  if (num === 1) return { bg: '#E1F7DB', fg: '#2D6613', ring: '#95D151' };
-  if (num === 2) return { bg: '#FEF9E6', fg: '#854D0E', ring: '#FEE061' };
-  return { bg: '#EBF4FE', fg: '#1D5E9E', ring: '#7ABCF4' };
+  if (num === 1) {
+    return {
+      tag: 'bg-emerald-100 text-emerald-800 ring-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/30',
+      chip: 'bg-emerald-100 text-emerald-800 ring-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-200 dark:ring-emerald-500/40',
+    };
+  }
+  if (num === 2) {
+    return {
+      tag: 'bg-amber-100 text-amber-800 ring-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/30',
+      chip: 'bg-amber-100 text-amber-800 ring-amber-300 dark:bg-amber-500/20 dark:text-amber-200 dark:ring-amber-500/40',
+    };
+  }
+  return {
+    tag: 'bg-sky-100 text-sky-800 ring-sky-300 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-500/30',
+    chip: 'bg-sky-100 text-sky-800 ring-sky-300 dark:bg-sky-500/20 dark:text-sky-200 dark:ring-sky-500/40',
+  };
 }
 
 export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
@@ -313,14 +332,9 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                   }}
                   className={`h-7 px-2.5 rounded-lg text-[11px] font-black transition-all cursor-pointer ring-1 ring-inset ${
                     active
-                      ? 'bg-slate-700 dark:bg-sky-600 text-white ring-transparent shadow-sm'
+                      ? (tone ? `${tone.chip} shadow-sm` : 'bg-slate-700 dark:bg-sky-600 text-white ring-transparent shadow-sm')
                       : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600'
                   }`}
-                  style={
-                    active && tone
-                      ? { backgroundColor: tone.bg, color: tone.fg, boxShadow: `inset 0 0 0 1px ${tone.ring}` }
-                      : undefined
-                  }
                 >
                   {m.num ? `${m.num}、${String(m.name).replace('记忆中的', '')}` : '全部'}
                 </button>
@@ -426,8 +440,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                         {cleanName}
                       </h4>
                       <span
-                        className="text-[10px] font-black px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5 whitespace-nowrap shrink-0 ring-1 ring-inset"
-                        style={{ backgroundColor: tone.bg, color: tone.fg, boxShadow: `inset 0 0 0 1px ${tone.ring}` }}
+                        className={`text-[10px] font-black px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5 whitespace-nowrap shrink-0 ring-1 ring-inset ${tone.tag}`}
                       >
                         <MapPin className="w-2.5 h-2.5" />
                         {mapObj.num}、{mapObj.name.replace('记忆中的', '')}

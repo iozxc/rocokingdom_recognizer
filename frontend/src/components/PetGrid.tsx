@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useId } from 'react';
 import { Sparkles, Check, Sparkle, Info, Bug, RotateCcw, MapPin, ArrowUpCircle } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState, SearchFilterPosition, StatsLayoutMode } from '../types';
 import { sound } from '../services/sound';
@@ -13,6 +13,12 @@ import { petKeyOf } from '../services/atlasCollector';
 import { storage } from '../services/storage';
 import { SearchFilterToolbar } from './SearchFilterToolbar';
 import { ConfirmDialog } from './ConfirmDialog';
+
+// merged 标题区环形进度环参数（46px 外环，中心显示百分比）
+const PROGRESS_RING_SIZE = 46;
+const PROGRESS_RING_STROKE = 4.5;
+const PROGRESS_RING_RADIUS = (PROGRESS_RING_SIZE - PROGRESS_RING_STROKE) / 2;
+const PROGRESS_RING_CIRC = 2 * Math.PI * PROGRESS_RING_RADIUS;
 
 interface PetGridProps {
   currentMap: MapConfig;
@@ -92,6 +98,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
   const [contextMenu, setContextMenu] = useState<{ pet: PetItem; x: number; y: number } | null>(null);
   // merged 模式：清空当前地图遇见记录的确认框
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
+  // merged 模式进度环渐变 id（页面可能同时挂多个 PetGrid，必须唯一）
+  const progressRingId = useId().replace(/[^a-zA-Z0-9]/g, '');
   const [showSkillHover, setShowSkillHover] = useState<boolean>(() => storage.getSetting<boolean>('showPetSkillHover', true));
 
   // 智能悬浮面板位置状态
@@ -253,13 +261,6 @@ export const PetGrid: React.FC<PetGridProps> = ({
         {/* Section Header */}
         {statsLayoutMode === 'merged' ? (
           <div className="relative pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
-            {/* Decorative gradient aura (clipped to header area) */}
-            <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-              <div
-                className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${currentMap.bgGradient} rounded-full blur-3xl -mr-20 -mt-20 opacity-40 dark:opacity-20`}
-              />
-            </div>
-
             <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
               {/* Left: Map Information & Level Badge (merged from StatsBanner) */}
               <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 flex-1 min-w-0">
@@ -290,29 +291,50 @@ export const PetGrid: React.FC<PetGridProps> = ({
                 </div>
               </div>
 
-              {/* Right: Map Dex Completion Progress Card (merged from StatsBanner) */}
-              <div className="shrink-0 w-full md:w-72 lg:w-80">
-                <div className="p-2.5 sm:p-3 bg-gradient-to-b from-[#F5F9FF] to-[#EFF6FF] dark:from-slate-800/90 dark:to-slate-800/50 rounded-2xl border border-[#D5E2F0] dark:border-slate-700 shadow-xs space-y-1.5">
-                  <div className="flex items-center justify-between text-xs font-black text-slate-700 dark:text-slate-200">
-                    <span className="flex items-center gap-1.5 text-[#2B78C4] dark:text-sky-400">
-                      <Sparkles className="w-3.5 h-3.5 text-[#FEE061]" />
-                      <span>本图遇见进度</span>
-                    </span>
-                    <span className="font-mono text-[#2B78C4] dark:text-sky-300 font-black text-xs">
-                      {encounteredCount} / {totalCount} ({percentage}%)
-                    </span>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="w-full h-2.5 bg-slate-200/90 dark:bg-slate-700 rounded-full overflow-hidden p-0.5">
-                    <div
-                      className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-[#95D151] to-[#7ABCF4]"
-                      style={{ width: `${percentage}%` }}
+              {/* Right: 集成式进度（环形进度 + 计数文字，与标题区融为一体，不再用独立卡片） */}
+              <div className="flex items-center justify-end gap-3 sm:gap-4 shrink-0 w-full md:w-auto">
+                <div className="relative w-[46px] h-[46px] shrink-0">
+                  <svg width={PROGRESS_RING_SIZE} height={PROGRESS_RING_SIZE} viewBox={`0 0 ${PROGRESS_RING_SIZE} ${PROGRESS_RING_SIZE}`} className="-rotate-90">
+                    <defs>
+                      <linearGradient id={`${progressRingId}-grad`} x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#95D151" />
+                        <stop offset="100%" stopColor="#7ABCF4" />
+                      </linearGradient>
+                    </defs>
+                    <circle
+                      cx={PROGRESS_RING_SIZE / 2}
+                      cy={PROGRESS_RING_SIZE / 2}
+                      r={PROGRESS_RING_RADIUS}
+                      fill="none"
+                      strokeWidth={PROGRESS_RING_STROKE}
+                      className="stroke-[#EAF1F8] dark:stroke-slate-700"
                     />
-                  </div>
+                    <circle
+                      cx={PROGRESS_RING_SIZE / 2}
+                      cy={PROGRESS_RING_SIZE / 2}
+                      r={PROGRESS_RING_RADIUS}
+                      fill="none"
+                      strokeWidth={PROGRESS_RING_STROKE}
+                      strokeLinecap="round"
+                      stroke={`url(#${progressRingId}-grad)`}
+                      strokeDasharray={PROGRESS_RING_CIRC}
+                      strokeDashoffset={PROGRESS_RING_CIRC * (1 - percentage / 100)}
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black font-mono text-[#2B78C4] dark:text-sky-300">
+                    {percentage}%
+                  </span>
+                </div>
 
-                  {/* Progress Footer: Remaining count & Subtle Reset link */}
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-400 font-medium pt-0.5">
+                <div className="flex flex-col gap-0.5 text-right min-w-0">
+                  <div className="flex items-center justify-end gap-1.5 text-xs font-black">
+                    <span className="text-slate-600 dark:text-slate-300">已遇见</span>
+                    <span className="font-mono text-[#2B78C4] dark:text-sky-300">
+                      {encounteredCount}<span className="text-slate-400 dark:text-slate-500"> / {totalCount}</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                     <span>{unencounteredCount === 0 ? '🎉 已全部遇见' : `还差 ${unencounteredCount} 只完成`}</span>
                     {onResetEncounters && encounteredCount > 0 ? (
                       <button
@@ -323,19 +345,18 @@ export const PetGrid: React.FC<PetGridProps> = ({
                           setIsResetConfirmOpen(true);
                         }}
                         title="清空当前关卡遇见记录"
-                        className="text-[10px] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-1 cursor-pointer hover:underline"
+                        className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-0.5 cursor-pointer hover:underline"
                       >
-                        <RotateCcw className="w-2.5 h-2.5 text-slate-400" />
+                        <RotateCcw className="w-2.5 h-2.5" />
                         <span>重置记录</span>
                       </button>
                     ) : (
-                      <span className="text-slate-400">{percentage >= 100 ? '已完成' : '收集进行中'}</span>
+                      <span>{percentage >= 100 ? '已完成' : '收集进行中'}</span>
                     )}
                   </div>
 
-                  {/* Optional subtle data update alert */}
                   {dataUpdateAvailable && onOpenDataUpdate && (
-                    <div className="pt-1.5 mt-1 border-t border-[#D5E2F0]/70 dark:border-slate-700 flex items-center justify-between">
+                    <div className="flex items-center justify-end gap-1 pt-0.5">
                       <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                         图鉴数据库有更新
@@ -347,7 +368,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                           sound.playClick();
                           onOpenDataUpdate();
                         }}
-                        className="text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-1 cursor-pointer hover:underline"
+                        className="text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-0.5 cursor-pointer hover:underline"
                       >
                         <ArrowUpCircle className="w-3 h-3 text-sky-500" />
                         <span>前往更新</span>
@@ -360,7 +381,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
 
             {/* Filter tabs + search controls */}
             {showSearchFilterToolbar && (
-              <div className="relative z-10 w-full pt-3 mt-3 border-t border-slate-100 dark:border-slate-700/70">
+              <div className="relative z-10 w-full pt-3 mt-3">
                 <SearchFilterToolbar
                   pets={pets}
                   encounteredCount={encounteredCount}

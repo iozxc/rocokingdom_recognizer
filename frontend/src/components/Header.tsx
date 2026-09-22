@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {Volume2, VolumeX, CheckCircle2, MessageCircle, ArrowUpCircle, Settings, BookOpen, History, Download, Sun, Moon} from 'lucide-react';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { MapConfig, ThemeMode } from '../types';
@@ -66,6 +66,38 @@ export const Header: React.FC<HeaderProps> = ({
                                               }) => {
     const updateState = useUpdateStore();
     const [currentTheme, setCurrentTheme] = useState<ThemeMode>(() => themeService.getTheme());
+
+    // 顶部地图分段切换：共享白色胶囊（在按钮间平滑滑动），替代每个按钮各自的背景色瞬切
+    const mapNavRef = useRef<HTMLDivElement | null>(null);
+    const mapBtnRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+    const [mapIndicator, setMapIndicator] = useState<{ x: number; y: number; w: number; h: number; ready: boolean }>({
+        x: 0, y: 0, w: 0, h: 0, ready: false,
+    });
+
+    useLayoutEffect(() => {
+        if (!showMapNav) return;
+        const container = mapNavRef.current;
+        if (!container) return;
+
+        const measure = () => {
+            const btn = mapBtnRefs.current[activeStageNum];
+            if (!btn || btn.offsetWidth === 0) return;
+            setMapIndicator({ x: btn.offsetLeft, y: btn.offsetTop, w: btn.offsetWidth, h: btn.offsetHeight, ready: true });
+        };
+        measure();
+
+        const ro = new ResizeObserver(measure);
+        ro.observe(container);
+        container.querySelectorAll('button').forEach((b) => ro.observe(b));
+        window.addEventListener('resize', measure);
+        // 字体/名称在断点切换后可能晚一拍再变宽，补一帧
+        const raf = requestAnimationFrame(measure);
+        return () => {
+            ro.disconnect();
+            window.removeEventListener('resize', measure);
+            cancelAnimationFrame(raf);
+        };
+    }, [activeStageNum, showMapNav, mapsConfig, mapsStats]);
 
     useEffect(() => {
         const unsubscribe = themeService.subscribe((theme) => {
@@ -151,7 +183,22 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {/* Map Nav Buttons with Individual Counts (Silky progressive shrinkage) */}
                     {showMapNav && (
-                        <div className="hidden min-[870px]:flex items-center gap-1 p-1 bg-white/20 dark:bg-slate-800/80 backdrop-blur-xs rounded-2xl border border-white/30 dark:border-slate-700 shrink min-w-0 overflow-hidden">
+                        <div
+                            ref={mapNavRef}
+                            className="relative hidden min-[870px]:flex items-center gap-1 p-1 bg-white/20 dark:bg-slate-800/80 backdrop-blur-xs rounded-2xl border border-white/30 dark:border-slate-700 shrink min-w-0 overflow-hidden"
+                        >
+                            {/* 滑动高亮胶囊：位置/尺寸按当前选中按钮实测，切换时平滑移动 */}
+                            <span
+                                aria-hidden
+                                className={`absolute left-0 top-0 z-0 rounded-xl bg-white dark:bg-sky-500 shadow-sm pointer-events-none transition-all duration-300 ease-out ${
+                                    mapIndicator.ready ? 'opacity-100' : 'opacity-0'
+                                }`}
+                                style={{
+                                    transform: `translate3d(${mapIndicator.x}px, ${mapIndicator.y}px, 0)`,
+                                    width: mapIndicator.w,
+                                    height: mapIndicator.h,
+                                }}
+                            />
                             {(mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS).map((map) => {
                                 const isActive = activeStageNum === map.num;
                                 const mapStat = mapsStats.find((s) => s.num === map.num);
@@ -166,14 +213,17 @@ export const Header: React.FC<HeaderProps> = ({
                                     <button
                                         key={map.id}
                                         id={`map-nav-btn-${map.num}`}
+                                        ref={(el) => {
+                                            mapBtnRefs.current[map.num] = el;
+                                        }}
                                         onClick={() => {
                                             sound.playClick();
                                             onSelectMap(map.num);
                                         }}
                                         disabled={mapNavDisabled}
-                                        className={`px-2 lg:px-2.5 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 cursor-pointer shrink min-w-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        className={`relative z-10 px-2 lg:px-2.5 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-colors duration-200 flex items-center gap-1.5 cursor-pointer shrink min-w-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                                             isActive
-                                                ? 'bg-white dark:bg-sky-500 text-[#2B78C4] dark:text-white shadow-sm scale-[1.02]'
+                                                ? 'text-[#2B78C4] dark:text-white'
                                                 : 'text-white/90 dark:text-slate-300 hover:text-white hover:bg-white/20 dark:hover:bg-white/10'
                                         }`}
                                         title={`${map.name} (${mapEnc}/${mapTot})`}
@@ -201,7 +251,7 @@ export const Header: React.FC<HeaderProps> = ({
                                         </span>
 
                                         <span
-                                            className={`text-[10px] font-mono font-black px-1 rounded-md shrink-0 ${
+                                            className={`text-[10px] font-mono font-black px-1 rounded-md shrink-0 transition-colors duration-200 ${
                                                 isActive
                                                     ? 'bg-[#EBF4FE] dark:bg-slate-900 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-700'
                                                     : 'bg-white/25 dark:bg-slate-700 text-white dark:text-slate-200'
