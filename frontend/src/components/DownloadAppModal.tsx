@@ -323,6 +323,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
                     currentVersion={APP_VERSION}
                     latestVersion={latestVersion}
                     hasUpdate={false}
+                    showCurrentBadge={false}
                   />
                 )}
               </div>

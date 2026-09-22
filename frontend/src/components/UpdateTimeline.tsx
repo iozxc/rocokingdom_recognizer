@@ -10,6 +10,8 @@ interface UpdateTimelineProps {
     latestVersion?: string;
     /** 无更新时可传 false，标题改为“近期更新” */
     hasUpdate?: boolean;
+    /** 是否显示“你在用”当前版本标记（桌面检查更新弹窗显示，网页下载弹窗传 false） */
+    showCurrentBadge?: boolean;
 }
 
 // 分类小标签配色（k 字段）
@@ -55,6 +57,7 @@ export const UpdateTimeline: React.FC<UpdateTimelineProps> = ({
     currentVersion,
     latestVersion,
     hasUpdate = true,
+    showCurrentBadge = true,
 }) => {
     // 按版本从新到旧排序（防御作者写反顺序）
     const entries = useMemo(() => {
@@ -120,7 +123,7 @@ export const UpdateTimeline: React.FC<UpdateTimelineProps> = ({
                                         {entry.tag}
                                     </span>
                                 )}
-                                {isCurrent && (
+                                {isCurrent && showCurrentBadge && (
                                     <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#E1F0FE] dark:bg-sky-950/70 text-[#1E5B99] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
                                         你在用
                                     </span>
