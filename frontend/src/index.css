@@ -431,3 +431,9 @@ html.theme-switching *::after {
 .threshold-slider::-moz-range-thumb:active {
   transform: scale(1.12);
 }
+
+/* 悬浮栏收起/展开：新挂载按钮的前两帧禁用过渡，避免在 :active 期间吃到 scale-95 再回弹，出现“从小放大” */
+.fab-enter-noanim,
+.fab-enter-noanim * {
+  transition: none !important;
+}

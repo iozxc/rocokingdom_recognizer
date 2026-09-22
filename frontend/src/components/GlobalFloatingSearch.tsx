@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { PetSprite } from './PetSprite';
 import {
   Search,
@@ -29,6 +29,7 @@ import { isWebFollowSupported } from '../services/recognition/capture';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 import { IS_STATIC } from '../services/staticMode';
+import { BackToTopHeaderButton, BackToTopCircle } from './BackToTopButton';
 
 export interface GlobalSearchPetResult {
   pet: PetItem;
@@ -86,6 +87,23 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
   const [isFABCollapsed, setIsFABCollapsed] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isFABCollapsed', false);
   });
+
+  // 收起/展开切换时，新挂载的按钮会在按住鼠标的 :active 期间先渲染到 active:scale-95，
+  // 松手后再用 transition-all 过渡回 scale-1，看起来像“跟随识别等按钮从小到大放大”。
+  // 解决：切换后的前两帧给容器加 fab-enter-noanim 禁用过渡，等 :active 释放、按钮已回到
+  // scale-1 后再恢复（hover / active 的按压反馈不受影响）。
+  const [fabEnterGuard, setFabEnterGuard] = useState(false);
+  useLayoutEffect(() => {
+    setFabEnterGuard(true);
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setFabEnterGuard(false));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [isFABCollapsed]);
   const [floatingMode, setFloatingMode] = useState<FloatingButtonsMode>(() => {
     return storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal');
   });
@@ -291,6 +309,9 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                 id="global-floating-fabs-compact"
                 className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 select-none animate-in fade-in zoom-in-95 duration-200"
             >
+              {/* 回到顶部（向下滚动后出现） */}
+              <BackToTopCircle size="md" />
+
               {/* 1. 跟随识别 Icon（桌面版常显；Web 版需浏览器支持屏幕捕获） */}
               {showFollowFab && (
                   <button
@@ -377,8 +398,10 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
         ) : (
             <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end select-none">
               {isFABCollapsed ? (
-                  /* Collapsed 小圆球 */
-                  <button
+                  /* Collapsed 小圆球：回到顶部在上、展开钮在下 */
+                  <div className={`flex flex-col items-center gap-2 ${fabEnterGuard ? 'fab-enter-noanim' : ''}`}>
+                    <BackToTopCircle size="sm" />
+                    <button
                       type="button"
                       id="global-floating-expand-fab"
                       onClick={() => handleToggleCollapse(false)}
@@ -386,12 +409,14 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                       title="展开右侧快捷功能悬浮栏 (跟随识别 / 数据管理 / 全域图鉴搜索)"
                   >
                     <Search className="w-5 h-5" />
-                  </button>
+                    </button>
+                  </div>
               ) : (
                   /* Expanded FABs Stack */
-                  <div className="flex flex-col items-end gap-2">
+                  <div className={`flex flex-col items-end gap-2 ${fabEnterGuard ? 'fab-enter-noanim' : ''}`}>
                     {/* Header Toolbar: 精简模式图标切换 + 收起按钮 */}
                     <div className="flex items-center gap-1 p-1 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl border-2 border-white dark:border-slate-700 shadow-md shadow-slate-900/5 self-end">
+                      <BackToTopHeaderButton />
                       <button
                           type="button"
                           id="global-floating-collapse-fab"

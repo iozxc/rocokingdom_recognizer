@@ -10,6 +10,7 @@ import { PetDetailModal } from './components/PetDetailModal';
 import { ManualSelectModal } from './components/ManualSelectModal';
 import { BatchInitModal } from './components/BatchInitModal';
 import { GlobalFloatingSearch } from './components/GlobalFloatingSearch';
+import { BackToTopStandalone } from './components/BackToTopButton';
 import { FloatingFilterSwitch } from './components/FloatingFilterSwitch';
 import { FeedbackContactModal } from './components/FeedbackContactModal';
 import { EncounterHistoryModal } from './components/EncounterHistoryModal';
@@ -659,6 +660,7 @@ export default function App() {
 
         {/* Sub-Header Toolbar: Displayed only when floating buttons are in 'hidden' mode */}
         {view === 'assistant' && floatingMode === 'hidden' && (
+            <>
             <SubHeaderToolbar
                 filterMode={filterMode}
                 onFilterChange={(mode) => setFilterMode(mode)}
@@ -668,6 +670,9 @@ export default function App() {
                 onOpenDataManage={() => setIsDataManageOpen(true)}
                 onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
             />
+            {/* 悬浮按钮隐藏时：右下角仍保留独立的「回到顶部」 */}
+            <BackToTopStandalone />
+            </>
         )}
 
         {/* Main Content Area */}
