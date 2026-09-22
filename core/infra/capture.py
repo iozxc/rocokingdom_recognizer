@@ -162,13 +162,21 @@ def capture_by_grab(bbox):
 
 
 def capture_window(bbox=None, hwnd=None):
+    """
+    按用户设置的截图方式 captureMode（设置页「截图方式」）抓帧，返回 PIL Image，失败返回 None。
+      - grab：屏幕截图（ImageGrab 抓取屏幕区域，兼容性好，但需要游戏窗口可见、未被遮挡）
+      - hwnd：窗口截图（PrintWindow 按窗口句柄让窗口把自身画面绘制到位图，
+              窗口被遮挡 / 部分在屏幕外也能抓；失败或不兼容时自动降级 grab）
+    注意：跟随识别的自动刷新不走这里——auto_watch.py 固定用 capture_by_hwnd（窗口截图）
+    + capture_by_grab 兜底，避免跟随窗置顶挡住游戏时截到自己；手动「立即识别」才读本设置。
+    """
     mode = user_storage.get_app_settings().get("captureMode", config.CAPTURE_MODE)
 
     if mode not in ("hwnd", "grab"):
         logger.error(f"capture_window: 不支持模式 {mode}，可选 grab/hwnd")
         return None
 
-    # hwnd模式：先试hwnd，失败就走grab
+    # 窗口截图(hwnd)：先试 PrintWindow，失败或不兼容就降级屏幕截图(grab)
     if mode == "hwnd":
         try:
             if hwnd is not None:
@@ -177,9 +185,9 @@ def capture_window(bbox=None, hwnd=None):
                     return img
         except Exception as e:
             logger.warning(f"hwnd截图失败，降级grab: {e}")
-        # 降级grab
+        # 降级屏幕截图(grab)
         if bbox is None:
-            logger.error("hwnd降级grab缺少bbox")
+            logger.error("窗口截图降级屏幕截图缺少bbox")
             return None
         try:
             return capture_by_grab(bbox)
@@ -187,10 +195,10 @@ def capture_window(bbox=None, hwnd=None):
             logger.error(f"grab截图异常:{e}")
             return None
 
-    # grab模式
+    # 屏幕截图(grab)
     if mode == "grab":
         if bbox is None:
-            logger.error("grab模式需要bbox")
+            logger.error("屏幕截图需要bbox")
             return None
         try:
             return capture_by_grab(bbox)

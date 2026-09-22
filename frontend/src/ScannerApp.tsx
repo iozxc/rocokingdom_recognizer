@@ -1321,6 +1321,8 @@ export const ScannerApp: React.FC = () => {
       if (pyApi) {
         if (isReRecognize && targetMap) {
           // 重新识别：指定试炼关卡（图1-3）识别
+          // 手动识别按用户在设置页选择的截图方式执行（屏幕截图 grab / 窗口截图 hwnd）；
+          // 只有自动跟随刷新固定走 hwnd（见 desktop/auto_watch.py）
           console.log(`[PyWebView] 调用 capture_and_recognize_by_map(${targetMap}, "${trialKey}")`);
           if (typeof pyApi.capture_and_recognize_by_map === 'function') {
             capRes = await pyApi.capture_and_recognize_by_map(targetMap, trialKey);

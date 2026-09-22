@@ -167,6 +167,8 @@ class AppApi:
     # ---------------- 截图识别 ----------------
 
     def capture_and_recognize(self, target_title="计算器", stage_num=None, trial_key="grass"):
+        # 手动识别：截图方式跟随用户设置（屏幕截图 grab / 窗口截图 hwnd）；
+        # 自动跟随刷新不经过这里，由 auto_watch.py 固定 hwnd(PrintWindow) + grab 兜底。
         # 首次识别时才加载 OCR 与识别模型，避免拖慢启动
         from core.vision.ocr import ocr
         from core.services.recognizers import models
