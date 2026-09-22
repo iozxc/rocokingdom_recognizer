@@ -141,6 +141,8 @@ export interface FollowOutcome {
   sections: YoloSections;
   /** 3 个槽位的头像裁剪图（Blob，缺位为 null），由上层决定怎么展示 */
   cropBlobs: (Blob | null)[];
+  /** 3×384 的 L2 归一化头像特征（缺位为全 0），供自动模式战斗头像比对 */
+  feats: Float32Array;
   results: LocalResultItem[];
   ms: FollowFrameResult['ms'] & { match: number };
   backend: string;
@@ -245,7 +247,13 @@ class LocalRecognizerClass {
             backend: msg.backend,
           } satisfies FollowFrameResult);
         }
-      } else if (msg?.kind === 'follow-error') {
+      } else if (msg?.kind === 'battle-result') {
+        if (p) {
+          this.pending.delete(msg.reqId);
+          this.backend = msg.backend || this.backend;
+          p.resolve({ avatarFeat: msg.avatarFeat as Float32Array, nameText: String(msg.nameText || '') });
+        }
+      } else if (msg?.kind === 'follow-error' || msg?.kind === 'battle-error') {
         if (p) {
           this.pending.delete(msg.reqId);
           p.reject(new Error(msg.message));
@@ -607,6 +615,7 @@ class LocalRecognizerClass {
       detections: frame.detections,
       sections: frame.sections,
       cropBlobs: frame.cropBlobs,
+      feats: frame.feats,
       results,
       ms: { ...frame.ms, match: matchMs },
       backend: frame.backend || this.backend,
@@ -624,6 +633,38 @@ class LocalRecognizerClass {
         + (titleText ? ` 标题="${titleText}"` : ''));
 
     return out;
+  }
+
+  /**
+   * 战斗自动点亮探测（对应 desktop/auto_watch.py 的门 3）：只裁右上角敌方头像跑
+   * DINO、裁名字行跑 rec-only OCR，不跑 YOLO 版面检测，所以只需要 DINO + OCR 就绪。
+   *
+   * 与跟随识别共用同一份 DINO 会话，调用方必须自行串行化（识别/探测忙就跳过本帧），
+   * 不能把同一 worker 并发跑两次。
+   *
+   * @param bitmap 战斗整帧（所有权转移给 worker，结束后 worker 会 close）
+   * @param avatarBox 敌方头像相对框 [x1,y1,x2,y2]
+   * @param nameBox 敌方名字行相对框 [x1,y1,x2,y2]
+   */
+  async recognizeBattleProbe(
+      bitmap: ImageBitmap,
+      avatarBox: [number, number, number, number],
+      nameBox: [number, number, number, number],
+  ): Promise<{ avatarFeat: Float32Array; nameText: string }> {
+    await this.ensureReady();
+    await this.ensureOcrReady();
+    const raw = await new Promise<{ avatarFeat: Float32Array; nameText: string }>((resolve, reject) => {
+      const reqId = ++this.reqSeq;
+      this.pending.set(reqId, { resolve: resolve as (v: unknown) => void, reject });
+      this.ensureWorker().postMessage(
+          { kind: 'battle-probe', reqId, bitmap, avatarBox, nameBox },
+          [bitmap],
+      );
+    });
+    return {
+      avatarFeat: raw.avatarFeat,
+      nameText: correctOcrText(raw.nameText || '', this.corrections),
+    };
   }
 
   /**

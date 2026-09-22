@@ -51,6 +51,8 @@ export interface FollowRecognizeResult {
   code: 200;
   stage_num: number;
   results: FollowSlotResult[];
+  /** 3×384 的 L2 归一化头像特征（缺位全 0），供自动模式缓存战斗头像比对 */
+  feats: Float32Array;
   meta: FollowRecognizeMeta;
 }
 
@@ -180,6 +182,7 @@ export async function webFollowRecognize(options: WebFollowOptions): Promise<Fol
     code: 200,
     stage_num: outcome.stageNum,
     results,
+    feats: outcome.feats,
     meta: {
       titleText: outcome.titleText,
       stageFromTitle: outcome.stageFromTitle,

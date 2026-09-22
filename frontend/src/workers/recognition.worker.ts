@@ -87,7 +87,19 @@ type RecognizeMsg = {
 };
 type ScannerInitMsg = { kind: 'scanner-init'; scannerBuffer: ArrayBuffer; imgsz?: number };
 type FollowMsg = { kind: 'follow-recognize'; reqId: number; bitmap: ImageBitmap; imgsz?: number };
-type InMsg = InitMsg | ExtractMsg | OcrInitMsg | OcrMsg | RecognizeMsg | ScannerInitMsg | FollowMsg;
+/**
+ * 战斗自动点亮探测（纯前端版，对应 desktop/auto_watch.py 的门 3）。
+ * 只裁右上角敌方头像跑 DINO、裁名字行跑 rec-only OCR，不跑 YOLO/版面检测。
+ * 两个 box 均为相对全帧的比例 [x1,y1,x2,y2]（0~1），由调用方按窗口自适应传入。
+ */
+type BattleProbeMsg = {
+  kind: 'battle-probe';
+  reqId: number;
+  bitmap: ImageBitmap;
+  avatarBox: [number, number, number, number];
+  nameBox: [number, number, number, number];
+};
+type InMsg = InitMsg | ExtractMsg | OcrInitMsg | OcrMsg | RecognizeMsg | ScannerInitMsg | FollowMsg | BattleProbeMsg;
 
 let dinoSession: ort.InferenceSession | null = null;
 let dinoInput = 'batch';
@@ -764,6 +776,50 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
       }, [res.feats.buffer]);
       return;
     }
+    if (msg.kind === 'battle-probe') {
+      const W = msg.bitmap.width;
+      const H = msg.bitmap.height;
+      const toPx = (box: [number, number, number, number]) => {
+        const x1 = Math.max(0, Math.floor(box[0] * W));
+        const y1 = Math.max(0, Math.floor(box[1] * H));
+        const x2 = Math.min(W, Math.ceil(box[2] * W));
+        const y2 = Math.min(H, Math.ceil(box[3] * H));
+        return { x: x1, y: y1, w: Math.max(1, x2 - x1), h: Math.max(1, y2 - y1) };
+      };
+      // 头像：裁圆盘本体后跑 DINO
+      const av = toPx(msg.avatarBox);
+      const avatarBmp = await createImageBitmap(msg.bitmap, av.x, av.y, av.w, av.h);
+      let avatarFeat: Float32Array;
+      try {
+        ({ feat: avatarFeat } = await extractFeature(avatarBmp));
+      } finally {
+        avatarBmp.close?.();
+      }
+      // 名字行：2× 高质量放大后跑 rec-only（只裁名字行，不裁下面的“NN级”）
+      const nm = toPx(msg.nameBox);
+      const nameW = nm.w * 2;
+      const nameH = nm.h * 2;
+      const nameCanvas = new OffscreenCanvas(nameW, nameH);
+      const nameCtx = nameCanvas.getContext('2d', { willReadFrequently: true });
+      if (!nameCtx) throw new Error('无法创建名字画布上下文');
+      nameCtx.imageSmoothingEnabled = true;
+      nameCtx.imageSmoothingQuality = 'high';
+      nameCtx.drawImage(msg.bitmap, nm.x, nm.y, nm.w, nm.h, 0, 0, nameW, nameH);
+      // 该画布只画一次：transferToImageBitmap 同步取走位图并清空（等价 convertToImageBitmap，
+      // 且在当前 TS lib 里有类型声明）
+      const nameBmp = nameCanvas.transferToImageBitmap();
+      let nameText = '';
+      try {
+        nameText = await recOnlyCrop(nameBmp, [0, 0, nameW, nameH], REC_MAX_WIDTH);
+      } finally {
+        nameBmp.close?.();
+      }
+      workerScope.postMessage(
+          { kind: 'battle-result', reqId: msg.reqId, avatarFeat, nameText },
+          [avatarFeat.buffer],
+      );
+      return;
+    }
     if (msg.kind === 'ocr') {
       const { text, blocks, items, ms } = await runOcr(msg.bitmap);
       workerScope.postMessage({ kind: 'ocr-result', reqId: msg.reqId, ms, text, blocks, items });
@@ -777,6 +833,8 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
     else if (msg.kind === 'scanner-init') workerScope.postMessage({ kind: 'scanner-init-error', message });
     else if (msg.kind === 'follow-recognize') {
       workerScope.postMessage({ kind: 'follow-error', reqId, message });
+    } else if (msg.kind === 'battle-probe') {
+      workerScope.postMessage({ kind: 'battle-error', reqId, message });
     } else workerScope.postMessage({ kind: 'feature-error', reqId, message, source: msg.kind });
   } finally {
     const bmp = (msg as { bitmap?: ImageBitmap }).bitmap;

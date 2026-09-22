@@ -13,22 +13,29 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  AlertTriangle,
   BookOpen,
+  Bot,
   Camera,
   Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Crown,
   Download,
   History,
   Layers,
+  Loader2,
   MapPin,
+  Minus,
   MonitorPlay,
   Moon,
   Pin,
   PinOff,
   RefreshCw,
+  Settings,
   Sparkle,
+  Square,
   Sun,
   Unplug,
   X,
@@ -44,6 +51,8 @@ import {
   FollowCaptureError,
 } from '../services/recognition/followRecognizer';
 import { localRecognizer, CANCELED } from '../services/recognition/localRecognizer';
+import type { FollowRecognizeResult } from '../services/recognition/followRecognizer';
+import { AutoWatchManager, type AutoStatus } from '../services/recognition/autoWatch';
 import { getTrialOrDanger } from '../services/recognition/trialConfig';
 import { splitPetFilename } from '../services/recognition/petPath';
 import { IS_STATIC } from '../services/staticMode';
@@ -270,6 +279,52 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
   const videoHostRef = useRef<HTMLDivElement | null>(null);
   const trial = useMemo(() => getTrialOrDanger(TRIAL_KEY), []);
 
+  // ---------------- 自动模式（自动识别 + 自动点亮） ----------------
+  const [autoMode, setAutoMode] = useState(false);
+  const [autoScanOn, setAutoScanOn] = useState(true);
+  const [autoMarkOn, setAutoMarkOn] = useState(true);
+  const [autoPanelOpen, setAutoPanelOpen] = useState(true);
+  const [autoStatus, setAutoStatus] = useState<AutoStatus | null>(null);
+  const [autoToasts, setAutoToasts] = useState<
+    Array<{ key: string; mapKey: string; filename: string; displayName: string }>
+  >([]);
+  const [tickSeconds, setTickSeconds] = useState<number>(() => {
+    try {
+      const v = storage.getSetting<number>('autoWatchTickSeconds', 0.5);
+      return typeof v === 'number' && v >= 0.2 && v <= 5 ? v : 0.5;
+    } catch {
+      return 0.5;
+    }
+  });
+  const busyRef = useRef(false);
+  const recognizeFnRef = useRef<(() => Promise<FollowRecognizeResult | null>) | null>(null);
+  const autoManagerRef = useRef<AutoWatchManager | null>(null);
+  if (!autoManagerRef.current) {
+    autoManagerRef.current = new AutoWatchManager({
+      // 自动识别与手动识别共用同一条链路（UI 会更新结果 + 缓存 3 卡特征）
+      triggerScan: () => (recognizeFnRef.current ? recognizeFnRef.current() : Promise.resolve(null)),
+      isRecognizing: () => busyRef.current,
+      onStatus: (s) => {
+        if (mountedRef.current) setAutoStatus(s);
+      },
+      onEncounter: (p) => {
+        if (!mountedRef.current) return;
+        const mapKey = `map${p.stage_num}`;
+        if (storage.isEncountered(mapKey, p.filename)) return; // 已点亮，去重
+        storage.toggleEncountered(mapKey, p.filename, '自动跟随识别点亮图鉴');
+        setRecords(storage.getAll());
+        try { sound.playEncounter(); } catch { /* ignore */ }
+        const displayName = formatPetName(p.filename);
+        const key = `${mapKey}:${p.filename}:${Date.now()}`;
+        setAutoToasts((prev) => [...prev, { key, mapKey, filename: p.filename, displayName }]);
+        window.setTimeout(() => {
+          if (mountedRef.current) setAutoToasts((prev) => prev.filter((t) => t.key !== key));
+        }, 6000);
+      },
+    });
+  }
+
+
   /** 当前正在查看的图（null = 全图总览）——就是「切换地图」选中的那个 */
   const viewStage = selectedStage;
   /** 点亮图鉴时归到哪个图：正在看图就用看的图，看全图时归到识别出的图 */
@@ -291,6 +346,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
     const unsubTheme = themeService.subscribe((t) => setIsDarkTheme(t === 'dark'));
     return () => {
       mountedRef.current = false;
+      autoManagerRef.current?.stop();
       unsub();
       unsubTheme();
       unsubStorage();
@@ -388,23 +444,30 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
     // 提示「点右上角可切置顶小窗」已按要求移除（置顶按钮本身仍在标题栏）
   };
 
+  useEffect(() => {
+    busyRef.current = busy;
+  }, [busy]);
+
   const handleStopCapture = () => {
     sound.playClick();
+    autoManagerRef.current?.stop();
+    setAutoMode(false);
+    setAutoStatus(null);
     screenCapture.stop();
     setSlots([]);
     setDetectedStage(null);
     setStatusText('');
   };
 
-  const handleRecognize = async () => {
-    if (busy) return;
+  const handleRecognize = async (): Promise<FollowRecognizeResult | null> => {
+    if (busy) return null;
     if (runtimeGuard.isActive) {
       setErrorText('检测到调试环境，识别已停用');
-      return;
+      return null;
     }
     if (!capture.active) {
       setErrorText('请先点下面的「连接游戏画面」，在弹窗里选中《洛克王国：世界》的窗口');
-      return;
+      return null;
     }
     sound.playClick();
     setBusy(true);
@@ -463,6 +526,9 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
         /* 跨窗口同步失败不影响识别本身 */
       }
 
+      // 缓存本次 3 卡的文件名 + DINO 特征，供自动模式进入战斗后比对敌方头像
+      autoManagerRef.current?.rememberCards(res, TRIAL_KEY);
+
       setStatusText('');
       if (res.meta.reused) setHintText(null);
       if (res.meta.counts.item === 0 && res.meta.counts.name === 0) {
@@ -470,19 +536,97 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
       } else if (res.meta.counts.item < 3) {
         setHintText(`本次只检出 ${res.meta.counts.item} 个精灵位（切图可能受窗口分辨率影响）`);
       }
+      return res;
     } catch (err) {
-      if (!mountedRef.current) return;
-      if ((err as Error)?.message === CANCELED) {
-        setStatusText('');
-      } else if (err instanceof FollowCaptureError) {
-        setErrorText(err.message);
-        setStatusText('');
-      } else {
-        setErrorText((err as Error)?.message || '识别失败');
-        setStatusText('');
+      if (mountedRef.current) {
+        if ((err as Error)?.message === CANCELED) {
+          setStatusText('');
+        } else if (err instanceof FollowCaptureError) {
+          setErrorText(err.message);
+          setStatusText('');
+        } else {
+          setErrorText((err as Error)?.message || '识别失败');
+          setStatusText('');
+        }
       }
+      return null;
     } finally {
       if (mountedRef.current) setBusy(false);
+    }
+  };
+
+  // 自动模式触发识别时复用上面这条链路（控制器通过 ref 调用，避免闭包过期）
+  recognizeFnRef.current = handleRecognize;
+
+  // ---------------- 自动模式控制 ----------------
+  const handleToggleAuto = async () => {
+    sound.playClick();
+    const manager = autoManagerRef.current;
+    if (!manager) return;
+    if (autoMode) {
+      manager.stop();
+      setAutoMode(false);
+      setAutoStatus(null);
+      return;
+    }
+    // getDisplayMedia 必须在用户手势同步栈里调用，所以开启时在这里申请屏幕共享
+    if (!screenCapture.isActive()) {
+      setErrorText(null);
+      setHintText(null);
+      const st = await screenCapture.start();
+      if (!st.active) {
+        if (st.error) setErrorText(st.error);
+        return;
+      }
+    }
+    setErrorText(null);
+    setAutoPanelOpen(true);
+    setAutoMode(true);
+    manager.start({ autoScan: autoScanOn, autoMark: autoMarkOn, tickSeconds });
+  };
+
+  const handleToggleAutoScan = () => {
+    const v = !autoScanOn;
+    setAutoScanOn(v);
+    autoManagerRef.current?.updateOptions({ autoScan: v });
+  };
+
+  const handleToggleAutoMark = () => {
+    const v = !autoMarkOn;
+    setAutoMarkOn(v);
+    autoManagerRef.current?.updateOptions({ autoMark: v });
+  };
+
+  const handleChangeTick = (v: number) => {
+    setTickSeconds(v);
+    try { storage.setSetting('autoWatchTickSeconds', v); } catch { /* ignore */ }
+    autoManagerRef.current?.updateOptions({ tickSeconds: v });
+  };
+
+  const dismissAutoToast = (key: string) =>
+      setAutoToasts((prev) => prev.filter((t) => t.key !== key));
+
+  const undoAutoMark = (key: string, mapKey: string, filename: string) => {
+    storage.toggleEncountered(mapKey, filename, '撤销自动点亮');
+    setRecords(storage.getAll());
+    try { sound.playToggleOff(); } catch { /* ignore */ }
+    dismissAutoToast(key);
+  };
+
+  const phaseShort: Record<AutoStatus['phase'], string> = {
+    idle: '等待', select: '选择', battle: '比对', boss: 'Boss',
+    marked: '已点亮', no_window: '无画面', minimized: '最小化',
+  };
+
+  const renderPhaseIcon = (phase: AutoStatus['phase'], cls = 'w-3.5 h-3.5') => {
+    switch (phase) {
+      case 'select': return <Camera className={`${cls} text-[#1E5B99] dark:text-sky-300`} />;
+      case 'battle': return <Loader2 className={`${cls} animate-spin text-amber-500`} />;
+      case 'boss': return <Crown className={`${cls} text-amber-500`} />;
+      case 'marked': return <CheckCircle2 className={`${cls} text-emerald-600`} />;
+      case 'no_window':
+      case 'minimized': return <AlertTriangle className={`${cls} text-rose-500`} />;
+      default: return <Bot className={`${cls} text-slate-500`} />;
     }
   };
 
@@ -733,6 +877,147 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
           }}
       >
         {busy && <div className="scanner-radar-active" />}
+
+        {/* 自动模式：右下角状态面板 / 迷你胶囊 / 自动点亮撤销 toast（放在 body 内，PiP 里也渲染） */}
+        {autoMode && (
+          <div className="absolute right-2 bottom-[150px] z-40 w-[232px] flex flex-col items-end gap-2 pointer-events-none">
+            {autoToasts.map((t) => (
+              <div
+                  key={t.key}
+                  className="pointer-events-auto w-full rounded-2xl border-2 border-[#95D151]/60 bg-[#F1FBEC]/95 dark:bg-emerald-950/80 shadow-lg px-2.5 py-2"
+              >
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-[11px] font-black text-[#2D6613] dark:text-emerald-300 flex-1 truncate">
+                    已自动点亮：{t.displayName}
+                  </span>
+                  <button
+                      type="button"
+                      onClick={() => dismissAutoToast(t.key)}
+                      title="关闭提示"
+                      className="w-5 h-5 rounded-md flex items-center justify-center text-slate-500 hover:bg-black/5 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => undoAutoMark(t.key, t.mapKey, t.filename)}
+                    className="mt-1 w-full text-[10px] font-black rounded-lg py-1 bg-white/70 dark:bg-slate-800 text-[#2D6613] dark:text-emerald-300 border border-[#95D151]/50 hover:bg-[#E1F7DB] transition-all cursor-pointer"
+                >
+                  撤销这次点亮
+                </button>
+              </div>
+            ))}
+
+            {autoPanelOpen ? (
+              <div className="pointer-events-auto w-full rounded-2xl border-2 border-[#7BC363]/60 bg-white/95 dark:bg-slate-800/95 shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-2 py-1 bg-[#EAF7E4] dark:bg-emerald-950/50 border-b border-[#7BC363]/40">
+                  <div className="flex items-center gap-1.5 text-[11px] font-black text-[#2D6613] dark:text-emerald-300">
+                    <Bot className="w-3.5 h-3.5" />
+                    自动状态
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    <button
+                        type="button"
+                        onClick={() => setAutoPanelOpen(false)}
+                        title="隐藏面板（右上角仍保留迷你状态）"
+                        className="w-6 h-6 rounded-lg flex items-center justify-center text-[#2D6613] dark:text-emerald-300 hover:bg-black/5 cursor-pointer"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleToggleAuto}
+                        title="关闭自动模式"
+                        className="w-6 h-6 rounded-lg flex items-center justify-center text-[#2D6613] dark:text-emerald-300 hover:bg-black/5 cursor-pointer"
+                    >
+                      <Square className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+                <div className="px-2.5 py-2 space-y-1.5">
+                  <div className="flex items-start gap-2 text-[11px] leading-snug min-h-[28px]">
+                    <span className="mt-0.5 shrink-0">{renderPhaseIcon(autoStatus?.phase || 'idle')}</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-200 break-words">
+                      {autoStatus?.message || '监控中…'}
+                    </span>
+                  </div>
+                  {autoStatus?.lastMarked && (
+                    <div className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 truncate">
+                      最近点亮：{autoStatus.lastMarked.name} · {autoStatus.lastMarked.time}
+                    </div>
+                  )}
+                  <button
+                      type="button"
+                      onClick={handleToggleAutoScan}
+                      className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-black border transition-all cursor-pointer ${
+                          autoScanOn
+                              ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#95D151]/50'
+                              : 'bg-slate-50 dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700'
+                      }`}
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span className="flex-1 text-left">自动识别（选择界面/刷新）</span>
+                    <span className={`text-[9px] px-1 rounded-full ${
+                        autoScanOn ? 'bg-emerald-500 text-white' : 'bg-slate-300 text-slate-600'}`}>
+                      {autoScanOn ? '开' : '关'}
+                    </span>
+                  </button>
+                  <button
+                      type="button"
+                      onClick={handleToggleAutoMark}
+                      className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-black border transition-all cursor-pointer ${
+                          autoMarkOn
+                              ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#95D151]/50'
+                              : 'bg-slate-50 dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700'
+                      }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span className="flex-1 text-left">自动点亮（对战精灵）</span>
+                    <span className={`text-[9px] px-1 rounded-full ${
+                        autoMarkOn ? 'bg-emerald-500 text-white' : 'bg-slate-300 text-slate-600'}`}>
+                      {autoMarkOn ? '开' : '关'}
+                    </span>
+                  </button>
+                  <div className="flex items-center justify-between gap-1 pt-0.5">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">扫描间隔</span>
+                    <div className="flex gap-1">
+                      {[0.25, 0.5, 1].map((v) => (
+                        <button
+                            key={v}
+                            type="button"
+                            onClick={() => handleChangeTick(v)}
+                            className={`px-1.5 py-0.5 rounded-md text-[10px] font-black border transition-all cursor-pointer ${
+                                tickSeconds === v
+                                    ? 'bg-[#7ABCF4] text-white border-[#5DA8E8]'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-[#D5E3F0] dark:border-slate-700 hover:bg-[#EBF5FE]'
+                            }`}
+                        >
+                          {v}s
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button
+                  type="button"
+                  onClick={() => setAutoPanelOpen(true)}
+                  title="展开自动状态"
+                  className="pointer-events-auto flex items-center gap-1.5 rounded-full bg-[#1E5B99]/95 dark:bg-sky-900/95 px-3 py-1.5 text-[11px] font-black text-white shadow-lg border-2 border-white/30 cursor-pointer hover:bg-[#17487a]"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#95D151]/80 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#95D151]" />
+                </span>
+                <span className="truncate">自动中 · {phaseShort[autoStatus?.phase || 'idle']}</span>
+                <Settings className="w-3 h-3 opacity-80" />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* 0. 顶部功能栏：与桌面版 ScannerApp 的标题栏同一套按钮
               （系别 / 关卡 / 主题 / 历史 / 查图鉴 / 置顶 / 关闭）。
@@ -1100,37 +1385,78 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
               )}
             </div>
 
-            <button
-                type="button"
-                id="scanner-single-recognize-btn"
-                onClick={handleRecognize}
-                disabled={busy}
-                className={`w-full h-11 px-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer roco-btn-primary ${
-                    busy ? 'opacity-60 cursor-not-allowed' : 'active:scale-[0.99]'
-                }`}
-            >
-              {busy ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>正在智能识别画面...</span>
-                  </>
-              ) : hasPendingMapChange ? (
-                  <>
-                    <RefreshCw className="w-4 h-4" />
-                    <span>重新识别 (指定地图{selectedStage})</span>
-                  </>
-              ) : isReRecognize && pinnedStage !== null ? (
-                  <>
-                    <MapPin className="w-4 h-4" />
-                    <span>识别 (已钉住地图{pinnedStage})</span>
-                  </>
-              ) : (
-                  <>
-                    <Camera className="w-4 h-4" />
-                    <span>立即识别当前游戏画面</span>
-                  </>
-              )}
-            </button>
+            <div className="grid grid-cols-[104px_1fr] gap-1.5">
+              <div className="flex gap-1.5">
+                {autoMode ? (
+                    <>
+                      <button
+                          type="button"
+                          onClick={handleToggleAuto}
+                          title="自动模式运行中，点击关闭"
+                          className="flex-1 h-11 rounded-2xl px-2 text-xs font-black flex items-center justify-center gap-1.5 text-white transition-all cursor-pointer active:scale-[0.99] bg-[#58A83F] hover:bg-[#4C9536] border-2 border-[#3F7E2E]"
+                      >
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/80 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                        </span>
+                        <span className="truncate">自动中</span>
+                      </button>
+                      <button
+                          type="button"
+                          onClick={() => setAutoPanelOpen((v) => !v)}
+                          title="自动状态设置"
+                          className={`w-10 h-11 shrink-0 rounded-2xl flex items-center justify-center transition-all cursor-pointer border-2 bg-[#EAF7E4] dark:bg-emerald-950/50 text-[#2D6613] dark:text-emerald-300 border-[#7BC363]/60 ${
+                              autoPanelOpen ? 'ring-2 ring-[#7BC363]/50' : ''
+                          }`}
+                      >
+                        <Settings className="w-4 h-4" />
+                      </button>
+                    </>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={handleToggleAuto}
+                        disabled={busy}
+                        title="开启自动识别 / 自动点亮"
+                        className="flex-1 h-11 rounded-2xl px-2 text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border-2 roco-btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Bot className="w-4 h-4" />
+                      <span>自动</span>
+                    </button>
+                )}
+              </div>
+              <button
+                  type="button"
+                  id="scanner-single-recognize-btn"
+                  onClick={handleRecognize}
+                  disabled={busy}
+                  className={`h-11 px-2 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer roco-btn-primary ${
+                      busy ? 'opacity-60 cursor-not-allowed' : 'active:scale-[0.99]'
+                  }`}
+              >
+                {busy ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>正在智能识别画面...</span>
+                    </>
+                ) : hasPendingMapChange ? (
+                    <>
+                      <RefreshCw className="w-4 h-4" />
+                      <span className="truncate">重新识别 (地图{selectedStage})</span>
+                    </>
+                ) : isReRecognize && pinnedStage !== null ? (
+                    <>
+                      <MapPin className="w-4 h-4" />
+                      <span className="truncate">识别 (已钉地图{pinnedStage})</span>
+                    </>
+                ) : (
+                    <>
+                      <Camera className="w-4 h-4 shrink-0" />
+                      <span className="truncate">立即识别</span>
+                    </>
+                )}
+              </button>
+            </div>
 
             {statusText && (
                 <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 text-center">{statusText}</p>

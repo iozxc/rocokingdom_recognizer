@@ -47,6 +47,12 @@ export class StorageService {
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   // 标记是否本地有未同步到后端的最新更改，避免轮询覆盖当前未落盘的点击
   private hasPendingLocalChanges = false;
+  // 首次「远程拉取 / 本地兜底」是否完成：组件首次挂载时远程数据往往还没回来，
+  // 可 await 这个 Promise 后再读取设置，避免启动时读到默认值。
+  private initialLoadResolve?: () => void;
+  public readonly initialLoad: Promise<void> = new Promise<void>((resolve) => {
+    this.initialLoadResolve = resolve;
+  });
   // 最近一次落盘请求的 Promise：供导入等场景等待同步完成，避免读到旧数据
   private pendingSave: Promise<boolean> | null = null;
 
@@ -62,7 +68,14 @@ export class StorageService {
         .then((r) => {
           if (r === null) this.loadFromLocalStorage();
         })
-        .catch(() => this.loadFromLocalStorage());
+        .catch(() => this.loadFromLocalStorage())
+        .finally(() => {
+          try {
+            this.initialLoadResolve?.();
+          } catch {
+            /* 水合回调里抛错不影响存储 */
+          }
+        });
     this.startPoll(); // 启动轮询替代 websocket
     this.flushOnUnload(); // 窗口关闭前把未落盘的改动刷到后端
   }
@@ -354,6 +367,31 @@ export class StorageService {
 
   public getSetting<T>(key: keyof AppSettings, defaultValue: T): T {
     return (this.appSettings[key] !== undefined ? this.appSettings[key] : defaultValue) as T;
+  }
+
+  /**
+   * 同步读取设置（内存优先，内存缺失时回退 localStorage 缓存）。
+   *
+   * 桌面端构造时是「远程优先」异步加载：组件挂载那一刻远程 user_data.json 还没拉回来，
+   * 内存 appSettings 为空，getSetting 会直接返回默认值——表现就是「设置明明写进了本地，
+   * 但每次启动 app 都没读到」。而桌面端每次 setSetting 都会同步写一份 localStorage 缓存，
+   * 所以启动时同步回退读这份缓存即可拿到上次的值；远程数据随后到达时仍以其为准。
+   * 纯前端静态版构造时已同步加载 localStorage，此方法等价于 getSetting。
+   */
+  public getSettingCached<T>(key: keyof AppSettings, defaultValue: T): T {
+    if (this.appSettings[key] !== undefined) return this.appSettings[key] as T;
+    try {
+      const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (raw) {
+        const local = JSON.parse(raw);
+        if (local && (local as Record<string, unknown>)[key] !== undefined) {
+          return (local as Record<string, unknown>)[key] as T;
+        }
+      }
+    } catch {
+      /* localStorage 不可用/解析失败时退回默认值 */
+    }
+    return defaultValue;
   }
 
   public setSetting(key: keyof AppSettings, value: unknown): void {

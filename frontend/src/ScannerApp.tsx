@@ -338,12 +338,22 @@ export const ScannerApp: React.FC = () => {
 
   // 自动模式（自动识别选择界面 + 自动点亮对战精灵）
   const [autoMode, setAutoMode] = useState<boolean>(false);
-  const [autoScanOn, setAutoScanOn] = useState<boolean>(true);
-  const [autoMarkOn, setAutoMarkOn] = useState<boolean>(true);
+  // 自动模式两个子开关：默认开启，并读取上次持久化的选择（桌面端需读 localStorage 缓存，
+  // 因为远程 user_data.json 是异步拉取，组件挂载时内存设置可能还没加载）。
+  const [autoScanOn, setAutoScanOn] = useState<boolean>(() => {
+    if (IS_STATIC) return true;
+    const v = storage.getSettingCached<unknown>('autoWatchScan', true);
+    return typeof v === 'boolean' ? v : true;
+  });
+  const [autoMarkOn, setAutoMarkOn] = useState<boolean>(() => {
+    if (IS_STATIC) return true;
+    const v = storage.getSettingCached<unknown>('autoWatchMark', true);
+    return typeof v === 'boolean' ? v : true;
+  });
   // 自动模式后台扫描间隔（秒）：越小发现选择界面/刷新越快，默认 0.5s，持久化到设置
   const [autoTickInterval, setAutoTickInterval] = useState<number>(() => {
     if (IS_STATIC) return 0.5;
-    const v = storage.getSetting<number>('autoWatchTickSeconds', 0.5);
+    const v = storage.getSettingCached<number>('autoWatchTickSeconds', 0.5);
     return typeof v === 'number' && v >= 0.2 && v <= 5 ? v : 0.5;
   });
   const [autoStatus, setAutoStatus] = useState<AutoStatus | null>(null);
@@ -364,6 +374,25 @@ export const ScannerApp: React.FC = () => {
       setFollowHotkey(st.followScannerHotkey ?? DEFAULT_FOLLOW_HOTKEY);
     });
     return unsub;
+  }, []);
+  // 远程 user_data.json 首次到达（或本地兜底加载）完成后，再同步一次自动模式偏好，
+  // 兜底 localStorage 不持久/多端同步的场景；只做一次，且用户本轮已手动改过则不覆盖。
+  const autoPrefsTouchedRef = useRef(false);
+  useEffect(() => {
+    if (IS_STATIC) return;
+    let alive = true;
+    void storage.initialLoad.then(() => {
+      if (!alive || autoPrefsTouchedRef.current) return;
+      const t = storage.getSetting<number>('autoWatchTickSeconds', 0.5);
+      if (typeof t === 'number' && t >= 0.2 && t <= 5) setAutoTickInterval(t);
+      const scan = storage.getSetting<unknown>('autoWatchScan', true);
+      if (typeof scan === 'boolean') setAutoScanOn(scan);
+      const mark = storage.getSetting<unknown>('autoWatchMark', true);
+      if (typeof mark === 'boolean') setAutoMarkOn(mark);
+    });
+    return () => {
+      alive = false;
+    };
   }, []);
   /** 推理设备状态（GPU/CPU）：底部状态栏展示，与首页识别卡共用同一个后端接口。 */
   const [inferBackend, setInferBackend] = useState<{
@@ -955,8 +984,14 @@ export const ScannerApp: React.FC = () => {
   /** 运行中切换两个子功能。 */
   const setAutoSubOption = async (scan: boolean, mark: boolean) => {
     const pyApi = (window as any).pywebview?.api;
+    autoPrefsTouchedRef.current = true;
     setAutoScanOn(scan);
     setAutoMarkOn(mark);
+    // 持久化两个子开关，下次启动自动模式时沿用上次选择
+    try {
+      storage.setSetting('autoWatchScan', scan);
+      storage.setSetting('autoWatchMark', mark);
+    } catch { /* ignore */ }
     try {
       await pyApi?.set_auto_watch_options?.(scan, mark, autoTickInterval);
     } catch (e) {
@@ -967,6 +1002,7 @@ export const ScannerApp: React.FC = () => {
   /** 运行中调整后台扫描间隔（秒），即时生效并持久化。 */
   const setAutoTick = async (sec: number) => {
     const pyApi = (window as any).pywebview?.api;
+    autoPrefsTouchedRef.current = true;
     setAutoTickInterval(sec);
     try {
       storage.setSetting('autoWatchTickSeconds', sec);
@@ -1921,35 +1957,37 @@ export const ScannerApp: React.FC = () => {
                   id="scanner-single-recognize-btn"
                   onClick={() => executeSingleRecognition(activeStageNum || undefined)}
                   disabled={isRecognizingNow}
-                  className={`relative py-2.5 px-4 rounded-2xl text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`relative py-2.5 pl-4 pr-3 rounded-2xl text-sm font-black flex items-center transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       hasPendingMapChange
                           ? 'bg-[#FEE061] hover:bg-[#F4D349] text-[#854D0E] border-2 border-[#E5C43B] shadow-sm active:scale-[0.99]'
                           : 'roco-btn-primary'
                   }`}
               >
+                <span className="flex-1 min-w-0 flex items-center justify-center gap-2">
                 {isRecognizingNow ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>正在智能识别画面...</span>
+                      <span className="truncate">正在智能识别画面...</span>
                     </>
                 ) : hasPendingMapChange ? (
                     <>
-                      <RefreshCw className="w-4 h-4" />
-                      <span>重新识别 (指定地图{activeStageNum})</span>
+                      <RefreshCw className="w-4 h-4 shrink-0" />
+                      <span className="truncate">重新识别 (指定地图{activeStageNum})</span>
                     </>
                 ) : pinnedMapNum !== null ? (
                     <>
-                      <MapPin className="w-4 h-4" />
-                      <span>识别 (已钉住地图{pinnedMapNum})</span>
+                      <MapPin className="w-4 h-4 shrink-0" />
+                      <span className="truncate">识别 (已钉住地图{pinnedMapNum})</span>
                     </>
                 ) : (
                     <>
-                      <Camera className="w-4 h-4" />
-                      <span>立即识别当前游戏画面</span>
+                      <Camera className="w-4 h-4 shrink-0" />
+                      <span className="truncate">立即识别当前游戏画面</span>
                     </>
                 )}
+                </span>
                 {followHotkey && !isRecognizingNow && !hasPendingMapChange && pinnedMapNum === null && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none select-none">
+                  <span className="shrink-0 pl-2 flex items-center gap-1 pointer-events-none select-none">
                     {formatChord(followHotkey).split(' + ').map((part, i) => (
                       <kbd
                           key={i}
