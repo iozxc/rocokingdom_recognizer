@@ -1009,70 +1009,16 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                 >
-                  内存提取
+                  窗口截图
                 </button>
               </div>
 
               <div className="text-[10px] text-slate-400 px-0.5">
                 {captureMode === 'hwnd'
-                    ? '通过窗口句柄直接读取内存画面，速度更快、不遮挡游戏窗口'
+                    ? '通过窗口句柄调用系统 PrintWindow 捕获游戏窗口画面，窗口被遮挡也能抓、速度更快'
                     : '通过屏幕抓取当前画面，兼容性更好但需要游戏窗口可见'}
               </div>
             </div>
-
-            {/* Section 1: 界面与外观入口（二级设置：主题、动画、悬浮栏、地图信息栏） */}
-            <div className={`flex items-center justify-between${IS_STATIC ? '' : ' pt-1 border-t border-slate-100 dark:border-slate-800'}`}>
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
-                  <Monitor className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">界面与外观</div>
-                  <div className="text-[10px] text-slate-400">主题、动画、悬浮栏、地图信息栏</div>
-                </div>
-              </div>
-              <button
-                  type="button"
-                  id="open-layout-settings-btn"
-                  onClick={() => {
-                    sound.playClick();
-                    setView('layout');
-                  }}
-                  className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
-              >
-                <span>设置</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-
-            {/* Section 4: 数据与同步 */}
-            {onOpenDataBackup && (
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
-                      <Database className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">数据备份与导出</div>
-                      <div className="text-[10px] text-slate-400">本地存储就绪，可导出备份 JSON</div>
-                    </div>
-                  </div>
-
-                  <button
-                      type="button"
-                      id="open-data-backup-btn"
-                      onClick={() => {
-                        sound.playClick();
-                        onClose();
-                        onOpenDataBackup();
-                      }}
-                      className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
-                  >
-                    <span>管理</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-            )}
 
             {/* Section 6: 推理后端状态（web 版隐藏：Web 端在识别卡里显示 webgpu/wasm） */}
             <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3${IS_STATIC ? ' hidden' : ''}`}>
@@ -1134,6 +1080,60 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* Section 1: 界面与外观入口（二级设置：主题、动画、悬浮栏、地图信息栏） */}
+            <div className={`flex items-center justify-between${IS_STATIC ? '' : ' pt-1 border-t border-slate-100 dark:border-slate-800'}`}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                  <Monitor className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">界面与外观</div>
+                  <div className="text-[10px] text-slate-400">主题、动画、悬浮栏、地图信息栏</div>
+                </div>
+              </div>
+              <button
+                  type="button"
+                  id="open-layout-settings-btn"
+                  onClick={() => {
+                    sound.playClick();
+                    setView('layout');
+                  }}
+                  className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+              >
+                <span>设置</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
+            {/* Section 4: 数据与同步 */}
+            {onOpenDataBackup && (
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                      <Database className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">数据备份与导出</div>
+                      <div className="text-[10px] text-slate-400">本地存储就绪，可导出备份 JSON</div>
+                    </div>
+                  </div>
+
+                  <button
+                      type="button"
+                      id="open-data-backup-btn"
+                      onClick={() => {
+                        sound.playClick();
+                        onClose();
+                        onOpenDataBackup();
+                      }}
+                      className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+                  >
+                    <span>管理</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+            )}
 
             {/* Section 7: 系统设置入口（web 版隐藏） */}
             <div className={`pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between${IS_STATIC ? ' hidden' : ''}`}>
