@@ -26,6 +26,13 @@ import {
   Sun,
   Moon,
   Cpu,
+  Bot,
+  Crown,
+  Loader2,
+  Minus,
+  AlertTriangle,
+  Undo2,
+  Settings,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse, FirePokedexEntry, ThemeMode } from './types';
 import { IS_STATIC } from './services/staticMode';
@@ -66,6 +73,35 @@ interface DetectedPetSlot {
   selectedPetName: string;
   matchedPet?: PetItem;
   sourceMapNum?: number;
+}
+
+/** 后端自动模式每秒推送的状态（desktop/auto_watch.py）。 */
+interface AutoStatus {
+  phase: 'idle' | 'select' | 'battle' | 'boss' | 'marked' | 'no_window' | 'minimized';
+  message: string;
+  autoScan: boolean;
+  autoMark: boolean;
+  candidate?: { name?: string; dinoScore?: number; nameText?: string; nameRatio?: number } | null;
+  lastMarked?: { name: string; time: string } | null;
+  ts: number;
+}
+
+/** 后端确认敌方精灵后推送的自动点亮事件。 */
+interface AutoEncounterPayload {
+  stage_num: number;
+  filename: string;
+  trial_key: string;
+  dino_score: number;
+  name_text?: string;
+}
+
+/** 自动点亮后带撤销的 toast 记录。 */
+interface AutoMarkToast {
+  key: number;
+  mapKey: string;
+  filename: string;
+  displayName: string;
+  fire: boolean;
 }
 
 /** 火系全图鉴 -> 与首页「全图鉴自选」一致的 mapsPets 结构（每张地图均为全量）。 */
@@ -299,6 +335,22 @@ export const ScannerApp: React.FC = () => {
   const [isRecognizingNow, setIsRecognizingNow] = useState<boolean>(false);
   const [showRadarAnimation, setShowRadarAnimation] = useState<boolean>(false);
   const [lastScanTime, setLastScanTime] = useState<string>('未识别');
+
+  // 自动模式（自动识别选择界面 + 自动点亮对战精灵）
+  const [autoMode, setAutoMode] = useState<boolean>(false);
+  const [autoScanOn, setAutoScanOn] = useState<boolean>(true);
+  const [autoMarkOn, setAutoMarkOn] = useState<boolean>(true);
+  // 自动模式后台扫描间隔（秒）：越小发现选择界面/刷新越快，默认 0.5s，持久化到设置
+  const [autoTickInterval, setAutoTickInterval] = useState<number>(() => {
+    if (IS_STATIC) return 0.5;
+    const v = storage.getSetting<number>('autoWatchTickSeconds', 0.5);
+    return typeof v === 'number' && v >= 0.2 && v <= 5 ? v : 0.5;
+  });
+  const [autoStatus, setAutoStatus] = useState<AutoStatus | null>(null);
+  const [autoPanelOpen, setAutoPanelOpen] = useState<boolean>(true);
+  const [autoToast, setAutoToast] = useState<AutoMarkToast | null>(null);
+  // 自动点亮事件回调需始终拿到最新试炼/地图状态，用 ref 持有
+  const autoEncounterRef = useRef<(p: AutoEncounterPayload) => void>(() => {});
   // 全局热键（桌面端）触发一次跟随识别的入口：用 ref 持有最新闭包，
   // 后端在跟随识别窗口可见时调用 window.__rocoTriggerSingleScan()
   const externalScanTriggerRef = useRef<() => void>(() => {});
@@ -877,6 +929,119 @@ export const ScannerApp: React.FC = () => {
       fireUnencounterEffect(level);
     }
   };
+
+  // ---------------- 自动模式 ----------------
+
+  /** 开关自动模式（自动识别选择界面 + 自动点亮对战精灵）。 */
+  const toggleAutoMode = async () => {
+    const pyApi = (window as any).pywebview?.api;
+    if (!pyApi) return;
+    sound.playClick();
+    const next = !autoMode;
+    setAutoMode(next);
+    try {
+      if (next) {
+        await pyApi.start_auto_watch?.(autoScanOn, autoMarkOn, autoTickInterval);
+      } else {
+        await pyApi.stop_auto_watch?.();
+        setAutoStatus(null);
+      }
+    } catch (e) {
+      console.warn('自动模式切换失败:', e);
+      setAutoMode(!next);
+    }
+  };
+
+  /** 运行中切换两个子功能。 */
+  const setAutoSubOption = async (scan: boolean, mark: boolean) => {
+    const pyApi = (window as any).pywebview?.api;
+    setAutoScanOn(scan);
+    setAutoMarkOn(mark);
+    try {
+      await pyApi?.set_auto_watch_options?.(scan, mark, autoTickInterval);
+    } catch (e) {
+      console.warn('自动模式选项更新失败:', e);
+    }
+  };
+
+  /** 运行中调整后台扫描间隔（秒），即时生效并持久化。 */
+  const setAutoTick = async (sec: number) => {
+    const pyApi = (window as any).pywebview?.api;
+    setAutoTickInterval(sec);
+    try {
+      storage.setSetting('autoWatchTickSeconds', sec);
+    } catch { /* ignore */ }
+    try {
+      await pyApi?.set_auto_watch_options?.(autoScanOn, autoMarkOn, sec);
+    } catch (e) {
+      console.warn('扫描间隔更新失败:', e);
+    }
+  };
+
+  /** 撤销最近一次自动点亮。 */
+  const undoAutoMark = (t: AutoMarkToast) => {
+    sound.playToggleOff();
+    if (t.fire) {
+      fireStorage.toggleEncountered(t.mapKey, t.filename, '撤销自动点亮');
+      setRecords(fireStorage.getAll());
+    } else {
+      storage.toggleEncountered(t.mapKey, t.filename, '撤销自动点亮');
+    }
+    setAutoToast(null);
+  };
+
+  // 后端确认敌方精灵 → 点亮图鉴（已点亮则静默），并弹 6 秒可撤销 toast
+  autoEncounterRef.current = (p: AutoEncounterPayload) => {
+    const targetMapNum = p.stage_num ?? detectedMapNum ?? activeStageNum ?? 1;
+    const mapKey = `map${targetMapNum}`;
+    const filename = p.filename;
+    const displayName = formatPetName(filename);
+    const level = storage.getSetting<EffectLevel>('effectLevel', 0);
+
+    if (isFire) {
+      if (fireStorage.isEncountered(mapKey, filename)) return;
+      fireStorage.toggleEncountered(mapKey, filename, '自动跟随点亮');
+      // 点亮 = 默认赞同（与手动点亮一致）
+      fireStorage.updateVote(mapKey, filename, 'agree');
+      setRecords(fireStorage.getAll());
+    } else {
+      if (storage.isEncountered(mapKey, filename)) return;
+      storage.toggleEncountered(mapKey, filename, '自动跟随点亮');
+    }
+    sound.playEncounter();
+    fireEncounterConfetti(level);
+    setAutoToast({
+      key: Date.now(),
+      mapKey,
+      filename,
+      displayName,
+      fire: isFire,
+    });
+  };
+
+  // 自动点亮 toast 6 秒自动消失
+  useEffect(() => {
+    if (!autoToast) return;
+    const timer = window.setTimeout(() => setAutoToast(null), 6000);
+    return () => window.clearTimeout(timer);
+  }, [autoToast]);
+
+  // 注册后端推送入口：自动状态 + 自动点亮事件（仅桌面端）
+  useEffect(() => {
+    if (IS_STATIC) return;
+    const w = window as any;
+    w.__rocoAutoStatus = (s: AutoStatus) => setAutoStatus(s);
+    w.__rocoAutoEncounter = (p: AutoEncounterPayload) => autoEncounterRef.current(p);
+    return () => {
+      try {
+        if (w.__rocoAutoStatus) delete w.__rocoAutoStatus;
+        if (w.__rocoAutoEncounter) delete w.__rocoAutoEncounter;
+      } catch {
+        w.__rocoAutoStatus = undefined;
+        w.__rocoAutoEncounter = undefined;
+      }
+    };
+  }, []);
 
   // 窗口内切换试炼：重置识别态，写入 localStorage 供桥接/采集/其他窗口使用
   const switchTrial = (next: string) => {
@@ -1700,7 +1865,57 @@ export const ScannerApp: React.FC = () => {
 
           {/* 2.3 Bottom Action Buttons (Main app matched buttons) */}
           <div className="pt-2 border-t-2 border-[#D5E3F0] dark:border-slate-700 space-y-2 shrink-0">
-            <div className="grid grid-cols-1 gap-2">
+            <div
+                className={`grid gap-2 ${
+                  IS_STATIC ? 'grid-cols-1' : 'grid-cols-[104px_1fr]'
+                }`}
+            >
+              {/* 自动模式开关：关闭态是单个按钮；运行时与齿轮（展开/收起状态面板）连为一体 */}
+              {!IS_STATIC && !autoMode && (
+                <button
+                    type="button"
+                    id="scanner-auto-watch-btn"
+                    onClick={toggleAutoMode}
+                    title="开启自动模式：自动识别选择界面、并自动点亮对战的精灵"
+                    className="py-2.5 px-1 rounded-2xl text-xs font-black flex flex-row items-center justify-center gap-1 transition-all cursor-pointer border-2 active:scale-[0.98] roco-btn-secondary border-[#BCD7F2]"
+                >
+                  <Bot className="w-4 h-4 shrink-0" />
+                  <span>自动</span>
+                </button>
+              )}
+              {!IS_STATIC && autoMode && (
+                <div className="flex rounded-2xl overflow-hidden shadow-sm transition-all roco-btn-success">
+                  <button
+                      type="button"
+                      id="scanner-auto-watch-btn"
+                      onClick={toggleAutoMode}
+                      title="自动模式运行中：点击关闭自动模式"
+                      className="flex-1 py-2.5 px-1 text-xs font-black flex flex-row items-center justify-center gap-1 cursor-pointer text-white rounded-none border-0 bg-transparent hover:bg-black/5 active:scale-[0.98]"
+                  >
+                    <span className="relative flex w-3 h-3 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/70 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-white" />
+                    </span>
+                    <span>自动中</span>
+                  </button>
+                  <button
+                      type="button"
+                      id="scanner-auto-panel-btn"
+                      onClick={() => {
+                        sound.playClick();
+                        setAutoPanelOpen((v) => !v);
+                      }}
+                      title={autoPanelOpen ? '隐藏自动状态面板' : '展开自动状态面板'}
+                      className={`w-8 shrink-0 flex items-center justify-center cursor-pointer border-l-2 border-white/30 transition-colors ${
+                          autoPanelOpen
+                              ? 'bg-white/30 text-white'
+                              : 'bg-white/15 text-white/90 hover:bg-white/25'
+                      }`}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               <button
                   type="button"
                   id="scanner-single-recognize-btn"
@@ -1777,6 +1992,192 @@ export const ScannerApp: React.FC = () => {
             </span>
           </span>
         </div>
+
+        {/* ------------------------------------------------------------- */}
+        {/* 3.5 自动模式：右下角状态面板（可折叠）+ 自动点亮撤销 toast */}
+        {/* ------------------------------------------------------------- */}
+        {autoMode && autoPanelOpen && (
+          <div
+              id="scanner-auto-status"
+              className="absolute right-2 bottom-[76px] z-40 w-[232px] rounded-2xl border-2 border-[#7BC363]/60 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm shadow-lg shadow-slate-900/15 p-2.5"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="relative flex w-2.5 h-2.5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                </span>
+                <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-300 truncate">
+                  自动模式运行中
+                </span>
+              </div>
+              <div className="flex items-center gap-0.5 shrink-0">
+                <button
+                    type="button"
+                    onClick={toggleAutoMode}
+                    className="w-5 h-5 rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center cursor-pointer"
+                    title="关闭自动模式"
+                >
+                  <Square className="w-3 h-3" />
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setAutoPanelOpen(false)}
+                    className="w-5 h-5 rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center cursor-pointer"
+                    title="隐藏面板（点底部齿轮重新展开）"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* 当前阶段与提示 */}
+            <div className="mt-1.5 flex items-start gap-1.5 min-h-[28px]">
+              {autoStatus?.phase === 'battle' ? (
+                <Loader2 className="w-3.5 h-3.5 mt-0.5 text-[#1E5B99] dark:text-sky-300 animate-spin shrink-0" />
+              ) : autoStatus?.phase === 'boss' ? (
+                <Crown className="w-3.5 h-3.5 mt-0.5 text-amber-500 shrink-0" />
+              ) : autoStatus?.phase === 'marked' ? (
+                <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-emerald-500 shrink-0" />
+              ) : autoStatus?.phase === 'no_window' || autoStatus?.phase === 'minimized' ? (
+                <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-amber-500 shrink-0" />
+              ) : (
+                <Bot className="w-3.5 h-3.5 mt-0.5 text-[#1E5B99] dark:text-sky-300 shrink-0" />
+              )}
+              <div className="text-[11px] font-bold leading-snug text-slate-600 dark:text-slate-300 min-w-0">
+                {autoStatus?.message || '等待状态同步…'}
+                {autoStatus?.phase === 'battle' && autoStatus?.candidate?.name && (
+                  <div className="mt-0.5 text-[10px] font-mono text-slate-400 truncate">
+                    候选：{autoStatus.candidate.name}
+                    {typeof autoStatus.candidate.dinoScore === 'number' &&
+                      ` ${Math.round(autoStatus.candidate.dinoScore * 100)}%`}
+                  </div>
+                )}
+                {autoStatus?.lastMarked?.name && autoStatus.phase !== 'marked' && (
+                  <div className="mt-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 truncate">
+                    上次点亮：{autoStatus.lastMarked.name}（{autoStatus.lastMarked.time}）
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 两个子功能开关 */}
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <button
+                  type="button"
+                  onClick={() => setAutoSubOption(!autoScanOn, autoMarkOn)}
+                  className={`flex-1 px-1.5 py-1 rounded-lg text-[10px] font-black border flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+                      autoScanOn
+                          ? 'bg-[#EBF5FE] dark:bg-sky-950/70 text-[#1E5B99] dark:text-sky-300 border-[#7ABCF4]'
+                          : 'bg-slate-50 dark:bg-slate-700/60 text-slate-400 border-slate-200 dark:border-slate-600'
+                  }`}
+                  title="检测到选择界面时自动点一次识别"
+              >
+                <Camera className="w-3 h-3" />
+                自动识别
+              </button>
+              <button
+                  type="button"
+                  onClick={() => setAutoSubOption(autoScanOn, !autoMarkOn)}
+                  className={`flex-1 px-1.5 py-1 rounded-lg text-[10px] font-black border flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 ${
+                      autoMarkOn
+                          ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#95D151]'
+                          : 'bg-slate-50 dark:bg-slate-700/60 text-slate-400 border-slate-200 dark:border-slate-600'
+                  }`}
+                  title="进入战斗后用头像+名字双重确认，自动点亮对战精灵"
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                自动点亮
+              </button>
+            </div>
+
+            {/* 扫描间隔：越小发现选择界面/刷新越快，运行时即时生效 */}
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 shrink-0">扫描间隔</span>
+              <div className="flex-1 grid grid-cols-3 gap-1">
+                {[0.25, 0.5, 1].map((sec) => (
+                  <button
+                      key={sec}
+                      type="button"
+                      onClick={() => setAutoTick(sec)}
+                      className={`py-0.5 rounded-lg text-[10px] font-black border transition-all cursor-pointer active:scale-95 ${
+                          autoTickInterval === sec
+                              ? 'bg-[#EBF5FE] dark:bg-sky-950/70 text-[#1E5B99] dark:text-sky-300 border-[#7ABCF4]'
+                              : 'bg-slate-50 dark:bg-slate-700/60 text-slate-400 border-slate-200 dark:border-slate-600'
+                      }`}
+                      title={`每 ${sec} 秒扫描一次游戏画面`}
+                  >
+                    {sec}s
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 折叠态：一行迷你状态 pill，点击展开完整面板 */}
+        {autoMode && !autoPanelOpen && (
+          <button
+              type="button"
+              id="scanner-auto-status-mini"
+              onClick={() => setAutoPanelOpen(true)}
+              title="展开自动状态面板"
+              className="absolute right-2 bottom-[76px] z-40 max-w-[220px] h-8 rounded-full border-2 border-[#7BC363]/60 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm shadow-lg shadow-slate-900/15 px-2.5 flex items-center gap-1.5 cursor-pointer"
+          >
+            <span className="relative flex w-2.5 h-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            </span>
+            {autoStatus?.phase === 'battle' ? (
+              <Loader2 className="w-3.5 h-3.5 text-[#1E5B99] dark:text-sky-300 animate-spin shrink-0" />
+            ) : autoStatus?.phase === 'boss' ? (
+              <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            ) : autoStatus?.phase === 'marked' ? (
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            ) : autoStatus?.phase === 'no_window' || autoStatus?.phase === 'minimized' ? (
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            ) : (
+              <Bot className="w-3.5 h-3.5 text-[#1E5B99] dark:text-sky-300 shrink-0" />
+            )}
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate min-w-0 text-left">
+              {autoStatus?.message || '自动模式运行中'}
+            </span>
+          </button>
+        )}
+
+        {/* 自动点亮撤销 toast（位于状态面板上方，6 秒自动消失） */}
+        {autoToast && (
+          <div className={`absolute right-2 z-50 w-[232px] rounded-2xl border-2 border-emerald-300 bg-[#F2FBEE] dark:bg-emerald-950/80 px-2.5 py-2 shadow-lg shadow-slate-900/15 ${autoPanelOpen ? 'bottom-[268px]' : 'bottom-[120px]'}`}>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="text-[11px] font-black text-[#2D6613] dark:text-emerald-300 truncate">
+                  已自动点亮：{autoToast.displayName}
+                </div>
+                <div className="text-[10px] text-emerald-700/80 dark:text-emerald-400/80">
+                  头像与名字双重确认
+                </div>
+              </div>
+            </div>
+            <div className="mt-1.5 flex items-center justify-end gap-1">
+              <button
+                  type="button"
+                  onClick={() => undoAutoMark(autoToast)}
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-black border border-emerald-400 text-[#2D6613] dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center gap-1 cursor-pointer"
+              >
+                <Undo2 className="w-3 h-3" />
+                撤销
+              </button>
+              <button
+                  type="button"
+                  onClick={() => setAutoToast(null)}
+                  className="w-5 h-5 rounded-md text-emerald-700/70 dark:text-emerald-400/70 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ------------------------------------------------------------- */}
         {/* 4. Scanner Map & All Pet Gallery Modal */}

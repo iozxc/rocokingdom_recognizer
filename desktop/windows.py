@@ -10,6 +10,7 @@ import webview
 
 import config
 from core.infra.logger import logger
+from desktop.auto_watch import AutoWatchManager
 from desktop.hotkey import DEFAULT_FOLLOW_HOTKEY, GlobalHotkeyManager
 
 # 主窗口最小尺寸（min_size 与异常几何判定共用）
@@ -247,6 +248,8 @@ class WindowManager:
         # 热键按下时不弹窗口，而是在跟随识别窗口已开启时执行一次识别
         self._hotkey_scan_lock = threading.Lock()
         self.hotkey = GlobalHotkeyManager(on_trigger=self._on_hotkey_trigger)
+        # 跟随识别「自动模式」监控（自动识别选择界面 + 自动点亮对战精灵）
+        self.auto_watch = AutoWatchManager(self)
 
     def start_hotkey(self, chord: str = DEFAULT_FOLLOW_HOTKEY):
         """启动全局热键线程并按设置里的组合键注册（失败不阻断主程序）。"""
@@ -509,6 +512,10 @@ class WindowManager:
     def _on_main_closed(self):
         """主窗口关闭时销毁子识别窗口"""
         logger.info("主窗口关闭，销毁子识别窗口")
+        try:
+            self.auto_watch.stop()
+        except Exception:
+            pass
         scanner = self.scanner_window
         self.scanner_window = None
         if scanner is not None:

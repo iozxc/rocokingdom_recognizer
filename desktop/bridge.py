@@ -12,6 +12,7 @@ from core.infra.logger import logger
 from core.services.trials import get_trial_or_default
 from core.services.trial_filter import filter_candidates_by_trial
 from core.infra.capture import capture_window, clean_debug_folder, debug_enabled, match_scene_unique_char
+from desktop.auto_watch import watch_infer_lock
 
 # OCR 命中这些名称时直接匹配，无需模糊匹配
 SPECIAL_DIRECT_MATCH = ("魔力之源", "远行商人")
@@ -134,6 +135,35 @@ class AppApi:
         chord = getattr(self._windows.hotkey, "_current_chord", "")
         return {"status": "ok", "chord": chord or ""}
 
+    # ---------------- 自动模式 ----------------
+
+    def start_auto_watch(self, auto_scan=True, auto_mark=True, tick_seconds=0.5):
+        """开启跟随识别自动模式：自动识别选择界面 + 自动点亮对战精灵。"""
+        try:
+            self._windows.auto_watch.start(bool(auto_scan), bool(auto_mark), tick_seconds)
+            return {"status": "ok", "running": True}
+        except Exception as e:
+            logger.error(f"启动自动模式异常: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+
+    def stop_auto_watch(self):
+        """关闭自动模式。"""
+        try:
+            self._windows.auto_watch.stop()
+            return {"status": "ok", "running": False}
+        except Exception as e:
+            logger.error(f"停止自动模式异常: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+
+    def set_auto_watch_options(self, auto_scan=None, auto_mark=None, tick_seconds=None):
+        """运行中切换两个子功能（自动识别 / 自动点亮）与扫描间隔，不重启监控线程。"""
+        try:
+            self._windows.auto_watch.update_options(auto_scan, auto_mark, tick_seconds)
+            return {"status": "ok"}
+        except Exception as e:
+            logger.error(f"更新自动模式选项异常: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+
     # ---------------- 截图识别 ----------------
 
     def capture_and_recognize(self, target_title="计算器", stage_num=None, trial_key="grass"):
@@ -143,6 +173,8 @@ class AppApi:
         t_total = time.perf_counter()
         logger.info(f"开始截图识别，目标窗口: {target_title}, trial={trial_key}")
 
+        # 与自动模式监控共享推理锁，避免两个 ONNX 会话并发跑同一份 DINO/OCR
+        watch_infer_lock.acquire()
         try:
             trial = get_trial_or_default(trial_key)
             windows = gw.getWindowsWithTitle(target_title)
@@ -236,11 +268,21 @@ class AppApi:
             )
             logger.info(f"识别完成 [{map_name}] 总耗时={elapsed_total:.1f}ms -> {summary}")
 
+            # 自动模式：缓存本次 3 张卡的特征与文件名，供战斗头像比对
+            try:
+                self._windows.auto_watch.remember_cards(
+                    all_results, feature_by_slot, stage_num, trial_key
+                )
+            except Exception as e:
+                logger.debug(f"自动模式缓存识别结果失败: {e}")
+
             return {"code": 200, "stage_num": stage_num, "results": all_results}
 
         except Exception as e:
             logger.error(f"截图识别异常: {e}", exc_info=True)
             return {"status": "error", "message": str(e)}
+        finally:
+            watch_infer_lock.release()
 
     def capture_and_recognize_by_map(self, stage_num, trial_key="grass"):
         return self.capture_and_recognize(config.GAME_WINDOW_TITLE, stage_num, trial_key)
