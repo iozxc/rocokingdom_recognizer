@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect, useRef, useId } from 'react';
-import { Sparkles, Check, Sparkle, Info, Bug, RotateCcw, MapPin, ArrowUpCircle } from 'lucide-react';
+import React, { useState, useMemo, useEffect, useRef, useId, useCallback } from 'react';
+import { Sparkles, Check, Info, Bug, RotateCcw, MapPin, ArrowUpCircle } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState, SearchFilterPosition, StatsLayoutMode } from '../types';
 import { sound } from '../services/sound';
 import { IS_STATIC } from '../services/staticMode';
@@ -7,12 +7,12 @@ import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecial
 import { PetSearchMode, petMatchesSkillQuery } from '../utils/skillSearch';
 import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
-import { PetSpecialTag } from './PetSpecialTag';
 import { PetSkillPanel } from './PetSkillPanel';
 import { petKeyOf } from '../services/atlasCollector';
 import { storage } from '../services/storage';
 import { SearchFilterToolbar } from './SearchFilterToolbar';
 import { ConfirmDialog } from './ConfirmDialog';
+import { PetCard, PetCardCommunityInfo } from './PetCard';
 
 // merged 标题区环形进度环参数（46px 外环，中心显示百分比）
 const PROGRESS_RING_SIZE = 46;
@@ -112,6 +112,12 @@ export const PetGrid: React.FC<PetGridProps> = ({
   } | null>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 卡片回调通过 ref 读取最新 props，配合 React.memo 的 PetCard 保证所有卡片回调身份恒定
+  const latestRef = useRef({ currentMapId: currentMap.id, onToggleEncounter, onOpenPetDetail, onOpenFeedback, onAtlasVote });
+  latestRef.current = { currentMapId: currentMap.id, onToggleEncounter, onOpenPetDetail, onOpenFeedback, onAtlasVote };
+  const showSkillHoverRef = useRef(showSkillHover);
+  showSkillHoverRef.current = showSkillHover;
+
   const totalCount = pets.length;
   // merged 模式下 StatsBanner 已消失，搜索/筛选栏固定渲染在标题区；separate 经典版仅 position2 渲染在此
   const showSearchFilterToolbar = Boolean(
@@ -129,8 +135,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
   }, []);
 
   // 悬浮显示（设定 380ms 适当防抖等待，避免滑过即闪烁）与鼠标移开即刻消失
-  const handleCardMouseEnter = (e: React.MouseEvent<HTMLDivElement>, pet: PetItem) => {
-    if (!showSkillHover) return;
+  const handleCardMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>, pet: PetItem) => {
+    if (!showSkillHoverRef.current) return;
     if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
     const rect = e.currentTarget.getBoundingClientRect();
     const placement = rect.right + 330 > window.innerWidth ? 'left' : 'right';
@@ -141,16 +147,33 @@ export const PetGrid: React.FC<PetGridProps> = ({
     hoverTimerRef.current = setTimeout(() => {
       setHoveredPet({ pet, x, y, placement, placementY });
     }, 380);
-  };
+  }, []);
 
-  const handleCardMouseLeave = () => {
+  const handleCardMouseLeave = useCallback(() => {
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = null;
     }
     // 鼠标移出卡片，立即清空消失，绝不滞留
     setHoveredPet(null);
-  };
+  }, []);
+
+  // 右键菜单（卡片自身的 React.memo 要求回调身份恒定）
+  const handleCardContext = useCallback((e: React.MouseEvent<HTMLDivElement>, pet: PetItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredPet(null);
+    setContextMenu({ pet, x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handleOpenDetail = useCallback((pet: PetItem) => {
+    latestRef.current.onOpenPetDetail?.(pet);
+  }, []);
+
+  const handleVote = useCallback((mapId: string, petKey: string, petName: string, type: 'agree' | 'disagree') => {
+    latestRef.current.onAtlasVote?.(mapId, petKey, petName, type);
+  }, []);
 
   // 右键菜单：点击其他位置或按 ESC 关闭
   useEffect(() => {
@@ -175,8 +198,9 @@ export const PetGrid: React.FC<PetGridProps> = ({
   const percentage = percentageProp ?? (totalCount > 0 ? Math.round((encounteredCount / totalCount) * 100) : 0);
   const mapEmoji = currentMap.num === 1 ? '🌿' : currentMap.num === 2 ? '🗿' : currentMap.num === 3 ? '🌱' : '🔥';
 
-  const handleCardClick = (petName: string, currentlyEncountered: boolean) => {
-    const key = `${currentMap.id}_${petName}`;
+  const handleCardClick = useCallback((petName: string, currentlyEncountered: boolean) => {
+    const { currentMapId, onToggleEncounter: toggle } = latestRef.current;
+    const key = `${currentMapId}_${petName}`;
 
     if (!currentlyEncountered) {
       // 未遇见 -> 遇见
@@ -200,8 +224,8 @@ export const PetGrid: React.FC<PetGridProps> = ({
       }, 500);
     }
 
-    onToggleEncounter(currentMap.id, petName);
-  };
+    toggle(currentMapId, petName);
+  }, []);
 
 
   // Filter pets by mode, query and advanced filters
@@ -481,219 +505,25 @@ export const PetGrid: React.FC<PetGridProps> = ({
                 const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);
                 const isJustEncountered = !!animatingKeys[key];
                 const petKey = petKeyOf(pet.name, pet.id, pet.seq);
-                const communityInfo = petKey ? communityAtlas?.[`${currentMap.id}:${petKey}`] : undefined;
+                const communityInfo: PetCardCommunityInfo | null = petKey ? (communityAtlas?.[`${currentMap.id}:${petKey}`] as PetCardCommunityInfo | undefined) ?? null : null;
 
                 return (
-                  <div
+                  <PetCard
                     key={pet.name}
-                    id={`pet-card-${currentMap.id}-${pet.name.replace('.', '-')}`}
-                    onClick={() => handleCardClick(pet.name, isEnc)}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-                      setHoveredPet(null);
-                      setContextMenu({ pet, x: e.clientX, y: e.clientY });
-                    }}
-                    onMouseEnter={(e) => handleCardMouseEnter(e, pet)}
-                    onMouseLeave={handleCardMouseLeave}
-                    className={`group relative rounded-2xl p-2 sm:p-3 flex flex-col items-center cursor-pointer transition-all duration-200 select-none ${
-                      isJustEncountered
-                        ? 'encounter-pop-active bg-[#F2FBF0] dark:bg-emerald-950/40 border-2 border-[#95D151] ring-2 ring-[#95D151]/40'
-                        : isEnc
-                          ? 'bg-gradient-to-b from-[#F2FBF0] to-[#EAF7E8] dark:from-emerald-950/30 dark:to-slate-900/60 border-2 border-[#95D151] dark:border-emerald-600 hover:border-[#76B032] shadow-xs'
-                          : 'bg-white dark:bg-slate-800/80 border-2 border-slate-200/80 dark:border-slate-700/80 hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-md'
-                    }`}
-                  >
-                    {/* Floating sparkle badge during encounter activation */}
-                    {isJustEncountered && (
-                      <div className="absolute -top-3.5 z-20 encounter-sparkle-active bg-gradient-to-r from-[#95D151] to-[#76B032] text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-white flex items-center gap-1 pointer-events-none shadow-md">
-                        <Sparkle className="w-2.5 h-2.5 fill-white text-white" />
-                        <span>点亮图鉴</span>
-                      </div>
-                    )}
-
-                    {/* Fixed Uniform Image Container - 1:1 Aspect Ratio with object-contain */}
-                    {communityCard ? (
-                      /* 共创图鉴（火系）：头部行吃进立绘容器顶部 */
-                      <div className="relative w-full aspect-square rounded-xl bg-slate-50 dark:bg-slate-900/90 p-1 sm:p-1.5 flex flex-col overflow-hidden border border-slate-100 dark:border-slate-800">
-                        {/* 头部行：左系别图标、右图鉴编号 */}
-                        <div className="flex items-start justify-between w-full shrink-0 z-10">
-                          <ElementBadges elements={pet?.elements} size="sm" />
-                          {pet.id != null && (
-                            <span className="text-[9px] font-mono font-bold text-slate-400 dark:text-slate-500 leading-none">
-                              #{pet.id}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* 置信度 */}
-                        {(() => {
-                          const conf = communityInfo?.confidence ?? 0;
-                          const tcls = conf >= 0.7 ? 'text-emerald-600 dark:text-emerald-400' : conf >= 0.3 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
-                          return (
-                            <div className="absolute -top-[3px] left-0 right-0 z-[2] text-center pointer-events-none">
-                              <span className={`text-[8px] sm:text-[9px] font-mono font-black px-1 py-0.5 rounded-full ${tcls}`}>
-                                置信度：{Math.round(conf * 100)}%
-                              </span>
-                            </div>
-                          );
-                        })()}
-
-                        {/* 立绘 */}
-                        <div className="flex-1 min-h-0 w-full flex items-center justify-center">
-                          <PetSprite
-                            pet={pet}
-                            alt={pet.name}
-                            className={`w-full h-full object-contain pointer-events-none transition-transform duration-200 ${
-                              isJustEncountered ? 'scale-110' : 'group-hover:scale-108'
-                            }`}
-                          />
-                        </div>
-
-                        {/* 进度条 */}
-                        {communityInfo && onAtlasVote && (() => {
-                          const vr = communityInfo.vote_ratio ?? 0;
-                          const vc = communityInfo.voter_count ?? 0;
-                          const tc = communityInfo.total_users ?? 0;
-                          const barCls = vr >= 0.5 ? 'bg-emerald-500' : vr >= 0.25 ? 'bg-amber-400' : 'bg-rose-400';
-                          return (
-                            <div className="flex items-center gap-1 w-full shrink-0 pt-0.5">
-                              <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full ${barCls}`}
-                                  style={{ width: `${Math.min(100, Math.round(vr * 100))}%` }}
-                                />
-                              </div>
-                              <span className="text-[9px] font-mono font-bold leading-none shrink-0 text-slate-500 dark:text-slate-400">
-                                {vc}/{tc}
-                              </span>
-                            </div>
-                          );
-                        })()}
-
-                        {/* 多形态/首领化 */}
-                        <div className="absolute right-0.5 top-1/2 -translate-y-1/2 z-[1] pointer-events-none">
-                          <PetSpecialTag pet={pet} vertical />
-                        </div>
-                        <button
-                          id={`pet-card-info-btn-${pet.name.replace('.', '-')}`}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenPetDetail?.(pet);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 sm:opacity-0 focus:opacity-100 transition-opacity absolute bottom-1 right-1 z-20 w-5 h-5 rounded-md bg-white/90 dark:bg-slate-800/90 hover:bg-sky-500 hover:text-white text-slate-400 dark:text-slate-300 flex items-center justify-center shadow-xs cursor-pointer border border-slate-200 dark:border-slate-700"
-                          title="查看精灵详情与全技能"
-                        >
-                          <Info className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      /* 经典布局：编号/系别图标叠加在立绘上 */
-                      <div className="relative w-full aspect-square rounded-xl bg-slate-50/70 dark:bg-slate-900/70 p-1 sm:p-1.5 flex items-center justify-center overflow-hidden border border-slate-100 dark:border-slate-800/80">
-                        {pet.id != null && (
-                          <span className="absolute top-1 right-1 z-[1] text-[8px] sm:text-[9px] font-mono font-black px-1.5 py-0.5 rounded-md bg-slate-900/60 text-white/90 backdrop-blur-xs">
-                            #{pet.id}
-                          </span>
-                        )}
-                        <ElementBadges
-                          elements={pet?.elements}
-                          className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 z-10 drop-shadow-xs"
-                          size="sm"
-                        />
-                        <PetSprite
-                          pet={pet}
-                          alt={pet.name}
-                          className={`w-full h-full object-contain pointer-events-none transition-transform duration-200 ${
-                            isJustEncountered ? 'scale-110' : 'group-hover:scale-108'
-                          }`}
-                        />
-                        {/* 多形态/首领化 */}
-                        <div className="absolute bottom-1 left-0 right-0 z-[1] flex justify-center pointer-events-none">
-                          <PetSpecialTag pet={pet} />
-                        </div>
-                        <button
-                          id={`pet-card-info-btn-${pet.name.replace('.', '-')}`}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenPetDetail?.(pet);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 sm:opacity-0 focus:opacity-100 transition-opacity absolute bottom-1 right-1 z-20 w-5 h-5 rounded-md bg-white/90 dark:bg-slate-800/90 hover:bg-sky-500 hover:text-white text-slate-400 dark:text-slate-300 flex items-center justify-center shadow-xs cursor-pointer border border-slate-200 dark:border-slate-700"
-                          title="查看精灵详情与全技能"
-                        >
-                          <Info className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Pet Name Label */}
-                    <div className="mt-1.5 w-full text-center">
-                      <p
-                        className={`text-[11px] sm:text-xs font-black truncate transition-colors duration-200 ${
-                          isEnc ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-100'
-                        }`}
-                        title={formatPetName(pet.name)}
-                      >
-                        {formatPetName(pet.name)}
-                      </p>
-                    </div>
-
-                    {/* 社区图鉴 / 状态 indicator */}
-                    {communityCard && onAtlasVote ? (
-                      <div className="mt-1.5 flex items-center justify-between w-full">
-                        {(() => {
-                          const myVote = communityInfo?.my_vote ?? 'none';
-                          const renderBtn = (type: 'agree' | 'disagree', label: string) => {
-                            const active = type === 'agree' ? myVote === 'agree' : myVote === 'disagree';
-                            return (
-                              <button
-                                key={type}
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onAtlasVote(currentMap.id, petKey, pet.name, type);
-                                }}
-                                className={`text-[10px] font-black w-5 h-5 sm:w-6 sm:h-6 rounded-md border flex items-center justify-center transition-colors select-none ${
-                                  active
-                                    ? type === 'agree' ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-rose-500 border-rose-500 text-white'
-                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-500 dark:hover:text-slate-300'
-                                } cursor-pointer`}
-                                title={type === 'agree' ? '赞同' : '不赞同'}
-                              >
-                                {label}
-                              </button>
-                            );
-                          };
-                          return (
-                            <>
-                              {renderBtn('agree', '✓')}
-                              <span className={`text-[10px] sm:text-[11px] font-black leading-none truncate ${
-                                isEnc ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'
-                              }`}>
-                                {isEnc ? '已遇见' : '未遇见'}
-                              </span>
-                              {renderBtn('disagree', '✕')}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    ) : (
-                      /* 遇见状态微药丸 */
-                      <div className="mt-1.5 flex items-center justify-center w-full">
-                        {isEnc ? (
-                          <span className="text-[10px] sm:text-[11px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg w-full text-center border border-emerald-500/30 dark:border-emerald-600/40 truncate">
-                            已遇见
-                          </span>
-                        ) : (
-                          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 px-2 py-0.5 rounded-lg w-full text-center border border-slate-200 dark:border-slate-700 group-hover:border-sky-300 dark:group-hover:border-sky-600 group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors truncate">
-                            未遇见
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                    mapId={currentMap.id}
+                    pet={pet}
+                    isEnc={isEnc}
+                    isJustEncountered={isJustEncountered}
+                    communityCard={communityCard}
+                    communityInfo={communityInfo}
+                    canVote={!!onAtlasVote}
+                    onActivate={handleCardClick}
+                    onOpenDetail={handleOpenDetail}
+                    onVote={onAtlasVote ? handleVote : undefined}
+                    onEnter={handleCardMouseEnter}
+                    onLeave={handleCardMouseLeave}
+                    onContext={handleCardContext}
+                  />
                 );
               })}
             </div>

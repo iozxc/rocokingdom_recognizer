@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useDeferredValue } from 'react';
 import { MapConfig, PetItem, EncounterRecord, FirePokedexEntry, FloatingButtonsMode, AdvancedFilterState, FireSettings, SearchFilterPosition, StatsLayoutMode } from '../../types';
 import { fireStorage } from '../../services/fireStorage';
 import { getCachedFirePets, getFireTrialPetsCached, getFireMapPets } from '../../services/fireTrialData';
@@ -274,6 +274,27 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
     };
   }, [currentMapPets, records, currentMap.id]);
 
+  // 大图鉴（每张地图数百只精灵）切换时网格重建是重活：
+  // Header 胶囊/计数立即响应，识别卡与网格跟随延迟值在低优先级过渡中渲染。
+  const deferredStageNum = useDeferredValue(activeStageNum);
+  const deferredMap: MapConfig = useMemo(() => {
+    return safeMaps.find((m) => m.num === deferredStageNum) || safeMaps[0];
+  }, [deferredStageNum, safeMaps]);
+  const deferredMapPets: PetItem[] = useMemo(() => {
+    return fireMapsPets[`map${deferredStageNum}`]?.items || [];
+  }, [deferredStageNum, fireMapsPets]);
+  const deferredMapStats = useMemo(() => {
+    const encountered = deferredMapPets.filter((p) =>
+        isPetEncounteredInRecords(records, deferredMap.id, p.name)
+    ).length;
+    const total = deferredMapPets.length;
+    return {
+      encounteredCount: encountered,
+      totalMapPets: total,
+      percentage: total > 0 ? Math.round((encountered / total) * 100) : 0,
+    };
+  }, [deferredMapPets, records, deferredMap.id]);
+
   const handleToggleEncounter = (mapId: string, filename: string) => {
     const wasLit = fireStorage.isEncountered(mapId, filename);
     fireStorage.toggleEncountered(mapId, filename, '手动');
@@ -541,8 +562,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
     storage.setSetting('isSoundMuted', muted);
   };
 
-  const handleResetCurrentMap = () => {
-    fireStorage.resetMap(currentMap.id);
+  const handleResetCurrentMap = (mapId?: string) => {
+    fireStorage.resetMap(mapId ?? currentMap.id);
     sound.playToggleOff();
   };
 
@@ -629,18 +650,18 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
           {/* 经典版（separate）：顶部独立统计栏；合并版（merged，默认）已把这些信息并入 PetGrid 标题区 */}
           {statsLayoutMode === 'separate' && (
             <StatsBanner
-                currentMap={currentMap}
-                encounteredCount={currentMapStats.encounteredCount}
-                totalMapPets={currentMapStats.totalMapPets}
-                pets={currentMapPets}
+                currentMap={deferredMap}
+                encounteredCount={deferredMapStats.encounteredCount}
+                totalMapPets={deferredMapStats.totalMapPets}
+                pets={deferredMapPets}
                 searchMode={searchMode}
                 onSearchModeChange={setSearchMode}
-                percentage={currentMapStats.percentage}
+                percentage={deferredMapStats.percentage}
                 filterMode={filterMode}
                 onFilterChange={(mode) => setFilterMode(mode)}
                 searchQuery={searchQuery}
                 onSearchChange={(q) => setSearchQuery(q)}
-                onResetEncounters={handleResetCurrentMap}
+                onResetEncounters={() => handleResetCurrentMap(deferredMap.id)}
                 advancedFilters={advancedFilters}
                 onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
                 searchFilterPosition={searchFilterPosition}
@@ -651,7 +672,7 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
           {!IS_STATIC && (
               <div className="mt-4">
                 <BatchRecognizerCard
-                    currentMap={currentMap}
+                    currentMap={deferredMap}
                     trialKey="fire"
                     allMapsPets={fireMapsPets}
                     records={records}
@@ -664,8 +685,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
           )}
 
           <PetGrid
-              currentMap={currentMap}
-              pets={currentMapPets}
+              currentMap={deferredMap}
+              pets={deferredMapPets}
               records={records}
               onToggleEncounter={handleToggleEncounter}
               filterMode={filterMode}
@@ -675,8 +696,8 @@ export const FireBadgeTrial: React.FC<FireBadgeTrialProps> = ({ maps, onBack }) 
               advancedFilters={advancedFilters}
               searchFilterPosition={searchFilterPosition}
               statsLayoutMode={statsLayoutMode}
-              percentage={currentMapStats.percentage}
-              onResetEncounters={handleResetCurrentMap}
+              percentage={deferredMapStats.percentage}
+              onResetEncounters={() => handleResetCurrentMap(deferredMap.id)}
               onSearchChange={setSearchQuery}
               onSearchModeChange={setSearchMode}
               onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { Header } from './components/Header';
 import { SubHeaderToolbar } from './components/SubHeaderToolbar';
 import { StatsBanner } from './components/StatsBanner';
@@ -499,6 +499,20 @@ export default function App() {
     return storage.getMapStats(currentMap.id, currentMapPets.length, currentMapPets);
   }, [currentMap.id, currentMapPets, records]);
 
+  // 大图鉴（每张地图数百只精灵）切换时，网格重建是重活：
+  // 把当前图号做成延迟值，Header 胶囊/计数立即响应（紧急更新），
+  // 识别卡与网格跟随延迟值在低优先级过渡中渲染，避免阻塞胶囊滑动动画。
+  const deferredStageNum = useDeferredValue(activeStageNum);
+  const deferredMap: MapConfig = useMemo(() => {
+    return MAP_CONFIGS.find((m) => m.num === deferredStageNum) || MAP_CONFIGS[0];
+  }, [deferredStageNum]);
+  const deferredMapPets: PetItem[] = useMemo(() => {
+    return mapsData[`map${deferredStageNum}`]?.items || [];
+  }, [deferredStageNum, mapsData]);
+  const deferredMapStats = useMemo(() => {
+    return storage.getMapStats(deferredMap.id, deferredMapPets.length, deferredMapPets);
+  }, [deferredMap.id, deferredMapPets, records]);
+
   // Check if a specific pet is encountered
   const isPetEncountered = useCallback(
       (mapId: string, filename: string) => {
@@ -545,9 +559,9 @@ export default function App() {
     refreshRecords();
   };
 
-  // Reset Encounters for Current Map
-  const handleResetCurrentMap = () => {
-    storage.resetMap(currentMap.id);
+  // Reset Encounters for Current Map（mapId 可显式传入，配合延迟渲染的网格）
+  const handleResetCurrentMap = (mapId?: string) => {
+    storage.resetMap(mapId ?? currentMap.id);
     refreshRecords();
     sound.playToggleOff();
     triggerScanSyncEffect('unencounter', undefined, '已重置当前关卡图鉴状态');
@@ -687,18 +701,18 @@ export default function App() {
                 {statsLayoutMode === 'separate' && (
                   <div ref={statsBannerWrapRef}>
                   <StatsBanner
-                      currentMap={currentMap}
-                      encounteredCount={currentMapStats.encounteredCount}
-                      totalMapPets={currentMapPets.length}
-                      pets={currentMapPets}
+                      currentMap={deferredMap}
+                      encounteredCount={deferredMapStats.encounteredCount}
+                      totalMapPets={deferredMapPets.length}
+                      pets={deferredMapPets}
                       searchMode={searchMode}
                       onSearchModeChange={handleSearchModeChange}
-                      percentage={currentMapStats.percentage}
+                      percentage={deferredMapStats.percentage}
                       filterMode={filterMode}
                       onFilterChange={(mode) => setFilterMode(mode)}
                       searchQuery={searchQuery}
                       onSearchChange={handleSearchChange}
-                      onResetEncounters={handleResetCurrentMap}
+                      onResetEncounters={() => handleResetCurrentMap(deferredMap.id)}
                       onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
                       dataUpdateAvailable={dataUpdateAvailable}
                       advancedFilters={advancedFilters}
@@ -711,8 +725,8 @@ export default function App() {
 
                 {/* Pet Image Recognition Module (BatchRecognizerCard: 首页单图识别；纯前端走浏览器内 LocalRecognizer) */}
                 <BatchRecognizerCard
-                        key={`${currentMap.id}_${recognizerKey}`}
-                        currentMap={currentMap}
+                        key={`${deferredMap.id}_${recognizerKey}`}
+                        currentMap={deferredMap}
                         trialKey={activeTrialKey}
                         allMapsPets={mapsData}
                         records={records}
@@ -722,11 +736,11 @@ export default function App() {
                         onScanningChange={setIsBatchScanning}
                     />
 
-                {/* Map Pets Grid */}
+                {/* Map Pets Grid（跟随延迟图号，切换时不阻塞头部动画） */}
                 <div ref={petGridWrapRef} className={searchQuery.trim() ? 'min-h-[80vh]' : undefined}>
                 <PetGrid
-                    currentMap={currentMap}
-                    pets={currentMapPets}
+                    currentMap={deferredMap}
+                    pets={deferredMapPets}
                     records={records}
                     onToggleEncounter={handleToggleEncounter}
                     filterMode={filterMode}
@@ -741,8 +755,8 @@ export default function App() {
                     advancedFilters={advancedFilters}
                     searchFilterPosition={searchFilterPosition}
                     statsLayoutMode={statsLayoutMode}
-                    percentage={currentMapStats.percentage}
-                    onResetEncounters={handleResetCurrentMap}
+                    percentage={deferredMapStats.percentage}
+                    onResetEncounters={() => handleResetCurrentMap(deferredMap.id)}
                     dataUpdateAvailable={dataUpdateAvailable}
                     onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
                     hideSearchInput={floatingSearch.visible}
