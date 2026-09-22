@@ -1359,31 +1359,18 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
             id="scanner-actionbar"
             className="px-3 pt-2 pb-2 bg-[#FDF9F3] dark:bg-slate-900 border-t-2 border-[#D5E3F0] dark:border-slate-700 space-y-2 shrink-0"
         >
-            <div className="flex items-center gap-1.5">
-              <button
-                  type="button"
-                  onClick={handleStartCapture}
-                  className={`flex-1 h-7 rounded-xl flex items-center justify-center gap-1.5 text-[11px] font-bold transition-all cursor-pointer border-2 ${
-                      capture.active
-                          ? 'bg-[#EAF7E4]/80 dark:bg-emerald-950/50 text-[#2D6613] dark:text-emerald-300 border-[#95D151]/70 dark:border-emerald-700 hover:bg-[#DCF2D0]'
-                          : 'roco-btn-secondary'
-                  }`}
-                  title={capture.active ? `当前来源：${capture.label || '已连接'}` : '选择要识别的游戏窗口'}
-              >
-                <MonitorPlay className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{capture.active ? '更换游戏窗口' : '连接游戏画面'}</span>
-              </button>
-              {capture.active && (
-                  <button
-                      type="button"
-                      onClick={handleStopCapture}
-                      className="w-7 h-7 rounded-full bg-white dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center shrink-0 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700"
-                      title="断开当前画面"
-                  >
-                    <Unplug className="w-3.5 h-3.5" />
-                  </button>
-              )}
-            </div>
+            {/* 连接游戏画面：仅未连接时显示整条；选中窗口连接后自动消失，只在底部 LIVE 条保留“取消链接” */}
+            {!capture.active && (
+                <button
+                    type="button"
+                    onClick={handleStartCapture}
+                    className="w-full h-10 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all cursor-pointer border-2 roco-btn-secondary"
+                    title="选择要识别的游戏窗口"
+                >
+                  <MonitorPlay className="w-4 h-4 shrink-0" />
+                  <span className="truncate">连接游戏画面</span>
+                </button>
+            )}
 
             <div className="grid grid-cols-[104px_1fr] gap-1.5">
               <div className="flex gap-1.5">
@@ -1463,7 +1450,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
             )}
           </div>
 
-        {/* 3. 底部状态栏：连接状态（绿点 + LIVE）+ 上次捕获 + 悬浮窗 */}
+        {/* 3. 底部状态栏：LIVE 状态 + 断开入口（连接后，紧跟 LIVE）；右侧上次捕获 + 悬浮窗 */}
         <div
             id="scanner-statusbar"
             className="h-7 px-3 bg-[#E9F2FA] dark:bg-slate-800 border-t-2 border-[#D5E3F0] dark:border-slate-700 text-[11px] leading-none font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2 shrink-0 font-bold overflow-hidden"
@@ -1484,6 +1471,16 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                 </span>
             ) : (
                 <span className="text-slate-500 dark:text-slate-400">未连接</span>
+            )}
+            {capture.active && (
+                <button
+                    type="button"
+                    onClick={handleStopCapture}
+                    title="取消链接（断开当前画面）"
+                    className="w-4 h-4 p-0 leading-none rounded-full bg-white dark:bg-slate-700 border border-[#BCD7F2] dark:border-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center self-center transition-colors hover:bg-slate-50 dark:hover:bg-slate-600 cursor-pointer shrink-0"
+                >
+                  <Unplug className="w-2.5 h-2.5" />
+                </button>
             )}
           </span>
           <span className="flex items-center gap-2 min-w-0 flex-1 justify-end">
