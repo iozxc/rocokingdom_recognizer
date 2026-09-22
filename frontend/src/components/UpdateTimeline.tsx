@@ -68,7 +68,7 @@ export const UpdateTimeline: React.FC<UpdateTimelineProps> = ({
     if (!entries.length) return null;
 
     return (
-        <div className="p-4 bg-[#F8FAFC] dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col h-full min-h-0 overflow-hidden">
+        <div className="relative p-4 bg-slate-50/80 dark:bg-slate-800/60 rounded-2xl ring-1 ring-inset ring-slate-200 dark:ring-slate-700 flex flex-col h-full min-h-0 overflow-hidden">
             {/* 标题行 */}
             <div className="flex items-center justify-between mb-3 shrink-0">
                 <span className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
@@ -169,6 +169,13 @@ export const UpdateTimeline: React.FC<UpdateTimelineProps> = ({
                     );
                 })}
             </ol>
+
+            {/* 底部渐隐：列表可滚动时给出「下面还有」的视觉暗示，
+                避免内容刚好被裁在半个字上、看起来像渲染坏了 */}
+            <div
+                className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 rounded-b-2xl bg-gradient-to-t from-slate-50 dark:from-slate-800 to-transparent"
+                aria-hidden
+            />
         </div>
     );
 };

@@ -277,7 +277,7 @@ export interface AppSettings {
   followScannerHotkey?: string; // 全局显示/隐藏跟随识别窗口的快捷键（规范串，如 "Ctrl+Alt+R"）；空串=禁用；仅桌面版生效
   autoWatchScan?: boolean; // 自动模式子开关：自动识别选择界面（默认开启）
   autoWatchMark?: boolean; // 自动模式子开关：自动点亮对战精灵（默认开启）
-  autoWatchTickSeconds?: number; // 自动模式后台扫描间隔（秒，默认 0.5，范围 0.2~5）
+  autoWatchTickSeconds?: number; // 自动模式后台扫描间隔（秒，默认 0.25，范围 0.2~5）
   gpuAcceleration?: boolean; // 推理是否使用 GPU 加速（默认开启；关闭后强制 CPU，功能一致）
   debugImageCap?: number; // debug 截图保留上限（张），0 = 关闭不保存（默认 0）
   fireSettings?: FireSettings; // 火系徽章试炼专属设置
