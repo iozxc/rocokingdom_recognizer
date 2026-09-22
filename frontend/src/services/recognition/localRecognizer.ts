@@ -636,6 +636,19 @@ class LocalRecognizerClass {
   }
 
   /**
+   * 预热 DINO + OCR 会话（自动模式启动时后台调用）。
+   * 避免首次进入战斗才异步加载模型，导致自动点亮的第一次确认明显变慢。幂等。
+   */
+  async warmup(): Promise<void> {
+    try {
+      await this.ensureReady();
+      await this.ensureOcrReady();
+    } catch {
+      /* 预热失败不影响后续按需重试 */
+    }
+  }
+
+  /**
    * 战斗自动点亮探测（对应 desktop/auto_watch.py 的门 3）：只裁右上角敌方头像跑
    * DINO、裁名字行跑 rec-only OCR，不跑 YOLO 版面检测，所以只需要 DINO + OCR 就绪。
    *

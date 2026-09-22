@@ -43,6 +43,7 @@ const VOTE_CONFIRM = 2;
 const VOTE_CONFIRM_DINO_ONLY = 3;
 
 const BATTLE_MARK_TIMEOUT = 30; // 战斗开始后最多尝试确认秒数
+const BATTLE_PROBE_TICK = 0.18; // 战斗中为尽快确认，比对间隔上限（秒）；非战斗仍用用户设置的扫描间隔
 const CACHE_TTL = 1800; // 识别缓存有效期
 const TICK_DEFAULT = 0.5;
 const TICK_MIN = 0.2;
@@ -109,6 +110,8 @@ interface MatchInfo {
   nameText: string;
   nameRatio: number;
   mode?: 'dual' | 'dino_only';
+  // 名字 OCR 近乎确定 + 头像一致：单帧即可点亮，无需再等一帧投票
+  fastConfirm?: boolean;
 }
 
 export interface AutoWatchConfig {
@@ -212,6 +215,12 @@ export class AutoWatchManager {
     if (this.running) return;
     this.running = true;
     this.generation++;
+    // 后台预热 DINO + OCR，避免第一次进入战斗才加载模型造成确认延迟
+    try {
+      void (localRecognizer as { warmup?: () => Promise<void> }).warmup?.();
+    } catch {
+      /* 预热失败不影响主流程 */
+    }
     this.schedule(0, this.generation);
   }
 
@@ -290,7 +299,9 @@ export class AutoWatchManager {
       }
     }
     const dt = (performance.now() - t0) / 1000;
-    this.schedule(Math.max(0, this.tickSeconds - dt), gen);
+    // 战斗中用更短的间隔尽快完成多帧投票；非战斗沿用用户设置的扫描间隔
+    const baseTick = this.wasBattle ? Math.min(this.tickSeconds, BATTLE_PROBE_TICK) : this.tickSeconds;
+    this.schedule(Math.max(0, baseTick - dt), gen);
   }
 
   private async runOnce(): Promise<void> {
@@ -544,7 +555,11 @@ export class AutoWatchManager {
       this.voteSlot = slot;
       this.voteCount = 1;
     }
-    const need = info.mode === 'dino_only' ? VOTE_CONFIRM_DINO_ONLY : VOTE_CONFIRM;
+    const need = info.fastConfirm
+      ? 1
+      : info.mode === 'dino_only'
+        ? VOTE_CONFIRM_DINO_ONLY
+        : VOTE_CONFIRM;
     this.pushStatus(
       'battle',
       `战斗中：候选 ${info.name}（${Math.round(info.dinoScore * 100)}%  ${this.voteCount}/${need}）`,
@@ -585,9 +600,10 @@ export class AutoWatchManager {
       nameRatio: nameRatios[ni],
     };
 
-    // 档 1：名字 OCR 几乎确定（权威标签），DINO 仅作兜底
+    // 档 1：名字 OCR 几乎确定（权威标签），DINO 仅作兜底 → 单帧即可确认
     if (di === ni && nameRatios[ni] >= NAME_RATIO_STRICT_MIN && dino[di] >= DINO_MIN_STRICT) {
       info.mode = 'dual';
+      info.fastConfirm = true;
       return { slot: di, info };
     }
     // 档 2：双模态一致，且头像 DINO 明确最高

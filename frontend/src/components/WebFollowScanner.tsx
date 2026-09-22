@@ -1363,24 +1363,24 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
               <button
                   type="button"
                   onClick={handleStartCapture}
-                  className={`flex-1 h-10 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all cursor-pointer border-2 ${
+                  className={`flex-1 h-7 rounded-xl flex items-center justify-center gap-1.5 text-[11px] font-bold transition-all cursor-pointer border-2 ${
                       capture.active
-                          ? 'bg-[#E1F7DB]/80 dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#86EFAC] dark:border-emerald-700 hover:bg-[#D3F3CA]'
+                          ? 'bg-[#EAF7E4]/80 dark:bg-emerald-950/50 text-[#2D6613] dark:text-emerald-300 border-[#95D151]/70 dark:border-emerald-700 hover:bg-[#DCF2D0]'
                           : 'roco-btn-secondary'
                   }`}
                   title={capture.active ? `当前来源：${capture.label || '已连接'}` : '选择要识别的游戏窗口'}
               >
-                <MonitorPlay className="w-4 h-4" />
+                <MonitorPlay className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">{capture.active ? '更换游戏窗口' : '连接游戏画面'}</span>
               </button>
               {capture.active && (
                   <button
                       type="button"
                       onClick={handleStopCapture}
-                      className="w-10 h-10 rounded-2xl roco-btn-secondary flex items-center justify-center shrink-0"
+                      className="w-7 h-7 rounded-full bg-white dark:bg-slate-800 border border-[#BCD7F2] dark:border-slate-600 text-slate-500 dark:text-slate-300 flex items-center justify-center shrink-0 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700"
                       title="断开当前画面"
                   >
-                    <Unplug className="w-4 h-4" />
+                    <Unplug className="w-3.5 h-3.5" />
                   </button>
               )}
             </div>
@@ -1393,7 +1393,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                           type="button"
                           onClick={handleToggleAuto}
                           title="自动模式运行中，点击关闭"
-                          className="flex-1 h-11 rounded-2xl px-2 text-xs font-black flex items-center justify-center gap-1.5 text-white transition-all cursor-pointer active:scale-[0.99] bg-[#58A83F] hover:bg-[#4C9536] border-2 border-[#3F7E2E]"
+                          className="flex-1 h-10 rounded-2xl px-2 text-xs font-black flex items-center justify-center gap-1.5 text-white transition-all cursor-pointer active:scale-[0.99] bg-[#58A83F] hover:bg-[#4C9536] border-2 border-[#3F7E2E]"
                       >
                         <span className="relative flex h-2 w-2 shrink-0">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/80 opacity-75" />
@@ -1405,7 +1405,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                           type="button"
                           onClick={() => setAutoPanelOpen((v) => !v)}
                           title="自动状态设置"
-                          className={`w-10 h-11 shrink-0 rounded-2xl flex items-center justify-center transition-all cursor-pointer border-2 bg-[#EAF7E4] dark:bg-emerald-950/50 text-[#2D6613] dark:text-emerald-300 border-[#7BC363]/60 ${
+                          className={`w-7 h-10 shrink-0 rounded-2xl flex items-center justify-center transition-all cursor-pointer border-2 bg-[#EAF7E4] dark:bg-emerald-950/50 text-[#2D6613] dark:text-emerald-300 border-[#7BC363]/60 ${
                               autoPanelOpen ? 'ring-2 ring-[#7BC363]/50' : ''
                           }`}
                       >
@@ -1418,7 +1418,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                         onClick={handleToggleAuto}
                         disabled={busy}
                         title="开启自动识别 / 自动点亮"
-                        className="flex-1 h-11 rounded-2xl px-2 text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border-2 roco-btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 h-10 rounded-2xl px-2 text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer border-2 roco-btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Bot className="w-4 h-4" />
                       <span>自动</span>
@@ -1430,7 +1430,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                   id="scanner-single-recognize-btn"
                   onClick={handleRecognize}
                   disabled={busy}
-                  className={`h-11 px-2 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer roco-btn-primary ${
+                  className={`h-10 px-2 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer roco-btn-primary ${
                       busy ? 'opacity-60 cursor-not-allowed' : 'active:scale-[0.99]'
                   }`}
               >
