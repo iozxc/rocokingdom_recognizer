@@ -2147,7 +2147,7 @@ export const ScannerApp: React.FC = () => {
 
         {/* 自动点亮撤销 toast（位于状态面板上方，6 秒自动消失） */}
         {autoToast && (
-          <div className={`absolute right-2 z-50 w-[232px] rounded-2xl border-2 border-emerald-300 bg-[#F2FBEE] dark:bg-emerald-950/80 px-2.5 py-2 shadow-lg shadow-slate-900/15 ${autoPanelOpen ? 'bottom-[268px]' : 'bottom-[120px]'}`}>
+          <div className={`absolute right-2 z-50 w-[232px] rounded-2xl border-2 border-emerald-300 bg-[#F2FBEE] dark:bg-emerald-950/80 px-2.5 py-2 shadow-lg shadow-slate-900/15 ${autoPanelOpen ? 'bottom-[228px]' : 'bottom-[120px]'}`}>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
               <div className="min-w-0 flex-1">
