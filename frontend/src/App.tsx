@@ -34,7 +34,7 @@ import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
 import { IS_STATIC } from './services/staticMode';
-import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState, SearchFilterPosition } from './types';
+import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState, SearchFilterPosition, StatsLayoutMode } from './types';
 import { isPetEncounteredInRecords } from './utils/petHelper';
 import { PetSearchMode } from './utils/skillSearch';
 
@@ -65,6 +65,10 @@ export default function App() {
   const [searchMode, setSearchMode] = useState<PetSearchMode>('name');
   const [searchFilterPosition, setSearchFilterPosition] = useState<SearchFilterPosition>(() => {
     return storage.getSetting<SearchFilterPosition>('searchFilterPosition', 'position2');
+  });
+  // 地图信息栏布局：merged=并入 PetGrid 标题区（默认）| separate=顶部独立统计栏经典版
+  const [statsLayoutMode, setStatsLayoutMode] = useState<StatsLayoutMode>(() => {
+    return storage.getSetting<StatsLayoutMode>('statsLayoutMode', 'merged');
   });
   // 下滑浏览结果时，把搜索框固定在 header 下方（搜索行滚出可视区即显示）
   const [floatingSearch, setFloatingSearch] = useState<{ visible: boolean; top: number }>({
@@ -295,6 +299,9 @@ export default function App() {
       }
       if (newSettings.searchFilterPosition === 'position1' || newSettings.searchFilterPosition === 'position2') {
         setSearchFilterPosition(newSettings.searchFilterPosition);
+      }
+      if (newSettings.statsLayoutMode === 'merged' || newSettings.statsLayoutMode === 'separate') {
+        setStatsLayoutMode(newSettings.statsLayoutMode);
       }
       // 只有「图号这个设置本身被改动」（changedKeys 里有 activeStageNum）才跟随；
       // changedKeys 为空表示跨窗口 storage 事件 / 云端同步这类无法辨别具体键的场景，
@@ -676,29 +683,31 @@ export default function App() {
               />
           ) : (
               <>
-                {/* Map Banner & Stats */}
-                <div ref={statsBannerWrapRef}>
-                <StatsBanner
-                    currentMap={currentMap}
-                    encounteredCount={currentMapStats.encounteredCount}
-                    totalMapPets={currentMapPets.length}
-                    pets={currentMapPets}
-                    searchMode={searchMode}
-                    onSearchModeChange={handleSearchModeChange}
-                    percentage={currentMapStats.percentage}
-                    filterMode={filterMode}
-                    onFilterChange={(mode) => setFilterMode(mode)}
-                    searchQuery={searchQuery}
-                    onSearchChange={handleSearchChange}
-                    onResetEncounters={handleResetCurrentMap}
-                    onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
-                    dataUpdateAvailable={dataUpdateAvailable}
-                    advancedFilters={advancedFilters}
-                    onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
-                    searchFilterPosition={searchFilterPosition}
-                    hideSearchInput={floatingSearch.visible}
-                />
-                </div>
+                {/* 经典版（separate）：顶部独立统计栏；合并版（merged，默认）已把这些信息并入 PetGrid 标题区 */}
+                {statsLayoutMode === 'separate' && (
+                  <div ref={statsBannerWrapRef}>
+                  <StatsBanner
+                      currentMap={currentMap}
+                      encounteredCount={currentMapStats.encounteredCount}
+                      totalMapPets={currentMapPets.length}
+                      pets={currentMapPets}
+                      searchMode={searchMode}
+                      onSearchModeChange={handleSearchModeChange}
+                      percentage={currentMapStats.percentage}
+                      filterMode={filterMode}
+                      onFilterChange={(mode) => setFilterMode(mode)}
+                      searchQuery={searchQuery}
+                      onSearchChange={handleSearchChange}
+                      onResetEncounters={handleResetCurrentMap}
+                      onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
+                      dataUpdateAvailable={dataUpdateAvailable}
+                      advancedFilters={advancedFilters}
+                      onAdvancedFilterChange={(filters) => setAdvancedFilters(filters)}
+                      searchFilterPosition={searchFilterPosition}
+                      hideSearchInput={floatingSearch.visible}
+                  />
+                  </div>
+                )}
 
                 {/* Pet Image Recognition Module (BatchRecognizerCard: 首页单图识别；纯前端走浏览器内 LocalRecognizer) */}
                 <BatchRecognizerCard
@@ -731,6 +740,11 @@ export default function App() {
                     }}
                     advancedFilters={advancedFilters}
                     searchFilterPosition={searchFilterPosition}
+                    statsLayoutMode={statsLayoutMode}
+                    percentage={currentMapStats.percentage}
+                    onResetEncounters={handleResetCurrentMap}
+                    dataUpdateAvailable={dataUpdateAvailable}
+                    onOpenDataUpdate={() => setIsDataUpdateOpen(true)}
                     hideSearchInput={floatingSearch.visible}
                     onSearchChange={handleSearchChange}
                     onSearchModeChange={handleSearchModeChange}

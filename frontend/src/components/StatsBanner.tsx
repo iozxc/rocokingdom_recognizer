@@ -165,15 +165,15 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
             <ConfirmDialog
                 isOpen={isConfirmOpen}
                 title="重置当前关卡遇见记录"
-                message={`确定要清空【${currentMap.name}】的遇见记录吗？（已遇见 ${encounteredCount} 只）此操作无法撤销。`}
+                description={`确定要清空【${currentMap.name}】的遇见记录吗？（已遇见 ${encounteredCount} 只）`}
+                detail="此操作无法撤销，清空后该地图所有精灵的遇见记录与绿勾标记将重置。"
                 confirmText="确认重置"
                 cancelText="取消"
-                isDestructive={true}
+                danger
                 onConfirm={() => {
                     onResetEncounters();
-                    setIsConfirmOpen(false);
                 }}
-                onCancel={() => setIsConfirmOpen(false)}
+                onClose={() => setIsConfirmOpen(false)}
             />
 
             {searchFilterPosition === 'position1' && (

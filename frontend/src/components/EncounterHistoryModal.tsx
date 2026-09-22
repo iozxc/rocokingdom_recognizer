@@ -1,17 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   History,
   X,
   Search,
   Check,
   RotateCcw,
-  Sparkles,
-  Calendar,
-  Clock,
+  CalendarClock,
   MapPin,
   EyeOff,
-  Filter,
   ArrowRight,
+  Undo2,
+  ListFilter,
 } from 'lucide-react';
 import { EncounterRecord, MapConfig, PetItem } from '../types';
 import { MAP_CONFIGS } from '../data/mockPets';
@@ -33,6 +32,58 @@ interface EncounterHistoryModalProps {
   onNavigateToPet?: (mapNum: number, petName: string) => void;
 }
 
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * 时间格式化：返回「完整时间」+「相对时间」两段。
+ *
+ * 之前只显示「4小时前」，同一天的几十条记录看起来一模一样、无法定位到具体时刻。
+ * 现在主显完整日期时刻（今天/昨天/M月D日/YYYY年M月D日 + HH:mm），
+ * 相对时间作为次要信息补充，鼠标悬停还能看到带秒的完整时间戳。
+ */
+function formatTimeParts(timeStr?: string): { absolute: string; relative: string; tooltip: string } {
+  if (!timeStr) return { absolute: '未知时间', relative: '', tooltip: '未知时间' };
+  const date = new Date(timeStr);
+  if (isNaN(date.getTime())) return { absolute: timeStr, relative: '', tooltip: timeStr };
+
+  const now = new Date();
+  const diffSec = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+
+  // 相对时间（超过 30 天不再展示，绝对时间已足够）
+  let relative = '';
+  if (diffSec < 30) relative = '刚刚';
+  else if (diffSec < 60) relative = `${diffSec} 秒前`;
+  else if (diffMin < 60) relative = `${diffMin} 分钟前`;
+  else if (diffHour < 24) relative = `${diffHour} 小时前`;
+  else if (diffHour < 24 * 30) relative = `${Math.floor(diffHour / 24)} 天前`;
+
+  // 绝对时间：完整到分钟，跨年才带年份
+  const hhmm = `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  const t = date.getTime();
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const DAY = 86400000;
+  let absolute: string;
+  if (t >= dayStart) absolute = `今天 ${hhmm}`;
+  else if (t >= dayStart - DAY) absolute = `昨天 ${hhmm}`;
+  else if (date.getFullYear() === now.getFullYear()) absolute = `${date.getMonth() + 1}月${date.getDate()}日 ${hhmm}`;
+  else absolute = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${hhmm}`;
+
+  const tooltip =
+    `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ` +
+    `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+
+  return { absolute, relative, tooltip };
+}
+
+/** 地图主题色（浅底 + 深字 + 描边），按图号区分。 */
+function mapTone(num: number) {
+  if (num === 1) return { bg: '#E1F7DB', fg: '#2D6613', ring: '#95D151' };
+  if (num === 2) return { bg: '#FEF9E6', fg: '#854D0E', ring: '#FEE061' };
+  return { bg: '#EBF4FE', fg: '#1D5E9E', ring: '#7ABCF4' };
+}
+
 export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
   isOpen,
   onClose,
@@ -45,50 +96,37 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'encountered' | 'unencountered'>('all');
   const [selectedMapFilter, setSelectedMapFilter] = useState<string>('all');
+  // 刚被切换的那一条：短暂高亮，避免「点完就跳走」找不到人
+  const [flashKey, setFlashKey] = useState<string | null>(null);
+  const flashTimer = useRef<number | null>(null);
 
   const maps = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
 
-  // Format relative & absolute time string
-  const formatTime = (timeStr?: string): { relative: string; fullTime: string } => {
-    if (!timeStr) return { relative: '未知时间', fullTime: '未知时间' };
-    try {
-      const date = new Date(timeStr);
-      if (isNaN(date.getTime())) return { relative: timeStr, fullTime: timeStr };
-
-      const now = Date.now();
-      const diffMs = now - date.getTime();
-      const diffSec = Math.floor(diffMs / 1000);
-      const diffMin = Math.floor(diffSec / 60);
-      const diffHour = Math.floor(diffMin / 60);
-      const diffDay = Math.floor(diffHour / 24);
-
-      let relative = '';
-      if (diffSec < 30) relative = '刚刚';
-      else if (diffSec < 60) relative = `${diffSec}秒前`;
-      else if (diffMin < 60) relative = `${diffMin}分钟前`;
-      else if (diffHour < 24) relative = `${diffHour}小时前`;
-      else if (diffDay < 7) relative = `${diffDay}天前`;
-      else {
-        relative = `${date.getMonth() + 1}月${date.getDate()}日`;
-      }
-
-      const fullTime = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
-        date.getDate()
-      ).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(
-        date.getMinutes()
-      ).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
-
-      return { relative, fullTime };
-    } catch {
-      return { relative: timeStr, fullTime: timeStr };
-    }
+  // 切一条记录后，列表会按时间重排把这条顶到最前 —— 高亮一下让用户跟得住
+  const flashRow = (key: string) => {
+    setFlashKey(key);
+    if (flashTimer.current) window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setFlashKey(null), 1800);
   };
+
+  useEffect(() => () => {
+    if (flashTimer.current) window.clearTimeout(flashTimer.current);
+  }, []);
+
+  // Esc 关闭
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   // Convert and sort records into list
   const historyList = useMemo(() => {
     const recordsArray = Object.values(records || {}) as EncounterRecord[];
     const list = recordsArray.filter((r) => r && r.filename).map((r) => {
-      // Find pet metadata if available
       let petMeta: PetItem | undefined = undefined;
       const cleanName = formatPetName(r.filename);
       const mapKey = r.mapId.startsWith('map') ? r.mapId : `map${r.mapId}`;
@@ -109,13 +147,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
 
       const sortTime = r.lastSeenAt || r.firstSeenAt || '';
 
-      return {
-        record: r,
-        petMeta,
-        cleanName,
-        mapObj,
-        sortTime,
-      };
+      return { record: r, petMeta, cleanName, mapObj, sortTime };
     });
 
     // Sort by last update time descending (newest first)
@@ -131,23 +163,17 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
   // Filtered list
   const filteredList = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-
     return historyList.filter((item) => {
-      // Status filter
       if (statusFilter === 'encountered' && !item.record.encountered) return false;
       if (statusFilter === 'unencountered' && item.record.encountered) return false;
-
-      // Map filter
       if (selectedMapFilter !== 'all' && item.record.mapId !== selectedMapFilter) return false;
 
-      // Search query
       if (q) {
         const nameMatch = item.cleanName.toLowerCase().includes(q);
         const mapMatch = item.mapObj.name.toLowerCase().includes(q);
         const noteMatch = (item.record.note || '').toLowerCase().includes(q);
         return nameMatch || mapMatch || noteMatch;
       }
-
       return true;
     });
   }, [historyList, statusFilter, selectedMapFilter, searchQuery]);
@@ -157,140 +183,127 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
   const totalHistoryCount = historyList.length;
   const encounteredCount = historyList.filter((i) => i.record.encountered).length;
   const unencounteredCount = totalHistoryCount - encounteredCount;
+  const hasActiveFilter =
+    !!searchQuery.trim() || statusFilter !== 'all' || selectedMapFilter !== 'all';
+
+  const resetFilters = () => {
+    sound.playClick();
+    setSearchQuery('');
+    setStatusFilter('all');
+    setSelectedMapFilter('all');
+  };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150 select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/55 backdrop-blur-sm animate-in fade-in duration-150"
       onWheel={(e) => e.stopPropagation()}
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-in zoom-in-95 duration-200 transition-colors"
+        className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 overflow-hidden flex flex-col max-h-[88vh] animate-in zoom-in-95 duration-200 transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="px-5 py-4 bg-gradient-to-r from-[#F5F9FF] to-white dark:from-slate-800 dark:to-slate-900 border-b-2 border-[#E6EEF8] dark:border-slate-800 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#7ABCF4] to-[#2B78C4] text-white flex items-center justify-center shadow-sm">
-              <History className="w-5 h-5" />
+        {/* ── Header ─────────────────────────────────────────── */}
+        <div className="relative bg-gradient-to-br from-[#8FC7F7] via-[#7ABCF4] to-[#5DA8E8] dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 px-5 py-4 text-white shrink-0">
+          <div className="pointer-events-none absolute -top-10 -right-6 w-32 h-32 rounded-full bg-white/15 blur-2xl" />
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-white/20 ring-1 ring-inset ring-white/30 backdrop-blur-sm flex items-center justify-center shrink-0">
+                <History className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-[15px] font-black tracking-tight leading-tight flex items-center gap-2 flex-wrap">
+                  图鉴遇见与操作历史
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/20 ring-1 ring-inset ring-white/25">
+                    {totalHistoryCount} 条
+                  </span>
+                </h3>
+                <p className="text-[11px] text-white/85 font-medium mt-0.5">
+                  按时间倒序排列，可一键撤销误点亮的精灵
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                图鉴遇见与操作历史
-                <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
-                  共 {totalHistoryCount} 条操作记录
-                </span>
-              </h3>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">
-                可快速核对近期点亮与取消的精灵，防止误操作
-              </p>
-            </div>
+            <button
+              type="button"
+              aria-label="关闭"
+              onClick={() => {
+                sound.playClick();
+                onClose();
+              }}
+              className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              onClose();
-            }}
-            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </div>
 
-        {/* Search & Filter Toolbar */}
-        <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 border-b border-[#E6EEF8] dark:border-slate-700 space-y-2.5 shrink-0">
-          {/* Search bar */}
+        {/* ── 搜索 + 筛选 ─────────────────────────────────────── */}
+        <div className="px-4 py-3 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 space-y-2.5 shrink-0">
           <div className="relative">
-            <Search className="w-4 h-4 text-[#7ABCF4] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="快速检索历史精灵名称、地图或备注..."
-              className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border-2 border-[#BCD7F2] dark:border-slate-700 focus:border-[#7ABCF4] dark:focus:border-sky-400 rounded-xl outline-hidden text-slate-800 dark:text-slate-100 font-bold shadow-inner placeholder:text-slate-400 placeholder:font-normal"
+              placeholder="搜索精灵名称、地图或备注…"
+              className="w-full h-10 pl-10 pr-9 text-xs sm:text-[13px] bg-white dark:bg-slate-900 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-[#7ABCF4] dark:focus:ring-sky-600 rounded-xl outline-hidden text-slate-800 dark:text-slate-100 font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
+                aria-label="清除搜索"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {/* Status Filter */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-black text-slate-400">状态:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  setStatusFilter('all');
-                }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                  statusFilter === 'all'
-                    ? 'bg-[#7ABCF4] dark:bg-sky-500 text-white shadow-xs'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                全部 ({totalHistoryCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  setStatusFilter('encountered');
-                }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
-                  statusFilter === 'encountered'
-                    ? 'bg-[#95D151] text-white shadow-xs'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[#2D6613] dark:text-emerald-400 hover:bg-[#E1F7DB]/50 dark:hover:bg-emerald-950/40'
-                }`}
-              >
-                <Check className="w-3 h-3 stroke-[3]" />
-                已遇见 ({encounteredCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  setStatusFilter('unencountered');
-                }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
-                  statusFilter === 'unencountered'
-                    ? 'bg-amber-500 text-white shadow-xs'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40'
-                }`}
-              >
-                <EyeOff className="w-3 h-3" />
-                已取消 ({unencounteredCount})
-              </button>
-            </div>
+          {/* 状态：单色 segmented control，选中项白底浮起 */}
+          <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
+            {([
+              { id: 'all', label: '全部', count: totalHistoryCount },
+              { id: 'encountered', label: '已遇见', count: encounteredCount },
+              { id: 'unencountered', label: '已取消', count: unencounteredCount },
+            ] as const).map((s) => {
+              const active = statusFilter === s.id;
+              const tone =
+                s.id === 'encountered'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : s.id === 'unencountered'
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-[#2B78C4] dark:text-sky-400';
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    setStatusFilter(s.id);
+                  }}
+                  className={`h-8 rounded-lg text-[11px] font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    active
+                      ? `bg-white dark:bg-slate-900 shadow-sm ${tone}`
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {s.label}
+                  <span className={`text-[10px] font-mono ${active ? 'opacity-70' : 'opacity-60'}`}>
+                    {s.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-            {/* Map Filter */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[11px] font-black text-slate-400">地图:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  setSelectedMapFilter('all');
-                }}
-                className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                  selectedMapFilter === 'all'
-                    ? 'bg-slate-700 dark:bg-sky-600 text-white shadow-xs'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                全部地图
-              </button>
-              {maps.map((m) => (
+          {/* 地图筛选 */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 shrink-0">地图</span>
+            {([{ id: 'all', num: 0, name: '全部' }, ...maps] as any[]).map((m) => {
+              const active = selectedMapFilter === m.id;
+              const tone = m.num ? mapTone(m.num) : null;
+              return (
                 <button
                   key={m.id}
                   type="button"
@@ -298,152 +311,183 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                     sound.playClick();
                     setSelectedMapFilter(m.id);
                   }}
-                  className={`px-2 py-0.8 rounded-lg text-[11px] font-black transition-all cursor-pointer flex items-center gap-1 ${
-                    selectedMapFilter === m.id
-                      ? 'bg-slate-700 dark:bg-sky-600 text-white shadow-xs'
-                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  className={`h-7 px-2.5 rounded-lg text-[11px] font-black transition-all cursor-pointer ring-1 ring-inset ${
+                    active
+                      ? 'bg-slate-700 dark:bg-sky-600 text-white ring-transparent shadow-sm'
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600'
                   }`}
+                  style={
+                    active && tone
+                      ? { backgroundColor: tone.bg, color: tone.fg, boxShadow: `inset 0 0 0 1px ${tone.ring}` }
+                      : undefined
+                  }
                 >
-                  <span>{m.num}、{m.name.replace('记忆中的', '')}</span>
+                  {m.num ? `${m.num}、${String(m.name).replace('记忆中的', '')}` : '全部'}
                 </button>
-              ))}
-            </div>
+              );
+            })}
+
+            {hasActiveFilter && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="ml-auto h-7 px-2.5 rounded-lg text-[11px] font-black text-[#2B78C4] dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 ring-1 ring-inset ring-sky-200 dark:ring-sky-900 hover:bg-sky-100 dark:hover:bg-sky-900/60 transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <X className="w-3 h-3" />
+                清除筛选
+              </button>
+            )}
           </div>
         </div>
 
-        {/* History List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2.5 max-h-[55vh]">
-          {filteredList.length === 0 ? (
-            <div className="py-16 text-center text-slate-400 flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-2">
-                <History className="w-6 h-6" />
-              </div>
-              <p className="text-sm font-black text-slate-700 dark:text-slate-200">暂无相关历史记录</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                进行精灵识别或在图鉴中点击点亮/取消后，此处将按时间倒序展示操作流
-              </p>
-            </div>
+        {/* ── 列表 ───────────────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto custom-roco-scrollbar px-4 py-3 space-y-2">
+          {totalHistoryCount === 0 ? (
+            <EmptyState
+              title="暂无历史记录"
+              desc="进行精灵识别，或在图鉴中点亮/取消后，这里会按时间倒序展示操作记录"
+            />
+          ) : filteredList.length === 0 ? (
+            <EmptyState
+              title="没有匹配的记录"
+              desc="试试换个关键词，或清除当前筛选条件"
+              action={
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="mt-3 h-8 px-3 rounded-lg text-[11px] font-black text-[#2B78C4] dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 ring-1 ring-inset ring-sky-200 dark:ring-sky-900 hover:bg-sky-100 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <ListFilter className="w-3.5 h-3.5" />
+                  清除筛选
+                </button>
+              }
+            />
           ) : (
             filteredList.map((item) => {
               const { record, petMeta, cleanName, mapObj } = item;
               const isEnc = record.encountered;
-              const timeObj = formatTime(record.lastSeenAt || record.firstSeenAt);
+              const time = formatTimeParts(record.lastSeenAt || record.firstSeenAt);
               const avatarUrl =
                 petMeta?.url || `${api.getApiBase()}/icons/${encodeURIComponent(cleanName)}.png`;
+              const rowKey = `${record.mapId}_${record.filename}`;
+              const flashing = flashKey === rowKey;
+              const tone = mapTone(mapObj.num);
 
               return (
                 <div
-                  key={`${record.mapId}_${record.filename}_${record.lastSeenAt || ''}`}
-                  className={`group p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-2.5 sm:gap-3 ${
-                    isEnc
-                      ? 'bg-[#F9FEF8] dark:bg-emerald-950/30 border-[#95D151]/60 dark:border-emerald-600/50 hover:border-[#95D151]'
-                      : 'bg-slate-50/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                  key={rowKey}
+                  className={`group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 ring-inset transition-all duration-300 ${
+                    flashing
+                      ? 'bg-sky-50 dark:bg-sky-950/40 ring-2 ring-[#7ABCF4]'
+                      : isEnc
+                        ? 'bg-emerald-50/50 dark:bg-emerald-950/20 ring-1 ring-emerald-100 dark:ring-emerald-900/40 hover:ring-emerald-300 dark:hover:ring-emerald-700'
+                        : 'bg-slate-50 dark:bg-slate-800/60 ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600'
                   }`}
                 >
-                  {/* Left: Avatar + Details */}
-                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white dark:bg-slate-900 border border-[#E6EEF8] dark:border-slate-700 p-0.5 flex items-center justify-center shrink-0 shadow-2xs">
-                      {IS_STATIC && petMeta?.sprite ? (
-                          <PetSprite
-                              pet={petMeta}
-                              alt={cleanName}
-                              className="w-full h-full object-contain pointer-events-none"
-                          />
-                      ) : (
-                          <ImageZoom
-                              src={avatarUrl}
-                              alt={cleanName}
-                              className="w-full h-full"
-                              imgClassName="w-full h-full object-contain pointer-events-none"
-                              zoomWidth={240}
-                              zoomHeight={240}
-                          />
-                      )}
-                      <ElementBadges
-                        elements={petMeta?.elements}
-                        className="absolute top-0 left-0 z-10 scale-90 origin-top-left"
-                        size="xs"
+                  {/* 精灵头像 + 状态角标 */}
+                  <div className="relative w-11 h-11 rounded-xl bg-white dark:bg-slate-900 ring-1 ring-inset ring-slate-200/70 dark:ring-slate-700 p-0.5 flex items-center justify-center shrink-0">
+                    {IS_STATIC && petMeta?.sprite ? (
+                      <PetSprite
+                        pet={petMeta}
+                        alt={cleanName}
+                        className="w-full h-full object-contain pointer-events-none"
                       />
-                      {isEnc ? (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#95D151] rounded-full flex items-center justify-center text-white shadow-xs border border-white dark:border-slate-800">
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        </div>
-                      ) : (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-slate-400 rounded-full flex items-center justify-center text-white shadow-xs border border-white dark:border-slate-800">
-                          <EyeOff className="w-2.5 h-2.5" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 min-w-0 truncate" title={cleanName}>
-                          {cleanName}
-                        </h4>
-
-                        {/* Map Badge */}
-                        <span
-                          className="text-[10px] font-black px-1.5 py-0.2 rounded-md border flex items-center gap-0.5 whitespace-nowrap shrink-0"
-                          style={{
-                            backgroundColor:
-                              mapObj.num === 1 ? '#E1F7DB' : mapObj.num === 2 ? '#FEF9E6' : '#EBF4FE',
-                            color: mapObj.num === 1 ? '#2D6613' : mapObj.num === 2 ? '#854D0E' : '#1D5E9E',
-                            borderColor:
-                              mapObj.num === 1 ? '#95D151' : mapObj.num === 2 ? '#FEE061' : '#7ABCF4',
-                          }}
-                        >
-                          <MapPin className="w-2.5 h-2.5" />
-                          {mapObj.num}、{mapObj.name.replace('记忆中的', '')}
-                        </span>
-
-                        {/* Status Badge */}
-                        {isEnc ? (
-                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border border-[#95D151]/50 whitespace-nowrap shrink-0">
-                            已点亮
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 whitespace-nowrap shrink-0">
-                            未遇见
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Time info and note */}
-                      <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-400 mt-1 flex-wrap font-medium">
-                        <span className="flex items-center gap-1 font-mono text-slate-500 dark:text-slate-400 shrink-0" title={timeObj.fullTime}>
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          {timeObj.relative}
-                        </span>
-                        {record.note && (
-                          <span className="bg-white dark:bg-slate-800 px-1.5 py-0.2 rounded border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[10px] truncate max-w-[180px]">
-                            {record.note}
-                          </span>
-                        )}
-                      </div>
+                    ) : (
+                      <ImageZoom
+                        src={avatarUrl}
+                        alt={cleanName}
+                        className="w-full h-full"
+                        imgClassName="w-full h-full object-contain pointer-events-none"
+                        zoomWidth={240}
+                        zoomHeight={240}
+                      />
+                    )}
+                    <ElementBadges
+                      elements={petMeta?.elements}
+                      className="absolute top-0 left-0 z-10 scale-90 origin-top-left"
+                      size="xs"
+                    />
+                    <div
+                      className={`absolute -bottom-1 -right-1 w-[18px] h-[18px] rounded-full flex items-center justify-center text-white shadow-sm ring-2 ring-white dark:ring-slate-900 ${
+                        isEnc ? 'bg-emerald-500' : 'bg-slate-400'
+                      }`}
+                    >
+                      {isEnc ? <Check className="w-2.5 h-2.5 stroke-[3]" /> : <EyeOff className="w-2.5 h-2.5" />}
                     </div>
                   </div>
 
-                  {/* Right Actions: Quick Undo Toggle & Optional Navigate */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Toggle Button for undoing accidental clicks */}
+                  {/* 名称 / 标签 / 时间 */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4
+                        className="text-[13px] font-black text-slate-800 dark:text-slate-100 truncate max-w-full"
+                        title={cleanName}
+                      >
+                        {cleanName}
+                      </h4>
+                      <span
+                        className="text-[10px] font-black px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5 whitespace-nowrap shrink-0 ring-1 ring-inset"
+                        style={{ backgroundColor: tone.bg, color: tone.fg, boxShadow: `inset 0 0 0 1px ${tone.ring}` }}
+                      >
+                        <MapPin className="w-2.5 h-2.5" />
+                        {mapObj.num}、{mapObj.name.replace('记忆中的', '')}
+                      </span>
+                      <span
+                        className={`text-[10px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
+                          isEnc
+                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                            : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {isEnc ? '已点亮' : '已取消'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {/* 完整时间为主，相对时间为辅 */}
+                      <span
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-slate-300 tabular-nums shrink-0"
+                        title={time.tooltip}
+                      >
+                        <CalendarClock className="w-3 h-3 text-slate-400" />
+                        {time.absolute}
+                      </span>
+                      {time.relative && (
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0">
+                          {time.relative}
+                        </span>
+                      )}
+                      {record.note && (
+                        <span
+                          className="text-[10px] text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded-md ring-1 ring-inset ring-slate-200 dark:ring-slate-700 truncate max-w-[190px]"
+                          title={record.note}
+                        >
+                          {record.note}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 操作 */}
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
                       onClick={() => {
                         sound.playClick();
+                        flashRow(rowKey);
                         onToggleEncounter(record.mapId, record.filename);
                       }}
-                      className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-black border-2 transition-all flex items-center gap-1 cursor-pointer active:scale-95 ${
+                      className={`h-8 px-2.5 rounded-xl text-[11px] font-black inline-flex items-center gap-1 transition-all cursor-pointer ring-1 ring-inset active:scale-95 ${
                         isEnc
-                          ? 'bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-300 text-rose-600 dark:text-rose-400 border-slate-200 dark:border-slate-700'
-                          : 'bg-[#E1F7DB] dark:bg-emerald-950/60 hover:bg-[#D3F3CA] text-[#2D6613] dark:text-emerald-300 border-[#95D151]'
+                          ? 'bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 ring-rose-200 dark:ring-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:ring-rose-300'
+                          : 'bg-emerald-500 text-white ring-emerald-500 hover:bg-emerald-600 shadow-sm'
                       }`}
-                      title={isEnc ? '误操作点亮？点击撤销恢复为未遇见' : '重新点亮为已遇见'}
+                      title={isEnc ? '误操作点亮？点击撤销，恢复为未遇见' : '重新点亮为已遇见'}
                     >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>{isEnc ? '撤销遇见' : '重新点亮'}</span>
+                      {isEnc ? <Undo2 className="w-3.5 h-3.5" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                      <span className="hidden sm:inline">{isEnc ? '撤销' : '点亮'}</span>
                     </button>
 
-                    {/* Navigate / Locate Button */}
                     {onNavigateToPet && (
                       <button
                         type="button"
@@ -452,7 +496,7 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
                           onNavigateToPet(mapObj.num, record.filename);
                           onClose();
                         }}
-                        className="p-1 sm:p-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-[#7ABCF4] dark:hover:bg-sky-600 text-slate-400 hover:text-white border border-slate-200 dark:border-slate-700 hover:border-[#7ABCF4] transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:bg-[#7ABCF4] hover:text-white hover:ring-[#7ABCF4] dark:hover:bg-sky-600 dark:hover:ring-sky-600 transition-colors cursor-pointer flex items-center justify-center"
                         title="在主界面图鉴中定位此精灵"
                       >
                         <ArrowRight className="w-4 h-4" />
@@ -465,16 +509,33 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
           )}
         </div>
 
-        {/* Footer info */}
-        <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border-t-2 border-[#E6EEF8] dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold shrink-0">
+        {/* ── Footer ─────────────────────────────────────────── */}
+        <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 shrink-0">
           <span>
-            当前展示 <strong className="text-[#2B78C4] dark:text-sky-400">{filteredList.length}</strong> 条操作记录
+            当前展示 <strong className="text-[#2B78C4] dark:text-sky-400 font-black">{filteredList.length}</strong>
+            {hasActiveFilter && <span className="text-slate-400"> / {totalHistoryCount}</span>} 条记录
           </span>
-          <span className="text-[11px] text-slate-400">
-            按时间倒序排列 · 支持一键撤销以防止误点
+          <span className="text-slate-400 dark:text-slate-500 hidden sm:inline">
+            撤销后该条会移到最上方并高亮
           </span>
         </div>
       </div>
     </div>
   );
 };
+
+/** 空态：区分「一条记录都没有」和「筛选后无结果」两种场景。 */
+const EmptyState: React.FC<{ title: string; desc: string; action?: React.ReactNode }> = ({
+  title,
+  desc,
+  action,
+}) => (
+  <div className="py-16 text-center flex flex-col items-center justify-center">
+    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-2">
+      <History className="w-6 h-6" />
+    </div>
+    <p className="text-sm font-black text-slate-700 dark:text-slate-200">{title}</p>
+    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-xs leading-relaxed">{desc}</p>
+    {action}
+  </div>
+);

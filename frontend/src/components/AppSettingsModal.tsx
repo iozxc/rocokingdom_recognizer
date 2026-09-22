@@ -3,7 +3,7 @@ import { X, ChevronLeft, Volume2, Database, ArrowRight, ArrowUpCircle, Sparkles,
 import { Cpu, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
 import { inferHardwareLine } from '../utils/inferBackendText';
-import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode, SearchFilterPosition } from '../types';
+import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode, SearchFilterPosition, StatsLayoutMode } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { themeService } from '../services/theme';
@@ -40,6 +40,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [searchFilterPosition, setSearchFilterPosition] = useState<SearchFilterPosition>(() => {
     return storage.getSetting<SearchFilterPosition>('searchFilterPosition', 'position2');
   });
+  const [statsLayoutMode, setStatsLayoutMode] = useState<StatsLayoutMode>(() => {
+    return storage.getSetting<StatsLayoutMode>('statsLayoutMode', 'merged');
+  });
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', false);
   });
@@ -64,7 +67,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   const [updateMode, setUpdateMode] = useState<'auto' | 'full'>(() => {
     return storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
   });
-  const [view, setView] = useState<'main' | 'update' | 'system'>('main');
+  const [view, setView] = useState<'main' | 'update' | 'system' | 'layout'>('main');
   const [exiting, setExiting] = useState<boolean>(false);
   const [autoCheckUpdate, setAutoCheckUpdate] = useState<boolean>(() => {
     return storage.getSetting<boolean>('autoCheckUpdate', true);
@@ -91,6 +94,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (settings.searchFilterPosition === 'position1' || settings.searchFilterPosition === 'position2') {
         setSearchFilterPosition(settings.searchFilterPosition);
       }
+      if (settings.statsLayoutMode === 'merged' || settings.statsLayoutMode === 'separate') {
+        setStatsLayoutMode(settings.statsLayoutMode);
+      }
       if (typeof settings.isSoundMuted === 'boolean') setIsSoundMuted(settings.isSoundMuted);
       if (settings.captureMode === 'hwnd' || settings.captureMode === 'grab') setCaptureMode(settings.captureMode);
       if (typeof settings.showRecognitionSamples === 'boolean') setShowSamples(settings.showRecognitionSamples);
@@ -115,6 +121,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setFloatingMode(storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal'));
     const savedSearchFilterPosition = storage.getSetting<SearchFilterPosition>('searchFilterPosition', 'position2');
     setSearchFilterPosition(savedSearchFilterPosition);
+    const savedStatsLayoutMode = storage.getSetting<StatsLayoutMode>('statsLayoutMode', 'merged');
+    if (savedStatsLayoutMode === 'merged' || savedStatsLayoutMode === 'separate') {
+      setStatsLayoutMode(savedStatsLayoutMode);
+    } else {
+      setStatsLayoutMode('merged');
+    }
     setIsSoundMuted(storage.getSetting<boolean>('isSoundMuted', false));
     const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'grab');
     if (savedCaptureMode === 'hwnd' || savedCaptureMode === 'grab') {
@@ -279,6 +291,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     storage.setSetting('searchFilterPosition', position);
   };
 
+  const handleSelectStatsLayoutMode = (mode: StatsLayoutMode) => {
+    sound.playClick();
+    setStatsLayoutMode(mode);
+    storage.setSetting('statsLayoutMode', mode);
+  };
+
   const handleToggleSound = () => {
     const newMuted = !isSoundMuted;
     setIsSoundMuted(newMuted);
@@ -404,7 +422,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </button>
               )}
               <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                {view === 'update' ? '更新设置' : view === 'system' ? '系统设置' : '偏好设置'}
+                {view === 'update' ? '更新设置' : view === 'system' ? '系统设置' : view === 'layout' ? '界面与外观' : '偏好设置'}
               </h3>
             </div>
             <button
@@ -521,6 +539,234 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200/80 dark:border-slate-700">
                       v{updateState.updateData?.current_version || '1.0.0'}
                     </span>
+                  </div>
+                </div>
+              ) : view === 'layout' ? (
+                <div className="space-y-4">
+                  {/* 外观风格 */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
+                      <Sun className="w-3.5 h-3.5 text-amber-500" />
+                      <span>外观风格</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                      <button
+                          type="button"
+                          id="theme-mode-light-btn"
+                          onClick={() => handleSelectTheme('light')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
+                              currentTheme === 'light'
+                                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        <Sun className="w-3.5 h-3.5 text-amber-500" />
+                        <span>明亮模式</span>
+                      </button>
+                      <button
+                          type="button"
+                          id="theme-mode-dark-btn"
+                          onClick={() => handleSelectTheme('dark')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
+                              currentTheme === 'dark'
+                                  ? 'bg-slate-700 text-white shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        <Moon className="w-3.5 h-3.5 text-sky-400" />
+                        <span>暗黑模式</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 同步反馈动画 */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+                      <span>同步反馈动画</span>
+                    </div>
+
+                    {/* iOS Segmented Control: 关闭 (0), 轻微 (1), 标准 (2), 丰富 (3) */}
+                    <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                      <button
+                          type="button"
+                          id="effect-level-0-btn"
+                          onClick={() => handleSelectEffect(0)}
+                          className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
+                              effectLevel === 0
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        关闭
+                      </button>
+                      <button
+                          type="button"
+                          id="effect-level-1-btn"
+                          onClick={() => handleSelectEffect(1)}
+                          className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
+                              effectLevel === 1
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        轻微
+                      </button>
+                      <button
+                          type="button"
+                          id="effect-level-2-btn"
+                          onClick={() => handleSelectEffect(2)}
+                          className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
+                              effectLevel === 2
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        标准
+                      </button>
+                      <button
+                          type="button"
+                          id="effect-level-3-btn"
+                          onClick={() => handleSelectEffect(3)}
+                          className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
+                              effectLevel === 3
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        丰富
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 悬浮快捷栏展示 */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
+                      <Monitor className="w-3.5 h-3.5 text-slate-500" />
+                      <span>悬浮快捷栏展示</span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                      <button
+                          type="button"
+                          id="floating-mode-normal-btn"
+                          onClick={() => handleSelectFloatingMode('normal')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                              floatingMode === 'normal'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        标准悬浮
+                      </button>
+                      <button
+                          type="button"
+                          id="floating-mode-compact-btn"
+                          onClick={() => handleSelectFloatingMode('compact')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                              floatingMode === 'compact'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        纯图标
+                      </button>
+                      <button
+                          type="button"
+                          id="floating-mode-hidden-btn"
+                          onClick={() => handleSelectFloatingMode('hidden')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                              floatingMode === 'hidden'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        移至顶栏
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 地图信息栏布局：合并版（默认，信息并入精灵网格）/ 经典版（顶部独立统计栏） */}
+                  <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
+                      <LayoutGrid className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                      <span>地图信息栏布局</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                      <button
+                          type="button"
+                          id="stats-layout-merged-btn"
+                          onClick={() => handleSelectStatsLayoutMode('merged')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                              statsLayoutMode === 'merged'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        合并版
+                      </button>
+                      <button
+                          type="button"
+                          id="stats-layout-separate-btn"
+                          onClick={() => handleSelectStatsLayoutMode('separate')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                              statsLayoutMode === 'separate'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        经典版
+                      </button>
+                    </div>
+                    <div className="text-[10px] text-slate-400 px-0.5">
+                      {statsLayoutMode === 'merged'
+                          ? '地图信息与遇见进度并入精灵网格标题区（默认）'
+                          : '地图信息与遇见进度独立显示在页面顶部统计栏'}
+                    </div>
+
+                    {/* 搜索与筛选位置：仅经典版可选 */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">搜索与筛选位置</div>
+                      <div
+                          className={`grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700 ${
+                              statsLayoutMode === 'merged' ? 'opacity-50 pointer-events-none' : ''
+                          }`}
+                          aria-disabled={statsLayoutMode === 'merged'}
+                      >
+                        <button
+                            type="button"
+                            id="search-filter-position1-btn"
+                            disabled={statsLayoutMode === 'merged'}
+                            onClick={() => handleSelectSearchFilterPosition('position1')}
+                            className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                                searchFilterPosition === 'position1'
+                                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            }`}
+                        >
+                          位置1
+                        </button>
+                        <button
+                            type="button"
+                            id="search-filter-position2-btn"
+                            disabled={statsLayoutMode === 'merged'}
+                            onClick={() => handleSelectSearchFilterPosition('position2')}
+                            className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                                searchFilterPosition === 'position2'
+                                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            }`}
+                        >
+                          位置2
+                        </button>
+                      </div>
+                      {statsLayoutMode === 'merged' && (
+                          <div className="text-[10px] text-slate-400 px-0.5">
+                            合并版下搜索与筛选栏固定在网格标题下方，此选项仅对经典版生效
+                          </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -733,187 +979,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             {/* 主菜单 */}
             <div key={`main-${view}`} className={`col-start-1 row-start-1 p-5 space-y-5 text-xs text-slate-600 dark:text-slate-300 ${view === 'main' ? 'animate-in fade-in duration-200' : 'hidden'}`}>
 
-            {/* Section 0: 外观主题 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
-                  <Sun className="w-3.5 h-3.5 text-amber-500" />
-                  <span>外观风格</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-xl border border-slate-200/60 dark:border-slate-700">
-                <button
-                    type="button"
-                    id="theme-mode-light-btn"
-                    onClick={() => handleSelectTheme('light')}
-                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
-                        currentTheme === 'light'
-                            ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  <Sun className="w-3.5 h-3.5 text-amber-500" />
-                  <span>明亮模式</span>
-                </button>
-                <button
-                    type="button"
-                    id="theme-mode-dark-btn"
-                    onClick={() => handleSelectTheme('dark')}
-                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs ${
-                        currentTheme === 'dark'
-                            ? 'bg-slate-700 text-white shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  <Moon className="w-3.5 h-3.5 text-sky-400" />
-                  <span>暗黑模式</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Section 1: 视觉与特效 */}
-            <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
-                  <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-                  <span>同步反馈动画</span>
-                </div>
-              </div>
-
-              {/* iOS Segmented Control: 关闭 (0), 轻微 (1), 标准 (2), 丰富 (3) */}
-              <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100/90 dark:bg-slate-800/90 rounded-xl border border-slate-200/60 dark:border-slate-700">
-                <button
-                    type="button"
-                    id="effect-level-0-btn"
-                    onClick={() => handleSelectEffect(0)}
-                    className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
-                        effectLevel === 0
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  关闭
-                </button>
-                <button
-                    type="button"
-                    id="effect-level-1-btn"
-                    onClick={() => handleSelectEffect(1)}
-                    className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
-                        effectLevel === 1
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  轻微
-                </button>
-                <button
-                    type="button"
-                    id="effect-level-2-btn"
-                    onClick={() => handleSelectEffect(2)}
-                    className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
-                        effectLevel === 2
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  标准
-                </button>
-                <button
-                    type="button"
-                    id="effect-level-3-btn"
-                    onClick={() => handleSelectEffect(3)}
-                    className={`py-1.5 px-1.5 rounded-lg font-medium transition-all cursor-pointer text-center text-xs ${
-                        effectLevel === 3
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  丰富
-                </button>
-              </div>
-            </div>
-
-            {/* Section 2: 界面布局 */}
-            <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
-                <Monitor className="w-3.5 h-3.5 text-slate-500" />
-                <span>悬浮快捷栏展示</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
-                <button
-                    type="button"
-                    id="floating-mode-normal-btn"
-                    onClick={() => handleSelectFloatingMode('normal')}
-                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
-                        floatingMode === 'normal'
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  标准悬浮
-                </button>
-                <button
-                    type="button"
-                    id="floating-mode-compact-btn"
-                    onClick={() => handleSelectFloatingMode('compact')}
-                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
-                        floatingMode === 'compact'
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  纯图标
-                </button>
-                <button
-                    type="button"
-                    id="floating-mode-hidden-btn"
-                    onClick={() => handleSelectFloatingMode('hidden')}
-                    className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
-                        floatingMode === 'hidden'
-                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
-                >
-                  移至顶栏
-                </button>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">搜索与筛选位置</div>
-                <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
-                  <button
-                      type="button"
-                      id="search-filter-position1-btn"
-                      onClick={() => handleSelectSearchFilterPosition('position1')}
-                      className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
-                          searchFilterPosition === 'position1'
-                              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                      }`}
-                  >
-                    位置1
-                  </button>
-                  <button
-                      type="button"
-                      id="search-filter-position2-btn"
-                      onClick={() => handleSelectSearchFilterPosition('position2')}
-                      className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
-                          searchFilterPosition === 'position2'
-                              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
-                              : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                      }`}
-                  >
-                    位置2
-                  </button>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Section 3: 截图方式（web 版隐藏） */}
-            <div className={`space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800${IS_STATIC ? ' hidden' : ''}`}>
+            {/* Section 0: 截图方式（置顶，web 版隐藏） */}
+            <div className={`space-y-2${IS_STATIC ? ' hidden' : ''}`}>
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">
                 <Camera className="w-3.5 h-3.5 text-violet-500" />
                 <span>截图方式</span>
@@ -951,6 +1018,31 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     ? '通过窗口句柄直接读取内存画面，速度更快、不遮挡游戏窗口'
                     : '通过屏幕抓取当前画面，兼容性更好但需要游戏窗口可见'}
               </div>
+            </div>
+
+            {/* Section 1: 界面与外观入口（二级设置：主题、动画、悬浮栏、地图信息栏） */}
+            <div className={`flex items-center justify-between${IS_STATIC ? '' : ' pt-1 border-t border-slate-100 dark:border-slate-800'}`}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                  <Monitor className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">界面与外观</div>
+                  <div className="text-[10px] text-slate-400">主题、动画、悬浮栏、地图信息栏</div>
+                </div>
+              </div>
+              <button
+                  type="button"
+                  id="open-layout-settings-btn"
+                  onClick={() => {
+                    sound.playClick();
+                    setView('layout');
+                  }}
+                  className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium flex items-center gap-1 cursor-pointer hover:underline"
+              >
+                <span>设置</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
 
             {/* Section 4: 数据与同步 */}
