@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <>
-        <header className={`relative bg-[#7ABCF4] dark:bg-[#1e293b] border-b-4 border-[#5DA8E8] dark:border-[#334155] sticky top-0 ${modalActive ? 'z-[30] pointer-events-none' : 'z-30'} shadow-md text-white select-none transition-colors duration-200`}>
+        <header className={`relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800 sticky top-0 ${modalActive ? 'z-[30] pointer-events-none' : 'z-30'} shadow-xs text-slate-800 dark:text-slate-100 select-none transition-colors duration-200`}>
             <div className="mx-auto px-2 sm:px-4 lg:px-8 py-1.5 sm:py-2">
                 <div className="relative flex items-center justify-between gap-1.5 sm:gap-3">
                     {/* Logo & Kingdom Branding */}
@@ -143,11 +143,11 @@ export const Header: React.FC<HeaderProps> = ({
                             title={onOpenHub ? '打开助手选择' : undefined}
                             className={`flex items-center gap-2 rounded-2xl p-1 -m-1 transition-all duration-200 min-w-0 ${
                                 onOpenHub
-                                    ? 'cursor-pointer hover:bg-white/25 dark:hover:bg-white/10 hover:shadow-sm active:scale-[0.98]'
+                                    ? 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 hover:shadow-xs active:scale-[0.98]'
                                     : ''
                             }`}
                         >
-                            <div className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border-2 border-white dark:border-slate-700 overflow-hidden p-0.5 shrink-0">
+                            <div className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-xs ring-1 ring-inset ring-slate-200 dark:ring-slate-700 overflow-hidden p-0.5 shrink-0">
                                 <img
                                     src="./icon.jpg"
                                     alt="洛克王国"
@@ -157,21 +157,21 @@ export const Header: React.FC<HeaderProps> = ({
                             </div>
                             <div className="min-w-0 flex flex-col justify-center">
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                    <h1 className="text-sm sm:text-base lg:text-lg font-black tracking-tight text-white flex items-center gap-1 drop-shadow-xs whitespace-nowrap">
+                                    <h1 className="text-sm sm:text-base lg:text-lg font-black tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-1 whitespace-nowrap">
                                         <span className="hidden min-[380px]:inline">洛克王国</span>
-                                        <span className="text-[#FEE061]">徽章助手</span>
+                                        <span className="text-sky-600 dark:text-sky-400">徽章助手</span>
                                     </h1>
                                     {devBadge && (
-                                        <span className="text-[9px] font-black text-orange-100 bg-orange-500/50 border border-white/30 px-1.5 py-0.2 rounded-full shrink-0">
+                                        <span className="text-[9px] font-black text-orange-700 dark:text-orange-200 bg-orange-100 dark:bg-orange-500/25 ring-1 ring-inset ring-orange-300/70 dark:ring-orange-500/40 px-1.5 py-0.2 rounded-full shrink-0">
                                             DEV
                                         </span>
                                     )}
                                 </div>
-                                <div className="hidden min-[840px]:flex items-center gap-1.5 text-[10px] text-white/80 dark:text-slate-400 font-medium whitespace-nowrap min-w-0">
+                                <div className="hidden min-[840px]:flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap min-w-0">
                                     <span>图鉴识别 · 本地记录</span>
                                     {/* 网页版与桌面版统一使用根 version.json 的版本号 */}
                                     <span
-                                        className="text-[9px] font-mono text-white/40 dark:text-slate-500 tracking-wider"
+                                        className="text-[9px] font-mono text-slate-300 dark:text-slate-600 tracking-wider"
                                         title={`当前版本 v${APP_VERSION}`}
                                     >
                                         v{APP_VERSION}
@@ -185,12 +185,12 @@ export const Header: React.FC<HeaderProps> = ({
                     {showMapNav && (
                         <div
                             ref={mapNavRef}
-                            className="relative hidden min-[870px]:flex items-center gap-1 p-1 bg-white/20 dark:bg-slate-800/80 backdrop-blur-xs rounded-2xl border border-white/30 dark:border-slate-700 shrink min-w-0 overflow-hidden"
+                            className="relative hidden min-[870px]:flex items-center gap-1 p-1 bg-slate-100/80 dark:bg-slate-800/70 rounded-xl ring-1 ring-inset ring-slate-200/70 dark:ring-slate-700 shrink min-w-0 overflow-hidden"
                         >
                             {/* 滑动高亮胶囊：位置/尺寸按当前选中按钮实测，切换时平滑移动 */}
                             <span
                                 aria-hidden
-                                className={`absolute left-0 top-0 z-0 rounded-xl bg-white dark:bg-sky-500 shadow-sm pointer-events-none transition-all duration-300 ease-out ${
+                                className={`absolute left-0 top-0 z-0 rounded-lg bg-white dark:bg-slate-700 shadow-xs ring-1 ring-inset ring-slate-200/70 dark:ring-slate-600 pointer-events-none transition-all duration-300 ease-out ${
                                     mapIndicator.ready ? 'opacity-100' : 'opacity-0'
                                 }`}
                                 style={{
@@ -223,8 +223,8 @@ export const Header: React.FC<HeaderProps> = ({
                                         disabled={mapNavDisabled}
                                         className={`relative z-10 px-2 lg:px-2.5 py-1 rounded-xl text-xs font-black whitespace-nowrap transition-colors duration-200 flex items-center gap-1.5 cursor-pointer shrink min-w-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                                             isActive
-                                                ? 'text-[#2B78C4] dark:text-white'
-                                                : 'text-white/90 dark:text-slate-300 hover:text-white hover:bg-white/20 dark:hover:bg-white/10'
+                                                ? 'text-sky-600 dark:text-slate-100'
+                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/70 dark:hover:bg-slate-700/60'
                                         }`}
                                         title={`${map.name} (${mapEnc}/${mapTot})`}
                                     >
@@ -253,8 +253,8 @@ export const Header: React.FC<HeaderProps> = ({
                                         <span
                                             className={`text-[10px] font-mono font-black px-1 rounded-md shrink-0 transition-colors duration-200 ${
                                                 isActive
-                                                    ? 'bg-[#EBF4FE] dark:bg-slate-900 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-700'
-                                                    : 'bg-white/25 dark:bg-slate-700 text-white dark:text-slate-200'
+                                                    ? 'bg-[#EBF4FE] dark:bg-slate-800 text-[#2B78C4] dark:text-sky-300 ring-1 ring-inset ring-[#BCD7F2] dark:ring-slate-600'
+                                                    : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-600'
                                             }`}
                                         >
                                             {mapEnc}/{mapTot}
@@ -277,9 +277,9 @@ export const Header: React.FC<HeaderProps> = ({
                                     onOpenHistory();
                                 }}
                                 title="查看图鉴遇见与操作历史"
-                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
+                                className="px-2 sm:px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-slate-600 dark:text-slate-300 transition-all shadow-2xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
                             >
-                                <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
+                                <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
                                 <span className="hidden min-[1100px]:inline">遇见历史</span>
                                 <span className="hidden min-[480px]:inline min-[1100px]:hidden">历史</span>
                             </button>
@@ -293,9 +293,9 @@ export const Header: React.FC<HeaderProps> = ({
                                     onOpenFeedback();
                                 }}
                                 title="加入官方交流群 / 反馈异常"
-                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
+                                className="px-2 sm:px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-slate-600 dark:text-slate-300 transition-all shadow-2xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
                             >
-                                <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
+                                <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-500 shrink-0" />
                                 <span className="hidden min-[1100px]:inline">群聊反馈</span>
                                 <span className="hidden min-[480px]:inline min-[1100px]:hidden">反馈</span>
                             </button>
@@ -310,9 +310,9 @@ export const Header: React.FC<HeaderProps> = ({
                                     onOpenDownloadApp();
                                 }}
                                 title="下载桌面版使用本地识别AI"
-                                className="px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
+                                className="px-2 sm:px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-slate-600 dark:text-slate-300 transition-all shadow-2xs cursor-pointer flex items-center gap-1 text-xs font-black shrink-0 active:scale-95"
                             >
-                                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
+                                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-500 shrink-0" />
                                 <span className="hidden min-[1100px]:inline">下载APP</span>
                                 <span className="hidden min-[540px]:inline min-[1100px]:hidden">下载</span>
                             </button>
@@ -325,7 +325,7 @@ export const Header: React.FC<HeaderProps> = ({
                                         onOpenUpdate();
                                     }}
                                     title="查看是否有最新版本"
-                                    className="relative overflow-hidden px-2 sm:px-2.5 py-1.5 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer flex items-center gap-1 text-xs font-black active:scale-95"
+                                    className="relative overflow-hidden px-2 sm:px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-slate-600 dark:text-slate-300 transition-all shadow-2xs cursor-pointer flex items-center gap-1 text-xs font-black active:scale-95"
                                 >
                                     {showUpdateFill && (
                                         <span
@@ -333,7 +333,7 @@ export const Header: React.FC<HeaderProps> = ({
                                             style={{ width: `${updatePercent}%` }}
                                         />
                                     )}
-                                    <ArrowUpCircle className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] shrink-0" />
+                                    <ArrowUpCircle className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
                                     <span className="relative hidden min-[1100px]:inline">检查更新</span>
                                     <span className="relative hidden min-[540px]:inline min-[1100px]:hidden">更新</span>
                                 </button>
@@ -351,12 +351,12 @@ export const Header: React.FC<HeaderProps> = ({
                                 themeService.toggleTheme();
                             }}
                             title={currentTheme === 'dark' ? '切换为明亮模式' : '切换为暗黑模式'}
-                            className="p-1.5 sm:p-2 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer shrink-0 active:scale-95"
+                            className="p-1.5 sm:p-2 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-slate-500 dark:text-slate-300 transition-all shadow-2xs cursor-pointer shrink-0 active:scale-95"
                         >
                             {currentTheme === 'dark' ? (
-                                <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061] hover:rotate-90 transition-transform duration-300" />
+                                <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 hover:rotate-90 transition-transform duration-300" />
                             ) : (
-                                <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white hover:-rotate-12 transition-transform duration-300" />
+                                <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-300 hover:-rotate-12 transition-transform duration-300" />
                             )}
                         </button>
 
@@ -367,12 +367,12 @@ export const Header: React.FC<HeaderProps> = ({
                                 onToggleSound();
                             }}
                             title={isSoundMuted ? '点击开启声音特效' : '点击静音'}
-                            className="p-1.5 sm:p-2 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer shrink-0 active:scale-95"
+                            className="p-1.5 sm:p-2 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-slate-500 dark:text-slate-300 transition-all shadow-2xs cursor-pointer shrink-0 active:scale-95"
                         >
                             {isSoundMuted ? (
-                                <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
+                                <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" />
                             ) : (
-                                <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FEE061]" />
+                                <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-500" />
                             )}
                         </button>
 
@@ -384,9 +384,9 @@ export const Header: React.FC<HeaderProps> = ({
                                     onOpenSettings();
                                 }}
                                 title="系统设置 (特效等级/主题/悬浮按钮)"
-                                className="p-1.5 sm:p-2 rounded-2xl border border-white/40 dark:border-slate-700 bg-white/20 dark:bg-slate-800/80 hover:bg-white/30 dark:hover:bg-slate-700 text-white transition-all shadow-2xs backdrop-blur-xs cursor-pointer shrink-0 active:scale-95"
+                                className="p-1.5 sm:p-2 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-slate-500 dark:text-slate-300 transition-all shadow-2xs cursor-pointer shrink-0 active:scale-95"
                             >
-                                <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white hover:rotate-45 transition-transform duration-300" />
+                                <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 dark:text-slate-300 hover:rotate-45 transition-transform duration-300" />
                             </button>
                         )}
                     </div>

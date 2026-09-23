@@ -38,7 +38,7 @@ export const AuthBadge: React.FC = () => {
           <button
               onClick={() => setShowInfo(true)}
               title="当前设备已授权，点击查看详情"
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/90 text-white text-[11px] font-black shadow-sm border border-white/40 shrink-0 cursor-pointer hover:bg-emerald-600 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-black shadow-2xs ring-1 ring-inset ring-emerald-300/70 dark:ring-emerald-500/40 shrink-0 cursor-pointer hover:bg-emerald-200 dark:hover:bg-emerald-500/30 transition-colors"
           >
             <ShieldCheck className="w-3.5 h-3.5" />
             已授权
@@ -75,7 +75,7 @@ export const AuthBadge: React.FC = () => {
               authStore.setEngaged(true);
             }}
             title="当前设备未授权，点击查看授权/绑定"
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/90 text-white text-[11px] font-black shadow-sm border border-white/40 shrink-0 cursor-pointer hover:bg-red-600 transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[11px] font-black shadow-2xs ring-1 ring-inset ring-rose-300/70 dark:ring-rose-500/40 shrink-0 cursor-pointer hover:bg-rose-200 dark:hover:bg-rose-500/30 transition-colors"
         >
           <ShieldAlert className="w-3.5 h-3.5" />
           未授权
