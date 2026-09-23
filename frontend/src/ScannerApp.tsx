@@ -2305,7 +2305,7 @@ const FooterAuthChip: React.FC = () => {
       <button
           type="button"
           onClick={() => requestAuthDialog()}
-          title="当前设备未授权，点击查看授权/绑定（不影响使用）"
+          title="当前设备未授权，点击查看授权/绑定"
           className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-black font-sans ring-1 ring-inset ring-rose-300/70 dark:ring-rose-500/40 hover:bg-rose-200 dark:hover:bg-rose-500/30 transition-colors cursor-pointer shrink-0"
       >
         <ShieldAlert className="w-2.5 h-2.5" />

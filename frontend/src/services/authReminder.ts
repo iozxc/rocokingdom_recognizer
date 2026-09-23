@@ -31,35 +31,45 @@ function randomDelay(): number {
   return MIN_DELAY_MS + Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS);
 }
 
-/** 立即弹一次提醒（限时自动消失）。 */
-export function showAuthReminder() {
+/**
+ * 立即弹一次提醒。`durationMs` 传 0 表示**常驻**（只能手动关闭）；
+ * 缺省 6 秒是旧 toast 节奏，现在声明卡用 0。
+ */
+export function showAuthReminder(durationMs = 6000) {
   visible = true;
   emit();
-  if (hideTimer) clearTimeout(hideTimer);
-  hideTimer = setTimeout(() => {
-    visible = false;
-    emit();
-  }, 6000);
+  if (hideTimer) {
+    clearTimeout(hideTimer);
+    hideTimer = null;
+  }
+  if (durationMs > 0) {
+    hideTimer = setTimeout(() => {
+      visible = false;
+      emit();
+    }, durationMs);
+  }
 }
 
-/** 安排下一次随机提醒。 */
-function scheduleNext() {
-  if (nextTimer) clearTimeout(nextTimer);
-  nextTimer = setTimeout(() => {
-    showAuthReminder();
-    scheduleNext();
-  }, randomDelay());
+/** 手动收起当前提醒（声明卡上的「我知道了」/关闭按钮）；不影响下一轮定时提醒。 */
+export function hideAuthReminder() {
+  if (hideTimer) {
+    clearTimeout(hideTimer);
+    hideTimer = null;
+  }
+  visible = false;
+  emit();
 }
 
 /**
  * 启动定时提醒（幂等）。`shouldRemind` 每次触发前重新求值 ——
  * 授权成功后要能立刻停下来，而不是等定时器自然过期。
+ * `durationMs` 为每次提醒的停留时长，透传给 showAuthReminder。
  */
-export function startAuthReminderLoop(shouldRemind: () => boolean) {
+export function startAuthReminderLoop(shouldRemind: () => boolean, durationMs?: number) {
   if (started) return;
   started = true;
   // 打开 App 先提醒一次
-  if (shouldRemind()) showAuthReminder();
+  if (shouldRemind()) showAuthReminder(durationMs);
 
   const tick = () => {
     if (!shouldRemind()) {
@@ -69,8 +79,10 @@ export function startAuthReminderLoop(shouldRemind: () => boolean) {
       nextTimer = null;
       return;
     }
-    showAuthReminder();
-    scheduleNext();
+    showAuthReminder(durationMs);
+    // 每轮重新掷一次随机间隔（固定节奏会让人形成预期而麻木）
+    if (nextTimer) clearTimeout(nextTimer);
+    nextTimer = setTimeout(tick, randomDelay());
   };
   if (nextTimer) clearTimeout(nextTimer);
   nextTimer = setTimeout(tick, randomDelay());
