@@ -1980,6 +1980,10 @@ export const ScannerApp: React.FC = () => {
                           ? 'bg-[#FEE061] hover:bg-[#F4D349] text-[#854D0E] border-2 border-[#E5C43B] shadow-sm active:scale-[0.99]'
                           : 'roco-btn-primary'
                   }`}
+                  // 跟随识别窗口整体都是 16px 圆角（自动按钮/查图鉴/顶栏图标）；
+                  // roco-btn-primary 默认 1rem≈16px 本来就一致，但它是无 layer 规则，
+                  // 这里显式钉住，避免以后改 token 时悄悄漂移。
+                  style={{ borderRadius: 16 }}
               >
                 <span className="flex-1 min-w-0 flex items-center justify-center gap-2">
                 {isRecognizingNow ? (

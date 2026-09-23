@@ -1513,8 +1513,13 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           id="batch-card-scan-btn"
                           disabled={!previewUrl || isScanning}
                           onClick={handleStartBatchScan}
-                          className="w-full py-3.5 px-5 roco-btn-primary flex items-center justify-center gap-2 text-sm font-black shadow-xs hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed rounded-xl! cursor-pointer transition-all active:scale-[0.98]"
+                          // 圆角钉成 12px：roco-btn-primary 的 border-radius:1rem 是无 layer 规则，
+                          // 光写 rounded-xl（utility 层）会被它盖掉；行内样式才能压住。
+                          style={{ borderRadius: 12 }}
+                          className="w-full py-3 px-5 roco-btn-primary hover:bg-[#68AEEB] flex items-center justify-center gap-2 text-sm font-black shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-[0.98]"
                       >
+                        {/* 实心主按钮自带投影，hover 时提一档亮度（与卡内 chip 的 hover 一致），
+                            不再靠阴影变化刷存在感。 */}
                         {isScanning ? (
                             <>
                               <RefreshCw className="w-4 h-4 animate-spin text-white" />

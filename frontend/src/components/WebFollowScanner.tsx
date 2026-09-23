@@ -1427,6 +1427,8 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                   className={`h-10 px-2 rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer roco-btn-primary ${
                       busy ? 'opacity-60 cursor-not-allowed' : 'active:scale-[0.99]'
                   }`}
+                  // 同桌面版跟随识别窗口：面板里所有控件都是 16px 圆角，显式钉住防漂移
+                  style={{ borderRadius: 16 }}
               >
                 {busy ? (
                     <>
