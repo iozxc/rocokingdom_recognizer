@@ -356,6 +356,14 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
                           allowFullScreen
                           allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                           referrerPolicy="no-referrer-when-downgrade"
+                          /* 纯前端版开启了 COEP（crossOriginIsolated -> 多线程 WASM 提速），
+                             而 B 站播放器文档不带 COEP/CORP 响应头，普通 iframe 会被浏览器以
+                             `coep-frame-resource-needs-coep-header` 拦掉，表现为
+                             “player.bilibili.com 拒绝了我们的连接请求”。
+                             加上 credentialless 属性后，该 frame 以「不带凭证」的子上下文加载，
+                             不再要求对方发 COEP，播放器即可正常嵌入。
+                             桌面端没有 COEP，这个属性无副作用。 */
+                          credentialless=""
                       />
                   ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
