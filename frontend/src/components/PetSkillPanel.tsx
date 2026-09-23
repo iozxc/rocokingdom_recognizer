@@ -204,7 +204,7 @@ export const PetSkillPanel: React.FC<PetSkillPanelProps> = ({
 
       {/* 技能与特性区域：紧凑排版，无多余大边框，严格阻止横向溢出 */}
       <div
-        className={`${compact ? 'p-2.5 space-y-2' : 'p-3.5 space-y-2.5 max-h-[480px] overflow-y-auto'} overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700`}
+        className={`${compact ? 'p-2.5 space-y-2' : 'p-3.5 space-y-2.5 max-h-[480px] overflow-y-auto'} overflow-x-hidden custom-roco-scrollbar`}
       >
         {/* 固有特性卡片 */}
         {(activeTab === 'all' || activeTab === 'trait') && trait?.name && (

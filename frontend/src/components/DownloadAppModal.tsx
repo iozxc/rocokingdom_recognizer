@@ -129,7 +129,7 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
           {/* Content —— 左侧下载内容（独立滚动）+ 右侧更新日志（与桌面版检查更新弹窗一致） */}
           <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_340px] gap-4 p-4 sm:p-5 md:max-h-[78vh] overflow-hidden">
             {/* 左：下载内容（独立滚动） */}
-            <div className="space-y-5 min-h-0 overflow-y-auto md:pr-1.5 [scrollbar-width:thin]">
+            <div className="space-y-5 min-h-0 overflow-y-auto md:pr-1.5 custom-roco-scrollbar">
             {/*
               * 这里刻意不显示版本号：这是「下载桌面版」的引导弹窗，
               * 网页版与桌面版各有各的版本号，摆一个「当前版本」容易被误解成本页版本。

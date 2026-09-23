@@ -81,7 +81,7 @@ export const UpdateTimeline: React.FC<UpdateTimelineProps> = ({
                 </span>
             </div>
 
-            <ol className="relative ml-1 flex-1 min-h-0 overflow-y-auto pr-1.5 [scrollbar-width:thin]">
+            <ol className="relative ml-1 flex-1 min-h-0 overflow-y-auto pr-1.5 custom-roco-scrollbar">
                 {/* 竖线 */}
                 <span
                     className="absolute left-[5px] top-1.5 bottom-1.5 w-0.5 bg-gradient-to-b from-[#86EFAC] via-[#BCD7F2] to-transparent dark:from-emerald-700 dark:via-slate-600"

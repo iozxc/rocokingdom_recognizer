@@ -33,6 +33,7 @@ import {
   AlertTriangle,
   Undo2,
   Settings,
+  ShieldAlert,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse, FirePokedexEntry, ThemeMode } from './types';
 import { IS_STATIC } from './services/staticMode';
@@ -43,6 +44,8 @@ import { sound } from './services/sound';
 import { api } from './services/api';
 import { storage } from './services/storage';
 import { themeService } from './services/theme';
+import { authStore, useAuthStatus } from './services/auth';
+import { requestAuthDialog } from './services/authDialog';
 import { fireStorage } from './services/fireStorage';
 import { getFireTrialPetsCached } from './services/fireTrialData';
 import { collectAtlasObservation, fetchTrialAtlas, syncTrialAtlas, petKeyOf, TrialAtlas, wilsonLower } from './services/atlasCollector';
@@ -334,6 +337,13 @@ export const ScannerApp: React.FC = () => {
   // Recognition process status
   const [isRecognizingNow, setIsRecognizingNow] = useState<boolean>(false);
   const [showRadarAnimation, setShowRadarAnimation] = useState<boolean>(false);
+
+  // 独立窗口：自己拉一次授权状态（主窗口的 AuthGate 不在本文档内运行，
+  // 否则底部角标永远读到初始的 pending，既不该显示也不会刷新）
+  useEffect(() => {
+    authStore.init();
+    return () => authStore.stop();
+  }, []);
   const [lastScanTime, setLastScanTime] = useState<string>('未识别');
 
   // 自动模式（自动识别选择界面 + 自动点亮对战精灵）
@@ -1428,7 +1438,7 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         <div
             id="scanner-titlebar"
-            className="h-11 px-3 bg-[#7ABCF4] dark:bg-slate-800 border-b border-[#5DA8E8] dark:border-slate-700 flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 text-white rounded-none"
+            className="h-11 px-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-2 pywebview-drag-region cursor-move shrink-0 text-slate-800 dark:text-slate-100 rounded-none"
         >
           <div className="flex items-center gap-2 min-w-0 pointer-events-none">
             {/* 系别 logo 按钮：展示当前试炼，点击切换试炼（火/草） */}
@@ -1439,7 +1449,7 @@ export const ScannerApp: React.FC = () => {
                     sound.playClick();
                     setIsTrialSwitcherOpen((v) => !v);
                   }}
-                  className="w-7 h-7 rounded-xl bg-white/20 border-2 border-white/40 hover:bg-white/30 active:opacity-80 flex items-center justify-center transition-all cursor-pointer"
+                  className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 flex items-center justify-center transition-all cursor-pointer"
                   title={`当前试炼：${isFire ? '火系徽章试炼' : '草系徽章试炼'}（点击切换试炼）`}
               >
                 <ElementBadges elements={[ELEMENT_EN_TO_CN[trialKey] || '草']} size="md" />
@@ -1470,10 +1480,10 @@ export const ScannerApp: React.FC = () => {
               )}
             </div>
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs sm:text-sm font-black text-white truncate tracking-tight">
+              <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 truncate tracking-tight">
                 {activeStageNum === null ? '跟随识别' : currentDetectedMap.name}
               </span>
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FEE061] text-[#854D0E] border-2 border-[#E5C43B] shrink-0 font-mono">
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 ring-1 ring-inset ring-sky-200 dark:ring-sky-500/40 shrink-0 font-mono">
                 {activeStageNum === null
                     ? `全图 ${allMapsStats.grandEncountered}/${allMapsStats.grandTotal}`
                     : `地图 ${activeStageNum}`}
@@ -1489,13 +1499,13 @@ export const ScannerApp: React.FC = () => {
                   sound.playClick();
                   themeService.toggleTheme();
                 }}
-                className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center justify-center transition-all cursor-pointer border-2 border-white/40"
+                className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer"
                 title={isDarkTheme ? '切换为明亮模式' : '切换为暗黑模式'}
             >
               {isDarkTheme ? (
-                <Sun className="w-3.5 h-3.5 text-[#FEE061]" />
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
               ) : (
-                <Moon className="w-3.5 h-3.5 text-white" />
+                <Moon className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />
               )}
             </button>
             <button
@@ -1504,10 +1514,10 @@ export const ScannerApp: React.FC = () => {
                   sound.playClick();
                   setIsHistoryOpen(true);
                 }}
-                className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center gap-1 text-xs font-black transition-all cursor-pointer border-2 border-white/40"
+                className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-600 dark:text-slate-300 flex items-center gap-1 text-xs font-black transition-all cursor-pointer"
                 title="查看遇见历史与防止误点撤销"
             >
-              <History className="w-3.5 h-3.5 text-[#FEE061]" />
+              <History className="w-3.5 h-3.5 text-amber-500" />
               <span>历史</span>
             </button>
             <button
@@ -1516,7 +1526,7 @@ export const ScannerApp: React.FC = () => {
                   sound.playClick();
                   setIsGalleryOpen(true);
                 }}
-                className="px-2.5 py-1 rounded-xl bg-[#FEE061] hover:bg-[#F4D349] active:opacity-80 text-[#854D0E] flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer border-2 border-[#E5C43B] mr-0.5"
+                className="px-2.5 py-1 rounded-xl bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 ring-1 ring-inset ring-sky-200 dark:ring-sky-500/40 hover:bg-sky-200 dark:hover:bg-sky-500/30 active:opacity-80 flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer mr-0.5"
                 title="查看全部地图图鉴与全图名册"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -1527,10 +1537,10 @@ export const ScannerApp: React.FC = () => {
                 id="scanner-topmost-btn"
                 onClick={handleToggleTopmost}
                 title={topmost ? '取消置顶' : '置顶到所有窗口前面'}
-                className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all cursor-pointer active:opacity-80 ${
+                className={`w-7 h-7 rounded-xl ring-1 ring-inset flex items-center justify-center transition-all cursor-pointer active:opacity-80 ${
                     topmost
-                        ? 'bg-white dark:bg-slate-700 text-[#2B78C4] dark:text-sky-300 border-white/80 dark:border-slate-600 shadow-xs'
-                        : 'bg-white/20 text-white border-white/40 hover:bg-white/30'
+                        ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 ring-sky-200 dark:ring-sky-500/40'
+                        : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600'
                 }`}
             >
               {topmost ? <Pin className="w-4 h-4" /> : <PinOff className="w-4 h-4" />}
@@ -1539,7 +1549,7 @@ export const ScannerApp: React.FC = () => {
                 type="button"
                 id="scanner-standalone-close-btn"
                 onClick={handleCloseWindow}
-                className="w-7 h-7 rounded-xl bg-white/20 hover:bg-rose-500 text-white border-2 border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer active:opacity-80"
+                className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:bg-rose-500 hover:text-white hover:ring-rose-500 flex items-center justify-center transition-all cursor-pointer active:opacity-80"
                 title="关闭窗口"
             >
               <X className="w-4 h-4 stroke-[2.5]" />
@@ -2010,9 +2020,12 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         <div
             id="scanner-statusbar"
-            className="h-7 px-3 bg-[#E9F2FA] dark:bg-slate-800 border-t-2 border-[#D5E3F0] dark:border-slate-700 text-[11px] leading-none font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2 shrink-0 font-bold rounded-none overflow-hidden"
+            className="h-7 px-3 bg-slate-50/90 dark:bg-slate-900/90 border-t border-slate-200/70 dark:border-slate-800 text-[11px] leading-tight font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2 shrink-0 font-bold overflow-hidden"
         >
-          <span className="truncate shrink-0">上次捕获: {lastScanTime}</span>
+          <span className="flex items-center gap-2 shrink-0">
+            <span className="truncate">上次捕获: {lastScanTime}</span>
+            <FooterAuthChip />
+          </span>
           {/* 右侧：识别设备（显卡/CPU）+ 程序名。风格与左侧一致，不加底色边框；
               宽度固定，空间不够时中间那段用 … 截断 */}
           <span className="flex items-center gap-2 min-w-0 flex-1 justify-end">
@@ -2027,7 +2040,7 @@ export const ScannerApp: React.FC = () => {
                   <span className="truncate min-w-0">{inferDeviceLine(inferBackend)}</span>
                 </span>
             )}
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans font-normal shrink-0">
+            <span className="text-[10px] leading-normal text-slate-400 dark:text-slate-500 font-sans font-normal shrink-0">
               洛克王国徽章试炼助手
             </span>
           </span>
@@ -2263,5 +2276,30 @@ export const ScannerApp: React.FC = () => {
             }}
         />
       </div>
+  );
+};
+
+
+/**
+ * 跟随识别底部状态栏的「未授权」角标。
+ *
+ * 跟随识别已经放开：未授权也能正常使用，所以这里只做「可见的入口」——
+ * 未授权时常驻显示，点一下直接唤起授权弹窗；已授权则不渲染。
+ */
+const FooterAuthChip: React.FC = () => {
+  const auth = useAuthStatus();
+  if (auth.status === 'authorized' || auth.status === 'banned' || auth.status === 'pending') {
+    return null;
+  }
+  return (
+      <button
+          type="button"
+          onClick={() => requestAuthDialog()}
+          title="当前设备未授权，点击查看授权/绑定（不影响使用）"
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-black font-sans ring-1 ring-inset ring-rose-300/70 dark:ring-rose-500/40 hover:bg-rose-200 dark:hover:bg-rose-500/30 transition-colors cursor-pointer shrink-0"
+      >
+        <ShieldAlert className="w-2.5 h-2.5" />
+        未授权
+      </button>
   );
 };

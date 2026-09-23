@@ -1,7 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, ShieldCheck, ShieldX, X } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, ShieldCheck, ShieldX, X } from 'lucide-react';
 import { authStore, useAuthStatus } from '../services/auth';
 import { useFeatureLockNotice } from '../services/featureLock';
+import {
+  startAuthReminderLoop,
+  stopAuthReminderLoop,
+  useAuthReminder,
+} from '../services/authReminder';
 
 
 interface AuthGateProps {
@@ -9,11 +14,11 @@ interface AuthGateProps {
 }
 
 /**
- * 授权门控（软限制）：
+ * 授权门控（纯提示，不拦功能）：
  * - 只有「拉黑/封禁」才全屏阻断（显示“设备已被禁止”，不给重试）；
- * - 未授权/等待绑定/过期/异常 不遮罩：App 可用（首页图鉴可浏览），
- *   右上角显示红色「未授权」角标，点击可打开授权/绑定对话框；仅「跟随识别」被锁定，
- *   首页截图识别照常可用；
+ * - 未授权/等待绑定/过期/异常 完全不遮罩：**所有功能都能用**（首页识别 + 跟随识别），
+ *   右上角显示红色「未授权」角标，点击可打开授权/绑定对话框；
+ * - 未授权时打开 App 先温和提醒一次，之后每 10~30 分钟随机再提醒一次；
  * - 授权成功后展示一次性“绑定成功”弹窗，由用户手动关闭。
  */
 export const AuthGate: React.FC<AuthGateProps> = ({ children }) => {
@@ -38,6 +43,19 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children }) => {
   }, [auth.status]);
 
   const banned = auth.status === 'banned';
+  // pending = 还在校验中，此时不该提示「未授权」（否则启动瞬间会闪一下）。
+  // 只有确实拿到「等待绑定 / 过期 / 异常 / 离线」才提醒。
+  const needsAuth = ['waiting', 'expired', 'error', 'offline'].includes(auth.status);
+
+  // 未授权：打开 App 先提醒一次，之后每 10~30 分钟随机提醒一次。
+  // 授权成功立刻停表（不必等定时器自然过期）。
+  useEffect(() => {
+    if (needsAuth) {
+      startAuthReminderLoop(() => true);
+    } else {
+      stopAuthReminderLoop();
+    }
+  }, [needsAuth]);
 
   return (
       <>
@@ -59,6 +77,9 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children }) => {
               />
             </div>
         )}
+
+        {/* 未授权时的温和提醒（打开 App + 每 10~30 分钟随机） */}
+        <AuthReminderToast />
 
         {/* “请授权后使用跟随识别” 提示 */}
         <FeatureLockToast />
@@ -88,6 +109,28 @@ const FeatureLockToast: React.FC = () => {
   return (
       <div className="fixed top-[72px] left-1/2 -translate-x-1/2 z-[990] bg-slate-900/90 text-white text-sm font-bold px-5 py-3 rounded-2xl shadow-2xl">
         请授权后使用「跟随识别」
+      </div>
+  );
+};
+
+
+/** 未授权提醒：右上角浮出的温和提示（不遮罩、不拦操作，6 秒自动消失）。 */
+const AuthReminderToast: React.FC = () => {
+  const visible = useAuthReminder();
+  if (!visible) {
+    return null;
+  }
+  return (
+      <div className="fixed top-3 right-3 z-[995] max-w-[280px] bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 shadow-xl rounded-2xl px-3.5 py-3 flex items-start gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+        <span className="w-7 h-7 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
+          <ShieldAlert className="w-4 h-4" />
+        </span>
+        <div className="min-w-0">
+          <div className="text-xs font-black text-slate-800 dark:text-slate-100">设备尚未授权</div>
+          <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+            全部功能仍可正常使用；如需授权，点右上角「未授权」按钮获取绑定指令。
+          </p>
+        </div>
       </div>
   );
 };

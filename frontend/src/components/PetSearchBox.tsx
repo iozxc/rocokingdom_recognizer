@@ -133,7 +133,7 @@ export const PetSearchBox: React.FC<PetSearchBoxProps> = ({
         {/* 技能/特性候选：列出当前关卡全部可能的技能与特性，输入时实时过滤 */}
         {searchMode === 'skill' && isSkillOpen && (
             <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white dark:bg-slate-800/95 backdrop-blur-md border border-violet-200 dark:border-violet-500/30 rounded-xl shadow-lg overflow-hidden">
-              <div className="max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-600">
+              <div className="max-h-72 overflow-y-auto custom-roco-scrollbar">
                 {skillSuggestions.length === 0 ? (
                     <div className="px-3 py-5 text-center text-xs text-slate-400">
                       未找到匹配的技能/特性，试试搜技能名、特性名或其描述关键词

@@ -1024,23 +1024,23 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
               注意：浏览器窗口不能由网页拖动，这里不做拖拽区。 */}
         <div
             id="scanner-titlebar"
-            className="h-11 px-3 bg-[#7ABCF4] dark:bg-slate-800 border-b border-[#5DA8E8] dark:border-slate-700 flex items-center justify-between gap-2 shrink-0 text-white"
+            className="h-11 px-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 text-slate-800 dark:text-slate-100"
         >
           <div className="flex items-center gap-2 min-w-0">
             <div
-                className="w-7 h-7 rounded-xl bg-white/20 border-2 border-white/40 flex items-center justify-center shrink-0"
+                className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 flex items-center justify-center shrink-0"
                 title={`当前试炼：${trial.title}`}
             >
               <ElementBadges elements={['草']} size="md" />
             </div>
             <div className="flex items-center gap-1.5 min-w-0">
               <span
-                  className="text-xs sm:text-sm font-black text-white truncate tracking-tight"
+                  className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 truncate tracking-tight"
                   title={titleText ? `标题 OCR：${titleText}` : undefined}
               >
                 {currentMapDef?.name || '跟随识别'}
               </span>
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FEE061] text-[#854D0E] border-2 border-[#E5C43B] shrink-0 font-mono">
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 ring-1 ring-inset ring-sky-200 dark:ring-sky-500/40 shrink-0 font-mono">
                 {viewStage === null ? `全图 ${mapStats.encountered}/${mapStats.total}` : `地图 ${viewStage}`}
               </span>
             </div>
@@ -1053,12 +1053,12 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                   sound.playClick();
                   themeService.toggleTheme();
                 }}
-                className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center justify-center transition-all cursor-pointer border-2 border-white/40"
+                className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer"
                 title={isDarkTheme ? '切换为明亮模式' : '切换为暗黑模式'}
             >
               {isDarkTheme
-                  ? <Sun className="w-3.5 h-3.5 text-[#FEE061]" />
-                  : <Moon className="w-3.5 h-3.5 text-white" />}
+                  ? <Sun className="w-3.5 h-3.5 text-amber-500" />
+                  : <Moon className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />}
             </button>
             {/* 模型列表入口已移除：跟随识别用到的小模型在首次识别时自动下载 */}
             <button
@@ -1067,10 +1067,10 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                   sound.playClick();
                   setIsHistoryOpen(true);
                 }}
-                className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center gap-1 text-xs font-black transition-all cursor-pointer border-2 border-white/40"
+                className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-600 dark:text-slate-300 flex items-center gap-1 text-xs font-black transition-all cursor-pointer"
                 title="查看遇见历史与防止误点撤销"
             >
-              <History className="w-3.5 h-3.5 text-[#FEE061]" />
+              <History className="w-3.5 h-3.5 text-amber-500" />
               <span>历史</span>
             </button>
             <button
@@ -1079,7 +1079,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                   sound.playClick();
                   setIsGalleryOpen(true);
                 }}
-                className="px-2.5 py-1 rounded-xl bg-[#FEE061] hover:bg-[#F4D349] active:opacity-80 text-[#854D0E] flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer border-2 border-[#E5C43B] mr-0.5"
+                className="px-2.5 py-1 rounded-xl bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 ring-1 ring-inset ring-sky-200 dark:ring-sky-500/40 hover:bg-sky-200 dark:hover:bg-sky-500/30 active:opacity-80 flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer mr-0.5"
                 title="查看全部地图图鉴与全图名册"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -1093,10 +1093,10 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                 title={pipWindow
                     ? '退出置顶小窗，回到本窗口'
                     : '置顶：打开无边框悬浮窗（没有浏览器工具栏和地址栏，始终在最前）'}
-                className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all cursor-pointer active:opacity-80 ${
+                className={`w-7 h-7 rounded-xl ring-1 ring-inset flex items-center justify-center transition-all cursor-pointer active:opacity-80 ${
                     pipWindow
-                        ? 'bg-white dark:bg-slate-700 text-[#2B78C4] dark:text-sky-300 border-white/80 dark:border-slate-600'
-                        : 'bg-white/20 text-white border-white/40 hover:bg-white/30'
+                        ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 ring-sky-200 dark:ring-sky-500/40'
+                        : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600'
                 }`}
             >
               {pipWindow ? <Pin className="w-4 h-4" /> : <PinOff className="w-4 h-4" />}
@@ -1106,7 +1106,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                 type="button"
                 id="scanner-standalone-close-btn"
                 onClick={handleCloseWindow}
-                className="w-7 h-7 rounded-xl bg-white/20 hover:bg-rose-500 text-white border-2 border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer active:opacity-80"
+                className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:bg-rose-500 hover:text-white hover:ring-rose-500 flex items-center justify-center transition-all cursor-pointer active:opacity-80"
                 title={hostedInPip ? '关闭小窗' : '关闭窗口'}
             >
               <X className="w-4 h-4 stroke-[2.5]" />
@@ -1453,7 +1453,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
         {/* 3. 底部状态栏：LIVE 状态 + 断开入口（连接后，紧跟 LIVE）；右侧上次捕获 + 悬浮窗 */}
         <div
             id="scanner-statusbar"
-            className="h-7 px-3 bg-[#E9F2FA] dark:bg-slate-800 border-t-2 border-[#D5E3F0] dark:border-slate-700 text-[11px] leading-none font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2 shrink-0 font-bold overflow-hidden"
+            className="h-7 px-3 bg-slate-50/90 dark:bg-slate-900/90 border-t border-slate-200/70 dark:border-slate-800 text-[11px] leading-tight font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2 shrink-0 font-bold overflow-hidden"
         >
           <span className="flex items-center gap-1.5 shrink-0 min-w-0">
             <span
@@ -1492,7 +1492,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                   上次捕获 {lastCaptureAt} · {lastMs}ms
                 </span>
             )}
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans font-normal shrink-0">
+            <span className="text-[10px] leading-normal text-slate-400 dark:text-slate-500 font-sans font-normal shrink-0">
               洛克王国徽章试炼助手
             </span>
           </span>

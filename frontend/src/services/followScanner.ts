@@ -4,8 +4,6 @@
  * 带防重入保护：快速连点时只发起一次，避免并发调用 pywebview 开窗
  * 造成竞态（卡住 / 白屏）。
  */
-import { authStore } from './auth';
-import { showFeatureLockNotice } from './featureLock';
 import { IS_STATIC } from './staticMode';
 
 let openingScanner = false;
@@ -65,11 +63,7 @@ export async function openFollowScanner(trialKey?: string): Promise<void> {
     openWebFollowScanner(trialKey);
     return;
   }
-  const st = authStore.getState().status;
-  if (st !== 'authorized' && st !== 'offline') {
-    showFeatureLockNotice();
-    return;
-  }
+  // 跟随识别已放开：未授权也能直接用（改为底部角标 + 定时温和提醒，不再拦门）
   if (openingScanner) {
     console.warn('跟随识别窗口正在打开，忽略本次点击');
     return;

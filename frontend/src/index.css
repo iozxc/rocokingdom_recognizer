@@ -254,33 +254,49 @@ html.theme-switching *::after {
   animation: magic-scan 1.6s ease-in-out infinite;
 }
 
-/* Sleek Scrollbar */
+/* ── 滚动条：与全站「中性玻璃 + 发丝线」风格统一 ─────────────────────
+   之前是 8px 实心蓝 #7ABCF4 圆角块（图三那种），和浅灰底、淡描边的
+   界面语言完全脱节，且 8px 太粗。现在：
+     · 收细到 10px 轨道 / 8px 拇指（含 1px 内描边，视觉更轻）
+     · 颜色改为浅灰 → 悬停才转主色，避免滚动条抢注视点
+     · 暗色改为 slate 中性色，不再用死黑
+   同时用 scrollbar-color 覆盖 Firefox（Chrome 会忽略它）。 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #FDF9F3;
-  border-radius: 4px;
-}
-.dark ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #7ABCF4;
-  border-radius: 4px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #CBD5E1;          /* slate-300 */
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #5DA8E8;
+  background: #94A3B8;          /* slate-400 */
+  background-clip: content-box;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;          /* slate-600 */
+  background-clip: content-box;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #64748B;          /* slate-500 */
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* Firefox（Chrome 不支持该属性，会自行忽略） */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+.dark * {
+  scrollbar-color: #475569 transparent;
 }
 
 /* Highlight Target Pet Animation */
@@ -358,20 +374,36 @@ html.theme-switching *::after {
 
 /* Custom scrollbar for horizontal and vertical scrolling */
 .custom-roco-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
 }
 .custom-roco-scrollbar::-webkit-scrollbar-track {
-  background: #F4F8FD;
-  border-radius: 9999px;
+  background: transparent;
 }
 .custom-roco-scrollbar::-webkit-scrollbar-thumb {
-  background: #BCD7F2;
+  background: #CBD5E1;
   border-radius: 9999px;
-  border: 1px solid #E6EEF8;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 .custom-roco-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #7ABCF4;
+  background: #94A3B8;
+  background-clip: content-box;
+}
+.dark .custom-roco-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569;
+  background-clip: content-box;
+}
+.dark .custom-roco-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748B;
+  background-clip: content-box;
+}
+.custom-roco-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+.dark .custom-roco-scrollbar {
+  scrollbar-color: #475569 transparent;
 }
 
 

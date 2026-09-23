@@ -287,7 +287,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     return (
         <div className="absolute inset-0 z-50 w-full h-full bg-[#FDF9F3] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between select-none overflow-hidden font-sans animate-in fade-in duration-150 rounded-none">
             {/* 1. Modal Top Bar（与跟随识别主窗完全一致：同高度/同配色/同布局，仅少「查图鉴」并有返回关闭） */}
-            <div className="pywebview-drag-region cursor-move h-11 px-3 bg-[#7ABCF4] dark:bg-slate-800 border-b border-[#5DA8E8] dark:border-slate-700 flex items-center justify-between gap-2 shrink-0 text-white rounded-none">
+            <div className="pywebview-drag-region cursor-move h-11 px-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 text-slate-800 dark:text-slate-100 rounded-none">
                 <div className="flex items-center gap-2 min-w-0 cursor-default">
                     {/* 试炼 logo（静态展示当前试炼，点击返回主界面） */}
                     <button
@@ -296,15 +296,15 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                             sound.playClick();
                             onClose();
                         }}
-                        className="w-7 h-7 rounded-xl bg-white/20 border-2 border-white/40 hover:bg-white/30 active:opacity-80 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                        className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 flex items-center justify-center transition-all cursor-pointer shrink-0"
                         title={`当前试炼：${trialKey === 'fire' ? '火系徽章试炼' : '草系徽章试炼'}（点击返回）`}
                     >
                         <ElementBadges elements={[trialKey === 'fire' ? '火' : '草']} size="md" />
                     </button>
-                    <span className="text-xs sm:text-sm font-black text-white truncate tracking-tight">
+                    <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 truncate tracking-tight">
                         精灵图鉴
                     </span>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FEE061] text-[#854D0E] border-2 border-[#E5C43B] shrink-0 font-mono">
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 ring-1 ring-inset ring-sky-200 dark:ring-sky-500/40 shrink-0 font-mono">
                         {grandEncountered}/{grandTotal} ({grandPercent}%)
                     </span>
                 </div>
@@ -314,12 +314,12 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                         type="button"
                         id="gallery-skill-hover-switch-btn"
                         onClick={handleToggleSkillHover}
-                        className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center justify-center transition-all cursor-pointer border-2 border-white/40 shrink-0"
+                        className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
                         title={showSkillHover ? '关闭悬浮展示精灵技能' : '开启悬浮展示精灵技能'}
                     >
                         <span className="relative inline-flex items-center justify-center w-3.5 h-3.5">
-                            <Sparkles className={`w-3.5 h-3.5 transition-colors duration-200 ${showSkillHover ? 'text-[#FEE061]' : 'text-white/50'}`} />
-                            {!showSkillHover && <Slash className="absolute w-3.5 h-3.5 text-white/90 stroke-[3]" />}
+                            <Sparkles className={`w-3.5 h-3.5 transition-colors duration-200 ${showSkillHover ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'}`} />
+                            {!showSkillHover && <Slash className="absolute w-3.5 h-3.5 text-slate-400 stroke-[3]" />}
                         </span>
                     </button>
                     <button
@@ -329,10 +329,10 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                             themeService.toggleTheme();
                             setThemeTick((t) => t + 1);
                         }}
-                        className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center justify-center transition-all cursor-pointer border-2 border-white/40"
+                        className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer"
                         title={themeService.isDark() ? '切换为明亮模式' : '切换为暗黑模式'}
                     >
-                        {themeService.isDark() ? <Sun className="w-3.5 h-3.5 text-[#FEE061]" /> : <Moon className="w-3.5 h-3.5 text-white" />}
+                        {themeService.isDark() ? <Sun className="w-3.5 h-3.5 text-amber-500" /> : <Moon className="w-3.5 h-3.5 text-slate-500 dark:text-slate-300" />}
                     </button>
                     {onOpenHistory && (
                         <button
@@ -341,16 +341,16 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                                 sound.playClick();
                                 onOpenHistory();
                             }}
-                            className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:opacity-80 text-white flex items-center gap-1 text-xs font-black transition-all cursor-pointer border-2 border-white/40"
+                            className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-600 dark:text-slate-300 flex items-center gap-1 text-xs font-black transition-all cursor-pointer"
                             title="查看遇见历史"
                         >
-                            <History className="w-3.5 h-3.5 text-[#FEE061]" />
+                            <History className="w-3.5 h-3.5 text-amber-500" />
                             <span>历史</span>
                         </button>
                     )}
                     <button
                         type="button"
-                        className="w-7 h-7 rounded-xl bg-white/20 hover:bg-rose-500 text-white border-2 border-white/40 hover:border-rose-600 flex items-center justify-center transition-all cursor-pointer shrink-0 active:opacity-80"
+                        className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:bg-rose-500 hover:text-white hover:ring-rose-500 flex items-center justify-center transition-all cursor-pointer shrink-0 active:opacity-80"
                         onClick={() => {
                             sound.playClick();
                             onClose();
@@ -481,7 +481,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                         {/* 技能/特性候选：列出当前可浏览精灵的全部技能与特性，输入时实时过滤 */}
                         {searchMode === 'skill' && isSkillOpen && (
                             <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-slate-800/95 backdrop-blur-md border border-violet-200 dark:border-violet-500/30 rounded-lg shadow-lg overflow-hidden">
-                                <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-600">
+                                <div className="max-h-64 overflow-y-auto custom-roco-scrollbar">
                                     {skillSuggestions.length === 0 ? (
                                         <div className="px-2.5 py-3 text-center text-[11px] text-slate-400">
                                             未找到匹配的技能/特性，试试搜技能名、特性名或其描述关键词

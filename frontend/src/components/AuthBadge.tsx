@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CheckCircle2, Copy, Loader2, LogOut, RefreshCw, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import { authStore, useAuthStatus } from '../services/auth';
-
-// 整个应用生命周期内只自动弹出一次“未授权”窗口
-let hasAutoOpenedOnce = false;
+import { useAuthDialogRequest } from '../services/authDialog';
+import { QqGroupPopover } from './QqGroupPopover';
 
 // 机器码去掉末尾点/空白：客户端原始 machine_code 可能带末尾点，展示与复制都清理掉
 const cleanMachineCode = (mc?: string) => (mc || '').replace(/[\s.]+$/, '');
@@ -22,15 +22,15 @@ export const AuthBadge: React.FC = () => {
     }
   }, [auth.status]);
 
-  // 未授权时，打开 App 自动弹出授权/绑定窗口一次（关闭后不再自动弹，除非再点角标）
+  // 响应其它地方（如跟随识别底部「未授权」角标）发来的「打开授权弹窗」请求。
+  // 注意：自动弹出改为「定时温和提醒」，见 AuthGate —— 这里不再自动弹。
+  const dialogRequest = useAuthDialogRequest();
   useEffect(() => {
-    const nonAuth = ['waiting', 'expired', 'error'].includes(auth.status);
-    if (nonAuth && !hasAutoOpenedOnce) {
-      hasAutoOpenedOnce = true;
-      setOpen(true);
-      authStore.setEngaged(true);
-    }
-  }, [auth.status]);
+    if (dialogRequest === 0) return;
+    if (auth.status === 'authorized' || auth.status === 'banned' || auth.status === 'pending') return;
+    setOpen(true);
+    authStore.setEngaged(true);
+  }, [dialogRequest, auth.status]);
 
   if (auth.status === 'authorized') {
     return (
@@ -43,12 +43,13 @@ export const AuthBadge: React.FC = () => {
             <ShieldCheck className="w-3.5 h-3.5" />
             已授权
           </button>
-          {showInfo && (
+          {showInfo && createPortal(
               <AuthorizedInfoDialog
                   expireTime={auth.expire_time}
                   machineCode={auth.machine_code}
                   onClose={() => setShowInfo(false)}
-              />
+              />,
+              document.body,
           )}
         </>
     );
@@ -80,14 +81,15 @@ export const AuthBadge: React.FC = () => {
           <ShieldAlert className="w-3.5 h-3.5" />
           未授权
         </button>
-        {open && (
+        {open && createPortal(
             <AuthDialog
                 auth={auth}
                 onClose={() => {
                   setOpen(false);
                   authStore.setEngaged(false);
                 }}
-            />
+            />,
+            document.body,
         )}
       </>
   );
@@ -117,8 +119,6 @@ const AuthorizedInfoDialog: React.FC<AuthorizedInfoDialogProps> = ({ expireTime,
   };
 
   const handleUnbind = async () => {
-    // 解绑后会进入“等待授权”，强制允许再次自动弹出等待弹窗
-    hasAutoOpenedOnce = false;
     setUnbinding(true);
     await authStore.unbind();
     setUnbinding(false);
@@ -261,7 +261,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ auth, onClose }) => {
                 <Loader2 className="w-10 h-10 mx-auto text-sky-500 animate-spin" />
                 <h2 className="mt-4 text-lg font-black text-slate-800">等待设备授权</h2>
                 <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-                  请前往官方 QQ 群 <span className="text-sky-600 font-bold">发送消息</span> 以下指令完成绑定：
+                  请前往 <QqGroupPopover /> <span className="text-sky-600 font-bold">发送消息</span> 以下指令完成绑定：
                 </p>
                 <div className="mt-5 rounded-2xl bg-sky-50 border border-sky-200 px-4 py-3">
                   <div className="text-[11px] uppercase tracking-wide text-slate-400 font-bold">Bind 指令</div>
