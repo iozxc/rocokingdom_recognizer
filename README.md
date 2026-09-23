@@ -22,12 +22,6 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
 </p>
 
-<p align="center">
-  <a href="https://roco.omisheep.cn/"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.omisheep.cn%2Fapi%2Fpublic%2Fbadge%3Fmetric%3Dweb_pv&style=flat-square" alt="网页浏览量"></a>
-  <a href="https://github.com/iozxc/rocokingdom_recognizer/releases"><img src="https://img.shields.io/github/downloads/iozxc/rocokingdom_recognizer/total?label=GitHub%20%E4%B8%8B%E8%BD%BD&color=orange&style=flat-square" alt="GitHub 下载量"></a>
-  <a href="https://github.com/iozxc/rocokingdom_recognizer/stargazers"><img src="https://img.shields.io/github/stars/iozxc/rocokingdom_recognizer?label=Stars&color=yellow&style=flat-square" alt="Stars"></a>
-</p>
-
 
 ---
 
