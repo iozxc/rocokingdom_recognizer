@@ -1420,35 +1420,52 @@ export class ApiService {
     }
   }
 
+  /**
+   * 纯前端版（IS_STATIC）专用：读取同源打包资源。
+   *
+   * 为什么不再直连 Gitee raw：Gitee raw 的响应只有
+   * `Access-Control-Allow-Credentials / -Methods / -Headers`，**没有 `Access-Control-Allow-Origin`**，
+   * 浏览器必然拦截，并在控制台打一条红字。那条红字是浏览器自己打的，JS 里 try/catch 消不掉，
+   * 只有「不发起这个请求」才不会再出现。所以纯前端版改成：
+   *   1) 同源打包副本（public-web/resources/*，`npm run build:web` 从仓库根自动同步）—— 立即返回，不依赖外网；
+   *   2) 副本缺失/损坏时，才退回下面两个实测带 `ACAO: *` 的镜像兜底。
+   * 桌面版不受影响：它走本机后端接口，由后端去抓 Gitee（服务端没有跨域限制）。
+   */
+  private webMirrorUrls(relPath: string, t: number): string[] {
+    return [
+      `https://cdn.jsdelivr.net/gh/iozxc/rocokingdom_recognizer@master/${relPath}?_t=${t}`,
+      `https://raw.githubusercontent.com/iozxc/rocokingdom_recognizer/master/${relPath}?_t=${t}`,
+    ];
+  }
+
+  /** 同源打包副本优先；副本读不到时才逐个试 CORS 可用的镜像，都失败返回 null。 */
+  private async webResource<T = any>(relPath: string, timeout = 6000): Promise<T | null> {
+    const t = Date.now();
+    try {
+      return await fetchJson<T>(`${import.meta.env.BASE_URL}${relPath}?_t=${t}`, timeout);
+    } catch (err: unknown) {
+      console.warn(`静态资源 ${relPath} 读取失败，回退远程镜像:`, (err as AxiosError).message);
+    }
+    for (const url of this.webMirrorUrls(relPath, t)) {
+      try {
+        const res = await axios.get<T>(url, { timeout: 4000 });
+        if (res.data != null) return res.data;
+      } catch {
+        // 试下一个镜像
+      }
+    }
+    return null;
+  }
+
   /** 读取 resources/chat.json 的联系方式配置（QQ 群、网页版等） */
   public async getChatConfig(): Promise<any | null> {
     const t = Date.now();
     if (IS_STATIC) {
-      // 纯前端版：优先读 Gitee 远程 raw，失败回退打包进 public-web/resources/chat.json 的静态配置。
-      const remoteUrls = [
-        `https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t=${t}`,
-        `https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/chat.json?_t=${t}`,
-      ];
-      for (const url of remoteUrls) {
-        try {
-          const res = await axios.get(url, { timeout: 4000 });
-          const data = res.data;
-          if (data && (Array.isArray(data.qq_group) || data.web_path)) return data;
-          if (data?.data && (Array.isArray(data.data.qq_group) || data.data.web_path)) return data.data;
-        } catch {
-          // fallback
-        }
-      }
-      try {
-        const res = await axios.get(`${import.meta.env.BASE_URL}resources/chat.json?_t=${t}`, { timeout: 6000 });
-        const data = await fetchJson<any>(`${import.meta.env.BASE_URL}resources/chat.json?_t=${t}`, 6000);
-        if (data && (Array.isArray(data.qq_group) || data.web_path)) return data;
-        if (data?.data && (Array.isArray(data.data.qq_group) || data.data.web_path)) return data.data;
-        return null;
-      } catch (err: unknown) {
-        console.warn('静态 chat 配置加载失败:', (err as AxiosError).message);
-        return null;
-      }
+      // 纯前端版：同源打包副本优先（详见 webResource 注释）
+      const data = await this.webResource<any>('resources/chat.json');
+      if (data && (Array.isArray(data.qq_group) || data.web_path)) return data;
+      if (data?.data && (Array.isArray(data.data.qq_group) || data.data.web_path)) return data.data;
+      return null;
     }
     try {
       // 桌面端走本地接口：后端会优先直连 Gitee raw 拉取最新配置（带时间戳去缓存），失败时自动回退本地 resources/chat.json
@@ -1466,9 +1483,9 @@ export class ApiService {
 
   /**
    * 读取首页「视频攻略」清单（resources/videos.json）。
-   * 与 version.json / changelog.json 同款热更方式：改 Gitee 上的 JSON 再 push 即生效，无需发版。
-   * - 桌面端：走本地接口 /api/videos（后端远程优先、本地兜底，带 10 分钟缓存）
-   * - 纯前端版：优先 Gitee raw，失败回退打包副本
+   * - 桌面端：走本地接口 /api/videos（后端远程优先、本地兜底，带 10 分钟缓存，可热更）
+   * - 纯前端版：读同源打包副本（远程镜像兜底）；不直连 Gitee raw —— 那条路必被 CORS 拦，
+   *   所以 web 端的 videos.json 更新需要重新构建发布，而不是改 Gitee 就能生效。
    * 拿不到时返回 null，由调用方回退到内置兜底配置。
    */
   public async getVideos(): Promise<any | null> {
@@ -1480,27 +1497,7 @@ export class ApiService {
     };
 
     if (IS_STATIC) {
-      const t = Date.now();
-      const remoteUrls = [
-        `https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/videos.json?_t=${t}`,
-        `https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/resources/videos.json?_t=${t}`,
-      ];
-      for (const url of remoteUrls) {
-        try {
-          const res = await axios.get(url, { timeout: 4000 });
-          const list = pick(res.data);
-          if (list) return list;
-        } catch {
-          // 继续 fallback
-        }
-      }
-      try {
-        const data = await fetchJson<any>(`${import.meta.env.BASE_URL}resources/videos.json?_t=${t}`, 6000);
-        return pick(data);
-      } catch (err: unknown) {
-        console.warn('静态 videos 配置加载失败:', (err as AxiosError).message);
-        return null;
-      }
+      return pick(await this.webResource<any>('resources/videos.json'));
     }
 
     try {
@@ -1525,38 +1522,17 @@ export class ApiService {
     if (!IS_STATIC) {
       return null;
     }
-    // 优先直接读 Gitee 上的 version.json；若浏览器跨域/网络失败，再退回本地打包的副本。
-    const remoteUrls = [
-      'https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json',
-      'https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/version.json',
-    ];
-    for (const url of remoteUrls) {
-      try {
-        const res = await axios.get(url, { timeout: 6000 });
-        const data = res.data;
-        if (data && typeof data.version === 'string') {
-          return { version: data.version, mirrors: data.mirrors || {} };
-        }
-      } catch {
-        // 继续尝试 fallback
-      }
+    // 同源打包副本优先，副本缺失时才走带 CORS 的镜像（详见 webResource 注释）
+    const data = await this.webResource<any>('resources/version.json');
+    if (data && typeof data.version === 'string') {
+      return { version: data.version, mirrors: data.mirrors || {} };
     }
-    try {
-      const res = await axios.get(`${import.meta.env.BASE_URL}resources/version.json`, { timeout: 6000 });
-      const data = await fetchJson<any>(`${import.meta.env.BASE_URL}resources/version.json`, 6000);
-      if (data && typeof data.version === 'string') {
-        return { version: data.version, mirrors: data.mirrors || {} };
-      }
-      return null;
-    } catch (err: unknown) {
-      console.warn('版本信息加载失败（远程与本地兜底均失败）:', (err as AxiosError).message);
-      return null;
-    }
+    return null;
   }
 
   /**
    * 纯前端版：读取结构化更新日志（独立 changelog.json）。
-   * 优先 Gitee 远程 raw，失败回退打包进 public-web/resources/changelog.json 的静态副本。
+   * 同源打包副本（public-web/resources/changelog.json）优先，副本缺失时才走带 CORS 的镜像。
    * 桌面版不使用（其更新弹窗走本地接口 checkUpdate）。
    */
   public async getChangelog(): Promise<{ updated?: string; changelog: UpdateLogEntry[] } | null> {
@@ -1573,29 +1549,8 @@ export class ApiService {
         changelog: valid as UpdateLogEntry[],
       };
     };
-    const t = Date.now();
-    const remoteUrls = [
-      `https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/changelog.json?_t=${t}`,
-      `https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/changelog.json?_t=${t}`,
-    ];
-    for (const url of remoteUrls) {
-      try {
-        const res = await axios.get(url, { timeout: 6000 });
-        const parsed = normalize(res.data);
-        if (parsed) return parsed;
-      } catch {
-        // 继续尝试下一个镜像 / 本地兜底
-      }
-    }
-    try {
-      const data = await fetchJson<any>(`${import.meta.env.BASE_URL}resources/changelog.json?_t=${t}`, 6000);
-      return normalize(data);
-    } catch (err: unknown) {
-      console.warn('更新日志加载失败（远程与本地兜底均失败）:', (err as AxiosError).message);
-      return null;
-    }
+    return normalize(await this.webResource<any>('resources/changelog.json'));
   }
 
 }
-
 export const api = new ApiService();
