@@ -1,0 +1,65 @@
+name: ESA badges
+
+# 通过阿里云 ESA OpenAPI 抓取站点流量指标，生成 shields.io endpoint 徽章 JSON。
+# 产物推送到 `badges` 分支，README 里用
+#   https://raw.githubusercontent.com/iozxc/rocokingdom_recognizer/badges/<metric>.json
+# 作为 shields 的 endpoint url。
+#
+# 为什么用轮询而不是更实时的方式：
+# ESA 的 OpenAPI 必须用 AccessKey 做 RPC 签名，浏览器/shields 都调不了；
+# 而 README 的徽章是静态图片，只能读公开 JSON。所以定时跑一次、把结果固化成文件最省事。
+# 统计窗口是「最近 N 天」，不是当日实时值 —— 想要当日数字，把 CACHE 的 cacheSeconds 调小即可。
+
+on:
+  schedule:
+    # 每 6 小时跑一次（UTC 时间）。GitHub 的 schedule 在高峰期可能延迟几分钟到几十分钟，属正常。
+    - cron: '17 */6 * * *'
+  workflow_dispatch:      # 允许在 Actions 页面手动触发
+    inputs:
+      days:
+        description: '统计最近多少天（1-31）'
+        required: false
+        default: '30'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: esa-badges
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ESA SDK
+        run: pip install --quiet alibabacloud_esa20240910
+
+      - name: Fetch metrics
+        env:
+          ALIBABA_CLOUD_ACCESS_KEY_ID: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_ID }}
+          ALIBABA_CLOUD_ACCESS_KEY_SECRET: ${{ secrets.ALIBABA_CLOUD_ACCESS_KEY_SECRET }}
+          ESA_SITE_NAME: ${{ vars.ESA_SITE_NAME }}
+        run: |
+          DAYS="${{ github.event.inputs.days || '30' }}"
+          python .github/scripts/fetch_esa_badge.py --days "$DAYS" --out badges-out
+
+      - name: Publish to badges branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./badges-out
+          publish_branch: badges
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_message: 'chore(badges): 更新 ESA 流量徽章 [skip ci]'
+          force_orphan: false
+          keep_files: true

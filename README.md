@@ -1,17 +1,42 @@
 # 🎮 洛克王国徽章助手 RocoKingdomRecognizer
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.12+-blue.svg" alt="Python">
-  <img src="https://img.shields.io/badge/React-2024-61DAFB.svg" alt="React">
-  <img src="https://img.shields.io/badge/PyTorch-AI-EE4C2C.svg" alt="PyTorch">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
-  <br>
-  <img src="https://img.shields.io/github/stars/iozxc/rocokingdom_recognizer?style=social" alt="Stars">
+  <b>《洛克王国》徽章试炼 · 精灵图像识别 / 图鉴检索助手</b><br>
+  <sub>桌面端 + 纯前端网页版 · 本地推理 · 零内存修改 · 安全绿色</sub>
+</p>
+
+<p align="center">
+  <a href="https://roco.omisheep.cn/"><img src="https://img.shields.io/badge/%E7%BD%91%E9%A1%B5%E7%89%88-%E7%AB%8B%E5%8D%B3%E4%BD%BF%E7%94%A8-4C8BF5?style=for-the-badge&logo=googlechrome&logoColor=white" alt="网页版"></a>
+  &nbsp;
+  <a href="https://github.com/iozxc/rocokingdom_recognizer/releases/latest"><img src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-Windows%20%E5%AE%89%E8%A3%85%E7%89%88-FF8C00?style=for-the-badge&logo=windows&logoColor=white" alt="下载"></a>
+  &nbsp;
+  <img src="https://img.shields.io/badge/QQ%E4%BA%A4%E6%B5%81%E7%BE%A4-723155657-12B7F5?style=for-the-badge&logo=tencentqq&logoColor=white" alt="QQ群">
+</p>
+
+<p align="center">
+  <a href="https://github.com/iozxc/rocokingdom_recognizer/releases/latest"><img src="https://img.shields.io/github/v/release/iozxc/rocokingdom_recognizer?label=%E7%89%88%E6%9C%AC&color=blue&style=flat-square" alt="版本"></a>
+  <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React">
+  <img src="https://img.shields.io/badge/PyTorch-AI-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" alt="PyTorch">
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?style=flat-square&logo=windows&logoColor=white" alt="Windows">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
+</p>
+
+<p align="center">
+  <a href="https://roco.omisheep.cn/"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fapi.omisheep.cn%2Fapi%2Fpublic%2Fbadge%3Fmetric%3Dweb_pv&style=flat-square" alt="网页浏览量"></a>
+  <a href="https://github.com/iozxc/rocokingdom_recognizer/releases"><img src="https://img.shields.io/github/downloads/iozxc/rocokingdom_recognizer/total?label=GitHub%20%E4%B8%8B%E8%BD%BD&color=orange&style=flat-square" alt="GitHub 下载量"></a>
+  <a href="https://github.com/iozxc/rocokingdom_recognizer/stargazers"><img src="https://img.shields.io/github/stars/iozxc/rocokingdom_recognizer?label=Stars&color=yellow&style=flat-square" alt="Stars"></a>
 </p>
 
 
 ---
 
+## 🌐 在线体验（网页版，免安装）
+
+不想装软件？直接用浏览器打开 **<https://roco.omisheep.cn/>** —— 纯前端静态站点，
+识别全部在浏览器本地完成，不上传游戏画面、也不需要登录。
+
+---
 
 # 洛克王国徽章试炼小助手
 
@@ -23,7 +48,7 @@
 
 - 具体样式 & 特殊点位识别：
 
-<img src="resources/img_2.png" alt="具体样式 & 特殊点位识别" style="zoom: 50%;" />
+![具体样式 & 特殊点位识别](resources/img_2.png)
 
 ## 主页面同步展示
 
@@ -36,13 +61,14 @@
 ![历史记录](resources/img_5.png)
 
 ## 技能搜索
-<img src="resources/img_6.png" alt="技能搜索" style="zoom:67%;" />
+![技能搜索](resources/img_6.png)
 # 下载
 
 > 下面的链接**始终指向最新版本**，直接点进去就能看到当前最新版，不需要自己找版本号。
 
-1. 【**推荐**】下载安装程序 `RocoKingdomRecognizer_Setup`：[GitHub Releases（最新版）](https://github.com/iozxc/rocokingdom_recognizer/releases/latest)
-2. 下载免安装分卷压缩包：[Gitee Releases（最新版）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/latest)
+1. 【**最省事**】网页版，打开即用：[**roco.omisheep.cn**](https://roco.omisheep.cn/)（免安装，浏览器本地识别）
+2. 【**推荐**】下载安装程序 `RocoKingdomRecognizer_Setup`：[GitHub Releases（最新版）](https://github.com/iozxc/rocokingdom_recognizer/releases/latest)
+3. 下载免安装分卷压缩包：[Gitee Releases（最新版）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/latest)
 
 - 由于仓库限制，Gitee 的分卷（`RocoKingdomRecognizer_part.7z.001` 起）需要全部下载后一起选中再解压
 - 也可以直接加群下载：`723155657`
