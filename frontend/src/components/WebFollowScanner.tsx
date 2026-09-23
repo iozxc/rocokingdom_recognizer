@@ -234,20 +234,11 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
   );
   const [capture, setCapture] = useState<CaptureState>(() => screenCapture.getState());
 
-  // 独立文档 / PiP 小窗：滚动条设置不会从首页传过来，这里自己套用一次
-  // （PiP 的 root 是它自己的 <html>，所以要针对 hostDoc 所在的 documentElement）。
-  useEffect(() => {
-    const doc = hostDoc();
-    const root = doc.documentElement;
-    const on = storage.getSetting<boolean>('showHomeScrollbar', true);
-    const w = Math.max(4, Math.min(16, Math.round(storage.getSetting<number>('homeScrollbarWidth', 10) || 10)));
-    root.classList.toggle('roco-scrollbar-on', on);
-    root.style.setProperty('--roco-scrollbar-w', `${w}px`);
-    return () => {
-      root.classList.remove('roco-scrollbar-on');
-      root.style.removeProperty('--roco-scrollbar-w');
-    };
-  }, [hostDoc]);
+  // 独立文档 / PiP 小窗：滚动条设置不会从首页传过来，这里自己套用一次。
+  // 逻辑与首页、桌面版跟随识别窗口共用 applyScrollbarSetting（它会用缓存读设置、
+  // 订阅设置变化，并在远程数据到达后重放），这里只需把「面板真正所在的那个文档」传进去
+  // ——PiP 的 root 是它自己的 <html>，不是当前 document。
+  useEffect(() => applyScrollbarSetting(hostDoc()), [hostDoc]);
   const [slots, setSlots] = useState<SlotView[]>([]);
   const [busy, setBusy] = useState(false);
   const [statusText, setStatusText] = useState('');

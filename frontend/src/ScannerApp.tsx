@@ -346,7 +346,9 @@ export const ScannerApp: React.FC = () => {
     return () => authStore.stop();
   }, []);
 
-  // 独立文档：滚动条设置不会从首页传过来，这里自己套用一次
+  // 独立文档：滚动条设置不会从首页传过来，这里自己套用一次。
+  // applyScrollbarSetting 内部用 getSettingCached 读值（避开远程设置异步到达的空窗期）、
+  // 订阅设置变化、并在远程数据到达后重放，所以只需在挂载时调用一次。
   useEffect(() => applyScrollbarSetting(), []);
   const [lastScanTime, setLastScanTime] = useState<string>('未识别');
 

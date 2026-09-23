@@ -9,6 +9,7 @@ import { storage } from '../services/storage';
 import { themeService } from '../services/theme';
 import { useUpdateStore } from '../services/useUpdateStore';
 import { IS_STATIC } from '../services/staticMode';
+import { DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR } from '../services/scrollbarSetting';
 import { SyncPopType } from './SyncPopNotification';
 import { UserAgreementModal } from './UserAgreementModal';
 import { HotkeySetting } from './HotkeySetting';
@@ -59,10 +60,10 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     return storage.getSetting<boolean>('showPetSkillHover', true);
   });
   const [showHomeScrollbar, setShowHomeScrollbar] = useState<boolean>(() => {
-    return storage.getSetting<boolean>('showHomeScrollbar', true);
+    return storage.getSetting<boolean>('showHomeScrollbar', DEFAULT_SHOW_SCROLLBAR);
   });
   const [homeScrollbarWidth, setHomeScrollbarWidth] = useState<number>(() => {
-    return storage.getSetting<number>('homeScrollbarWidth', 10);
+    return storage.getSetting<number>('homeScrollbarWidth', DEFAULT_SCROLLBAR_WIDTH);
   });
   const [updateMode, setUpdateMode] = useState<'auto' | 'full'>(() => {
     return storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
@@ -135,8 +136,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setShowSamples(storage.getSetting<boolean>('showRecognitionSamples', true));
     setShowDuplicateHint(storage.getSetting<boolean>('showDuplicatePetHint', true));
     setShowPetSkillHover(storage.getSetting<boolean>('showPetSkillHover', true));
-    setShowHomeScrollbar(storage.getSetting<boolean>('showHomeScrollbar', true));
-    setHomeScrollbarWidth(storage.getSetting<number>('homeScrollbarWidth', 10));
+    setShowHomeScrollbar(storage.getSetting<boolean>('showHomeScrollbar', DEFAULT_SHOW_SCROLLBAR));
+    setHomeScrollbarWidth(storage.getSetting<number>('homeScrollbarWidth', DEFAULT_SCROLLBAR_WIDTH));
     const savedUpdateMode = storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
     if (savedUpdateMode === 'auto' || savedUpdateMode === 'full') {
       setUpdateMode(savedUpdateMode);
@@ -885,7 +886,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">显示自定义滚动条</div>
-                          <div className="text-[10px] text-slate-400">统一全站滚动条样式（含弹窗内滚动条），并在首页右侧显示精致滚动条（默认开启）</div>
+                          <div className="text-[10px] text-slate-400">开启后统一全站滚动条样式（含弹窗内滚动条），并在首页右侧显示精致滚动条；关闭后全站不再显示滚动条（仍可正常滚动）。默认{DEFAULT_SHOW_SCROLLBAR ? '开启' : '关闭'}</div>
                         </div>
                         <button
                             type="button"

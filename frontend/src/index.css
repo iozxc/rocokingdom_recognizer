@@ -254,16 +254,20 @@ html.theme-switching *::after {
   animation: magic-scan 1.6s ease-in-out infinite;
 }
 
-/* ── 滚动条：全站统一由「设置 → 首页滚动条」这一个开关控制 ──────────
-   开启状态挂在 <html> 上的 .roco-scrollbar-on，宽度用 CSS 变量
-   --roco-scrollbar-w 注入。
+/* ── 滚动条：全站统一由「设置 → 系统设置 → 滚动条」这一个开关控制 ──────
+   两种状态都**显式**挂在 <html> 上（由 services/scrollbarSetting.ts 写入）：
+     · .roco-scrollbar-on  → 全站显示统一的极简滚动条，宽度用 CSS 变量
+                             --roco-scrollbar-w 注入（首页右侧另有 HomeScrollbar 覆盖条）
+     · .roco-scrollbar-off → 全站不显示任何滚动条（内容照常可滚动）
 
    为什么这样拆：
-     · 文档级滚动条（<html>）**永远**隐藏 —— 页面改用 HomeScrollbar 覆盖条
+     · 文档级滚动条（<html>）在**任何状态**下都隐藏 —— 页面改用 HomeScrollbar 覆盖条
        （支持拖拽、宽度可调、固定不覆盖顶栏），所以文档只会有一条滚动条，
        不会再出现「自定义条 + 原生条」并排两条。
-     · 内部容器（弹窗 / 列表 / 文本域）的滚动条由 .roco-scrollbar-on 决定：
-       开启 → 统一切成极简 slate 样式；关闭 → 回到浏览器原生外观。
+     · 内部容器（弹窗 / 列表 / 文本域）的滚动条跟着上面的 class 走。
+     · 关闭态必须显式写出来：早期版本靠「没有 on 类」表示关闭，结果关闭后容器
+       回落到**系统原生滚动条**（又粗又突兀），看起来就像开关根本没生效 ——
+       跟随识别独立窗口的图鉴里那条就是这么冒出来的。
 
    注意：绝不能用裸 `* { scrollbar-width }` —— 通配会命中 <html>，把 base 层里
    html{scrollbar-width:none} 顶掉，而 html 带 overflow-y:scroll，
@@ -297,13 +301,37 @@ html.theme-switching *::after {
   background: transparent;
 }
 
-/* Firefox（Chrome 忽略这两个属性）。只作用于后代，刻意不含 <html>。 */
-.roco-scrollbar-on * {
-  scrollbar-width: thin;
-  scrollbar-color: #CBD5E1 transparent;
+/* ── 关闭态：全站不画任何滚动条（弹窗 / 列表 / 文本域同样适用） ────────
+   只是「看不见」，滚动能力完全保留（滚轮 / 触控板 / 键盘 / 拖拽都不受影响）。
+   <html> 自己那条本来就由 base 层隐藏，这里一并覆盖是为了防止将来有人
+   改掉 base 规则后关闭态又冒出一条原生滚动条。 */
+html.roco-scrollbar-off,
+html.roco-scrollbar-off * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-.roco-scrollbar-on.dark * {
-  scrollbar-color: #475569 transparent;
+html.roco-scrollbar-off *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* ── Firefox ────────────────────────────────────────────────────────
+   注意：Firefox **只**认 scrollbar-width / scrollbar-color，且一旦设置了
+   scrollbar-width，就会完全忽略 ::-webkit-scrollbar 系列（宽度、圆角、颜色全丢）。
+   而 ::-webkit-scrollbar 优先级更高、能精确控制宽度，所以 Chrome/Edge 走上面那套。
+
+   两边必须互斥，否则会出现「设置里填 12px 实际却是 thin(≈5px)」——
+   这正是之前宽度设置不生效的原因。
+   用 @supports 精确区分：只有不支持 -webkit 伪元素的引擎（Firefox）才吃这套。 */
+@supports not selector(::-webkit-scrollbar) {
+  .roco-scrollbar-on * {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+  }
+  .roco-scrollbar-on.dark * {
+    scrollbar-color: #475569 transparent;
+  }
 }
 
 /* 显式要求隐藏滚动条的容器不受上面影响 */

@@ -21,7 +21,7 @@ import { DownloadAppModal } from './components/DownloadAppModal';
 import { DataManageModal } from './components/DataManageModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { HomeScrollbar } from './components/HomeScrollbar';
-import { applyScrollbarSetting } from './services/scrollbarSetting';
+import { applyScrollbarSetting, DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR } from './services/scrollbarSetting';
 import { AssistantHub } from './components/AssistantHub';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
 import { AuthBadge } from './components/AuthBadge';
@@ -138,21 +138,21 @@ export default function App() {
     return storage.getSetting<FloatingButtonsMode>('floatingButtonsMode', 'normal');
   });
   const [showHomeScrollbar, setShowHomeScrollbar] = useState<boolean>(() => {
-    return storage.getSetting<boolean>('showHomeScrollbar', true);
+    return storage.getSettingCached<boolean>('showHomeScrollbar', DEFAULT_SHOW_SCROLLBAR);
   });
   const [homeScrollbarWidth, setHomeScrollbarWidth] = useState<number>(() => {
-    return storage.getSetting<number>('homeScrollbarWidth', 10);
+    return storage.getSettingCached<number>('homeScrollbarWidth', DEFAULT_SCROLLBAR_WIDTH);
   });
 
   /**
    * 滚动条设置 → <html>。
    *
-   * 全站滚动条样式（含各弹窗内部滚动条）都由这一个开关驱动；文档级那条原生
-   * 滚动条永远隐藏，页面改用 <HomeScrollbar/> 覆盖条，所以不会再出现
-   * 「自定义条 + 原生条」两条并存。逻辑抽到 services/scrollbarSetting，
-   * 让跟随识别那个独立文档也能复用同一套。
+   * 全站滚动条样式（含各弹窗内部滚动条）都由这一个开关驱动：开启 = 统一极简样式 +
+   * 首页右侧覆盖条；关闭 = 全站不显示滚动条（仍可滚动）。
+   * 具体应用逻辑在 services/scrollbarSetting 里，跟随识别那两个独立文档复用同一套，
+   * 它自己会订阅设置变化 + 等远程数据到达后重放，所以这里只需挂载一次。
    */
-  useEffect(() => applyScrollbarSetting(), [showHomeScrollbar, homeScrollbarWidth]);
+  useEffect(() => applyScrollbarSetting(), []);
 
   // Modal States
   const [isSingleRecognizerOpen, setIsSingleRecognizerOpen] = useState<boolean>(false);

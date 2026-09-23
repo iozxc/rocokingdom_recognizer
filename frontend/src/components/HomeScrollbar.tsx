@@ -164,11 +164,11 @@ export const HomeScrollbar: React.FC<HomeScrollbarProps> = ({ visible, width }) 
             aria-valuenow={Math.round(scrollTop)}
             onPointerDown={handleTrackPointerDown}
             style={{ width: scrollbarWidth }}
-            className="pointer-events-auto relative rounded-full bg-slate-200/50 dark:bg-slate-700/50 hover:bg-slate-200/90 dark:hover:bg-slate-700/80 transition-colors duration-150 select-none touch-none cursor-pointer"
+            className="pointer-events-auto relative rounded-full bg-slate-200/60 dark:bg-slate-700/40 hover:bg-slate-200/90 dark:hover:bg-slate-700/60 transition-colors duration-150 select-none touch-none cursor-pointer"
         >
           <div
               onPointerDown={handleThumbPointerDown}
-              className="absolute left-0 right-0 rounded-full bg-[#BCD7F2] dark:bg-slate-500 border border-[#E6EEF8]/80 dark:border-slate-600/80 hover:bg-[#7ABCF4] dark:hover:bg-slate-400 cursor-grab active:cursor-grabbing transition-colors duration-100"
+              className="absolute left-0 right-0 rounded-full bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500 cursor-grab active:cursor-grabbing transition-colors duration-100"
               style={{ top: thumbTop, height: thumbHeight }}
           />
         </div>
