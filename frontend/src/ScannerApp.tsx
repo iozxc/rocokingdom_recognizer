@@ -45,6 +45,7 @@ import { api } from './services/api';
 import { storage } from './services/storage';
 import { themeService } from './services/theme';
 import { authStore, useAuthStatus } from './services/auth';
+import { applyScrollbarSetting } from './services/scrollbarSetting';
 import { requestAuthDialog } from './services/authDialog';
 import { fireStorage } from './services/fireStorage';
 import { getFireTrialPetsCached } from './services/fireTrialData';
@@ -344,6 +345,9 @@ export const ScannerApp: React.FC = () => {
     authStore.init();
     return () => authStore.stop();
   }, []);
+
+  // 独立文档：滚动条设置不会从首页传过来，这里自己套用一次
+  useEffect(() => applyScrollbarSetting(), []);
   const [lastScanTime, setLastScanTime] = useState<string>('未识别');
 
   // 自动模式（自动识别选择界面 + 自动点亮对战精灵）

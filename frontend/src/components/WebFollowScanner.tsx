@@ -68,6 +68,7 @@ import { ScannerMapGalleryModal } from './ScannerMapGalleryModal';
 import { EncounterHistoryModal } from './EncounterHistoryModal';
 import { ModelAssetsModal } from './ModelAssetsModal';
 import { themeService } from '../services/theme';
+import { applyScrollbarSetting } from '../services/scrollbarSetting';
 import { MAP_CONFIGS } from '../data/mockPets';
 import type { PetItem } from '../types';
 
@@ -232,6 +233,21 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
       [hostedInPip, hostWindow],
   );
   const [capture, setCapture] = useState<CaptureState>(() => screenCapture.getState());
+
+  // 独立文档 / PiP 小窗：滚动条设置不会从首页传过来，这里自己套用一次
+  // （PiP 的 root 是它自己的 <html>，所以要针对 hostDoc 所在的 documentElement）。
+  useEffect(() => {
+    const doc = hostDoc();
+    const root = doc.documentElement;
+    const on = storage.getSetting<boolean>('showHomeScrollbar', true);
+    const w = Math.max(4, Math.min(16, Math.round(storage.getSetting<number>('homeScrollbarWidth', 10) || 10)));
+    root.classList.toggle('roco-scrollbar-on', on);
+    root.style.setProperty('--roco-scrollbar-w', `${w}px`);
+    return () => {
+      root.classList.remove('roco-scrollbar-on');
+      root.style.removeProperty('--roco-scrollbar-w');
+    };
+  }, [hostDoc]);
   const [slots, setSlots] = useState<SlotView[]>([]);
   const [busy, setBusy] = useState(false);
   const [statusText, setStatusText] = useState('');

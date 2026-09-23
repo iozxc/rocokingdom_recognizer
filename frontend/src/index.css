@@ -254,50 +254,65 @@ html.theme-switching *::after {
   animation: magic-scan 1.6s ease-in-out infinite;
 }
 
-/* ── 滚动条：与全站「中性玻璃 + 发丝线」风格统一 ─────────────────────
-   之前是 8px 实心蓝 #7ABCF4 圆角块（图三那种），和浅灰底、淡描边的
-   界面语言完全脱节，且 8px 太粗。现在：
-     · 收细到 10px 轨道 / 8px 拇指（含 1px 内描边，视觉更轻）
-     · 颜色改为浅灰 → 悬停才转主色，避免滚动条抢注视点
-     · 暗色改为 slate 中性色，不再用死黑
-   同时用 scrollbar-color 覆盖 Firefox（Chrome 会忽略它）。 */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+/* ── 滚动条：全站统一由「设置 → 首页滚动条」这一个开关控制 ──────────
+   开启状态挂在 <html> 上的 .roco-scrollbar-on，宽度用 CSS 变量
+   --roco-scrollbar-w 注入。
+
+   为什么这样拆：
+     · 文档级滚动条（<html>）**永远**隐藏 —— 页面改用 HomeScrollbar 覆盖条
+       （支持拖拽、宽度可调、固定不覆盖顶栏），所以文档只会有一条滚动条，
+       不会再出现「自定义条 + 原生条」并排两条。
+     · 内部容器（弹窗 / 列表 / 文本域）的滚动条由 .roco-scrollbar-on 决定：
+       开启 → 统一切成极简 slate 样式；关闭 → 回到浏览器原生外观。
+
+   注意：绝不能用裸 `* { scrollbar-width }` —— 通配会命中 <html>，把 base 层里
+   html{scrollbar-width:none} 顶掉，而 html 带 overflow-y:scroll，
+   于是又画出一条原生滚动条。这正是之前「一开开关就两条滚动条」的原因。 */
+.roco-scrollbar-on *::-webkit-scrollbar {
+  width: var(--roco-scrollbar-w, 10px);
+  height: var(--roco-scrollbar-w, 10px);
 }
-::-webkit-scrollbar-track {
+.roco-scrollbar-on *::-webkit-scrollbar-track {
   background: transparent;
 }
-::-webkit-scrollbar-thumb {
-  background: #CBD5E1;          /* slate-300 */
+.roco-scrollbar-on *::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;          /* slate-400 */
+.roco-scrollbar-on *::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
   background-clip: content-box;
 }
-.dark ::-webkit-scrollbar-thumb {
-  background: #475569;          /* slate-600 */
+.roco-scrollbar-on.dark *::-webkit-scrollbar-thumb {
+  background: #475569;
   background-clip: content-box;
 }
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #64748B;          /* slate-500 */
+.roco-scrollbar-on.dark *::-webkit-scrollbar-thumb:hover {
+  background: #64748B;
   background-clip: content-box;
 }
-::-webkit-scrollbar-corner {
+.roco-scrollbar-on *::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* Firefox（Chrome 不支持该属性，会自行忽略） */
-* {
+/* Firefox（Chrome 忽略这两个属性）。只作用于后代，刻意不含 <html>。 */
+.roco-scrollbar-on * {
   scrollbar-width: thin;
   scrollbar-color: #CBD5E1 transparent;
 }
-.dark * {
+.roco-scrollbar-on.dark * {
   scrollbar-color: #475569 transparent;
 }
+
+/* 显式要求隐藏滚动条的容器不受上面影响 */
+.roco-scrollbar-on .scrollbar-none,
+.roco-scrollbar-on .scrollbar-none *,
+.roco-scrollbar-on [class*='scrollbar-width:none'] {
+  scrollbar-width: none;
+}
+
 
 /* Highlight Target Pet Animation */
 @keyframes target-pulse {
@@ -372,41 +387,7 @@ html.theme-switching *::after {
   animation: map-pill-pulse 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2;
 }
 
-/* Custom scrollbar for horizontal and vertical scrolling */
-.custom-roco-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.custom-roco-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-roco-scrollbar::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-.custom-roco-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
-  background-clip: content-box;
-}
-.dark .custom-roco-scrollbar::-webkit-scrollbar-thumb {
-  background: #475569;
-  background-clip: content-box;
-}
-.dark .custom-roco-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #64748B;
-  background-clip: content-box;
-}
-.custom-roco-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #CBD5E1 transparent;
-}
-.dark .custom-roco-scrollbar {
-  scrollbar-color: #475569 transparent;
-}
-
-
+/* 兼容标记类 .custom-roco-scrollbar：样式已由上面的 .roco-scrollbar-on 统一提供 */
 /* 术语文本高亮：下划线 + 按术语名生成的强调色（.dark 下自动切亮色） */
 .term-text-hl {
   color: var(--term-color, #b45309);

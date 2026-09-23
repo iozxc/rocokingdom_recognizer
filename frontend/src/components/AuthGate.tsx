@@ -121,13 +121,13 @@ const AuthReminderToast: React.FC = () => {
     return null;
   }
   return (
-      <div className="fixed top-3 right-3 z-[995] max-w-[280px] bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 shadow-xl rounded-2xl px-3.5 py-3 flex items-start gap-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
-        <span className="w-7 h-7 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
-          <ShieldAlert className="w-4 h-4" />
+      <div className="fixed top-4 right-4 z-[995] w-[380px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 shadow-2xl rounded-2xl px-4 py-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+        <span className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
+          <ShieldAlert className="w-5 h-5" />
         </span>
         <div className="min-w-0">
-          <div className="text-xs font-black text-slate-800 dark:text-slate-100">设备尚未授权</div>
-          <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+          <div className="text-[15px] font-black text-slate-800 dark:text-slate-100">设备尚未授权</div>
+          <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
             全部功能仍可正常使用；如需授权，点右上角「未授权」按钮获取绑定指令。
           </p>
         </div>

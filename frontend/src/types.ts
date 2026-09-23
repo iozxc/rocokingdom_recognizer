@@ -282,8 +282,8 @@ export interface AppSettings {
   debugImageCap?: number; // debug 截图保留上限（张），0 = 关闭不保存（默认 0）
   fireSettings?: FireSettings; // 火系徽章试炼专属设置
   showPetSkillHover?: boolean; // petgrid 卡片 hover 时是否展示精灵技能面板（默认开启）
-  showHomeScrollbar?: boolean; // 首页自定义滚动条是否显示（默认关闭）
-  homeScrollbarWidth?: number; // 首页自定义滚动条宽度 px（默认 10）
+  showHomeScrollbar?: boolean; // 自定义滚动条是否显示（全站生效：含弹窗内部；默认开启）
+  homeScrollbarWidth?: number; // 自定义滚动条宽度 px（全站生效；默认 10）
   searchFilterPosition?: SearchFilterPosition; // 搜索/筛选位置：position1=统计栏，position2=PetGrid 右上角（默认）
   statsLayoutMode?: StatsLayoutMode; // 地图信息栏布局：merged=并入 PetGrid（默认）| separate=顶部独立统计栏经典版
   [key: string]: unknown;

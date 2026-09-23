@@ -59,7 +59,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     return storage.getSetting<boolean>('showPetSkillHover', true);
   });
   const [showHomeScrollbar, setShowHomeScrollbar] = useState<boolean>(() => {
-    return storage.getSetting<boolean>('showHomeScrollbar', false);
+    return storage.getSetting<boolean>('showHomeScrollbar', true);
   });
   const [homeScrollbarWidth, setHomeScrollbarWidth] = useState<number>(() => {
     return storage.getSetting<number>('homeScrollbarWidth', 10);
@@ -135,7 +135,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setShowSamples(storage.getSetting<boolean>('showRecognitionSamples', true));
     setShowDuplicateHint(storage.getSetting<boolean>('showDuplicatePetHint', true));
     setShowPetSkillHover(storage.getSetting<boolean>('showPetSkillHover', true));
-    setShowHomeScrollbar(storage.getSetting<boolean>('showHomeScrollbar', false));
+    setShowHomeScrollbar(storage.getSetting<boolean>('showHomeScrollbar', true));
     setHomeScrollbarWidth(storage.getSetting<number>('homeScrollbarWidth', 10));
     const savedUpdateMode = storage.getSetting<'auto' | 'full'>('updateMode', 'auto');
     if (savedUpdateMode === 'auto' || savedUpdateMode === 'full') {
@@ -880,19 +880,19 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
                     {/* 首页滚动条设置 */}
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">首页滚动条</div>
+                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">滚动条</div>
 
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">显示自定义滚动条</div>
-                          <div className="text-[10px] text-slate-400">在首页右侧显示精致滚动条，不触及顶部标题栏（默认关闭）</div>
+                          <div className="text-[10px] text-slate-400">统一全站滚动条样式（含弹窗内滚动条），并在首页右侧显示精致滚动条（默认开启）</div>
                         </div>
                         <button
                             type="button"
                             id="system-home-scrollbar-switch-btn"
                             onClick={handleToggleHomeScrollbar}
                             className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showHomeScrollbar ? 'bg-[#95D151]' : 'bg-slate-200 dark:bg-slate-700'}`}
-                            title={showHomeScrollbar ? '点击关闭首页滚动条' : '点击开启首页滚动条'}
+                            title={showHomeScrollbar ? '点击关闭自定义滚动条' : '点击开启自定义滚动条'}
                         >
                           <span
                               className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showHomeScrollbar ? 'translate-x-4' : 'translate-x-0'}`}
