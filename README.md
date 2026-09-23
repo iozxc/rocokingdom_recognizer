@@ -23,7 +23,7 @@
 
 - 具体样式 & 特殊点位识别：
 
-![具体样式 & 特殊点位识别](resources/img_2.png)
+<img src="resources/img_2.png" alt="具体样式 & 特殊点位识别" style="zoom: 50%;" />
 
 ## 主页面同步展示
 
@@ -36,7 +36,7 @@
 ![历史记录](resources/img_5.png)
 
 ## 技能搜索
-![技能搜索](resources/img_6.png)
+<img src="resources/img_6.png" alt="技能搜索" style="zoom:67%;" />
 # 下载
 
 > 下面的链接**始终指向最新版本**，直接点进去就能看到当前最新版，不需要自己找版本号。
