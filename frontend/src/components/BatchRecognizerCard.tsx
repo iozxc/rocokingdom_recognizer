@@ -977,7 +977,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
             className="flex items-center justify-between gap-3 pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-800 flex-wrap"
         >
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#7ABCF4] text-white flex items-center justify-center shadow-xs">
+            {/* 卡片标识：跟卡内徽章 / 按钮用同一套「浅色 chip」语言（浅底 + 2px 描边 + 主色图标），
+                不再用整块实心主色，避免这一处比整页其它元素都「重」。 */}
+            <div className="w-9 h-9 rounded-2xl bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 border-2 border-[#BCD7F2] dark:border-sky-800 flex items-center justify-center shadow-2xs shrink-0">
               <Layers className="w-5 h-5" />
             </div>
             <div>
@@ -1511,7 +1513,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                           id="batch-card-scan-btn"
                           disabled={!previewUrl || isScanning}
                           onClick={handleStartBatchScan}
-                          className="w-full py-3.5 px-5 roco-btn-primary flex items-center justify-center gap-2 text-sm font-black shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed rounded-xl cursor-pointer transition-all active:scale-[0.98]"
+                          className="w-full py-3.5 px-5 roco-btn-primary flex items-center justify-center gap-2 text-sm font-black shadow-xs hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed rounded-xl! cursor-pointer transition-all active:scale-[0.98]"
                       >
                         {isScanning ? (
                             <>
