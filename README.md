@@ -17,37 +17,26 @@
 
 ### 游戏跟随识别
 
-- 游戏画面可直接识别出当前试炼关卡（图1-3）和精灵
+- 游戏画面可直接识别出当前阶段和精灵槽位
 
-![image-20260825055259984](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825055259984.png)
+![游戏跟随识别](resources/img_1.png)
 
-- 具体样式：
+- 具体样式 & 特殊点位识别：
 
-<img src="https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260825054912897.png" alt="image-20260825054912897" style="zoom: 67%;" />
-
-### 特殊点位识别
-
-![5e7edeec8005c1c561443980042e1ec3](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/5e7edeec8005c1c561443980042e1ec3.jpg)
+![具体样式 & 特殊点位识别](resources/img_2.png)
 
 ## 主页面同步展示
 
-![主页面同步展示](https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/img_4.png)
+![主页面同步展示](resources/img_3.png)
+
+## 初始化识别对比
+![主页面同步展示](resources/img_4.png)
 
 ## 历史记录
+![历史记录](resources/img_5.png)
 
-![历史记录](https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer/raw/master/resources/img_5.png)
-
-
-## 单个精灵识别（通过截图或者上传图片）
-
-![image-20260819035235016](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260819035235016.png)
-
-## 批量初始化
-
-在冒险日志里截图，行数不限
-
-![image-20260819035347119](https://omisheep-img.oss-cn-guangzhou.aliyuncs.com/pic/image-20260819035347119.png)
-
+## 技能搜索
+![技能搜索](resources/img_6.png)
 # 下载
 
 > 下面的链接**始终指向最新版本**，直接点进去就能看到当前最新版，不需要自己找版本号。
