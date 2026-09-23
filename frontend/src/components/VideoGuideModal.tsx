@@ -296,7 +296,7 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
                             key={it.key}
                             type="button"
                             onClick={() => { sound.playClick(); setPlaying(i); }}
-                            className="group text-left rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 shadow-xs hover:shadow-md transition-all cursor-pointer"
+                            className="group flex flex-col items-stretch text-left rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-500 shadow-xs hover:shadow-md transition-all cursor-pointer"
                         >
                           <div className="relative w-full aspect-video bg-slate-100 dark:bg-slate-900 overflow-hidden">
                             {coverOk ? (
@@ -326,7 +326,7 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
                                 </span>
                             )}
                           </div>
-                          <div className="p-2.5">
+                          <div className="p-2.5 flex-1">
                             <p className="text-xs font-black text-slate-800 dark:text-slate-100 leading-snug line-clamp-2 min-h-[2.5em]">
                               {it.name || `视频 ${i + 1}`}
                             </p>
