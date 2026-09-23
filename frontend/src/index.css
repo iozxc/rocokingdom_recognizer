@@ -478,3 +478,28 @@ html.roco-scrollbar-off *::-webkit-scrollbar {
 .fab-enter-noanim * {
   transition: none !important;
 }
+
+/* 未授权声明卡入场：淡入 + 轻微上浮缩放。
+   不用 tw-animate 的 animate-in/fade-in：fade-in 只设 --tw-enter-opacity:0，而
+   @keyframes enter 没有 to 帧、fill-mode 默认 none，属性残留会让卡片发虚；
+   这里用普通关键帧并显式收尾 opacity:1 / transform:none。 */
+@keyframes roco-auth-notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.roco-auth-notice {
+  /* 基线完全不透明（动画结束后也保持） */
+  opacity: 1;
+  animation: roco-auth-notice-in 0.2s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .roco-auth-notice {
+    animation: none;
+  }
+}
