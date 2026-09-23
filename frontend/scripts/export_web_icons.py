@@ -389,7 +389,14 @@ def prepare_public_assets(icons_dir, elements_dir, resources_dir):
 
     resource_dir = ROOT / "resources"
     if resource_dir.exists():
-        for name in ("chat.json",):
+        # videos.json 必须在这里一并补回：上面的 main() 会把 public-web/resources/ 整个删掉
+        # 再重建，而 build:web 的顺序是 sync:web:resources → export:web:icons，
+        # 所以只要图鉴走到「缓存未命中、真重建」这条路径（全新克隆、刚改过 datasets），
+        # sync 刚同步进来的 videos.json 就会被删掉。
+        # 表现：web 端「视频攻略」请求 404，ESA 的 SPA 兜底把 index.html 当 JSON 返回，
+        # 控制台报 Unexpected token '<'。放到这里后，本函数自身就能保证资源齐全，
+        # 不再依赖 build:web 的步骤顺序。
+        for name in ("chat.json", "videos.json"):
             src = resource_dir / name
             if src.exists():
                 shutil.copy2(src, resources_dir / name)
