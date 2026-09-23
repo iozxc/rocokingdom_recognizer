@@ -285,28 +285,29 @@ export const PetGrid: React.FC<PetGridProps> = ({
         {/* Section Header */}
         {statsLayoutMode === 'merged' ? (
           <div className="relative pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
-            <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
+            {/* ===== 宽屏（md+）：地图信息与进度左右并排 ===== */}
+            <div className="relative z-10 hidden md:flex md:items-center justify-between gap-4">
               {/* Left: Map Information & Level Badge (merged from StatsBanner) */}
-              <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 flex-1 min-w-0">
+              <div className="flex items-center gap-3.5 flex-1 min-w-0">
                 <div
-                  className="w-10 h-10 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center text-xl sm:text-2xl border-2 shrink-0 bg-[#F5F9FF] dark:bg-slate-800 shadow-xs"
+                  className="w-13 h-13 rounded-2xl flex items-center justify-center text-2xl border-2 shrink-0 bg-[#F5F9FF] dark:bg-slate-800 shadow-xs"
                   style={{ borderColor: currentMap.themeColor }}
                 >
                   {mapEmoji}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                    <span className={`text-[10px] sm:text-[11px] font-black px-1.5 sm:px-2 py-0.5 rounded-lg border ${currentMap.badgeBg} dark:bg-slate-800 dark:border-slate-700`}>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-[11px] font-black px-2 py-0.5 rounded-lg border ${currentMap.badgeBg} dark:bg-slate-800 dark:border-slate-700`}>
                       地图 #{currentMap.num}
                     </span>
-                    <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-1.5 truncate">
-                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7ABCF4] shrink-0" />
+                    <h3 className="text-lg lg:text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-1.5 truncate">
+                      <MapPin className="w-4 h-4 text-[#7ABCF4] shrink-0" />
                       <span>{currentMap.name}</span>
                     </h3>
                   </div>
 
                   {/* 合并版不展示地图描述（描述保留在经典版顶部统计栏） */}
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 sm:mt-1 flex items-center gap-1.5 flex-wrap">
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
                     <span>点击卡片即可直接切换【已遇见 / 未遇见】状态</span>
                     {filterMode !== 'all' && (
                       <span className="text-[10px] font-mono">（当前显示 {filteredPets.length}）</span>
@@ -316,7 +317,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
               </div>
 
               {/* Right: 集成式进度（环形进度 + 计数文字，与标题区融为一体，不再用独立卡片） */}
-              <div className="flex items-center justify-end gap-3 sm:gap-4 shrink-0 w-full md:w-auto">
+              <div className="flex items-center justify-end gap-4 shrink-0">
                 <div className="relative w-[46px] h-[46px] shrink-0">
                   <svg width={PROGRESS_RING_SIZE} height={PROGRESS_RING_SIZE} viewBox={`0 0 ${PROGRESS_RING_SIZE} ${PROGRESS_RING_SIZE}`} className="-rotate-90">
                     <defs>
@@ -401,6 +402,122 @@ export const PetGrid: React.FC<PetGridProps> = ({
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* ===== 窄屏（<md）：紧凑四行布局——标题行内嵌进度环，全宽线性进度条，状态左右分布 ===== */}
+            <div className="relative z-10 flex md:hidden flex-col gap-2">
+              {/* 第一行：地图图标 + 编号徽章/标题 + 进度环 */}
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border-2 shrink-0 bg-[#F5F9FF] dark:bg-slate-800 shadow-xs"
+                  style={{ borderColor: currentMap.themeColor }}
+                >
+                  {mapEmoji}
+                </div>
+                <div className="flex-1 min-w-0 flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-lg border shrink-0 ${currentMap.badgeBg} dark:bg-slate-800 dark:border-slate-700`}>
+                    地图 #{currentMap.num}
+                  </span>
+                  <h3 className="text-base font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-1 min-w-0">
+                    <MapPin className="w-3.5 h-3.5 text-[#7ABCF4] shrink-0" />
+                    <span className="truncate">{currentMap.name}</span>
+                  </h3>
+                </div>
+                {/* 进度环内嵌标题行右端 */}
+                <div className="relative w-10 h-10 shrink-0">
+                  <svg width={40} height={40} viewBox="0 0 40 40" className="-rotate-90">
+                    <defs>
+                      <linearGradient id={`${progressRingId}-grad-sm`} x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#95D151" />
+                        <stop offset="100%" stopColor="#7ABCF4" />
+                      </linearGradient>
+                    </defs>
+                    <circle
+                      cx={20}
+                      cy={20}
+                      r={17.75}
+                      fill="none"
+                      strokeWidth={4.5}
+                      className="stroke-[#EAF1F8] dark:stroke-slate-700"
+                    />
+                    <circle
+                      cx={20}
+                      cy={20}
+                      r={17.75}
+                      fill="none"
+                      strokeWidth={4.5}
+                      strokeLinecap="round"
+                      stroke={`url(#${progressRingId}-grad-sm)`}
+                      strokeDasharray={2 * Math.PI * 17.75}
+                      strokeDashoffset={2 * Math.PI * 17.75 * (1 - percentage / 100)}
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[9px] font-black font-mono text-[#2B78C4] dark:text-sky-300">
+                    {percentage}%
+                  </span>
+                </div>
+              </div>
+
+              {/* 第二行：操作提示 */}
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 flex-wrap">
+                <span>点击卡片即可直接切换【已遇见 / 未遇见】状态</span>
+                {filterMode !== 'all' && (
+                  <span className="text-[10px] font-mono">（当前显示 {filteredPets.length}）</span>
+                )}
+              </p>
+
+              {/* 第三行：计数在左，剩余提示/重置在右（进度已由标题行进度环表达，不再重复显示线性进度条） */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1 text-[11px] font-black shrink-0">
+                  <span className="text-slate-600 dark:text-slate-300">已遇见</span>
+                  <span className="font-mono text-[#2B78C4] dark:text-sky-300">
+                    {encounteredCount}<span className="text-slate-400 dark:text-slate-500"> / {totalCount}</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium min-w-0">
+                  <span className="truncate">{unencounteredCount === 0 ? '🎉 已全部遇见' : `还差 ${unencounteredCount} 只完成`}</span>
+                  {onResetEncounters && encounteredCount > 0 ? (
+                    <button
+                      type="button"
+                      id="reset-map-encounters-btn-sm"
+                      onClick={() => {
+                        sound.playClick();
+                        setIsResetConfirmOpen(true);
+                      }}
+                      title="清空当前关卡遇见记录"
+                      className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-0.5 cursor-pointer hover:underline shrink-0"
+                    >
+                      <RotateCcw className="w-2.5 h-2.5" />
+                      <span>重置记录</span>
+                    </button>
+                  ) : (
+                    <span className="shrink-0">{percentage >= 100 ? '已完成' : '收集进行中'}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* 数据更新提示（窄屏独占一行，左对齐） */}
+              {dataUpdateAvailable && onOpenDataUpdate && (
+                <div className="flex items-center gap-1 pt-0.5">
+                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    图鉴数据库有更新
+                  </span>
+                  <button
+                    type="button"
+                    id="data-update-btn-sm"
+                    onClick={() => {
+                      sound.playClick();
+                      onOpenDataUpdate();
+                    }}
+                    className="text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-0.5 cursor-pointer hover:underline"
+                  >
+                    <ArrowUpCircle className="w-3 h-3 text-sky-500" />
+                    <span>前往更新</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Filter tabs + search controls */}
@@ -499,7 +616,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
             </div>
         ) : (
             /* Uniform Grid of Scaled Pet Icons - Responsive density on mobile phones & desktop */
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] sm:grid-cols-[repeat(auto-fill,150px)] justify-center gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] sm:grid-cols-[repeat(auto-fill,150px)] justify-center gap-2 sm:gap-4">
               {filteredPets.map((pet) => {
                 const key = `${currentMap.id}_${pet.name}`;
                 const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);
