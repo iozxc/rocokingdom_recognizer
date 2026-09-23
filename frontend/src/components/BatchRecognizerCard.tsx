@@ -1072,7 +1072,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
             <HintTooltip
                 side="bottom"
                 content="只在所选地图的精灵图鉴范围内匹配，过滤掉其它地图的结果，识别更准。"
-                className="shrink-0 cursor-help self-center"
+                className="shrink-0 cursor-help self-start lg:self-center"
             >
               <span className="text-xs font-black text-slate-700 dark:text-slate-200 whitespace-nowrap flex items-center gap-0.5">
                 目标地图:<Info className="w-3 h-3 text-slate-400" />

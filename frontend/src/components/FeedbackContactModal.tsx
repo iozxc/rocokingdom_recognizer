@@ -13,6 +13,7 @@ import {
     Sparkles,
 } from 'lucide-react';
 import { sound } from '../services/sound';
+import { ModalHeader, ModalHeaderBadge } from './ModalHeader';
 import { api } from '../services/api';
 import { IS_STATIC } from '../services/staticMode';
 
@@ -135,35 +136,15 @@ export const FeedbackContactModal: React.FC<FeedbackContactModalProps> = ({
                 className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-w-[540px] w-full overflow-hidden flex flex-col transition-colors"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* ── Header：柔和渐变，去掉厚重的描边 ───────────────── */}
-                <div className="relative bg-gradient-to-br from-[#8FC7F7] via-[#7ABCF4] to-[#5DA8E8] dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 px-5 py-4 text-white">
-                    {/* 右上角柔光，避免大色块显得死板 */}
-                    <div className="pointer-events-none absolute -top-10 -right-6 w-32 h-32 rounded-full bg-white/15 blur-2xl" />
-                    <div className="relative flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-2xl bg-white/20 ring-1 ring-inset ring-white/30 backdrop-blur-sm flex items-center justify-center shrink-0">
-                                <Users className="w-5 h-5 text-white" />
-                            </div>
-                            <div className="min-w-0">
-                                <h3 className="text-[15px] font-black tracking-tight leading-tight">联系与反馈</h3>
-                                <p className="text-[11px] text-white/85 font-medium mt-0.5">
-                                    加入玩家群交流，或直接提交问题与建议
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            aria-label="关闭"
-                            onClick={() => {
-                                sound.playClick();
-                                onClose();
-                            }}
-                            className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
+                {/* ── Header ───────────────────────────────────────── */}
+                <ModalHeader
+                    icon={Users}
+                    tone="violet"
+                    title="联系与反馈"
+                    subtitle="加入玩家群交流，或直接提交问题与建议"
+                    onClose={onClose}
+                    closeTitle="关闭 (Esc)"
+                />
 
                 {/* ── Content ───────────────────────────────────────── */}
                 <div className="px-5 py-4 space-y-5 max-h-[76vh] overflow-y-auto custom-roco-scrollbar">

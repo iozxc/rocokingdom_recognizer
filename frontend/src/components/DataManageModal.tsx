@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { X, Upload, Download, Database, CheckCircle2, AlertTriangle, FileJson, Plus, UserRound, Trash2, Pencil, Search, Cloud, RefreshCw, Unlink, KeyRound, ShieldAlert, MonitorSmartphone } from 'lucide-react';
 import { sound } from '../services/sound';
+import { ModalHeader } from './ModalHeader';
 import { storage } from '../services/storage';
 import { fireStorage } from '../services/fireStorage';
 import { api } from '../services/api';
@@ -674,24 +675,17 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
            onWheel={(e) => e.stopPropagation()} onClick={onClose}>
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-hidden flex flex-col transition-colors"
+        <div className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-w-2xl w-full max-h-[92vh] overflow-hidden flex flex-col transition-colors"
              onClick={(e) => e.stopPropagation()}>
           {/* Header */}
-          <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
-                <Database className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-base font-black tracking-tight">数据管理</h3>
-                <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">导入 / 导出 + 多账号管理</p>
-              </div>
-            </div>
-            <button type="button" onClick={() => { sound.playClick(); onClose(); }}
-                    className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          <ModalHeader
+              icon={Database}
+              tone="sky"
+              title="数据管理"
+              subtitle="导入 / 导出 + 多账号管理"
+              onClose={onClose}
+              closeTitle="关闭 (Esc)"
+          />
 
           <div className="p-5 sm:p-6 space-y-4 overflow-y-auto max-h-[92vh]">
             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
@@ -1227,13 +1221,15 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
         {showAgreement && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
                  onWheel={(e) => e.stopPropagation()}>
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-lg w-full max-h-[88vh] overflow-hidden flex flex-col">
-                <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-3.5 text-white flex items-center gap-2.5 border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">
-                  <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center">
-                    <ShieldAlert className="w-4 h-4 text-[#FEE061]" />
-                  </div>
-                  <h3 className="text-base font-black tracking-tight">云端同步协议</h3>
-                </div>
+              <div className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-w-lg w-full max-h-[88vh] overflow-hidden flex flex-col">
+                <ModalHeader
+                    icon={ShieldAlert}
+                    tone="amber"
+                    title="云端同步协议"
+                    subtitle="请阅读以下说明后再决定是否启用"
+                    onClose={() => setShowAgreement(false)}
+                    closeTitle="关闭"
+                />
 
                 <div className="p-5 space-y-3 overflow-y-auto">
                   <p className="text-xs font-black text-slate-800 dark:text-slate-100">使用云端同步会发生什么：</p>

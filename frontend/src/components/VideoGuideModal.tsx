@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, ListVideo, MonitorPlay, Play, RotateCw, X } from 'lucide-react';
 import { sound } from '../services/sound';
+import { ModalHeader } from './ModalHeader';
 import { IS_STATIC } from '../services/staticMode';
 import { api } from '../services/api';
 import {
@@ -241,53 +242,43 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
           onClick={onClose}
       >
         <div
-            className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-sky-500 shadow-2xl p-3 sm:p-4 flex flex-col max-h-[92vh]"
+            className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 overflow-hidden flex flex-col max-h-[92vh]"
             onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2 min-w-0">
-              {playing !== null && (
+          <ModalHeader
+              icon={playing !== null ? MonitorPlay : ListVideo}
+              tone="rose"
+              title={title || '视频攻略'}
+              subtitle={playing !== null ? current?.name : '点击封面即可就地播放'}
+              onClose={onClose}
+              closeTitle="关闭 (Esc)"
+              actions={
+                <>
+                  {playing !== null && (
+                      <button
+                          type="button"
+                          onClick={() => { sound.playClick(); setPlaying(null); }}
+                          className="h-8 px-2.5 rounded-xl bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 text-xs font-black transition-colors cursor-pointer shrink-0"
+                          title="返回视频列表 (Esc)"
+                      >
+                        ← 列表
+                      </button>
+                  )}
                   <button
                       type="button"
-                      onClick={() => { sound.playClick(); setPlaying(null); }}
-                      className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-black transition-colors cursor-pointer shrink-0"
-                      title="返回视频列表 (Esc)"
+                      onClick={refreshMeta}
+                      className="w-8 h-8 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                      title="刷新视频信息（标题/封面/播放量）"
                   >
-                    ← 列表
+                    <RotateCw className="w-4 h-4" />
                   </button>
-              )}
-              <span className="w-7 h-7 rounded-xl bg-[#7ABCF4] dark:bg-sky-600 text-white flex items-center justify-center shrink-0">
-                {playing !== null ? <MonitorPlay className="w-4 h-4" /> : <ListVideo className="w-4 h-4" />}
-              </span>
-              <span className="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100 truncate">
-                {title || '视频攻略'}
-                {playing !== null && current?.name ? ` · ${current.name}` : ''}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                  type="button"
-                  onClick={refreshMeta}
-                  className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors cursor-pointer"
-                  title="刷新视频信息（标题/封面/播放量）"
-              >
-                <RotateCw className="w-4 h-4" />
-              </button>
-              <button
-                  type="button"
-                  onClick={() => { sound.playClick(); onClose(); }}
-                  className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-black transition-colors cursor-pointer"
-                  title="关闭 (Esc)"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+                </>
+              }
+          />
 
           {/* 卡片列表 */}
           {showCards && (
-              <div className="overflow-y-auto pr-1 custom-scrollbar">
+              <div className="overflow-y-auto p-3 sm:p-4 custom-scrollbar">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {resolved.map((it, i) => {
                     const stage = coverStage[it.key] || 'direct';
@@ -354,7 +345,7 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
           {/* 播放器 */}
           {!showCards && (
               <>
-                <div className="w-full aspect-video rounded-2xl overflow-hidden bg-slate-950/5 dark:bg-slate-950/40 shrink-0">
+                <div className="m-3 sm:m-4 w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] aspect-video rounded-2xl overflow-hidden bg-slate-950/5 dark:bg-slate-950/40 shrink-0">
                   {(current || resolved[0]) ? (
                       <iframe
                           key={(current || resolved[0]).embed}
@@ -373,7 +364,7 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
                       </div>
                   )}
                 </div>
-                <div className="pt-3 mt-1 flex items-center justify-between gap-2 flex-wrap">
+                <div className="px-3 sm:px-4 pb-3 sm:pb-4 flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-[11px] text-slate-400 dark:text-slate-500">
                     {resolved.length > 1 ? '视频加载失败时可返回列表换一个，或前往原站观看' : '视频加载失败时，可尝试前往原站观看'}
                   </span>

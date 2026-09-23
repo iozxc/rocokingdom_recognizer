@@ -17,6 +17,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { sound } from '../services/sound';
+import { ModalHeader } from './ModalHeader';
 import { api } from '../services/api';
 import { UpdateTimeline } from './UpdateTimeline';
 import { APP_VERSION } from '../version';
@@ -112,35 +113,18 @@ export const DownloadAppModal: React.FC<DownloadAppModalProps> = ({ isOpen, onCl
           onClick={onClose}
       >
         <div
-            className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col transition-colors"
+            className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-w-5xl w-full overflow-hidden flex flex-col transition-colors"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-4 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
-                <Download className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-base font-black tracking-tight">
-                  下载桌面版 · 使用完整识别 AI
-                </h3>
-                <p className="text-[11px] text-white/80 dark:text-slate-300 font-medium">
-                  网页版已支持识别与云端同步；桌面端在精度、体验与数据上更进一步
-                </p>
-              </div>
-            </div>
-            <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  onClose();
-                }}
-                className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          <ModalHeader
+              icon={Download}
+              tone="violet"
+              title="下载桌面版 · 使用完整识别 AI"
+              subtitle="网页版已支持识别与云端同步；桌面端在精度、体验与数据上更进一步"
+              onClose={onClose}
+              closeTitle="关闭 (Esc)"
+          />
 
           {/* Content —— 左侧下载内容（独立滚动）+ 右侧更新日志（与桌面版检查更新弹窗一致） */}
           <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_340px] gap-4 p-4 sm:p-5 md:max-h-[78vh] overflow-hidden">

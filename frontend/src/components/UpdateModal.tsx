@@ -20,6 +20,7 @@ import {
     ChevronDown,
 } from 'lucide-react';
 import { sound } from '../services/sound';
+import { ModalHeader, ModalHeaderBadge } from './ModalHeader';
 import { useUpdateStore } from '../services/useUpdateStore';
 import { updateStore } from '../services/updateStore';
 import { api } from '../services/api';
@@ -339,31 +340,14 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="relative bg-gradient-to-br from-[#8FC7F7] via-[#7ABCF4] to-[#5DA8E8] dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 px-5 py-4 text-white shrink-0">
-                    <div className="pointer-events-none absolute -top-10 -right-6 w-32 h-32 rounded-full bg-white/15 blur-2xl" />
-                    <div className="relative flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-2xl bg-white/20 ring-1 ring-inset ring-white/30 backdrop-blur-sm flex items-center justify-center shrink-0">
-                                <ArrowUpCircle className="w-5 h-5 text-[#FEE061]" />
-                            </div>
-                            <div className="min-w-0">
-                                <h3 className="text-[15px] font-black tracking-tight leading-tight">检查版本更新</h3>
-                                <p className="text-[11px] text-white/85 font-medium mt-0.5">获取最新版本、更新日志与下载渠道</p>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            aria-label="关闭"
-                            onClick={() => {
-                                sound.playClick();
-                                onClose();
-                            }}
-                            className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
+                <ModalHeader
+                    icon={ArrowUpCircle}
+                    tone="violet"
+                    title="检查版本更新"
+                    subtitle="获取最新版本、更新日志与下载渠道"
+                    onClose={onClose}
+                    closeTitle="关闭 (Esc)"
+                />
 
                 {/* Content —— 左侧主内容（独立滚动）+ 右侧固定高度更新日志 */}
                 {isLoading ? (

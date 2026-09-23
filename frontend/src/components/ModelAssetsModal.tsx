@@ -14,6 +14,7 @@ import { ORT_VERSION } from '../version';
 import { clearAssetsUsed, isAssetUsed } from '../services/assetUsed';
 import { X, Download, CheckCircle2, Trash2, Loader2, RefreshCw, Database, ScanSearch } from 'lucide-react';
 import { sound } from '../services/sound';
+import { ModalHeader } from './ModalHeader';
 import { storage } from '../services/storage';
 import {
   assetVersion,
@@ -422,28 +423,23 @@ export const ModelAssetsModal: React.FC<ModelAssetsModalProps> = ({ isOpen, onCl
           onClick={onClose}
       >
         <div
-            className="w-full max-w-lg max-h-[88vh] flex flex-col overflow-hidden rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 bg-[#F8FBFE] dark:bg-slate-900 shadow-2xl"
+            className="w-full max-w-lg max-h-[88vh] flex flex-col overflow-hidden rounded-[26px] ring-1 ring-slate-900/5 dark:ring-white/10 bg-[#F8FBFE] dark:bg-slate-900 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-[#7ABCF4] dark:bg-slate-800 px-4 py-3 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center">
-                <Database className="w-4 h-4" />
-              </div>
-              <h3 className="text-sm font-black tracking-tight">识别模型列表</h3>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button type="button" onClick={() => { sound.playClick(); void refresh(); }} disabled={loading}
-                      title="重新检查缓存状态"
-                      className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center disabled:opacity-50 cursor-pointer">
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-              <button type="button" onClick={() => { sound.playClick(); onClose(); }}
-                      className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          <ModalHeader
+              icon={Database}
+              tone="slate"
+              title="识别模型列表"
+              onClose={onClose}
+              closeTitle="关闭"
+              actions={
+                <button type="button" onClick={() => { sound.playClick(); void refresh(); }} disabled={loading}
+                        title="重新检查缓存状态"
+                        className="w-8 h-8 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-700 flex items-center justify-center disabled:opacity-50 cursor-pointer transition-colors">
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+              }
+          />
 
           <div className="p-3.5 space-y-2.5 overflow-y-auto">
             {manifestMissing ? (

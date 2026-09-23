@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { AgreementBody } from './AgreementBody';
+import { ModalHeader } from './ModalHeader';
 import { api } from '../services/api';
 import { IS_STATIC } from '../services/staticMode';
 
@@ -115,22 +116,17 @@ export const AgreementGate: React.FC<{ children: React.ReactNode }> = ({ childre
                 onWheel={(e) => e.stopPropagation()}
             >
               <div
-                  className="relative w-full max-w-lg max-h-[88vh] bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col transition-colors"
+                  className="relative w-full max-w-lg max-h-[88vh] bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 overflow-hidden flex flex-col transition-colors"
                   onClick={(e) => e.stopPropagation()}
               >
 
                 {/* 顶部标题栏 */}
-                <div className="px-4 py-3 bg-[#7ABCF4] dark:bg-slate-800 text-white flex items-center gap-2.5 border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">
-                  <div className="w-8 h-8 rounded-lg bg-white/20 border border-white/40 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <h1 className="text-sm font-black tracking-tight">严正提醒</h1>
-                    <p className="text-[10.5px] text-white/85 dark:text-slate-300 font-medium">
-                      请先阅读以下说明，再决定是否继续使用本程序。
-                    </p>
-                  </div>
-                </div>
+                <ModalHeader
+                    icon={ShieldCheck}
+                    tone="amber"
+                    title="严正提醒"
+                    subtitle="请先阅读以下说明，再决定是否继续使用本程序。"
+                />
 
                 {/* 协议正文：可滚动 */}
                 <div

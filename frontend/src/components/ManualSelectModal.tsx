@@ -82,7 +82,7 @@ export const ManualSelectModal: React.FC<ManualSelectModalProps> = ({
           onClick={onClose}
       >
         <div
-            className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#7ABCF4] shadow-2xl p-5 sm:p-6 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
+            className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 p-5 sm:p-6 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}

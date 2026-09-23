@@ -20,6 +20,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { sound } from '../services/sound';
+import { ModalHeader, ModalHeaderBadge } from './ModalHeader';
 
 interface UserManualModalProps {
   isOpen: boolean;
@@ -48,40 +49,19 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
       onWheel={(e) => e.stopPropagation()}
     >
       <div
-        className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-4xl w-full h-[88vh] max-h-[820px] overflow-hidden flex flex-col transition-colors"
+        className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-w-4xl w-full h-[88vh] max-h-[820px] overflow-hidden flex flex-col transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-3.5 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-black tracking-tight">洛克王国徽章助手 · 使用手册</h3>
-                <span className="text-[10px] font-bold bg-white/20 border border-white/40 px-2 py-0.5 rounded-full">
-                  图文指南
-                </span>
-              </div>
-              <p className="text-[11px] text-white/85 dark:text-slate-300 font-medium">
-                详细操作说明、AI 识别指引、快捷键与常见疑问全解答
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              sound.playClick();
-              onClose();
-            }}
-            className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
-            title="关闭手册"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
+        <ModalHeader
+            icon={BookOpen}
+            tone="sky"
+            title="洛克王国徽章助手 · 使用手册"
+            badge={<ModalHeaderBadge>图文指南</ModalHeaderBadge>}
+            subtitle="详细操作说明、AI 识别指引、快捷键与常见疑问全解答"
+            onClose={onClose}
+            closeTitle="关闭手册"
+        />
         {/* Tab Navigation */}
         <div className="bg-[#F0F6FC] dark:bg-slate-800/80 px-3 py-2 border-b border-[#D5E3F0] dark:border-slate-700 flex items-center gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
           {tabs.map((tab) => {

@@ -15,6 +15,7 @@ import {
 import { EncounterRecord, MapConfig, PetItem } from '../types';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { sound } from '../services/sound';
+import { ModalHeader, ModalHeaderBadge } from './ModalHeader';
 import { formatPetName } from '../utils/petHelper';
 import { api } from '../services/api';
 import { IS_STATIC } from '../services/staticMode';
@@ -223,38 +224,15 @@ export const EncounterHistoryModal: React.FC<EncounterHistoryModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header ─────────────────────────────────────────── */}
-        <div className="relative bg-gradient-to-br from-[#8FC7F7] via-[#7ABCF4] to-[#5DA8E8] dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 px-5 py-4 text-white shrink-0">
-          <div className="pointer-events-none absolute -top-10 -right-6 w-32 h-32 rounded-full bg-white/15 blur-2xl" />
-          <div className="relative flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-2xl bg-white/20 ring-1 ring-inset ring-white/30 backdrop-blur-sm flex items-center justify-center shrink-0">
-                <History className="w-5 h-5 text-white" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-[15px] font-black tracking-tight leading-tight flex items-center gap-2 flex-wrap">
-                  图鉴遇见与操作历史
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/20 ring-1 ring-inset ring-white/25">
-                    {totalHistoryCount} 条
-                  </span>
-                </h3>
-                <p className="text-[11px] text-white/85 font-medium mt-0.5">
-                  按时间倒序排列，可一键撤销误点亮的精灵
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              aria-label="关闭"
-              onClick={() => {
-                sound.playClick();
-                onClose();
-              }}
-              className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <ModalHeader
+            icon={History}
+            tone="amber"
+            title="图鉴遇见与操作历史"
+            badge={<ModalHeaderBadge>{totalHistoryCount} 条</ModalHeaderBadge>}
+            subtitle="按时间倒序排列，可一键撤销误点亮的精灵"
+            onClose={onClose}
+            closeTitle="关闭 (Esc)"
+        />
 
         {/* ── 搜索 + 筛选 ─────────────────────────────────────── */}
         <div className="px-4 py-3 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 space-y-2.5 shrink-0">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, X, RotateCcw, Trash2 } from 'lucide-react';
 import { sound } from '../services/sound';
+import { ModalHeader } from './ModalHeader';
 
 interface ConfirmDialogProps {
     isOpen: boolean;
@@ -35,30 +36,17 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             onClick={onClose}
         >
             <div
-                className="bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#5DA8E8] dark:border-slate-700 shadow-2xl max-w-md w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 transition-colors"
+                className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-w-md w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 transition-colors"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="bg-[#7ABCF4] dark:bg-slate-800 px-5 py-3.5 text-white flex items-center justify-between border-b-2 border-[#5DA8E8] dark:border-slate-700">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center shadow-xs">
-                            <AlertTriangle className="w-4 h-4 text-[#FEE061]" />
-                        </div>
-                        <div>
-                            <h3 className="text-base font-black tracking-tight">{title}</h3>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            sound.playClick();
-                            onClose();
-                        }}
-                        className="w-8 h-8 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                </div>
+                <ModalHeader
+                    icon={AlertTriangle}
+                    tone="amber"
+                    title={title}
+                    onClose={onClose}
+                    closeTitle="关闭"
+                />
 
                 {/* Body Content */}
                 <div className="p-5 space-y-3.5">

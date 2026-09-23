@@ -20,6 +20,7 @@ import {
 import { MapConfig, PetItem, PredictResult, PredictCandidateItem, EncounterRecord } from '../types';
 import { api } from '../services/api';
 import { sound } from '../services/sound';
+import { ModalHeader, ModalHeaderBadge } from './ModalHeader';
 import { storage } from '../services/storage';
 import { ThresholdSlider } from './ThresholdSlider';
 import { formatPetName } from '../utils/petHelper';
@@ -233,38 +234,19 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
           onClick={onClose}
       >
         <div
-            className="relative w-full max-w-4xl lg:max-w-5xl bg-white dark:bg-slate-900 rounded-3xl border-4 border-[#95D151] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+            className="relative w-full max-w-4xl lg:max-w-5xl bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 overflow-hidden flex flex-col max-h-[92vh]"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#95D151] to-[#689F38] px-6 py-4 text-white flex items-center justify-between shadow-sm shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-white text-[#2D6613] flex items-center justify-center shadow-xs border-2 border-white/80">
-                <Sparkles className="w-5 h-5 text-[#2D6613]" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg sm:text-xl font-black">单个精灵图鉴智能识别</h3>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/20 text-white font-black border border-white/30">
-                  本地 AI 离线推理 (Top-{topK})
-                </span>
-                </div>
-                <p className="text-xs text-white/90">
-                  载入精灵截图或直接粘贴，本地模型离线匹配对应精灵
-                </p>
-              </div>
-            </div>
-
-            <button
-                onClick={() => {
-                  sound.playClick();
-                  onClose();
-                }}
-                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <ModalHeader
+              icon={Sparkles}
+              tone="emerald"
+              title="单个精灵图鉴智能识别"
+              badge={<ModalHeaderBadge>本地 AI 离线推理 (Top-{topK})</ModalHeaderBadge>}
+              subtitle="载入精灵截图或直接粘贴，本地模型离线匹配对应精灵"
+              onClose={onClose}
+              closeTitle="关闭"
+          />
 
           {/* Scrollable Body */}
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 bg-slate-50/50 dark:bg-slate-900/90">
