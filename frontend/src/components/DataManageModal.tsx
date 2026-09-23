@@ -10,6 +10,7 @@ import { api } from '../services/api';
 import { IS_STATIC } from '../services/staticMode';
 import { webAccounts, DEFAULT_ACCOUNT } from '../services/webAccounts';
 import { cloudSync, type CloudSyncState } from '../services/cloudSync';
+import { useAuthStatus } from '../services/auth';
 import { ConfirmDialog } from './ConfirmDialog';
 
 /** 毫秒时间戳 → 本地可读时间（空值显示 —）。 */
@@ -74,6 +75,12 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   // 依赖它就会出现「每次打开都要重新同意一次」。
   // null = 还没从本机接口读回来（此时不显示"请先同意"，避免闪一下）。
   const [agreedLocal, setAgreedLocal] = useState<boolean | null>(null);
+
+  // 云同步设备门禁：未授权（含等待绑定/过期/异常）时桌面端不允许同步。
+  // 提示明确写「未授权」并指向角标绑定入口；网页端无需判断（authStore 恒为
+  // authorized），因为它的绑定码只能由已授权的桌面端生成，源头已被后端拦住。
+  const auth = useAuthStatus();
+  const cloudLocked = !IS_STATIC && !['authorized', 'offline', 'pending'].includes(auth.status);
 
   /** 从本机接口读一次协议同意状态（打开「数据管理」时调用）。 */
   const loadAgreedLocal = async () => {
@@ -238,7 +245,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
       // 桌面端：协议状态存在用户自己的 roco_user_data.json 里，从本机接口读
       void loadAgreedLocal();
     }
-    if (!IS_STATIC) {
+    if (!IS_STATIC && !cloudLocked) {
       void loadCloudStatus();
       if (!bindingsLoaded) void loadBindings();
     }
@@ -769,6 +776,15 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                           <ShieldAlert className="w-3.5 h-3.5" />
                           阅读并同意《云端同步协议》
                         </button>
+                      </div>
+                  ) : cloudLocked ? (
+                      <div className="rounded-2xl border-2 border-dashed border-[#BCD7F2] dark:border-sky-900/60 bg-[#F4F9FF] dark:bg-slate-800/90 p-3 space-y-1.5">
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
+                          当前设备<b>未授权</b>，云端同步暂不可用；图鉴、识别等其它功能均不受影响。
+                        </p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-snug">
+                          可点右上角「未授权」角标获取绑定指令，授权完成后回到这里即可正常使用。
+                        </p>
                       </div>
                   ) : !IS_STATIC ? (
                       <>

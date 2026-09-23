@@ -147,14 +147,14 @@ export const Header: React.FC<HeaderProps> = ({
                                     : ''
                             }`}
                         >
-                            {/* logo 图自带圆角，四角是黑色垫底（jpg 不支持透明）：
-                                -9% 把黑边推到 overflow-hidden 的裁剪框外，
-                                图标本体正好铺满整个格子，不再露出黑角和一圈白缝。 */}
-                            <div className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-xs ring-1 ring-inset ring-slate-200 dark:ring-slate-700 overflow-hidden shrink-0">
+                            {/* logo 图是透明圆角 PNG（扩展名仍叫 .jpg），自带圆角半径 ≈ 64/342 ≈ 18.7%。
+                                容器裁剪半径必须 ≥ 图片圆角，否则四角会透出容器白底形成白缝；
+                                用 rounded-[19%] 随格子尺寸等比缩放，图片 inset-0 平铺，不再放大裁切。 */}
+                            <div className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-[19%] bg-white dark:bg-slate-800 shadow-xs ring-1 ring-inset ring-slate-200 dark:ring-slate-700 overflow-hidden shrink-0">
                                 <img
                                     src="./icon.jpg"
                                     alt="洛克王国"
-                                    className="absolute inset-[-9%] w-auto h-auto object-cover"
+                                    className="absolute inset-0 h-full w-full object-cover"
                                     referrerPolicy="no-referrer"
                                 />
                             </div>
