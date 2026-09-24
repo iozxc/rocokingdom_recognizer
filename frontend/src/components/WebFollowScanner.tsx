@@ -1244,8 +1244,12 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
                         className="rounded-2xl border-2 border-dashed border-[#BCD7F2] dark:border-sky-900/60 bg-[#F4F9FF] dark:bg-slate-800/90 p-3 text-center flex items-center justify-between gap-2.5"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-900 border-2 border-[#D5E3F0] dark:border-slate-700 flex items-center justify-center text-amber-500 font-bold text-base shrink-0">
-                          {name.includes('魔力之源') ? '❤️' : '🎒'}
+                        <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-900 border-2 border-[#D5E3F0] dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
+                          <img
+                              src={name.includes('魔力之源') ? './assets/magic-spring-icon.png' : './assets/merchant-avatar.png'}
+                              alt={name}
+                              className="h-8 w-8 object-contain"
+                          />
                         </div>
                         <div className="text-left min-w-0">
                           <div className="flex items-center gap-1.5">
