@@ -501,6 +501,22 @@ export class StorageService {
     return updatedCount;
   }
 
+  /**
+   * 导出本机已遇见的图鉴记录（供云端进度同步）。
+   * key 与小程序/网页版完全一致：`<地图ID>_<完整文件名>`，
+   * 例：map1_013_01_咔咔壳_本来.png
+   * —— 用完整文件名（含形态）而不是图鉴号，避免同一图鉴号的多个形态互相点亮。
+   */
+  public exportEncounterIds(): Record<string, true> {
+    const out: Record<string, true> = {};
+    Object.values(this.records).forEach((rec) => {
+      if (!rec || !rec.encountered) return;
+      const key = rec.key || (rec.mapId && rec.filename ? this.getKey(String(rec.mapId), String(rec.filename)) : '');
+      if (key) out[key] = true;
+    });
+    return out;
+  }
+
   public toggleEncountered(mapId: string, filename: string, note?: string): boolean {
     const key = this.getKey(mapId, filename);
     const now = new Date().toISOString();

@@ -245,6 +245,21 @@ class CloudSyncService {
     this.patch({ bound: false, cloudVersion: 0, cloudUpdatedAt: null, cloudBytes: 0, lastError: null });
   }
 
+  /** 统一设备标识码（网页端直连云端，用 web token 换） */
+  async fetchDeviceTag(): Promise<{ tag: string; ownerCode: string; bound: boolean }> {
+    if (!this.isBound()) return { tag: '', ownerCode: '', bound: false };
+    try {
+      const res = await this.post('/api/device/tag', this.authBody());
+      return {
+        tag: String(res.tag || ''),
+        ownerCode: String(res.owner_code || ''),
+        bound: !!res.bound,
+      };
+    } catch {
+      return { tag: '', ownerCode: '', bound: false };
+    }
+  }
+
   // ---------------- 同步 ----------------
 
   private async pull(): Promise<{

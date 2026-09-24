@@ -18,9 +18,12 @@ import {
     HardDrive,
     Globe,
     ChevronDown,
+    QrCode,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { ModalHeader, ModalHeaderBadge } from './ModalHeader';
+import { wechatPush } from '../services/wechatPush';
+import { storage } from '../services/storage';
 import { useUpdateStore } from '../services/useUpdateStore';
 import { updateStore } from '../services/updateStore';
 import { api } from '../services/api';
@@ -91,6 +94,48 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
     const [installSuccessMessage, setInstallSuccessMessage] = useState<string | null>(null);
     const [showFullLog, setShowFullLog] = useState<boolean>(true); // 默认展开完整更新公告
     const [webPath, setWebPath] = useState<string>('https://roco.omisheep.cn/');
+    // 草系徽章试炼小程序码（必须和其他 hooks 一起，不能放在提前 return 之后）
+    const [miniQr, setMiniQr] = React.useState('');
+    const [miniQrErr, setMiniQrErr] = React.useState('');
+    const [miniQrLoading, setMiniQrLoading] = React.useState(false);
+    const [miniTicket, setMiniTicket] = React.useState('');
+    const [miniBindState, setMiniBindState] = React.useState<'idle' | 'pending' | 'bound' | 'expired'>('idle');
+    const [miniLeft, setMiniLeft] = React.useState(0);
+    const [syncState, setSyncState] = React.useState('');
+    const [syncBusy, setSyncBusy] = React.useState(false);
+    const autoSyncedRef = React.useRef(false);
+
+    /**
+     * 扫码绑定成功后的兜底：只在云端「还没有任何进度」时把本机进度补传一次。
+     * 云端已经有数据就什么都不做 —— 避免桌面端的旧数据覆盖小程序上更新的进度。
+     * 注意：这里不会把云端数据拉回来覆盖本机，扫码只负责绑定。
+     */
+    const seedCloudProgressIfEmpty = async () => {
+        if (autoSyncedRef.current) return;
+        autoSyncedRef.current = true;
+        setSyncBusy(true);
+        try {
+            const remote = await wechatPush.getProgress();
+            const remoteIds = (remote?.payload?.encounters || {}) as Record<string, unknown>;
+            const remoteCount = Object.keys(remoteIds).length;
+            if (remoteCount > 0) {
+                setSyncState(`云端已有 ${remoteCount} 条图鉴进度，已保持原样（未做任何覆盖）`);
+                return;
+            }
+            const localIds = storage.exportEncounterIds();
+            const localCount = Object.keys(localIds).length;
+            if (!localCount) {
+                setSyncState('云端暂无数据，本机也没有可上传的图鉴进度');
+                return;
+            }
+            await wechatPush.saveProgress(localIds);
+            setSyncState(`云端暂无数据，已自动上传本机 ${localCount} 条图鉴进度`);
+        } catch (err) {
+            setSyncState((err as Error)?.message || '绑定成功，但自动上传失败，可点下方按钮重试');
+        } finally {
+            setSyncBusy(false);
+        }
+    };
 
     const updateData = updateState.updateData;
     const downloadStatus = updateState.downloadStatus;
@@ -234,6 +279,14 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
             setHasChecked(false);
             setIsInstalling(false);
             setInstallSuccessMessage(null);
+            // 关掉弹窗就作废二维码，下次打开重新生成，避免扫到过期票据
+            setMiniQr('');
+            setMiniTicket('');
+            setMiniLeft(0);
+            setMiniBindState('idle');
+            setMiniQrErr('');
+            setSyncState('');
+            autoSyncedRef.current = false;
         }
     }, [isOpen]);
 
@@ -246,6 +299,48 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [isOpen, onClose]);
+
+    // 二维码倒计时：过期后明确提示，避免扫一张已经失效的码却毫无反馈
+    // ⚠️ hooks 必须全部放在 `if (!isOpen) return null` 之前，否则弹窗开关会让 hooks 数量变化（React #310）
+    useEffect(() => {
+        if (!miniQr || miniBindState !== 'pending') return;
+        const timer = window.setInterval(() => {
+            setMiniLeft((left) => {
+                if (left <= 1) {
+                    setMiniBindState('expired');
+                    return 0;
+                }
+                return left - 1;
+            });
+        }, 1000);
+        return () => window.clearInterval(timer);
+    }, [miniQr, miniBindState]);
+
+    // 轮询扫码结果：扫中后立刻给回执，并在云端为空时补传一次本机进度
+    useEffect(() => {
+        if (!miniTicket || miniBindState !== 'pending') return;
+        let stopped = false;
+        const timer = window.setInterval(async () => {
+            try {
+                const res = await wechatPush.getBindStatus(miniTicket);
+                if (stopped) return;
+                if (res.status === 'bound') {
+                    setMiniBindState('bound');
+                    window.clearInterval(timer);
+                    await seedCloudProgressIfEmpty();
+                } else if (res.status === 'expired') {
+                    setMiniBindState('expired');
+                    window.clearInterval(timer);
+                }
+            } catch {
+                // 轮询失败不影响本地，等下一轮
+            }
+        }, 4000);
+        return () => {
+            stopped = true;
+            window.clearInterval(timer);
+        };
+    }, [miniTicket, miniBindState]);
 
     if (!isOpen) return null;
 
@@ -270,6 +365,29 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                 dangerouslySetInnerHTML={{ __html: log }}
             />
         );
+    };
+
+    const loadMiniQr = async (force = false) => {
+        if (miniQrLoading) return;
+        // 二维码只活 15 分钟（票据一次性），过期或已绑定后允许重新生成
+        if (miniQr && miniBindState === 'pending' && !force) return;
+        setMiniQrLoading(true);
+        setMiniQrErr('');
+        try {
+            const data = await wechatPush.startBinding('trial');
+            const url = (data as { qr_url?: string }).qr_url || '';
+            setMiniQr(url);
+            setMiniTicket((data as { ticket?: string }).ticket || '');
+            setMiniLeft(Number((data as { expires_in?: number }).expires_in) || 900);
+            setMiniBindState(url ? 'pending' : 'idle');
+            autoSyncedRef.current = false;
+            setSyncState('');
+            if (!url) setMiniQrErr('服务端未返回小程序码');
+        } catch (err) {
+            setMiniQrErr((err as Error)?.message || '生成小程序码失败');
+        } finally {
+            setMiniQrLoading(false);
+        }
     };
 
     // 网页版与源码链接（左列底部，始终可见，不依赖是否检测到更新）
@@ -302,6 +420,73 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                         </div>
                         <ExternalLink className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-[#2B78C4] dark:group-hover:text-sky-400 shrink-0 ml-2" />
                     </a>
+                </div>
+            )}
+
+            {/* 草系徽章试炼小程序（仅 App 桌面端，与网页版并列） */}
+            {!IS_STATIC && (
+                <div>
+                    <span className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-1 mb-1.5">
+                        <QrCode className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        草系徽章试炼小程序
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => loadMiniQr()}
+                        className="w-full p-3 bg-gradient-to-r from-emerald-50 to-white dark:from-slate-800 dark:to-slate-800/60 ring-1 ring-inset ring-emerald-100 dark:ring-slate-700 hover:ring-emerald-300 dark:hover:ring-emerald-600 rounded-2xl flex items-center justify-between text-xs font-black text-emerald-700 dark:text-emerald-300 transition-all group cursor-pointer"
+                    >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7ED08A] to-[#2F9E58] text-white flex items-center justify-center shrink-0 shadow-sm">
+                                <QrCode className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0 text-left">
+                                <div className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                    <span>草系徽章试炼图鉴·小程序</span>
+                                    <span className="text-[10px] text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800 font-bold">扫码即用</span>
+                                </div>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal truncate mt-0.5">
+                                    与网页版同款图鉴，扫码绑定本机并进入试炼图鉴
+                                </p>
+                            </div>
+                        </div>
+                        <QrCode className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 shrink-0 ml-2" />
+                    </button>
+
+                    {(miniQr || miniQrLoading || miniQrErr) && (
+                        <div className="mt-2 flex flex-col items-center gap-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-3">
+                            {miniQrLoading && (
+                                <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    正在生成小程序码…
+                                </div>
+                            )}
+                            {miniQr && !miniQrLoading && miniBindState !== 'expired' && (
+                                <>
+                                    <img src={miniQr} alt="草系徽章试炼小程序码" className="h-40 w-40 rounded-lg bg-white p-1.5 shadow-sm" />
+                                    {miniBindState === 'bound' ? (
+                                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-300">已绑定微信（仅在云端为空时补传一次本机进度）</span>
+                                    ) : (
+                                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                            用微信扫码，自动绑定并进入图鉴 · 二维码 {formatDuration(miniLeft)} 后失效
+                                        </span>
+                                    )}
+                                </>
+                            )}
+                            {!miniQrLoading && miniBindState === 'expired' && (
+                                <>
+                                    <span className="text-[11px] text-amber-600 dark:text-amber-400">二维码已失效（有效期 15 分钟），请重新生成后再扫码</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => loadMiniQr(true)}
+                                        className="px-4 py-1.5 rounded-full bg-[#2B78C4] text-white text-[11px] font-bold"
+                                    >重新生成小程序码</button>
+                                </>
+                            )}
+                            {miniQrErr && !miniQrLoading && (
+                                <span className="text-[11px] text-rose-500">{miniQrErr}</span>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 

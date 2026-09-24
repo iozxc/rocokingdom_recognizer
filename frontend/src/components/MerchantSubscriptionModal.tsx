@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  AlertTriangle,
   BellRing,
-  CheckCircle2,
   ExternalLink,
+  Info,
   Loader2,
   QrCode,
   RefreshCw,
+  Smartphone,
 } from 'lucide-react';
-import { ModalHeader, ModalHeaderBadge } from './ModalHeader';
-import { sound } from '../services/sound';
+import { ModalHeader } from './ModalHeader';
 import { wechatPush } from '../services/wechatPush';
 
 interface MerchantSubscriptionModalProps {
@@ -17,24 +16,33 @@ interface MerchantSubscriptionModalProps {
   onClose: () => void;
 }
 
+/**
+ * 桌面端的「远行商人提醒」引流入口。
+ *
+ * 远行商人是小程序里**独立的模块**，不需要与桌面端绑定：
+ * 这里只展示小程序码，用户扫码进小程序后自己点「增加 1 次提醒」。
+ */
 export const MerchantSubscriptionModal: React.FC<MerchantSubscriptionModalProps> = ({ isOpen, onClose }) => {
   const [qrUrl, setQrUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const loadQr = async () => {
+  const loadQr = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await wechatPush.getPromoQr();
-      setQrUrl(data.qr_url || '');
+      const data = await wechatPush.getPromoQr('merchant');
+      setQrUrl((data as { qr_url?: string }).qr_url || '');
+      if (!(data as { qr_url?: string }).qr_url) {
+        setError('服务端没有返回小程序码');
+      }
     } catch (err) {
       setQrUrl('');
       setError((err as Error)?.message || '生成小程序码失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -62,98 +70,85 @@ export const MerchantSubscriptionModal: React.FC<MerchantSubscriptionModalProps>
           icon={BellRing}
           tone="sky"
           title="远行商人提醒"
-          badge={<ModalHeaderBadge>微信小程序</ModalHeaderBadge>}
-          subtitle="扫码进入小程序，点一次增加一次微信服务通知"
+          subtitle="微信小程序"
           onClose={onClose}
-          closeTitle="关闭远行商人提醒"
+          closeTitle="关闭"
         />
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-          {error && (
-            <div className="rounded-2xl border-2 border-rose-200 bg-rose-50 px-3.5 py-3 text-xs font-bold text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
+        <div className="p-4 sm:p-5 overflow-y-auto">
+          <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 dark:border-sky-900/50 dark:bg-sky-950/30">
+            <div className="flex items-center gap-2 mb-2.5">
+              <span className="w-6 h-6 rounded-lg bg-sky-100 dark:bg-sky-900/60 text-[#2B78C4] dark:text-sky-300 flex items-center justify-center">
+                <Info className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-sm font-black text-slate-800 dark:text-slate-100">使用说明</span>
             </div>
-          )}
-
-          {loading ? (
-            <div className="flex min-h-72 flex-col items-center justify-center gap-3 text-slate-400">
-              <Loader2 className="h-7 w-7 animate-spin" />
-              <span className="text-xs font-bold">正在生成小程序码…</span>
-            </div>
-          ) : qrUrl ? (
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className="rounded-2xl border-2 border-[#BCD7F2] bg-white p-3 shadow-sm dark:border-slate-600 dark:bg-slate-800">
-                <img
-                  src={qrUrl}
-                  alt="远行商人微信小程序码"
-                  className="h-56 w-56 object-contain"
-                  draggable={false}
-                />
-              </div>
-              <div>
-                <div className="text-base font-black text-slate-800 dark:text-slate-100">请用微信扫一扫</div>
-                <div className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  扫码进入“远行商人助手”小程序，在页面里点击“增加 1 次提醒”。
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex min-h-52 flex-col items-center justify-center gap-2 text-slate-400">
-              <QrCode className="h-10 w-10" />
-              <span className="text-xs font-bold">暂无可用小程序码</span>
-            </div>
-          )}
-
-
-          <div className="grid grid-cols-1 gap-2 text-[11px] text-slate-500 dark:text-slate-400 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
-              <div className="font-black text-slate-700 dark:text-slate-200">1. 扫码</div>
-              <div className="mt-1">打开远行商人小程序</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
-              <div className="font-black text-slate-700 dark:text-slate-200">2. 加次数</div>
-              <div className="mt-1">点击“增加 1 次提醒”并授权</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
-              <div className="font-black text-slate-700 dark:text-slate-200">3. 收提醒</div>
-              <div className="mt-1">到点或命中后收到服务通知</div>
-            </div>
+            <ol className="space-y-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+              <li className="flex gap-2">
+                <span className="shrink-0 w-4 h-4 rounded-full bg-white dark:bg-slate-800 ring-1 ring-sky-200 dark:ring-sky-800 text-[10px] font-black text-[#2B78C4] dark:text-sky-300 flex items-center justify-center">1</span>
+                <span>本小程序可独立使用，不需要绑定桌面端。</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="shrink-0 w-4 h-4 rounded-full bg-white dark:bg-slate-800 ring-1 ring-sky-200 dark:ring-sky-800 text-[10px] font-black text-[#2B78C4] dark:text-sky-300 flex items-center justify-center">2</span>
+                <span>扫码进入后点击「增加 1 次提醒」，允许微信订阅。</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="shrink-0 w-4 h-4 rounded-full bg-white dark:bg-slate-800 ring-1 ring-sky-200 dark:ring-sky-800 text-[10px] font-black text-[#2B78C4] dark:text-sky-300 flex items-center justify-center">3</span>
+                <span>每发送一条提醒会自动消耗一次额度。</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="shrink-0 w-4 h-4 rounded-full bg-white dark:bg-slate-800 ring-1 ring-sky-200 dark:ring-sky-800 text-[10px] font-black text-[#2B78C4] dark:text-sky-300 flex items-center justify-center">4</span>
+                <span>额度用完后，再点击一次即可继续增加。</span>
+              </li>
+            </ol>
           </div>
 
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => {
-              sound.playClick();
-              void loadQr();
-            }}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#2B78C4] px-4 text-sm font-black text-white transition-colors hover:bg-[#2063A5] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            刷新小程序码
-          </button>
+          <div className="mt-4 flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/40">
+            {loading ? (
+              <div className="flex flex-col items-center gap-2 text-slate-500">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="text-xs">正在生成小程序码…</span>
+              </div>
+            ) : qrUrl ? (
+              <img
+                src={qrUrl}
+                alt="远行商人小程序码"
+                className="h-56 w-56 rounded-xl bg-white p-2 shadow-sm"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-slate-400">
+                <QrCode className="h-10 w-10" />
+                <span className="text-xs">{error || '暂时没有可用的小程序码'}</span>
+              </div>
+            )}
+          </div>
 
-          <p className="text-center text-[10px] leading-relaxed text-slate-400">
-            桌面端只负责展示小程序入口，不再保存绑定关系；提醒次数由微信小程序侧独立管理。
-          </p>
-        </div>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <Smartphone className="h-3.5 w-3.5" />
+              使用微信扫码进入小程序
+            </div>
+            <button
+              type="button"
+              onClick={loadQr}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 rounded-full bg-sky-500 px-4 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              刷新二维码
+            </button>
+          </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/80 px-5 py-3 dark:border-slate-800 dark:bg-slate-800/60">
-          <span className="flex items-center gap-1.5 text-[10px] text-slate-400">
-            <CheckCircle2 className="h-3 w-3" />
-            微信小程序独立提醒
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black text-slate-600 transition-colors hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700"
-          >
-            关闭
+          {error && (
+            <div className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
+              {error}
+            </div>
+          )}
+
+          <div className="mt-3 flex items-center justify-center gap-1 text-[11px] text-slate-400">
             <ExternalLink className="h-3 w-3" />
-          </button>
+            小程序名称：徽章试炼助手
+          </div>
         </div>
       </div>
     </div>

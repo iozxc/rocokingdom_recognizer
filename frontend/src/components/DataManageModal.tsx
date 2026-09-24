@@ -51,6 +51,10 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
   const [switchNotice, setSwitchNotice] = useState<string>('');
   const [popover, setPopover] = useState<{ kind: 'rename' | 'delete'; name: string; x: number; y: number } | null>(null);
   const [cloudState, setCloudState] = useState<CloudSyncState>(() => cloudSync.getState());
+  // 统一设备标识码（PC / Web / 小程序显示同一个码）
+  const [deviceTagInfo, setDeviceTagInfo] = useState<{ tag: string; ownerCode: string; bound: boolean }>(
+      { tag: '', ownerCode: '', bound: false },
+  );
   const [cloudCode, setCloudCode] = useState('');
   const [cloudMsg, setCloudMsg] = useState('');
   const [cloudMsgType, setCloudMsgType] = useState<'ok' | 'err'>('ok');
@@ -223,6 +227,27 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
 
   const lastSyncAtRef = useRef<number | null>(null);
   useEffect(() => {
+    // 打开「数据管理」时取一次设备标识码
+    if (isOpen) {
+        void (async () => {
+            try {
+                if (IS_STATIC) {
+                    setDeviceTagInfo(await cloudSync.fetchDeviceTag());
+                } else {
+                    const res = await axios.get(`${api.getApiBase()}/api/wechat/device_tag`, { timeout: 20000 });
+                    const d = res.data?.data || {};
+                    setDeviceTagInfo({
+                        tag: String(d.tag || ''),
+                        ownerCode: String(d.owner_code || ''),
+                        bound: !!d.bound,
+                    });
+                }
+            } catch {
+                /* 取不到就不显示 */
+            }
+        })();
+    }
+
     const unsub = cloudSync.subscribe((st) => {
       setCloudState(st);
       if (st.lastSyncAt && st.lastSyncAt !== lastSyncAtRef.current) {
@@ -752,6 +777,25 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
                       )}
                     </div>
                   </div>
+
+                  {/* 只有网页版需要看「绑的是哪台电脑」；PC 端本身就是归属设备（根），不展示 */}
+                  {IS_STATIC && (
+                      <>
+                          <div className="mt-2 flex items-center gap-2 text-[10px] font-bold">
+                              <span className="text-slate-500 dark:text-slate-400">绑定设备</span>
+                              {deviceTagInfo.tag ? (
+                                  <span className="font-mono px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">{deviceTagInfo.tag}</span>
+                              ) : (
+                                  <span className="text-amber-600 dark:text-amber-400">未绑定</span>
+                              )}
+                          </div>
+                          {!deviceTagInfo.bound && (
+                              <div className="mt-1 text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                                  当前设备未绑定：请先在下方填入电脑端生成的配对码
+                              </div>
+                          )}
+                      </>
+                  )}
 
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                     只能<b>手动同步</b>：不会自动读写云端，只有你点下面的按钮才会同步，
