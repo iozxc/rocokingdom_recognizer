@@ -66,6 +66,26 @@ for (const [srcRel, name] of RESOURCES) {
     console.log(`[sync-web-resources] 更新 ${name}  ←  ${srcRel}`);
 }
 
+// 图标类资源：仓库根 resources/*.png → public-web/assets/*.png。
+// public-web 整个目录被 gitignore，靠这里保证 web 版图标不会丢。
+const assetDestDir = join(frontendDir, 'public-web', 'assets');
+const ASSETS = [
+    [join('resources', 'merchant-avatar.png'), 'merchant-avatar.png'],
+    [join('resources', 'magic-spring-icon.png'), 'magic-spring-icon.png'],
+];
+mkdirSync(assetDestDir, { recursive: true });
+for (const [srcRel, name] of ASSETS) {
+    const from = join(repoRoot, srcRel);
+    const to = join(assetDestDir, name);
+    if (!existsSync(from)) {
+        problems.push(`缺少仓库根资源 ${srcRel}`);
+        continue;
+    }
+    if (existsSync(to) && readFileSync(to).equals(readFileSync(from))) continue;
+    copyFileSync(from, to);
+    console.log(`[sync-web-resources] 更新 assets/${name}  ←  ${srcRel}`);
+}
+
 if (problems.length) {
     console.error('[sync-web-resources] 同步失败：');
     for (const p of problems) console.error(`  - ${p}`);
