@@ -23,6 +23,7 @@ import { AppSettingsModal } from './components/AppSettingsModal';
 import { HomeScrollbar } from './components/HomeScrollbar';
 import { applyScrollbarSetting, DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR } from './services/scrollbarSetting';
 import { AssistantHub } from './components/AssistantHub';
+import { MerchantSubscriptionModal } from './components/MerchantSubscriptionModal';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
 import { AuthBadge } from './components/AuthBadge';
 import { FireBadgeTrial } from './components/Trial/FireBadgeTrial';
@@ -115,6 +116,7 @@ export default function App() {
   const [isDataUpdateOpen, setIsDataUpdateOpen] = useState<boolean>(false);
   const [dataUpdateAvailable, setDataUpdateAvailable] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isMerchantSubscriptionOpen, setIsMerchantSubscriptionOpen] = useState<boolean>(false);
   const [view, setView] = useState<'assistant' | 'hub'>('assistant');
   const [trials, setTrials] = useState<Trial[]>([
     { key: 'grass', title: '草系徽章试炼', element: 'grass', collection_key: 'encounteredPets', dev_only: false },
@@ -187,6 +189,7 @@ export default function App() {
     isDataManageOpen ||
     isDataUpdateOpen ||
     isSettingsOpen ||
+    isMerchantSubscriptionOpen ||
     detailPet !== null
   );
 
@@ -701,6 +704,10 @@ export default function App() {
               <AssistantHub
                   trials={trials}
                   onSelectAssistant={(trialKey) => {
+                    if (trialKey === 'merchant') {
+                      setIsMerchantSubscriptionOpen(true);
+                      return;
+                    }
                     window.scrollTo(0, 0);
                     setActiveTrialKey(trialKey === 'fire' ? 'fire' : 'grass');
                     setView('assistant');
@@ -861,6 +868,11 @@ export default function App() {
         />
 
         {/* 4. App Settings Modal (Effect Levels & Floating Buttons Mode) */}
+        <MerchantSubscriptionModal
+            isOpen={isMerchantSubscriptionOpen}
+            onClose={() => setIsMerchantSubscriptionOpen(false)}
+        />
+
         <AppSettingsModal
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
