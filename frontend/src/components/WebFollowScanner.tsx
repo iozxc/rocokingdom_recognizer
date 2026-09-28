@@ -57,7 +57,6 @@ import { AutoWatchManager, type AutoStatus } from '../services/recognition/autoW
 import { getTrialOrDanger } from '../services/recognition/trialConfig';
 import { splitPetFilename } from '../services/recognition/petPath';
 import { IS_STATIC } from '../services/staticMode';
-import { runtimeGuard } from '../services/runtimeGuard';
 import { storage } from '../services/storage';
 import { api } from '../services/api';
 import { sound } from '../services/sound';
@@ -494,10 +493,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
 
   const handleRecognize = async (): Promise<FollowRecognizeResult | null> => {
     if (busy) return null;
-    if (runtimeGuard.isActive) {
-      setErrorText('检测到调试环境，识别已停用');
-      return null;
-    }
+    // 注：以前这里有一道「调试环境」门禁，已按需求删除（不再因 DevTools 停掉识别）。
     if (!capture.active) {
       setErrorText('请先点下面的「连接游戏画面」，在弹窗里选中《洛克王国：世界》的窗口');
       return null;

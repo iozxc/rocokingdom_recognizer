@@ -615,14 +615,54 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
     URL.revokeObjectURL(url);
   };
 
+  /**
+   * 导出「全部账号」为一份 roco_accounts_*.json（网页端 / 桌面端结构完全一致，可互相导入）。
+   *
+   * - 网页版：直接序列化浏览器里的多账号存档；
+   * - 桌面版：走后端 /api/accounts/export（导出前会把当前账号的最新数据落盘），
+   *   优先弹系统原生「另存为」，桥接不可用时退回浏览器下载。
+   */
   const handleExportAllAccounts = async () => {
-    if (!IS_STATIC) {
-      setMessage('桌面版多账号在 accounts/ 目录中，请直接备份该目录'); setMsgType('ok'); return;
-    }
     sound.playClick();
-    const content = webAccounts.exportAll();
-    downloadJsonFile(`roco_accounts_${new Date().toISOString().slice(0, 10)}.json`, content);
-    setMessage('已导出全部账号（含当前账号最新数据）'); setMsgType('ok');
+    const defaultFilename = `roco_accounts_${new Date().toISOString().slice(0, 10)}.json`;
+    try {
+      let content: string;
+      if (IS_STATIC) {
+        content = webAccounts.exportAll();
+      } else {
+        setIsExporting(true);
+        try {
+          content = JSON.stringify(await api.accountExportArchive(), null, 2);
+        } finally {
+          setIsExporting(false);
+        }
+      }
+
+      const pyApi = !IS_STATIC ? (window as any).pywebview?.api : null;
+      if (pyApi?.save_export_file) {
+        setIsExporting(true);
+        try {
+          const res = await pyApi.save_export_file(content, defaultFilename);
+          if (res?.status === 'ok') {
+            setMessage(`已导出全部账号（含当前账号最新数据）→ ${res.path || defaultFilename}`);
+            setMsgType('ok');
+            return;
+          }
+          if (res?.status === 'cancelled') {
+            setMessage('已取消导出'); setMsgType('ok'); return;
+          }
+        } catch (e) {
+          console.warn('调用原生保存文件失败，回退到浏览器下载:', e);
+        } finally {
+          setIsExporting(false);
+        }
+      }
+
+      downloadJsonFile(defaultFilename, content);
+      setMessage('已导出全部账号（含当前账号最新数据）'); setMsgType('ok');
+    } catch (e: any) {
+      setMessage(`导出失败：${e?.message || e || '未知错误'}`); setMsgType('err');
+    }
   };
 
   const handleCreateAccount = async () => {
@@ -741,13 +781,12 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
               </button>
             </div>
 
-            {IS_STATIC && (
-                <button type="button" onClick={handleExportAllAccounts}
-                        className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border-2 border-dashed border-[#95D151]/70 dark:border-emerald-700/70 bg-emerald-50/60 dark:bg-emerald-950/30 hover:bg-emerald-100/70 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-black transition-colors cursor-pointer">
-                  <Download className="w-4 h-4" />
-                  导出全部账号
-                </button>
-            )}
+            {/* 导出全部账号：网页端序列化浏览器存档，桌面端走后端导出 accounts/ 目录里全部账号 */}
+            <button type="button" onClick={handleExportAllAccounts} disabled={isExporting}
+                    className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border-2 border-dashed border-[#95D151]/70 dark:border-emerald-700/70 bg-emerald-50/60 dark:bg-emerald-950/30 hover:bg-emerald-100/70 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-black transition-colors cursor-pointer disabled:opacity-50">
+              <Download className="w-4 h-4" />
+              导出全部账号
+            </button>
 
             {}
             {(
@@ -1156,7 +1195,7 @@ export const DataManageModal: React.FC<DataManageModalProps> = ({ isOpen, onClos
               <span>
                 {IS_STATIC
                     ? '账号保存在当前浏览器本地存储中，清理浏览器数据会丢失，请及时用「导出全部账号」备份。'
-                    : '账号保存在数据目录的 accounts/ 文件夹中，关闭 App 后依然保留。'}
+                    : '账号保存在数据目录的 accounts/ 文件夹中，关闭 App 后依然保留；可用上方「导出全部账号」整体备份。'}
               </span>
             </div>
 

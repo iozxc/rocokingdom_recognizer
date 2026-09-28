@@ -597,13 +597,6 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           };
         });
 
-        // 调试环境守卫返回的占位结果（类型上不在 status 联合里，这里按字符串判断）
-        if ((raw.status as string) === 'debug_guard') {
-          console.warn('[batch] 识别被调试环境守卫跳过');
-          setScanError('检测到调试环境（DevTools 停靠或窗口被判定为调试窗口），已跳过识别；关闭后重试即可');
-          return;
-        }
-
         const bestCand = processedCandidates[0];
         const activeFilename = raw.filename || bestCand?.filename;
         const activeScore = raw.score ?? bestCand?.score;

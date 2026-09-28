@@ -9,7 +9,6 @@ import { AgreementGate } from './components/AgreementGate';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { IS_STATIC } from './services/staticMode';
 import { startWebTelemetry } from './services/webTelemetry';
-import { runtimeGuard } from './services/runtimeGuard';
 import { webAccounts } from './services/webAccounts';
 import './index.css';
 
@@ -64,7 +63,6 @@ createRoot(rootElement).render(
 if (IS_STATIC) {
   webAccounts.init();
   startWebTelemetry();
-  runtimeGuard.init();
 }
 if (typeof window !== 'undefined') {
   // 禁止拖动图片或链接

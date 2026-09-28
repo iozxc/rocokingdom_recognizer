@@ -109,6 +109,21 @@ def api_account_delete():
         return error(str(e), 500)
 
 
+@bp.route("/api/accounts/export", methods=["GET"])
+def api_account_export():
+    # 导出整套多账号存档（accounts/ 目录里的全部账号）。
+    #
+    # 结构与纯前端导出的 roco_accounts_*.json 完全一致（app=roco-multi-account），
+    # 所以两边可以互相导入：桌面端导出的存档网页版能直接导入，反之亦然。
+    # export_archive() 内部会先把当前账号的最新主数据落盘，保证导出的是最新进度。
+    try:
+        from core.services.account_store import export_archive
+        return success(data=export_archive())
+    except Exception as e:
+        logger.error(f"[GET /api/accounts/export] 异常: {e}", exc_info=True)
+        return error(str(e), 500)
+
+
 @bp.route("/api/accounts/import", methods=["POST"])
 def api_account_import():
     """导入整套多账号存档（纯前端导出的 roco_accounts_*.json）。

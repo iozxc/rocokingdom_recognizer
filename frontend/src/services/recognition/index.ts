@@ -8,7 +8,6 @@
  */
 import { IS_STATIC } from '../staticMode';
 import { api } from '../api';
-import { runtimeGuard } from '../runtimeGuard';
 import {
   CANCELED,
   localRecognizer,
@@ -30,17 +29,6 @@ export async function recognizeImage(
     options?: RecognizeOptions
 ): Promise<{ data: BatchInitApiResponse; isOfflineMock: boolean }> {
   if (IS_STATIC) {
-    if (runtimeGuard.isActive) {
-      // 判定为「调试环境」（F12 停靠 / debugger 被挂起）时不跑识别。
-      // 注意：必须返回**结构完整**的空结果 —— 之前返回 {} 会让调用方读
-      // data.results.length 时抛 "Cannot read properties of undefined"，
-      // 用户看到的是一句莫名其妙的报错，而不是"检测到调试环境"这个真实原因。
-      console.warn('[recognizeImage] 检测到调试环境，已跳过识别（关闭 DevTools 后重试）');
-      return {
-        data: { status: 'debug_guard', results: [], total_detected: 0 } as unknown as BatchInitApiResponse,
-        isOfflineMock: false,
-      };
-    }
     const local = await localRecognizer.recognizeSingle(image, targetMapPets || [], threshold, topK, {
       stageNum,
       // 阶段内百分比 -> 总进度百分比（0~100 单调），组件拿到的就是可以直接画的值
