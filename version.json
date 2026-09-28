@@ -1,69 +1,69 @@
 {
-  "version": "1.5.0",
+  "version": "1.5.1",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.5.0 更新公告】\n\n【功能新增】\n1、跟随识别 新增 <自动识别><自动点亮> 此功能web同步更新\n2、整体界面更新\n\n【优化&修复】\n3、优化了app默认打开大小\n4、修复了首页识别中点击遇见之后的特效没有同步设置的bug\n5、优化和修复了部分按钮的样式和描述\n",
+  "update_log": "【v1.5.1 更新公告】\n\n【功能新增】\n1、远行商人、魔力之源，APP新图标\n2、微信小程序端上线（仅图鉴功能，无识别）\n3、实用工具增加远行商人提醒（点击左上角可进入）\n\n【优化&修复】\n3、修复PC端app没有导出全部账号的bug",
   "auto_update": {
-    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.0/",
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.1/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "0b83d0137036a9cb9bd3bc8bd0c0b2ed",
+        "md5": "d6aa5ea601cf44c4316ade21f0eb65a8",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "f77cef7cbc722f75811104b9862e012c",
+        "md5": "eca8717d304ccc5542712b241e589d33",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "c3732fb15850be3574fb75e0f87ec822",
-        "size": 65430461
+        "md5": "01743113c966ed31022db7d11cb5c9ea",
+        "size": 70308497
       }
     ]
   },
   "deltas": [
     {
+      "base_version": "1.5.0",
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.1/RocoKingdomRecognizer_delta_1.5.0.7z",
+      "md5": "4e7025575891e33a0fb7626d4fe4c566",
+      "size": 26549132,
+      "changed": 21,
+      "removed": 3
+    },
+    {
       "base_version": "1.4.10",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.0/RocoKingdomRecognizer_delta_1.4.10.7z",
-      "md5": "f6e217ea81b1b28daae91358f6417bc9",
-      "size": 19959819,
-      "changed": 8,
-      "removed": 2
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.1/RocoKingdomRecognizer_delta_1.4.10.7z",
+      "md5": "c92023d760387a70da95305229b8e641",
+      "size": 26549123,
+      "changed": 21,
+      "removed": 3
     },
     {
       "base_version": "1.4.9",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.0/RocoKingdomRecognizer_delta_1.4.9.7z",
-      "md5": "4056a5b7012928e3695c00123bf583f4",
-      "size": 28667026,
-      "changed": 10,
-      "removed": 3
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.1/RocoKingdomRecognizer_delta_1.4.9.7z",
+      "md5": "9f19ed2f17915eda271fdb93467441bc",
+      "size": 35258955,
+      "changed": 23,
+      "removed": 4
     },
     {
       "base_version": "1.4.8",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.0/RocoKingdomRecognizer_delta_1.4.8.7z",
-      "md5": "52f46bced50eb8847333c96b3e91cd1b",
-      "size": 28667025,
-      "changed": 10,
-      "removed": 3
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.1/RocoKingdomRecognizer_delta_1.4.8.7z",
+      "md5": "cd2f8c9a1fe858b9d812086677953ff8",
+      "size": 35258951,
+      "changed": 23,
+      "removed": 4
     },
     {
       "base_version": "1.4.7",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.0/RocoKingdomRecognizer_delta_1.4.7.7z",
-      "md5": "8054746864261d671982859eaf6e5d84",
-      "size": 44800109,
-      "changed": 68,
-      "removed": 12
-    },
-    {
-      "base_version": "1.4.6",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.0/RocoKingdomRecognizer_delta_1.4.6.7z",
-      "md5": "4a41198521ccda4a3c02a456bf2ee75b",
-      "size": 44799537,
-      "changed": 68,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.1/RocoKingdomRecognizer_delta_1.4.7.7z",
+      "md5": "663ecf1d1249aa7c4ec06e32bf50ef78",
+      "size": 51409763,
+      "changed": 81,
       "removed": 13
     }
   ]
