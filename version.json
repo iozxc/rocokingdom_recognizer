@@ -4,7 +4,7 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.5.1 更新公告】\n\n【功能新增】\n1、远行商人、魔力之源，APP新图标\n2、微信小程序端上线（仅图鉴功能，无识别）\n3、实用工具增加远行商人提醒（点击左上角可进入）\n\n【优化&修复】\n3、修复PC端app没有导出全部账号的bug",
+  "update_log": "【v1.5.1 更新公告】\n\n【功能新增】\n1、远行商人、魔力之源，APP新图标\n2、微信小程序端上线（仅图鉴功能，无识别）\n3、实用工具增加远行商人提醒（点击左上角可进入）\n\n【优化&修复】\n4、修复PC端app没有导出全部账号的bug",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.5.1/",
     "files": [
