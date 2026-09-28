@@ -382,7 +382,7 @@ def prepare_public_assets(icons_dir, elements_dir, resources_dir):
             shutil.copy2(f, elements_dir / f.name)
 
     static_dir = ROOT / "static"
-    for name in ("icon.jpg", "tag_1.png"):
+    for name in ("icon.png", "tag_1.png"):
         src = static_dir / name
         if src.exists():
             shutil.copy2(src, OUT / name)
@@ -412,15 +412,15 @@ def prepare_public_assets(icons_dir, elements_dir, resources_dir):
     if changelog_json.exists():
         shutil.copy2(changelog_json, resources_dir / "changelog.json")
 
-    icon_jpg = OUT / "icon.jpg"
-    if not icon_jpg.exists():
+    icon_png = OUT / "icon.png"
+    if not icon_png.exists():
         try:
             ico = ROOT / "icon.ico"
             if ico.exists():
-                Image.open(ico).convert("RGB").save(icon_jpg, "JPEG", quality=92)
-                print("[export_web_icons] 已从 icon.ico 生成 icon.jpg")
+                Image.open(ico).convert("RGBA").save(icon_png, "PNG", optimize=True)
+                print("[export_web_icons] 已从 icon.ico 生成 icon.png")
         except Exception as e:  # noqa: BLE001
-            print(f"[export_web_icons] 生成 icon.jpg 跳过: {e}")
+            print(f"[export_web_icons] 生成 icon.png 跳过: {e}")
 
 
 def _paste_into_sheet(images, cell, cols):

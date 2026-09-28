@@ -1,7 +1,7 @@
 // npm run build 后自动把前端产物同步到根项目 static 目录：
 //   html   -> D:\game\RocoKingdom\static\index.html
 //   资源   -> D:\game\RocoKingdom\static\assets\（index.css / index.js 等）
-// 只做覆盖/新增，不会删除 static 里已有的其他文件（icon.jpg、qrcode.png 等）。
+// 只做覆盖/新增，不会删除 static 里已有的其他文件（icon.png、qrcode.png 等）。
 import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -40,6 +40,9 @@ import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, Floati
 import { isPetEncounteredInRecords } from './utils/petHelper';
 import { PetSearchMode } from './utils/skillSearch';
 
+
+const SHOW_WEB_ICP_FILING = false;
+
 export default function App() {
   const [activeStageNum, setActiveStageNum] = useState<number>(1);
 
@@ -817,7 +820,7 @@ export default function App() {
         {/* Footer */}
         <footer className="mt-12 text-center text-xs text-slate-400">
           <p>洛克王国徽章试炼 · 精灵图鉴识别 · 支持本地离线存储</p>
-          {IS_STATIC && (
+          {IS_STATIC && SHOW_WEB_ICP_FILING && (
               <p className="mt-1.5">
                 <a
                     href="https://beian.miit.gov.cn/"
