@@ -7,10 +7,9 @@
 下载最新版：[Gitee（国内，推荐）](https://gitee.com/iozxc/rocokingdom_recognizer/releases/latest) ｜ [GitHub 镜像](https://github.com/iozxc/rocokingdom_recognizer/releases/latest)
 
 【更新方式】
-- 自动更新：启动旧版本后按提示点击「立即更新」即可（自 1.3.2 起支持增量更新，更新包更小）。
+- 自动更新：启动旧版本后按提示点击「立即更新」即可。
 - 手动更新：下载最新安装包覆盖安装即可，原有数据自动保留。
-- 用户数据保存在 `roco_user_data.json`，覆盖安装或卸载都不会被删除。
-- 注意：自 1.4.2 版本起，后续所有版本均需完成来源认证并阅读用户协议后方可使用。
+- 用户数据默认保存在安装目录的 `roco_user_data.json`，覆盖安装或卸载都不会被删除。
 
 ---
 
