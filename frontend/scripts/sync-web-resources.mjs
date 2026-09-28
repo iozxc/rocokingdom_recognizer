@@ -72,6 +72,10 @@ const assetDestDir = join(frontendDir, 'public-web', 'assets');
 const ASSETS = [
     [join('resources', 'merchant-avatar.png'), 'merchant-avatar.png'],
     [join('resources', 'magic-spring-icon.png'), 'magic-spring-icon.png'],
+    // 「远行商人」小程序入口：纯 Web 版没有后端，只能放一张固定的小程序码图片
+    // （桌面端是调 /api/mini/qr 实时生成的）。图片来源见
+    // MerchantSubscriptionModal.tsx 顶部注释；这里是它的仓库内唯一副本。
+    [join('resources', 'merchant-mp-qr.jpeg'), 'merchant-mp-qr.jpeg'],
 ];
 mkdirSync(assetDestDir, { recursive: true });
 for (const [srcRel, name] of ASSETS) {

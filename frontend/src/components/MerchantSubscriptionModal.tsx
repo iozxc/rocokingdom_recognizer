@@ -10,6 +10,22 @@ import {
 } from 'lucide-react';
 import { ModalHeader } from './ModalHeader';
 import { wechatPush } from '../services/wechatPush';
+import { IS_STATIC } from '../services/staticMode';
+
+/**
+ * 纯 Web 版的「静态小程序码」。
+ *
+ * 桌面端靠本机后端调微信接口现生成小程序码（/api/mini/qr，带机器签名）；
+ * 纯静态网页既没有后端也拿不到签名，所以放一张**固定的小程序码图片**：
+ * 微信小程序码本身是永久的（scene 固定为 "promo"，落地页 pages/index/index），
+ * 扫码即直达小程序，无需任何网络请求。
+ *
+ * 图片来源：微信公众平台「工具 → 生成小程序码」，或桌面端弹窗里那张码另存为图片。
+ * 仓库里这张是走桌面端同一条签名链路（core/services/wechat_push.get_promo_qr）从云端
+ * 取回的原始 JPEG（430×430）；小程序码本身永久有效，不需要重新生成。
+ * 放置路径：frontend/public-web/assets/merchant-mp-qr.jpeg（构建后为 /assets/merchant-mp-qr.jpeg）。
+ */
+const STATIC_MERCHANT_QR_SRC = './assets/merchant-mp-qr.jpeg';
 
 interface MerchantSubscriptionModalProps {
   isOpen: boolean;
@@ -26,8 +42,17 @@ export const MerchantSubscriptionModal: React.FC<MerchantSubscriptionModalProps>
   const [qrUrl, setQrUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [qrBroken, setQrBroken] = useState(false);
 
   const loadQr = useCallback(async () => {
+    setQrBroken(false);
+    // 纯 Web 版：直接用静态小程序码，不走后端接口（既没有后端也没有机器签名）
+    if (IS_STATIC) {
+      setLoading(false);
+      setError('');
+      setQrUrl(STATIC_MERCHANT_QR_SRC);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -50,6 +75,7 @@ export const MerchantSubscriptionModal: React.FC<MerchantSubscriptionModalProps>
     } else {
       setQrUrl('');
       setError('');
+      setQrBroken(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
@@ -109,16 +135,21 @@ export const MerchantSubscriptionModal: React.FC<MerchantSubscriptionModalProps>
                 <Loader2 className="h-6 w-6 animate-spin" />
                 <span className="text-xs">正在生成小程序码…</span>
               </div>
-            ) : qrUrl ? (
+            ) : qrUrl && !qrBroken ? (
               <img
                 src={qrUrl}
                 alt="远行商人小程序码"
+                onError={() => setQrBroken(true)}
                 className="h-56 w-56 rounded-xl bg-white p-2 shadow-sm"
               />
             ) : (
               <div className="flex flex-col items-center gap-2 text-slate-400">
                 <QrCode className="h-10 w-10" />
-                <span className="text-xs">{error || '暂时没有可用的小程序码'}</span>
+                <span className="text-xs text-center px-2">
+                  {error || (IS_STATIC
+                      ? '小程序码图片暂未就位（assets/merchant-mp-qr.jpeg）'
+                      : '暂时没有可用的小程序码')}
+                </span>
               </div>
             )}
           </div>
@@ -128,15 +159,17 @@ export const MerchantSubscriptionModal: React.FC<MerchantSubscriptionModalProps>
               <Smartphone className="h-3.5 w-3.5" />
               使用微信扫码进入小程序
             </div>
-            <button
-              type="button"
-              onClick={loadQr}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-full bg-sky-500 px-4 py-1.5 text-xs font-bold text-white disabled:opacity-50"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-              刷新二维码
-            </button>
+            {!IS_STATIC && (
+              <button
+                type="button"
+                onClick={loadQr}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 rounded-full bg-sky-500 px-4 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                刷新二维码
+              </button>
+            )}
           </div>
 
           {error && (
@@ -147,7 +180,7 @@ export const MerchantSubscriptionModal: React.FC<MerchantSubscriptionModalProps>
 
           <div className="mt-3 flex items-center justify-center gap-1 text-[11px] text-slate-400">
             <ExternalLink className="h-3 w-3" />
-            小程序名称：徽章试炼助手
+            小程序名称：拾录小册
           </div>
         </div>
       </div>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { BellRing, ChevronRight, Flame, Leaf, QrCode, Sparkles, Wrench } from 'lucide-react';
-import { IS_STATIC } from '../services/staticMode';
 import { Trial } from '../types';
 
 interface AssistantHubProps {
@@ -61,8 +60,12 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
     .filter((trial) => TRIAL_CARD_CONFIG[trial.key])
     .map((trial) => ({ ...TRIAL_CARD_CONFIG[trial.key], devOnly: trial.dev_only }));
 
-  // 静态网页版没有本机后端，不展示依赖桌面端签名的微信小程序入口。
-  const toolAssistants = IS_STATIC ? [] : [WECHAT_TOOL_CARD];
+  // 实用工具：远行商人小程序入口（桌面端 / 纯 Web 都展示）。
+  //
+  // 纯 Web 版没有本机后端，但这张卡片点开后走的是 MerchantSubscriptionModal 的
+  // 「静态小程序码」分支 —— 不请求 /api/wechat/*，直接用仓库里的一张固定小程序码，
+  // 扫码直达小程序，所以 Web 端也能放出来。
+  const toolAssistants: ToolItem[] = [WECHAT_TOOL_CARD];
 
   return (
     <div className="flex-1 w-full max-w-4xl mx-auto px-1 sm:px-6 lg:px-12 pt-2 sm:pt-6 pb-12 flex flex-col gap-6 sm:gap-10">
