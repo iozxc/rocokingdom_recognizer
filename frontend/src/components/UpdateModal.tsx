@@ -462,12 +462,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                             )}
                             {miniQr && !miniQrLoading && miniBindState !== 'expired' && (
                                 <>
-                                    <img src={miniQr} alt="草系徽章试炼小程序码" className="h-40 w-40 rounded-lg bg-white p-1.5 shadow-sm" />
+                                    <img src={miniQr} alt="草系徽章试炼微信小程序码" className="h-40 w-40 rounded-lg bg-white p-1.5 shadow-sm" />
                                     {miniBindState === 'bound' ? (
                                         <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-300">已绑定微信（仅在云端为空时补传一次本机进度）</span>
                                     ) : (
                                         <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                            用微信扫码，自动绑定并进入图鉴 · 二维码 {formatDuration(miniLeft)} 后失效
+                                            二维码 {formatDuration(miniLeft)} 后失效
                                         </span>
                                     )}
                                 </>
