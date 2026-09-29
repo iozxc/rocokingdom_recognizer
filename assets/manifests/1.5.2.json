@@ -2,7 +2,7 @@
   "version": "1.5.2",
   "files": {
     "RocoKingdomRecognizer.exe": {
-      "md5": "abfef1a3c6ad31ee8db54e0e28cacc80",
+      "md5": "5f088b79bd3d45e3a65a836627a49432",
       "size": 19707599
     },
     "libs/api-ms-win-core-console-l1-1-0.dll": {
@@ -166,7 +166,7 @@
       "size": 22000
     },
     "libs/base_library.zip": {
-      "md5": "e38010976647dc31db35a71e99120bb3",
+      "md5": "afdb51b214a0b470ef4739a9fe533a85",
       "size": 1333490
     },
     "libs/ffi.dll": {
@@ -174,7 +174,7 @@
       "size": 41288
     },
     "libs/file_manifest.json": {
-      "md5": "7e15f595541b645be884b3b64f13a432",
+      "md5": "4b694b5174347b3cfb718e0a14dab655",
       "size": 235478
     },
     "libs/LIBBZ2.dll": {
