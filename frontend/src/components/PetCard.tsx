@@ -35,8 +35,8 @@ interface PetCardProps {
   onOpenDetail: (pet: PetItem) => void;
   /** 社区投票（不传则不渲染投票按钮）。 */
   onVote?: (mapId: string, petKey: string, petName: string, type: 'agree' | 'disagree') => void;
-  /** 鼠标进入（智能技能悬浮）。 */
-  onEnter: (e: React.MouseEvent<HTMLDivElement>, pet: PetItem) => void;
+  /** 鼠标进入（智能技能悬浮；仅真实鼠标指针触发）。 */
+  onEnter: (e: React.PointerEvent<HTMLDivElement>, pet: PetItem) => void;
   onLeave: () => void;
   /** 右键：呼出快捷菜单。 */
   onContext: (e: React.MouseEvent<HTMLDivElement>, pet: PetItem) => void;
@@ -72,8 +72,8 @@ export const PetCard: React.FC<PetCardProps> = React.memo(({
       id={`pet-card-${mapId}-${pet.name.replace('.', '-')}`}
       onClick={() => onActivate(pet.name, isEnc)}
       onContextMenu={(e) => onContext(e, pet)}
-      onMouseEnter={(e) => onEnter(e, pet)}
-      onMouseLeave={onLeave}
+      onPointerEnter={(e) => onEnter(e, pet)}
+      onPointerLeave={onLeave}
       className={`group relative rounded-2xl p-2 sm:p-3 flex flex-col items-center cursor-pointer transition-all duration-200 select-none ${
         isJustEncountered
           ? 'encounter-pop-active bg-[#F2FBF0] dark:bg-emerald-950/40 border-2 border-[#95D151] ring-2 ring-[#95D151]/40'

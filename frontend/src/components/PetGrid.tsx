@@ -134,9 +134,10 @@ export const PetGrid: React.FC<PetGridProps> = ({
     return unsub;
   }, []);
 
-  // 悬浮显示（设定 380ms 适当防抖等待，避免滑过即闪烁）与鼠标移开即刻消失
-  const handleCardMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>, pet: PetItem) => {
-    if (!showSkillHoverRef.current) return;
+  // 悬浮显示（设定 380ms 适当防抖等待，避免滑过即闪烁）与鼠标移开即刻消失。
+  // 只接受真实鼠标指针；移动端触摸会触发 pointerType=touch，不能再打开技能浮层。
+  const handleCardMouseEnter = useCallback((e: React.PointerEvent<HTMLDivElement>, pet: PetItem) => {
+    if (e.pointerType !== 'mouse' || !showSkillHoverRef.current) return;
     if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
     const rect = e.currentTarget.getBoundingClientRect();
     const placement = rect.right + 330 > window.innerWidth ? 'left' : 'right';
