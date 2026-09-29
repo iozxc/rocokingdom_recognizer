@@ -672,17 +672,35 @@ export class StorageService {
   }
 
   /**
-   * 默认识别门槛从 25% 提升到 60%：把「仍停留在旧默认值 0.25」的 batch_threshold
-   * 一次性迁移到新默认 0.6；打标后无论用户再怎么调都不再改动。
-   * 没存过门槛的用户直接拿到调用处的新默认值 0.6。
+   * 批量识别默认门槛迁移：
+   * - v2: 旧默认 25% -> 60%
+   * - v3: 旧默认 60% -> 45%
+   * 仅在值仍停留在对应旧默认值时迁移；用户手动选择的其他值不动。
    */
   private migrateBatchThresholdDefault(): void {
-    const flag = '__batch_threshold_v2';
-    if (this.thresholds[flag]) return;
-    if (this.thresholds['batch_threshold'] === 0.25) {
-      this.thresholds['batch_threshold'] = 0.6;
+    let changed = false;
+
+    const v2Flag = '__batch_threshold_v2';
+    if (!this.thresholds[v2Flag]) {
+      if (this.thresholds['batch_threshold'] === 0.25) {
+        this.thresholds['batch_threshold'] = 0.6;
+        changed = true;
+      }
+      this.thresholds[v2Flag] = 1;
+      changed = true;
     }
-    this.thresholds[flag] = 1;
+
+    const v3Flag = '__batch_threshold_v3';
+    if (!this.thresholds[v3Flag]) {
+      if (this.thresholds['batch_threshold'] === 0.6) {
+        this.thresholds['batch_threshold'] = 0.45;
+        changed = true;
+      }
+      this.thresholds[v3Flag] = 1;
+      changed = true;
+    }
+
+    if (!changed) return;
     try {
       localStorage.setItem(THRESHOLDS_STORAGE_KEY, JSON.stringify(this.thresholds));
     } catch {
@@ -690,7 +708,7 @@ export class StorageService {
     }
   }
 
-  public getThreshold(key: string, defaultValue = 0.6): number {
+  public getThreshold(key: string, defaultValue = 0.45): number {
     return typeof this.thresholds[key] === 'number' ? this.thresholds[key] : defaultValue;
   }
 

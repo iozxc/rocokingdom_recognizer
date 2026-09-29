@@ -600,7 +600,7 @@ export class ApiService {
   public async initBatch(
       imageFile: File | Blob,
       stageNum: number,
-      threshold: number = 0.6,
+      threshold: number = 0.45,
       topK: number = 3,
       trialKey: string = 'grass',
       /** PC 端进度条：带上任务号，后端会把阶段进度写进可轮询的快照。 */
