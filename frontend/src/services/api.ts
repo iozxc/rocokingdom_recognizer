@@ -36,6 +36,23 @@ import { IS_STATIC, PLATFORM } from './staticMode';
 
 const DEFAULT_API_BASE = 'http://127.0.0.1:5000';
 
+/**
+ * 批量识别（/init_batch）的等待上限。
+ *
+ * 后端 /init_batch 是一条串行链路：整图 OCR 找名字 → 连通域切图 → 逐图位 DINO 提特征
+ * → 逐槽匹配并回传裁剪图。耗时随图位数与图幅上涨：整页大截图（十几~二十个图位）在慢机器、
+ * 或"首次识别"（要建 OCR/DINO 会话、读特征库）时会超过 30 秒。
+ *
+ * 原来这里写死 30s，会把"正常但较慢"的识别直接掐断：前端抛 ECONNABORTED，后端其实还在算，
+ * 结果被丢弃，用户看到的却是"无法连接本地识别后端"。放宽到 120s。
+ * 服务端 waitress 的 channel_timeout 只回收"空闲"连接（有请求在跑就绝不会关），
+ * 所以不会被服务端提前断掉。
+ */
+const BATCH_INIT_TIMEOUT_MS = 120000;
+
+/** 单图识别（/predict，跟随识别用）的等待上限：只切几个图位，维持原值。 */
+const PREDICT_TIMEOUT_MS = 12000;
+
 export class ApiService {
   private apiBase: string;
 
@@ -482,7 +499,7 @@ export class ApiService {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
-            timeout: 12000,
+            timeout: PREDICT_TIMEOUT_MS,
           }
       );
 
@@ -552,6 +569,13 @@ export class ApiService {
         }
         if (typeof httpStatus === 'number') {
           throw new Error(`识别后端处理失败（HTTP ${httpStatus}）${serverMsg ? `：${serverMsg}` : ''}`);
+        }
+        // 同 init_batch：超时 ≠ 后端没启动，文案要分开，别让用户去重启后端。
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+          throw new Error(
+            `识别超时：等待超过 ${Math.round(PREDICT_TIMEOUT_MS / 1000)} 秒仍未返回，已中止本次请求。` +
+            '首次识别需加载模型会明显偏慢，请稍后重试。'
+          );
         }
         throw new Error(
           `无法连接本地识别后端 ${this.apiBase}/predict（${error.code || error.message}），请确认后端已启动。`
@@ -626,7 +650,7 @@ export class ApiService {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
-            timeout: 30000,
+            timeout: BATCH_INIT_TIMEOUT_MS,
           }
       );
 
@@ -737,6 +761,16 @@ export class ApiService {
           throw new Error(
             `识别后端处理失败（HTTP ${httpStatus}）${serverMsg ? `：${serverMsg}` : ''}；` +
             '本次没有生成任何识别结果。'
+          );
+        }
+        // 客户端等待超时（axios 用 ECONNABORTED / ETIMEDOUT 表示"自己等不下去了"）≠ 后端没启动：
+        // 后端多半正在跑（整页 OCR + 逐图位提特征），只是超过了前端等待上限。
+        // 这两种情况必须分开提示，否则用户会去反复重启后端，找错方向。
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+          throw new Error(
+            `识别超时：等待超过 ${Math.round(BATCH_INIT_TIMEOUT_MS / 1000)} 秒仍未返回，已中止本次请求。` +
+            '请缩小截图范围（少截几行/几个图位）后重试；首次识别需加载模型会明显偏慢，' +
+            '稍后重试通常会更快。本次没有生成任何识别结果。'
           );
         }
         throw new Error(
