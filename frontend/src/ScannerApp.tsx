@@ -293,23 +293,26 @@ const CandidateCarousel: React.FC<{
 
 
 export const ScannerApp: React.FC = () => {
-  // 跟随识别窗口“可见”标记：关闭=隐藏时文档变 hidden，据此停/开存储轮询
+  // 跟随识别窗口“已开启”标记：只要本窗口还存活就保持为 1，让主窗口持续轮询后端。
+  //
+  // 之前按 document.visibilityState 在“可见/隐藏”之间反复开合 —— 但主窗口恰恰是在
+  // 跟随窗口不再置顶（被切到后台 / 被遮挡）时才需要把点亮的图鉴拉回去；那时若把标记
+  // 清掉，主窗口就停止轮询，表现为“回到主界面还是未遇见，要刷新才变”。
+  //
+  // 现在改为：挂载即置 1，仅在窗口真正卸载 / 跳转（pagehide）时清除。显式关闭（hide）
+  // 由桌面端桥接 close_scanner 负责先刷新主窗口、再清除标记并隐藏。
   useEffect(() => {
-    const setFlag = () => {
-      try {
-        if (document.visibilityState === 'visible') {
-          localStorage.setItem('roco_follow_active', '1');
-        } else {
-          localStorage.removeItem('roco_follow_active');
-        }
-      } catch { /* ignore */ }
+    const setActive = () => {
+      try { localStorage.setItem('roco_follow_active', '1'); } catch { /* ignore */ }
     };
-    setFlag();
-    document.addEventListener('visibilitychange', setFlag);
-    window.addEventListener('pagehide', () => { try { localStorage.removeItem('roco_follow_active'); } catch { /* ignore */ } });
-    return () => {
-      document.removeEventListener('visibilitychange', setFlag);
+    const clearActive = () => {
       try { localStorage.removeItem('roco_follow_active'); } catch { /* ignore */ }
+    };
+    setActive();
+    window.addEventListener('pagehide', clearActive);
+    return () => {
+      window.removeEventListener('pagehide', clearActive);
+      clearActive();
     };
   }, []);
 

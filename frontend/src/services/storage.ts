@@ -41,6 +41,10 @@ export class StorageService {
   private settingsListeners: Set<SettingsListener> = new Set();
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
   private isSyncing = false;
+  // 保存失败后的重试定时器：避免一次失败把 hasPendingLocalChanges 永久卡在 true，
+  // 导致 startPoll 再也不拉取远程更新（表现为“跟随识别点亮了，主页还是未遇见”）。
+  private saveRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private saveRetryCount = 0;
 
   private localVersion = 0;
   // 轮询定时器
@@ -303,13 +307,37 @@ export class StorageService {
           this.localVersion = res.data.version;
         }
         this.hasPendingLocalChanges = false;
+        this.saveRetryCount = 0;
+        if (this.saveRetryTimer) {
+          clearTimeout(this.saveRetryTimer);
+          this.saveRetryTimer = null;
+        }
         return true;
       }
+      this.scheduleSaveRetry();
       return false;
     } catch (err) {
       console.warn('save remote http fail', err);
+      this.scheduleSaveRetry();
       return false;
     }
+  }
+
+  /**
+   * 保存失败后的退避重试。
+   *
+   * 关键点：重试期间保持 hasPendingLocalChanges = true（轮询会跳过，不去覆盖尚未落盘的
+   * 本地改动），只有重试成功才复位。这样既不会丢改动，也不会像以前那样“一次超时就永久
+   * 停掉轮询”。重试会用最新快照（saveToRemote 每次重新 getPayload）。
+   */
+  private scheduleSaveRetry(): void {
+    if (this.saveRetryTimer) return;
+    const delay = Math.min(800 * 2 ** this.saveRetryCount, 10000);
+    this.saveRetryCount += 1;
+    this.saveRetryTimer = setTimeout(() => {
+      this.saveRetryTimer = null;
+      if (this.hasPendingLocalChanges) void this.saveToRemote();
+    }, delay);
   }
 
   private triggerSave() {
@@ -831,6 +859,30 @@ export class StorageService {
     await this.fetchRemote();
   }
 
+  /**
+   * 主动从数据源重新加载一份并通知订阅者。
+   *
+   * 供「主窗口重新获得焦点/可见」以及桌面端桥接（关闭跟随识别窗口前）调用：
+   * - 桌面端：从本机后端拉取权威数据（fetchRemote 会 applyRemoteData + notify）；
+   * - 纯前端静态版：没有后端，退回「重读 localStorage + 通知」。
+   *
+   * 背景：跟随识别窗口与主窗口各自持有一份内存副本，主窗口此前只在跟随窗口激活时
+   * 轮询后端；切回主界面 / 跟随窗口被遮挡时可能错过最后一次点亮，主页仍显示未遇见。
+   */
+  public async refreshFromSource(): Promise<void> {
+    if (IS_STATIC) {
+      this.loadFromLocalStorage();
+      this.notifyListeners();
+      this.notifySettingsListeners();
+      return;
+    }
+    try {
+      await this.fetchRemote();
+    } catch (e) {
+      console.warn('refreshFromSource fail', e);
+    }
+  }
+
   public getIsSyncing(): boolean {
     return this.isSyncing;
   }
@@ -838,6 +890,7 @@ export class StorageService {
   public destroy() {
     if (this.saveTimeout) clearTimeout(this.saveTimeout);
     if (this.pollTimer) clearTimeout(this.pollTimer);
+    if (this.saveRetryTimer) clearTimeout(this.saveRetryTimer);
   }
 }
 

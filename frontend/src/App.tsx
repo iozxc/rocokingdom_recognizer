@@ -31,6 +31,7 @@ import { MAP_CONFIGS } from './data/mockPets';
 import { resolveTrialMaps } from './data/trials';
 import { api } from './services/api';
 import { storage } from './services/storage';
+import { fireStorage } from './services/fireStorage';
 import { getFireTrialPetsCached, invalidateFireTrialData } from './services/fireTrialData';
 import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
@@ -392,6 +393,41 @@ export default function App() {
       }
     };
   }, [refreshRecords, fetchIconsData, triggerScanSyncEffect]);
+
+  /**
+   * 窗口重新获得焦点 / 重新可见时，主动从数据源刷新一遍遇见记录。
+   *
+   * 背景：跟随识别窗口与主窗口各自持有一份内存副本，主窗口此前只靠
+   * `roco_follow_active` 期间的轮询从后端拉数据；切回主界面（或跟随窗口被遮挡/
+   * 隐藏）时可能错过最后一次点亮，表现为“跟随识别里点了遇见，主页还是未遇见，
+   * 要刷新才变”。这里在重新聚焦/可见时补一次拉取，保证主页最终一致。
+   *
+   * - 桌面端：refreshFromSource → 拉本机后端；
+   * - 纯前端静态版：refreshFromSource → 重读 localStorage。
+   * 桌面端桥接（关闭跟随识别窗口前）也会调用挂在 window 上的 __rocoRefreshStorage。
+   */
+  useEffect(() => {
+    const refreshStores = () => {
+      void storage.refreshFromSource();
+      void fireStorage.refreshFromSource();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshStores();
+    };
+    const w = window as unknown as { __rocoRefreshStorage?: () => void };
+    w.__rocoRefreshStorage = refreshStores;
+    window.addEventListener('focus', refreshStores);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.removeEventListener('focus', refreshStores);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      try {
+        delete w.__rocoRefreshStorage;
+      } catch {
+        w.__rocoRefreshStorage = undefined;
+      }
+    };
+  }, []);
 
   // 监听滚动：当页面搜索行滚出 header 下方时显示悬浮搜索栏
   useEffect(() => {

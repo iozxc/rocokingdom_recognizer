@@ -592,6 +592,9 @@ class WindowManager:
         """关闭跟随识别窗口：隐藏复用，避免反复创建/销毁导致卡死。"""
         if self.scanner_window is not None:
             try:
+                # 隐藏前先让主窗口主动拉一次最新数据：跟随窗口里最后一次点亮可能还在
+                # 300ms 轮询的窗口之外，先刷新再停轮询，避免“回到主页还是未遇见”。
+                self._refresh_main_storage()
                 # 关闭=隐藏：通知前端清除“跟随识别开启”标志，停止本地存储轮询
                 try:
                     self.scanner_window.evaluate_js(
@@ -604,6 +607,21 @@ class WindowManager:
             except Exception as e:
                 logger.error(f"跟随识别窗口 hide 异常: {e}")
         return {"status": "closed"}
+
+    def _refresh_main_storage(self):
+        """让主窗口主动刷新图鉴存储（隐藏跟随窗口前调用）。
+
+        主窗口在 App.tsx 里把刷新函数挂在 window.__rocoRefreshStorage 上；这里通过
+        evaluate_js 触发一次，确保隐藏跟随窗口、停止轮询之前，最后一次点亮已经被拉回主页。
+        未知/未就绪时静默忽略，不影响窗口关闭流程。
+        """
+        win = self.main_window
+        if win is None:
+            return
+        try:
+            win.evaluate_js("window.__rocoRefreshStorage && window.__rocoRefreshStorage()")
+        except Exception as e:
+            logger.debug(f"通知主窗口刷新存储失败: {e}")
 
     def move_scanner(self, dx, dy):
         win = self.scanner_window

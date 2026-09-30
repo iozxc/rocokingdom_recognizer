@@ -30,6 +30,9 @@ export class FireStorageService {
   private hasPendingLocalChanges = false;
   /** 最近一次落盘请求：供同步/切账号前等待，避免旧数据回写覆盖新数据。 */
   private pendingSave: Promise<void> | null = null;
+  // 保存失败后的重试定时器（与草系 storage 同策略）：避免一次失败永久停掉轮询。
+  private saveRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private saveRetryCount = 0;
 
   constructor() {
     this.loadFromLocalStorage();
@@ -191,8 +194,42 @@ export class FireStorageService {
         this.localVersion = res.data.version;
       }
       this.hasPendingLocalChanges = false;
+      this.saveRetryCount = 0;
+      if (this.saveRetryTimer) {
+        clearTimeout(this.saveRetryTimer);
+        this.saveRetryTimer = null;
+      }
     } catch (e) {
       console.warn('fire save remote http fail', e);
+      this.scheduleSaveRetry();
+    }
+  }
+
+  /** 保存失败后的退避重试（与草系 storage 同策略）。 */
+  private scheduleSaveRetry(): void {
+    if (this.saveRetryTimer) return;
+    const delay = Math.min(800 * 2 ** this.saveRetryCount, 10000);
+    this.saveRetryCount += 1;
+    this.saveRetryTimer = setTimeout(() => {
+      this.saveRetryTimer = null;
+      if (this.hasPendingLocalChanges) void this.saveToRemote();
+    }, delay);
+  }
+
+  /**
+   * 主动从数据源重载一份并通知订阅者（主窗口重新聚焦 / 桌面端桥接调用）。
+   * 桌面端走后端；静态版退回重读 localStorage。
+   */
+  public async refreshFromSource(): Promise<void> {
+    if (IS_STATIC) {
+      this.loadFromLocalStorage();
+      this.notifyListeners();
+      return;
+    }
+    try {
+      await this.fetchRemote();
+    } catch (e) {
+      console.warn('fire refreshFromSource fail', e);
     }
   }
 
@@ -333,6 +370,7 @@ export class FireStorageService {
   public destroy() {
     if (this.saveTimeout) clearTimeout(this.saveTimeout);
     if (this.pollTimer) clearTimeout(this.pollTimer);
+    if (this.saveRetryTimer) clearTimeout(this.saveRetryTimer);
   }
 }
 
