@@ -280,7 +280,7 @@ class ImageRecognizer:
 
         if not results:
             logger.debug(f"ImageRecognizer.match: 无满足阈值的匹配, 耗时={elapsed:.1f}ms")
-            return None, "未找到匹配程度足够高的图标"
+            return None, "未找到匹配度足够高的精灵"
 
         top1 = results[0]
         logger.debug(f"ImageRecognizer.match: 匹配成功 top1={top1['name']}({top1['score']:.4f}), "

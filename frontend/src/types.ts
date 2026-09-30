@@ -98,6 +98,8 @@ export interface BatchInitCandidateItem {
 }
 
 export interface BatchInitApiRawItem {
+  /** 上游判定"这格是空位/没检出头像"（空槽、游戏「?」占位） */
+  blank?: boolean;
   index: number;
   status: 'matched' | 'unmatched';
   candidates?: BatchInitCandidateItem[];
@@ -118,6 +120,8 @@ export interface BatchInitApiResponse {
 }
 
 export interface BatchInitReviewItem {
+  /** 上游明确判定"这格是空位/没检出头像"（空槽、游戏「?」占位） */
+  blank?: boolean;
   index: number;
   status: 'matched' | 'unmatched';
   candidates?: BatchInitCandidateItem[];

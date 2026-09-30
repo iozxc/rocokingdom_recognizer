@@ -73,16 +73,18 @@ import {
   type VideoGuideItem,
 } from './VideoGuideModal';
 
-/** 占位符/空槽判定：没有任何精灵名（OCR）线索，且最高候选分低于「识别门槛」（或本就没检出头像），
- *  说明这一格是游戏里的「?」占位符或空槽、并不是精灵——不应按红色「未匹配」告警。 */
-function isPlaceholderSlot(item: BatchInitReviewItem, threshold: number): boolean {
+/**
+ * 疑似空位判定：只有上游**明确判定这一格没检出头像**（空槽 / 游戏「?」占位）时才成立。
+ *
+ * 2026-09-30 修正：旧实现还用「没有候选 / 最高候选低于识别门槛」来推断空槽，但那只说明
+ * "没识别到"——真精灵被漏检（浅色精灵被空槽判据误判、截图形状特殊、不在本图白名单等）
+ * 就是这个样子。旧逻辑会把真精灵显示成「不是精灵，已忽略」，由用户反馈而来。
+ * "没识别到"现在单独按「未识别」呈现，并保留真实 reason 供人工判断。
+ */
+function isPlaceholderSlot(item: BatchInitReviewItem): boolean {
   if (item.status !== 'unmatched') return false;
-  if (item.reason && item.reason.includes('未检出')) return true; // 纯前端：该槽位本就没检出头像
-  const cands = item.candidates || [];
-  if (cands.some((c) => c.source === 'ocr' || c.source === 'both')) return false; // 读到了精灵名，按真精灵处理
-  const best = cands[0]?.score;
-  // 最高候选仍低于识别门槛（或根本没有候选）：疑似占位符 / 空槽
-  return best == null || best < threshold;
+  // 用显式字段判断（不再比对文案关键字，改文案不会影响判定）
+  return item.blank === true;
 }
 
 interface BatchRecognizerCardProps {
@@ -651,8 +653,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           view_url: activeViewUrl,
           crop_image: raw.crop_image,
           reason: weakAsPlaceholder
-            ? `最高候选匹配度仅 ${Math.round(bestScore * 100)}%，低于识别门槛 ${Math.round(threshold * 100)}%`
+            ? `最高匹配度 ${Math.round(bestScore * 100)}%，未达识别门槛`
             : raw.reason,
+          // 空位标记必须原样带下去：isPlaceholderSlot() 靠它显示"这格可能是空位"
+          blank: raw.blank === true,
           matchedPet,
           candidates: processedCandidates,
           isAlreadyEncountered: alreadyEncountered,
@@ -667,7 +671,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
         // 后端未检出任何图位（空白/碎片截图）：清空旧结果并提示，绝不保留上一张图的假数据。
         setScanError(null);
         setScanEmpty(
-          '未检测到精灵图位。请确认截图里包含完整的精灵图鉴格子（而不是空白画面或界面碎片），再重新识别。'
+          '图片中未检测到精灵。请确认截图包含完整的图鉴内容（非空白画面或界面碎片）后重试。'
         );
         return;
       }
@@ -1133,7 +1137,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         <Sliders className="w-3.5 h-3.5 text-[#7ABCF4] dark:text-sky-400" />
                         <HintTooltip
                             side="bottom"
-                            content="相似度达到该比例才算匹配。调高更严格、误判少但可能漏；调低更宽松、能找回边缘结果但可能混入不太像的。多数截图保持默认即可。"
+                            content="匹配度达到该比例才判定为匹配。调高更严格、误判更少但可能漏检；调低更宽松、可找回边缘结果，但可能混入低匹配度项。通常保持默认即可。"
                             className="cursor-help"
                         >
                           <span className="font-bold flex items-center gap-0.5 underline decoration-dotted decoration-slate-300 underline-offset-2">
@@ -1800,7 +1804,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                   const scorePercent = item.score ? (item.score * 100).toFixed(1) : '0';
                   const isHighScore = (item.score || 0) >= 0.88;
                   const isAlready = !!item.isAlreadyEncountered;
-                  const isPlaceholder = isPlaceholderSlot(item, threshold);
+                  const isPlaceholder = isPlaceholderSlot(item);
                   const displayName = formatPetName(item.matchedPet?.name || item.filename);
 
                   return (
@@ -1856,11 +1860,11 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                 </span>
                             ) : isPlaceholder ? (
                                 <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
-                                  空槽
+                                  疑似空位
                                 </span>
                             ) : (
                                 <span className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300">
-                                  未匹配
+                                  未识别
                                 </span>
                             )}
                           </div>
@@ -1946,17 +1950,17 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                   </div>
                               ) : isPlaceholder ? (
                                   <div className="w-full">
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">疑似占位符 / 空槽</p>
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">疑似空位</p>
                                     <p
                                         className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 truncate"
-                                        title="该位置不是精灵（可能是游戏的「?」占位或空图位），已自动忽略；若确为精灵可在下方人工挑选"
+                                        title="该位置未检测到精灵：可能为游戏内的「?」空位，也可能为暂未识别的精灵。此格不会自动勾选，可通过下方「人工挑选修正」手动选择。"
                                     >
-                                      不是精灵，已忽略 · 可人工挑选
+                                      未检测到精灵 · 可人工挑选
                                     </p>
                                   </div>
                               ) : (
-                                  <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold truncate" title={item.reason || '特征不匹配'}>
-                                    {item.reason || '未匹配到精灵'}
+                                  <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold truncate" title={item.reason || '未识别'}>
+                                    {item.reason || '未识别到精灵'}
                                   </p>
                               )}
                             </div>

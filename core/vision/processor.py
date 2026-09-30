@@ -269,12 +269,25 @@ def _placeholder_stats(pil_img):
     else:
         mean_sat, gray_frac = 0.0, 1.0
 
+    # 强边缘守卫（与前端 segments.ts::cropBlankStats 同口径）：
+    # 真精灵（哪怕缩得很小）一定存在精灵轮廓造成的强灰度跳变；纯色空槽（很淡的「?」）没有。
+    # 取 4 邻域灰度差分较大方向的 p99.9（最强 0.1% 像素）。实测标定：
+    #   真精灵 ≥123；把精灵缩到 15% 贴浅底仍有 148~161；纯色空槽 ≤66 → 取 100 作分界。
+    try:
+        dx = np.abs(np.diff(gray, axis=1))
+        dy = np.abs(np.diff(gray, axis=0))
+        grad = np.maximum(dx[:-1, :], dy[:, :-1]) if dx.size and dy.size else None
+        edge_strong = float(np.percentile(grad, 99.9)) if grad is not None and grad.size else 0.0
+    except Exception:
+        edge_strong = 0.0
+
     return {
         "std": std,
         "white": white_frac,
         "dominant_fg": dominant_fg,
         "mean_sat": mean_sat,
         "gray_frac": gray_frac,
+        "edge_strong": edge_strong,
     }
 
 
@@ -303,6 +316,10 @@ def detect_placeholder_icons(
     比 is_blank_icon（只能认纯色平铺槽）更全，多一层“重复占位符”检测：
 
     1) 单图纯色平铺：均匀绿底「?」、纯白等，几乎无纹理、前景主色高度集中。
+    0) 前置守卫：任何一种"空槽"判定都必须先满足「没有精灵轮廓」（4 邻域灰度差分 p99.9 < 100）。
+       真精灵即使缩到很小、贴在大片浅色底上，p99.9 仍有 148~161；纯色空槽 ≤66。
+       没有这道守卫时，"浅色精灵 + 近白底"的 white 占比会 >0.97、主色占比也会被浅底刷高，
+       结果真精灵被判成空槽、直接跳过识别（2026-09-30 用户反馈）。
     2) 批量重复占位符：图鉴/背包里的“未遇见”是同一个灰色「?」布袋，同排会重复出现，
        归一化缩略图几乎完全一致（实测相关系数 ≈0.99）；而不同精灵两两不同（实测 ≤0.77）。
        再叠加“低信息量（去饱和/高灰度）”门槛，避免把重复出现的同色真精灵误判。
@@ -321,10 +338,20 @@ def detect_placeholder_icons(
                   "mean_sat": 0.0, "gray_frac": 0.0}
         infos.append(st)
 
-    # 1) 单图纯色平铺
+    # 1) 单图纯色平铺（2026-09-30 修正：全部判据都必须"没有精灵轮廓"，
+    #    否则"浅色精灵 + 大片浅色背景"会被误判成空槽——用户反馈的 bug）
     for i in range(n):
         st = infos[i]
-        if st["white"] > white_frac_max or (st["std"] < std_max and st["dominant_fg"] > fg_dom_min):
+        no_pet_edge = st.get("edge_strong", 0.0) < 100.0
+        if not no_pet_edge:
+            continue
+        if st["white"] > white_frac_max:
+            flags[i] = True
+            reasons[i] = "white"
+        elif st["std"] < 26.0 and st["dominant_fg"] > 0.72:
+            flags[i] = True
+            reasons[i] = "tile"
+        elif st["std"] < std_max and st["dominant_fg"] > fg_dom_min:
             flags[i] = True
             reasons[i] = "uniform"
 

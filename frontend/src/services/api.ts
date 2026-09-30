@@ -721,7 +721,9 @@ export class ApiService {
               match_path: primaryCandidate?.match_path || raw.match_path,
               crop_image: typeof raw.crop_image === 'string' && raw.crop_image.startsWith('data:') ? raw.crop_image : undefined,
               candidates: candidates.length > 0 ? candidates : undefined,
-              reason: raw.reason || (status === 'unmatched' ? '未找到匹配程度足够高的图标' : undefined),
+              reason: raw.reason || (status === 'unmatched' ? '未找到匹配的精灵' : undefined),
+              // 空位标记：后端/网页端显式回传，前端不再靠文案关键字判断"是不是空位"
+              blank: raw.blank === true,
             };
           });
 
@@ -792,7 +794,7 @@ export class ApiService {
           return {
             index: idx,
             status: 'unmatched' as const,
-            reason: '未找到匹配程度足够高的图标 (0.18)',
+            reason: '未找到匹配的精灵',
           };
         }
 

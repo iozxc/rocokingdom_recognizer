@@ -349,7 +349,7 @@ async function recognizeBitmap(
     totalCount: number,
     nameItems: NameAnchorItem[],
     onProgress: (done: number, total: number) => void
-): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; sigs: Uint8Array; blankFlags: Uint8Array }> {
+): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; sigs: Uint8Array; blankFlags: Uint8Array; hardFlags: Uint8Array; lowInfoFlags: Uint8Array }> {
   if (!dinoSession) throw new Error('识别模型尚未初始化完成');
   const t0 = performance.now();
   const w = bitmap.width;
@@ -388,12 +388,30 @@ async function recognizeBitmap(
 
   const dim = 384;
   const out = new Float32Array(boxes.length * dim);
-  // 空槽 / 空白裁剪兜底：纯色（均匀绿底「?」或纯白）的图位不是精灵，直接标记并跳过提特征。
-  // 否则纯色绿底的 DINO 特征会和大量立绘的「绿色底块」高相似，把空槽误判成 90%+ 的精灵。
-  const { flags: blankFlags } = detectBlankBoxes(rgba, w, h, boxes);
+  // 空槽 / 空白裁剪兜底（分级，2026-09-30 修正）：
+  //   hardFlags = 高置信空槽（纯白 / 重复占位符 / 极平坦且无强边缘）→ 跳过提特征。
+  //     必须跳过：纯色绿底的 DINO 特征会和大量立绘的「绿色底块」高相似，
+  //     把空槽误判成 90%+ 的精灵。
+  //   blankFlags = 疑似空槽（可能只是「浅色精灵 + 浅色背景」被统计指标误判）→
+  //     **照常提特征做匹配**，最后在 localRecognizer 里用「有没有候选」兜底判定，
+  //     避免真精灵被一个统计指标判死（用户反馈的 bug）。
+  const { flags: blankFlags, hardFlags, lowInfoFlags, stats: blankStats } = detectBlankBoxes(rgba, w, h, boxes);
   const activeIdx: number[] = [];
   for (let i = 0; i < boxes.length; i++) {
-    if (!blankFlags[i]) activeIdx.push(i);
+    if (!hardFlags[i]) activeIdx.push(i);
+  }
+  if (blankFlags.some((v) => v)) {
+    // 留痕：下次再有人报"明明有精灵却判空槽"，看这行就能定位是哪个槽位、哪项指标。
+    console.info(`[recognition.worker] 空槽判定: 疑似=${blankFlags.reduce((a, v) => a + v, 0)}`
+        + ` 高置信=${hardFlags.reduce((a, v) => a + v, 0)} / 共 ${boxes.length} 图位`);
+    boxes.forEach((b, i) => {
+      if (!blankFlags[i]) return;
+      const s = blankStats[i];
+      console.debug(`[recognition.worker] 槽位${i} 疑似空槽(hard=${hardFlags[i] ? 1 : 0})`
+          + ` std=${s.std.toFixed(1)} 主色(非白)=${s.dominant.toFixed(2)} 白占比=${s.whiteFrac.toFixed(2)}`
+          + ` 强边缘=${s.edgeStrong.toFixed(0)} sat=${s.meanSat.toFixed(2)} gray=${s.grayFrac.toFixed(2)}`
+          + ` box=(${b.x},${b.y},${b.w},${b.h})`);
+    });
   }
   // 颜色签名（1+2+3）：直接从已经取到的整图 RGBA 里按框统计，不额外解码；
   // 主线程匹配时与 DINO 余弦做有界融合，专门区分「同形态、只差配色」的候选。
@@ -425,7 +443,7 @@ async function recognizeBitmap(
     onProgress(Math.min(boxes.length, doneCount), boxes.length);
   }
   if (activeIdx.length === 0) onProgress(boxes.length, boxes.length);
-  return { feats: out, boxes, mode, ms: performance.now() - t0, sigs, blankFlags };
+  return { feats: out, boxes, mode, ms: performance.now() - t0, sigs, blankFlags, hardFlags, lowInfoFlags };
 }
 
 /** 完整 OCR：返回底部名字行文本/逐条名字 + 所有文本块（原图坐标）。 */
@@ -738,7 +756,7 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
       return;
     }
     if (msg.kind === 'recognize') {
-      const { feats, boxes, mode, ms, sigs, blankFlags } = await recognizeBitmap(
+      const { feats, boxes, mode, ms, sigs, blankFlags, hardFlags, lowInfoFlags } = await recognizeBitmap(
           msg.bitmap,
           msg.totalCount ?? 12,
           msg.nameItems ?? [],
@@ -756,7 +774,9 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
         feats,
         sigs,
         blankFlags,
-      }, [feats.buffer, sigs.buffer, blankFlags.buffer]);
+        hardFlags,
+        lowInfoFlags,
+      }, [feats.buffer, sigs.buffer, blankFlags.buffer, hardFlags.buffer, lowInfoFlags.buffer]);
       return;
     }
     if (msg.kind === 'follow-recognize') {

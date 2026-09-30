@@ -48,6 +48,8 @@ export interface LocalCandidate {
 }
 
 export interface LocalResultItem {
+  /** 上游判定"这格是空位"（空槽 / 游戏「?」占位）；前端据此显示"可能是空位" */
+  blank?: boolean;
   index: number;
   status: 'matched' | 'unmatched';
   filename?: string;
@@ -66,20 +68,29 @@ export interface LocalBatchResult {
   backend?: string;
 }
 
-export type ProgressPhase = 'manifest' | 'model' | 'session' | 'features' | 'ocr' | 'infer';
+export type ProgressPhase = 'manifest' | 'model' | 'session' | 'features' | 'ocr' | 'scanner' | 'infer';
 
 /**
- * 各阶段在总进度里的占比区间（Web 端用），按实测耗时量级划分：
- * 模型下载/读取、特征库加载、推理是三大块；每个阶段内部 0~100% 再线性映射进来，
- * 这样阶段切换时进度条是连续推进的，不会出现"先冲到 99% 再卡住"。
+ * 各阶段在总进度里的占比区间（Web 端用），**按实测耗时占比**划分。
+ *
+ * 2026-09-30 修正（用户反馈："识别图位"这一段才是时间大头，可到这时进度已经 92% 了）：
+ * 原来的 infer=[80,100] 太小了——infer 覆盖的是「切图 + 逐图位提 DINO 特征 + 匹配」，
+ * 暖机后它就是耗时大头。实测那张图：12 个图位跑到「第 8/12 个图位」时已用掉 9.0s，
+ * 全程约 12~13s，即这一段占 ~85% 的时间；而旧映射在 8/12 时就显示 93%~96%，
+ * 让人以为马上结束，其实还剩三分之一的活。
+ *
+ * 现在按"暖机后的时间占比"分：模型/会话/特征库/OCR 合计 29%（首次下载模型时这些阶段
+ * 内部按字节推进，进度条照样在动），infer 拿 29~96，收尾 96~100。
+ * 校验：8/12 → 29 + 67×8/12 ≈ 74%，与真实时间占比（~70%）基本吻合。
  */
 export const WEB_PROGRESS_BANDS: Record<ProgressPhase, [number, number]> = {
-  manifest: [0, 4],
-  model: [4, 45],
-  session: [45, 50],
-  features: [50, 68],
-  ocr: [68, 80],
-  infer: [80, 100],
+  manifest: [0, 1],
+  model: [1, 12],
+  session: [12, 15],
+  features: [15, 18],
+  ocr: [18, 28],
+  scanner: [28, 29],
+  infer: [29, 96],
 };
 
 /** 把「阶段内百分比」映射成「总进度百分比」。 */
@@ -100,6 +111,21 @@ export interface RecognizeOptions {
   /** 识别进度（含模型加载阶段），批量时逐块推进。 */
   onProgress?: ProgressCb;
 }
+
+/**
+ * 低信息量槽位（以灰/白为主）的"可信匹配线"。
+ *
+ * 背景（2026-09-30 用户反馈：图鉴里两个灰色「?」未遇见占位被当成精灵）：
+ *   - 这类灰「?」占位能被 DINO 打出 0.56~0.57 的假高分（与大量立绘共享深色圆盘/浅底）；
+ *   - 真精灵（含灰色精灵，如吸泥鸥）实测都在 0.87~0.98。
+ * 对"低信息量槽位"抬高通过线即可稳定分开：低于它的按「未识别」返回，候选照样回传，
+ * 用户仍可人工挑选，但不会被当成已匹配记录。
+ *
+ * 为什么不改「重复占位符」判据：那张图里最后一个「?」的裁块被图片边缘裁到 59px 宽
+ * （另一个是 116px），缩略图指纹相关只有 0.34（门槛 0.90）——形状类指纹对裁框太敏感；
+ * 而颜色直方图虽然能到 0.998，真精灵之间也能到 0.992，余量太小。
+ */
+export const LOW_INFO_MIN_SCORE = 0.75;
 
 export const CANCELED = 'RECOGNITION_CANCELED';
 
@@ -224,6 +250,8 @@ class LocalRecognizerClass {
             dim: msg.dim,
             sigs: msg.sigs as Uint8Array | undefined,
             blankFlags: msg.blankFlags as Uint8Array | undefined,
+            hardFlags: msg.hardFlags as Uint8Array | undefined,
+            lowInfoFlags: msg.lowInfoFlags as Uint8Array | undefined,
           });
         }
       } else if (msg?.kind === 'feature') {
@@ -481,10 +509,10 @@ class LocalRecognizerClass {
     }
     this.scannerImgsz = typeof scanner.imgsz === 'number' && scanner.imgsz > 0 ? scanner.imgsz : 1280;
 
-    onProgress?.('model', 0, '正在加载版面检测模型');
+    onProgress?.('scanner', 0, '正在加载版面检测模型');
     const buf = await loadAsset(file, version, (p) => {
       const pct = p.total ? Math.min(99, Math.round((p.loaded / p.total) * 100)) : 0;
-      onProgress?.('model', pct, p.fromCache
+      onProgress?.('scanner', pct, p.fromCache
           ? `正在读取本地缓存的版面检测模型（${mb(p.total)}）`
           : `正在下载版面检测模型 ${mb(p.loaded)}/${mb(p.total)}`);
     });
@@ -506,7 +534,7 @@ class LocalRecognizerClass {
       worker.addEventListener('message', handler);
       worker.postMessage({ kind: 'scanner-init', scannerBuffer: buf, imgsz: this.scannerImgsz }, [buf]);
     });
-    onProgress?.('model', 100, '版面检测就绪');
+    onProgress?.('scanner', 100, '版面检测就绪');
   }
 
   /** 把一帧整图交给 Worker 跑 YOLO + OCR + DINO（bitmap 所有权转移给 Worker）。 */
@@ -582,7 +610,7 @@ class LocalRecognizerClass {
           filename,
           score: 1,
           view_url: '',
-          reason: '特殊条目（OCR 直接命中）',
+          reason: '特殊道具（按名称识别）',
           crop_image: undefined,
           candidates: [{ filename, score: 1, view_url: '' }],
         });
@@ -768,7 +796,7 @@ class LocalRecognizerClass {
       totalCount: number,
       nameItems: { text: string; cx: number; cy: number; nw: number; nh: number }[],
       onChunk?: (done: number, total: number) => void
-  ): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; dim: number; sigs?: Uint8Array; blankFlags?: Uint8Array }> {
+  ): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; dim: number; sigs?: Uint8Array; blankFlags?: Uint8Array; hardFlags?: Uint8Array; lowInfoFlags?: Uint8Array }> {
     return new Promise((resolve, reject) => {
       createImageBitmap(image)
           .then((bitmap) => {
@@ -889,12 +917,12 @@ class LocalRecognizerClass {
     }
 
     const featureStart = performance.now();
-    const { feats, boxes, mode, dim, sigs, blankFlags } = await this.recognizeBitmap(
+    const { feats, boxes, mode, dim, sigs, blankFlags, hardFlags, lowInfoFlags } = await this.recognizeBitmap(
         image,
         options.totalCount ?? 12,
         anchorItems,
         (done, total) => onProgress?.('infer', total ? Math.round((done / total) * 100) : 0,
-            `正在识别第 ${done}/${total} 个图位`)
+            `正在识别第 ${done}/${total} 格`)
     );
     const featureMs = performance.now() - featureStart;
     if (this.isCanceled(token)) throw new Error(CANCELED);
@@ -906,14 +934,20 @@ class LocalRecognizerClass {
     const results: LocalResultItem[] = [];
     for (let i = 0; i < slots; i++) {
       if (this.isCanceled(token)) throw new Error(CANCELED);
-      // 空槽/空白裁剪：worker 已跳过提特征，这里按「未检出」处理（展示成空槽）；
-      // 若该位置恰好 OCR 读到了精灵名，仍会走 OCR 候选，不会被误杀。
-      const isBlankSlot = !!(blankFlags && blankFlags[i]);
+      // 空槽/空白裁剪（分级）：
+      //   hardBlank=true  → worker 已跳过提特征，这里按「未检出」处理（展示成空槽）；
+      //   blank=true 但 hard=false → 疑似空槽，特征照常算好了，走正常匹配；
+      //     只有"匹配不出任何候选"时才按空槽处理（避免浅色真精灵被误判死）。
+      // 任一情况下，若该位置 OCR 读到了精灵名，仍会走 OCR 候选，不会被误杀。
+      const isHardBlank = !!(hardFlags && hardFlags[i]);
+      const maybeBlank = !!(blankFlags && blankFlags[i]);
       const query = feats.subarray(i * dim, (i + 1) * dim);
       results.push(await this.buildSlotResult({
         index: i,
         query,
-        hasFeature: !isBlankSlot,
+        hasFeature: !isHardBlank,
+        maybeBlank,
+        lowInfo: !!(lowInfoFlags && lowInfoFlags[i]),
         whitelist: wl,
         threshold,
         topK,
@@ -946,6 +980,10 @@ class LocalRecognizerClass {
     query?: Float32Array;
     /** false 表示该槽位没检出头像（只走 OCR 候选），跟随识别里会用到 */
     hasFeature?: boolean;
+    /** 上游"疑似空槽"标记：仅用于"匹配不出候选时按空槽处理"，不改变匹配本身 */
+    maybeBlank?: boolean;
+    /** 低信息量槽位（灰/白为主）：匹配不可靠，未到可信线时按"未识别"返回 */
+    lowInfo?: boolean;
     whitelist: ReturnType<typeof buildWhitelist>;
     threshold: number;
     topK: number;
@@ -994,22 +1032,51 @@ class LocalRecognizerClass {
     }
 
     const list = Array.from(merged.values()).sort((a, b) => b.score - a.score).slice(0, topK);
+
+    // 低信息量槽位（典型是图鉴里灰色的「?」未遇见占位）：没到可信线就按「未识别」返回。
+    // 候选保留 → 前端仍列出候选、可人工挑选；但不会被当成"已匹配"记录进图鉴。
+    if (args.lowInfo && list.length && list[0].score < LOW_INFO_MIN_SCORE) {
+      return {
+        index,
+        status: 'unmatched',
+        view_url: '',
+        reason: `未能识别（最高匹配度 ${(list[0].score * 100).toFixed(1)}%）：`
+            + '可能为空位，也可能为暂未识别的精灵',
+        crop_image: cropImage,
+        candidates: list,
+      };
+    }
+
     if (!list.length) {
       if (!useFeature && !ocrText) {
         // 既没检出头像、也没读到名字：这条不是"识别失败"，而是这个槽位本来就没东西
         return {
           index,
           status: 'unmatched',
+          blank: true,                       // 供前端直接判断"这格是空位"
           view_url: '',
-          reason: '该槽位未检出精灵',
+          reason: '未检测到精灵（可能为空位）',
+          crop_image: cropImage,
+          candidates: [],
+        };
+      }
+      if (args.maybeBlank && !ocrText) {
+        // 疑似空槽 + 一个候选都没匹配上：这两条证据合起来才判"这格没有精灵"。
+        // （只靠统计指标判空槽就是这次用户反馈的 bug：浅色真精灵会被判死。）
+        return {
+          index,
+          status: 'unmatched',
+          view_url: '',
+          blank: true,
+          reason: '未检测到精灵（可能为空位）',
           crop_image: cropImage,
           candidates: [],
         };
       }
       const hint = outcome.bestGlobal
-          ? `当前地图（map${stageNum ?? '?'}）没有可信候选，最相近的是 ${formatPetName(outcome.bestGlobal.candidate.filename)}` +
-            `（${(outcome.bestGlobal.candidate.score * 100).toFixed(1)}%，不在本图白名单）`
-          : `未找到匹配程度足够高的精灵（阈值 ${threshold}）`;
+          ? `最接近的是 ${formatPetName(outcome.bestGlobal.candidate.filename)}` +
+            `（${(outcome.bestGlobal.candidate.score * 100).toFixed(1)}%），但不属于当前地图`
+          : '未找到匹配的精灵';
       return {
         index,
         status: 'unmatched',

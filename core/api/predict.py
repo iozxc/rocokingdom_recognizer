@@ -23,6 +23,26 @@ from core.vision.color_feature import color_signature
 
 bp = Blueprint("predict", __name__)
 
+# 低信息量槽位（以灰/白为主）的"可信匹配线"。
+# 背景（2026-09-30 用户反馈：图鉴里两个灰色「?」未遇见占位被当成精灵）：
+#   - 这类灰「?」占位能被 DINO 打出 0.56~0.57 的假高分（它们和大量立绘共享深色圆盘/浅底）；
+#   - 而真精灵（包括灰色的吸泥鸥等）实测都在 0.87~0.98。
+# 对"低信息量槽位"抬高通过线即可稳定分开二者：低于它的按「未识别」返回（候选照样回传，
+# 用户仍可人工挑选，但不会被当成已匹配记录）。
+LOW_INFO_MIN_SCORE = 0.75
+# 与 processor.py::detect_placeholder_icons / 前端 segments.ts 的"低信息量"门槛保持一致
+_LOW_INFO_SAT_MAX = 0.18
+_LOW_INFO_GRAY_MIN = 0.42
+
+
+def _slot_low_info(ph_info, i):
+    """该槽位是否"低信息量"（以灰/白为主）。只用来抬高可信匹配线，不决定空槽。"""
+    if not ph_info or i >= len(ph_info):
+        return False
+    st = ph_info[i] or {}
+    return (st.get("mean_sat", 1.0) < _LOW_INFO_SAT_MAX
+            or st.get("gray_frac", 0.0) > _LOW_INFO_GRAY_MIN)
+
 
 @bp.route('/api/recog_progress', methods=['GET'])
 def recog_progress_status():
@@ -117,7 +137,7 @@ def predict():
 
     if 'image' not in request.files:
         logger.warning("[/predict] 请求中无image字段")
-        return error("No image", 400)
+        return error("未收到图片", 400)
 
     file = request.files.get('image')
     trial_key = request.form.get('trial', 'grass')
@@ -137,7 +157,7 @@ def predict():
 
     if not file:
         logger.warning("[/predict] image文件为空")
-        return error("No image uploaded", 400)
+        return error("未收到图片", 400)
 
     task_id = request.form.get('task_id')
     recog_progress.begin(task_id, phase='prepare', text='正在读取截图')
@@ -154,7 +174,7 @@ def predict():
         recog_progress.update(task_id, phase='features', pct=25, text='正在提取图像特征')
         recognizer = models.get_icon_recognizer()
         if recognizer is None:
-            return error(f"试炼 {trial_key} 的图标特征库不可用", 500)
+            return error("识别数据不完整，请重新下载数据后重试", 500)
         # 全图鉴匹配时多取候选，白名单过滤后仍能凑够 topk
         match_pool_k = max(top_k * 4, 24)
         feat_results, err = recognizer.match(img, threshold, top_k=match_pool_k)
@@ -163,11 +183,13 @@ def predict():
         feat_results = feat_results or []
 
         # 低于阈值无候选是正常结果（截图里没有可识别的精灵），不是服务端错误；
-        # 继续走 OCR，最终无候选时在下面返回 404。只有「特征库为空/预处理失败」这类真错误才 500。
-        no_match_msg = "未找到匹配程度足够高的图标"
-        if err and err != no_match_msg:
-            logger.warning(f"[/predict] 特征匹配返回错误: {err}")
-            return error(err, 500)
+        # 继续走 OCR，最终无候选时在下面返回 404。
+        # 注意：**不能**用文案比对来区分"无候选"和"真错误"——ImageRecognizer.match 只在
+        # 没有任何候选达阈值时返回 (None, 说明文案)，文案一改就会把正常结果误判成 500
+        # （2026-09-30 踩过：改了 recognizer.py 的文案，/predict 直接开始 500）。
+        # 真正的错误（特征库为空 / 预处理失败）会直接抛异常，由外层 except 统一处理。
+        if err:
+            logger.debug(f"[/predict] 特征匹配无候选: {err}")
 
         recog_progress.update(task_id, phase='ocr', pct=60, text='正在识别精灵名文字')
         ocr_results = ocr_top_k_match(temp_path, stage_num, top_k, trial_key) or []
@@ -212,13 +234,13 @@ def predict():
             return success(data=final_list, count=len(final_list))
 
         logger.info(f"[/predict] 无匹配结果, err={err}")
-        recog_progress.finish(task_id, error=err or "未识别到匹配项")
+        recog_progress.finish(task_id, error="未识别到匹配项")
         return error(err or "未识别到匹配项", 404)
 
     except Exception as e:
         logger.error(f"[/predict] 处理异常: {e}", exc_info=True)
-        recog_progress.finish(task_id, error=str(e))
-        return error(str(e), 500)
+        recog_progress.finish(task_id, error="识别处理异常")
+        return error("识别处理异常，请重试", 500)
     finally:
         recog_progress.finish(task_id)
         # 统一清理临时文件：任何提前 return / 异常都不会泄漏
@@ -236,7 +258,7 @@ def predict_batch():
 
     if 'image' not in request.files:
         logger.warning("[/init_batch] 请求中无image字段")
-        return error("No image uploaded", 400)
+        return error("未收到图片", 400)
 
     file = request.files['image']
     stage_num = int(request.form.get('stage_num', 1))
@@ -260,11 +282,15 @@ def predict_batch():
             file.save(temp_path)
 
         recog_progress.update(task_id, phase='ocr', pct=5, text='正在识别精灵名文字')
-        bottom_items = ocr().recognize_bottom_items(temp_path)
+        # OCR 引擎是懒加载的：首次调用要建 3 个 ONNX 会话（冷启动最慢的一步）。
+        # 把它和"整图认名字"分开报点，进度条在冷启动时就不会一直卡在 5%。
+        ocr_engine = ocr()
+        recog_progress.update(task_id, phase='ocr', pct=25, text='正在识别精灵名文字')
+        bottom_items = ocr_engine.recognize_bottom_items(temp_path)
         ocr_names = [b['text'] for b in bottom_items]
         logger.debug(f"[/init_batch] OCR识别名字列表: {ocr_names}")
 
-        recog_progress.update(task_id, phase='segment', pct=42, text='正在切分图位')
+        recog_progress.update(task_id, phase='segment', pct=45, text='正在切分画面')
         with open(temp_path, 'rb') as f:
             image_bytes = f.read()
         pil_icons = segment_icons(image_bytes, total_count)
@@ -338,16 +364,16 @@ def predict_batch():
             if temp_path and os.path.exists(temp_path): os.remove(temp_path)
             logger.info("[/init_batch] 未检测到图标或文字，返回404")
             recog_progress.finish(task_id, error="未检测到图标或文字")
-            return error("No icons or text detected", 404)
+            return error("图片中未检测到精灵", 404)
 
         # 进度权重按【实测耗时】分配（tools/bench_recog_stages.py）：
         #   OCR 约 35~70%、批量 DINO 特征约 30~60%、切图与逐图位匹配各 <1%。
         # 所以大头给 OCR 与 features 两段，features 再按分块上报，避免"走到三四十就突然结束"。
         recog_progress.update(
-            task_id, phase='features', pct=45,
+            task_id, phase='features', pct=47,
             total=num_active, done=0,
             text=(f'正在提取 {num_active} 个图标的图像特征'
-                  if num_active else f'共 {num_pil} 个图位，均为空槽'),
+                  if num_active else f'共 {num_pil} 格，均为空位'),
         )
         batch_results = []
         map_name = f"map{stage_num}"
@@ -374,7 +400,7 @@ def predict_batch():
                     done_n = min(num_active, start + step)
                     recog_progress.update(
                         task_id, phase='features',
-                        pct=45 + int(50 * done_n / max(1, num_active)),
+                        pct=47 + int(41 * done_n / max(1, num_active)),
                         done=done_n, total=num_active,
                         text=f'正在提取图像特征 {done_n}/{num_active}',
                     )
@@ -385,14 +411,14 @@ def predict_batch():
                 logger.error(f"[/init_batch] 批量特征提取失败，回退为逐图标匹配: {e}", exc_info=True)
                 feat_matrix = None
 
-        recog_progress.update(task_id, phase='infer', pct=95, total=total_detected,
-                              done=0, text=f'共 {total_detected} 个图位，开始逐位识别')
+        recog_progress.update(task_id, phase='infer', pct=88, total=total_detected,
+                              done=0, text=f'共 {total_detected} 格，开始逐格识别')
         for i in range(total_detected):
             recog_progress.update(
                 task_id, phase='infer',
-                pct=95 + int(3 * (i + 1) / max(1, total_detected)),
+                pct=88 + int(9 * (i + 1) / max(1, total_detected)),
                 done=i + 1, total=total_detected,
-                text=f'正在识别第 {i + 1}/{total_detected} 个图位',
+                text=f'正在识别第 {i + 1}/{total_detected} 格',
             )
             # A. 获取图像块进行特征匹配（如果 i 超过了分割块数量，则不进行图像匹配）
             feat_results = []
@@ -468,8 +494,23 @@ def predict_batch():
                     res_item["crop_image"] = crop_uri
             # 空槽且 OCR 也没读到名字：明确标注「未检出」，前端据此渲染成「疑似占位符/空槽」。
             if is_blank_slot and not ocr_match_results:
-                res_item.update({"status": "unmatched", "reason": "该槽位未检出精灵"})
+                # blank=True 供前端直接判断"这格是空位"，不再靠文案关键字比对
+                res_item.update({"status": "unmatched", "blank": True,
+                                 "reason": "未检测到精灵（可能为空位）"})
                 logger.debug(f"[/init_batch] 槽位{i}: 空槽占位符（未检出精灵）")
+            elif final_candidates and _slot_low_info(_ph_info, i) \
+                    and final_candidates[0]['score'] < LOW_INFO_MIN_SCORE:
+                # 低信息量槽位（典型是图鉴里灰色的「?」未遇见占位）：
+                # 只要没到可信线，就按「未识别」返回；候选保留，仍可人工挑选。
+                _top = final_candidates[0]
+                res_item.update({
+                    "status": "unmatched",
+                    "reason": (f"未能识别（最高匹配度 {_top['score'] * 100:.1f}%）："
+                               "可能为空位，也可能为暂未识别的精灵"),
+                    "candidates": final_candidates,
+                })
+                logger.info(f"[/init_batch] 槽位{i}: 低信息量槽位按未识别处理 "
+                            f"(top1={_top['score']:.3f} < {LOW_INFO_MIN_SCORE})")
             elif final_candidates:
                 # 检查最高置信度是否满足你的 80% 要求 (可选)
                 # if final_candidates[0]['score'] < 0.8: ...
@@ -487,7 +528,7 @@ def predict_batch():
                 logger.debug(f"[/init_batch] 槽位{i}: matched -> {top1['filename']}({top1['score']:.3f}), "
                             f"候选数={len(final_candidates)}")
             else:
-                res_item.update({"status": "unmatched", "reason": "Low confidence or no detection"})
+                res_item.update({"status": "unmatched", "reason": "未找到匹配的精灵"})
                 logger.debug(f"[/init_batch] 槽位{i}: unmatched")
 
             batch_results.append(res_item)
@@ -496,15 +537,15 @@ def predict_batch():
         logger.info(f"[/init_batch] 批量预测完成: total={total_detected}, matched={matched}, "
                    f"unmatched={total_detected - matched}")
 
-        recog_progress.update(task_id, phase='finish', pct=97, done=total_detected,
+        recog_progress.update(task_id, phase='finish', pct=98, done=total_detected,
                               total=total_detected, text='正在汇总候选结果')
         recog_progress.finish(task_id)
         return success(total_detected=total_detected, results=batch_results)
 
     except Exception as e:
         logger.error(f"[/init_batch] 批量预测异常: {e}", exc_info=True)
-        recog_progress.finish(task_id, error=str(e))
-        return error(str(e), 500)
+        recog_progress.finish(task_id, error="识别处理异常")
+        return error("识别处理异常，请重试", 500)
 
     finally:
         recog_progress.finish(task_id)

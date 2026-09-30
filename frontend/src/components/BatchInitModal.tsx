@@ -1118,8 +1118,8 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                       />
                                     </div>
                                 ) : (
-                                    <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold truncate" title={item.reason || '特征不匹配'}>
-                                      {item.reason || '未匹配到精灵'}
+                                    <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold truncate" title={item.reason || '未识别'}>
+                                      {item.reason || '未识别到精灵'}
                                     </p>
                                 )}
                               </div>

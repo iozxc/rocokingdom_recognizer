@@ -334,28 +334,47 @@ export function segmentIcons(
 
 
 /**
- * 空槽 / 空白裁剪判定（纯前端兜底）。
+ * 空槽 / 空白裁剪判定（纯前端兜底；口径与后端 core/vision/processor.py 对齐）。
  *
  * 背景：游戏里「空槽」是一个几乎单色的浅绿色圆角方块（有时带个很淡的「?」），
- * 而所有精灵参考立绘也都垫在同一种浅绿色圆角方块上。对一块纯色空槽提 DINO 特征时，
- * 特征几乎全是「绿色底块」，会和大量立绘高相似，从而把空槽误判成 90%+ 的精灵。
+ * 而精灵参考立绘也都垫在同一种浅绿底块上；对纯色空槽提 DINO 特征时，特征几乎
+ * 全是「绿色底块」，会和大量立绘高相似，把空槽误判成 90%+ 的精灵。
  *
- * 判定（真实游戏截图标定，见 preview-seg）：
- *   - 真精灵：灰度标准差 std ≥ 55、主色占比 dominant ≤ 0.44；
- *   - 纯色空槽/空白：std ≈ 22、主色占比 ≈ 0.80；
- *   - 纯白：std ≈ 0、白像素占比 ≈ 1。
- * 在两组之间取保守分隔线，宁可放过也不误杀真精灵。
+ * 2026-09-30 修正（用户反馈：明明有精灵，却显示「疑似占位符 / 空槽」）：
+ *   1) 主色占比 dominant 改为**只在非白像素里统计**（与 PC 端 _placeholder_stats 一致）。
+ *      旧实现把全图像素都算进桶，而量化桶只有 4 级/通道，白、米白、浅绿、浅灰会全部
+ *      落进同一个桶（63）——只要裁块里有一大片浅色底（浅色精灵 + 浅色背景，或框偏大
+ *      把周围浅背景框进来），dominant 就会被刷到 0.72 以上，真精灵被误判成空槽。
+ *   2) 新增**强边缘**守卫 edgeStrong：真精灵（哪怕是白色精灵）一定有轮廓/眼睛这类强
+ *      边缘；空槽（纯色底 + 很淡的「?」）没有。uniform 判定必须同时满足
+ *      「平 + 单色 + 无强边缘」。
+ *   3) 判定分两级：blank（疑似，用于文案与「空槽」结论）与 hardBlank（高置信）。
+ *      只有 hardBlank 才跳过提特征；疑似但不够硬的一律照常提特征做匹配，由
+ *      localRecognizer.buildSlotResult 用「有没有候选」兜底——避免真精灵被一个
+ *      统计指标判死。
  */
 export interface BlankCropStats {
   std: number;
+  /** 主色占比（只在非白像素 gray<235 里统计，与 PC 端口径一致） */
   dominant: number;
   whiteFrac: number;
   meanSat: number;
   grayFrac: number;
+  /**
+   * 强边缘程度：4 邻域灰度差分 |∇| 的 **p99.9**（最强的那 0.1% 像素）。
+   * 实测标定（2026-09-30，test5.png + 合成样本）：
+   *   真精灵裁块 p99.9 = 171~183；把精灵缩到 15% 贴浅底后仍有 123~161；
+   *   纯色空槽（保留格子边框）p99.9 = 66，纯均色块 = 0。
+   * 用 p99 不行：精灵缩到 15% 时 p99 会掉到 28~56，和空槽（53）分不开。
+   */
+  edgeStrong: number;
+  /** 疑似空槽/空白：用于判定与文案，不再单独决定「跳过提特征」 */
   blank: boolean;
+  /** 高置信空槽：只有这一级才跳过提特征（纯白 / 重复占位符 / 极平坦且无强边缘） */
+  hardBlank: boolean;
 }
 
-/** 统计一个裁剪框的平坦度指标（灰度 std / 主色占比 / 近白占比）。 */
+/** 统计一个裁剪框的平坦度指标（灰度 std / 主色占比 / 近白占比 / 强边缘）。 */
 export function cropBlankStats(
     rgba: Uint8ClampedArray,
     width: number,
@@ -366,31 +385,46 @@ export function cropBlankStats(
   const y0 = Math.max(0, box.y);
   const x1 = Math.min(width, box.x + box.w);
   const y1 = Math.min(height, box.y + box.h);
-  const bw = x1 - x0;
-  const bh = y1 - y0;
-  const n = Math.max(1, bw * bh);
+  const bw = Math.max(0, x1 - x0);
+  const bh = Math.max(0, y1 - y0);
+  if (bw === 0 || bh === 0) {
+    return { std: 0, dominant: 1, whiteFrac: 1, meanSat: 0, grayFrac: 1,
+      edgeStrong: 0, blank: true, hardBlank: true };
+  }
+  const n = bw * bh;
+  const gray = new Float32Array(n);
   let sum = 0;
   let sum2 = 0;
   let white = 0;
+  // 每个通道 4 级量化（>>6），共 64 桶；**只统计非白像素**（与 PC 端口径一致）
+  const buckets = new Uint32Array(64);
+  let fgN = 0;
+  let dominantFg = 0;
   // 饱和度/灰度统计（用于识别重复的灰色「?」未遇见布袋）
   let chromaSum = 0;
   let chromaGray = 0;
   let nonWhite = 0;
-  // 每个通道 4 级量化（>>6），共 64 桶，纯色抗锯齿也会集中在同一桶附近。
-  const buckets = new Uint32Array(64);
-  let dominant = 0;
+  let p = 0;
   for (let y = y0; y < y1; y++) {
     const rowBase = y * width;
-    for (let x = x0; x < x1; x++) {
-      const p = (rowBase + x) * 4;
-      const r = rgba[p];
-      const g = rgba[p + 1];
-      const b = rgba[p + 2];
+    for (let x = x0; x < x1; x++, p++) {
+      const q = (rowBase + x) * 4;
+      const r = rgba[q];
+      const g = rgba[q + 1];
+      const b = rgba[q + 2];
       // 与 toGray 一致的定点灰度
       const gr = (4899 * r + 9617 * g + 1868 * b + (1 << 13)) >> 14;
+      gray[p] = gr;
       sum += gr;
       sum2 += gr * gr;
-      if (gr > 235) white++;
+      if (gr > 235) {
+        white++;
+      } else {
+        fgN++;
+        const key = ((r >> 6) << 4) | ((g >> 6) << 2) | (b >> 6);
+        const v = ++buckets[key];
+        if (v > dominantFg) dominantFg = v;
+      }
       const cmax = Math.max(r, g, b);
       const cmin = Math.min(r, g, b);
       const chroma = cmax - cmin;
@@ -399,21 +433,52 @@ export function cropBlankStats(
         chromaSum += cmax > 0 ? chroma / cmax : 0;
         if (chroma < 18) chromaGray++;
       }
-      const key = ((r >> 6) << 4) | ((g >> 6) << 2) | (b >> 6);
-      const v = buckets[key] + 1;
-      buckets[key] = v;
-      if (v > dominant) dominant = v;
     }
   }
   const mean = sum / n;
   const std = Math.sqrt(Math.max(0, sum2 / n - mean * mean));
-  const dominantFrac = dominant / n;
+  // 前景像素太少（几乎全白）时按纯色处理，与 PC 端 _placeholder_stats 一致
+  const dominant = fgN > 16 ? dominantFg / fgN : 1;
   const whiteFrac = white / n;
   const meanSat = nonWhite > 0 ? chromaSum / nonWhite : 0;
   const grayFrac = nonWhite > 0 ? chromaGray / nonWhite : 1;
-  // 保守分隔线：std 低于 34 且主色占比高于 0.72（平坦单色），或近白占比极高（>96.5%）。
-  const blank = (std < 34 && dominantFrac > 0.72) || whiteFrac > 0.965;
-  return { std, dominant: dominantFrac, whiteFrac, meanSat, grayFrac, blank };
+
+  // 强边缘：4 邻域灰度差分的较大方向，取 p99.9（最强的那 0.1% 像素）
+  // 只要裁块里存在哪怕一条精灵轮廓线，这一项就会明显抬高 → 不会被当成空槽
+  const hist = new Uint32Array(256);
+  for (let y = 0; y < bh; y++) {
+    for (let x = 0; x < bw; x++) {
+      const i = y * bw + x;
+      const dx = x > 0 ? Math.abs(gray[i] - gray[i - 1]) : 0;
+      const dy = y > 0 ? Math.abs(gray[i] - gray[i - bw]) : 0;
+      const d = dx > dy ? dx : dy;
+      hist[d > 255 ? 255 : d | 0]++;
+    }
+  }
+  const edgeTop = Math.max(1, Math.ceil(n * 0.001));
+  let acc = 0;
+  let edgeStrong = 0;
+  for (let v = 255; v >= 0; v--) {
+    acc += hist[v];
+    if (acc >= edgeTop) {
+      edgeStrong = v;
+      break;
+    }
+  }
+
+  // 「没有精灵」的守卫线：实测真精灵（含缩到 15% 的小精灵）p99.9 ≥ 123，空槽 ≤ 66，
+  // 取 100 作分界，两侧余量都很大。
+  const noPetEdge = edgeStrong < 100;
+  // 极平坦 + 几乎单色 + 没有精灵轮廓 → 纯色空槽（硬判定，跳过提特征）
+  const tileLike = std < 26 && dominant > 0.72 && noPetEdge;
+  // 更宽松一档：只是"平 + 单色 + 无轮廓"→ 疑似空槽（软判定，照常提特征，见 buildSlotResult）
+  const flatUniform = std < 42 && dominant > 0.72 && noPetEdge;
+  // 近白占比高也必须"没有精灵轮廓"才算空槽：浅色精灵贴浅底时白占比也会 >0.97
+  // （实测：精灵缩到 15% 贴浅米白底 → 白占比 0.98，但 p99.9 强边 148~161，是精灵）
+  const pureWhite = whiteFrac > 0.97 && noPetEdge;
+  const blank = tileLike || flatUniform || pureWhite;
+  const hardBlank = pureWhite || tileLike;
+  return { std, dominant, whiteFrac, meanSat, grayFrac, edgeStrong, blank, hardBlank };
 }
 
 /** 裁剪框的灰度指纹（缩放到 S×S 后零均值单位向量），用于“重复占位符”比对。 */
@@ -454,22 +519,35 @@ function boxFingerprint(
   return v;
 }
 
-/** 批量：按框统计并返回每个框是否为空槽/空白（与 boxes 等长，1 = 空槽）。 */
+/** 低信息量门槛（饱和度/灰度占比），与 processor.py::detect_placeholder_icons 一致。 */
+export const LOW_INFO_SAT_MAX = 0.18;
+export const LOW_INFO_GRAY_MIN = 0.42;
+
+/**
+ * 批量：按框统计并返回每个框是否为空槽/空白（与 boxes 等长，1 = 空槽）。
+ *   flags        —— 疑似空槽（用于结论与文案）
+ *   hardFlags    —— 高置信空槽（调用方只对硬判定跳过提特征）
+ *   lowInfoFlags —— 以灰/白为主（信息量低）：匹配不可靠，调用方据此抬高"可信匹配线"
+ */
 export function detectBlankBoxes(
     rgba: Uint8ClampedArray,
     width: number,
     height: number,
     boxes: SegmentBox[]
-): { flags: Uint8Array; stats: BlankCropStats[] } {
+): { flags: Uint8Array; hardFlags: Uint8Array; lowInfoFlags: Uint8Array; stats: BlankCropStats[] } {
   const flags = new Uint8Array(boxes.length);
+  const hardFlags = new Uint8Array(boxes.length);
+  const lowInfoFlags = new Uint8Array(boxes.length);
   const stats: BlankCropStats[] = new Array(boxes.length);
   for (let i = 0; i < boxes.length; i++) {
     const st = cropBlankStats(rgba, width, height, boxes[i]);
     stats[i] = st;
     flags[i] = st.blank ? 1 : 0;
+    hardFlags[i] = st.hardBlank ? 1 : 0;
+    lowInfoFlags[i] = st.meanSat < LOW_INFO_SAT_MAX || st.grayFrac > LOW_INFO_GRAY_MIN ? 1 : 0;
   }
   // 重复占位符（同排灰色「?」布袋）：同一占位符缩略图几乎完全一致（实测≈0.99），
-  // 不同精灵两两不同（实测≤0.77）；再叠加“低信息量（去饱和/高灰度）”门槛。
+  // 不同精灵两两不同（实测≤0.77）；再叠加"低信息量（去饱和/高灰度）"门槛。
   const n = boxes.length;
   if (n >= 2) {
     const fps: Float32Array[] = [];
@@ -485,10 +563,11 @@ export function detectBlankBoxes(
         for (let k = 0; k < fps[i].length; k++) dot += fps[i][k] * fps[j][k];
         if (dot >= 0.9) {
           flags[i] = 1;
+          hardFlags[i] = 1;
           break;
         }
       }
     }
   }
-  return { flags, stats };
+  return { flags, hardFlags, lowInfoFlags, stats };
 }
