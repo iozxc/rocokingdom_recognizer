@@ -169,7 +169,7 @@ async function createOrtSession(buffer: ArrayBuffer, label: string): Promise<ort
  */
 const DINO_ATTEMPT_TIMEOUT_MS: Record<string, number> = {
   // 首次可能有 shader 编译，但卡住不返回的情况更常见：超过 20s 就赶紧回落 WASM，
-  // 否则用户要对着"正在初始化识别模型"干等 40s+（总链路最坏 155s）。
+  // 否则用户要对着"正在启动图像识别引擎"干等 40s+（总链路最坏 155s）。
   webgpu: 20000,
   'wasm-threads': 25000,  // 正常几秒就能建好，超过说明子 Worker 卡住了
   wasm: 90000,            // 单线程兜底，慢但最稳（21MB wasm + 24MB 模型建图，确实可能几十秒）
@@ -229,7 +229,9 @@ async function createDinoSession(buffer: ArrayBuffer, wantThreads: number): Prom
   if (await webGpuAdapterReady()) {
     // webgpu 在前、wasm 兜底：int8 的 MatMulInteger 之类算子 WebGPU 不支持时，
     // 由 ORT 自动把那些节点分给 wasm，而不是整场会话失败。
-    attempts.push({ label: 'webgpu', eps: ['webgpu', 'wasm'], threads: 1 });
+    // 注意：这里必须传「请求的线程数」而不是 1 —— int8 的 MatMulInteger 会整体回退到
+    // wasm 执行，之前写死 1 等于让它们单线程跑，实测 3 图位提特征 3.3s → 1.8s（本机 8 线程）。
+    attempts.push({ label: 'webgpu', eps: ['webgpu', 'wasm'], threads });
   }
   if (threads > 1) attempts.push({ label: 'wasm-threads', eps: ['wasm'], threads });
   attempts.push({ label: 'wasm', eps: ['wasm'], threads: 1 });
@@ -240,12 +242,13 @@ async function createDinoSession(buffer: ArrayBuffer, wantThreads: number): Prom
     try {
       if (attempt.threads !== ort.env.wasm.numThreads) ort.env.wasm.numThreads = attempt.threads;
       const timeoutMs = DINO_ATTEMPT_TIMEOUT_MS[attempt.label] || 60000;
+      const secs = Math.round(timeoutMs / 1000);
       reportInitProgress(
           attempt.label === 'webgpu'
-              ? `正在初始化识别模型 · 尝试 WebGPU（最多 ${Math.round(timeoutMs / 1000)}s）`
+              ? `正在启动图像识别引擎 · GPU 加速（最长 ${secs}s）`
               : attempt.label === 'wasm-threads'
-                  ? `正在初始化识别模型 · 尝试多线程 WASM（最多 ${Math.round(timeoutMs / 1000)}s）`
-                  : `正在初始化识别模型 · 改用单线程 WASM（较慢，最多 ${Math.round(timeoutMs / 1000)}s）`,
+                  ? `正在启动图像识别引擎 · CPU 多线程（最长 ${secs}s）`
+                  : `正在启动图像识别引擎 · CPU 单线程（较慢，最长 ${secs}s）`,
       );
       // 会话创建会消费 ArrayBuffer，每次尝试都必须用副本
       const session = await withTimeout(
@@ -263,8 +266,12 @@ async function createDinoSession(buffer: ArrayBuffer, wantThreads: number): Prom
     } catch (err) {
       lastErr = err;
       const brief = (err as Error)?.message || String(err);
-      reportInitProgress(`${attempt.label} 不可用（${brief.slice(0, 60)}），正在尝试下一个后端…`);
-      console.warn(`[recognition.worker] ${attempt.label} 不可用，尝试下一个后端：`, err);
+      const friendly = attempt.label === 'webgpu'
+          ? 'GPU 加速'
+          : attempt.label === 'wasm-threads' ? 'CPU 多线程' : 'CPU 单线程';
+      // 界面上只说人话（哪条路走不通、正在换哪条），技术细节留在控制台。
+      reportInitProgress(`${friendly}不可用，正在自动切换备用方案…`);
+      console.warn(`[recognition.worker] ${attempt.label} 不可用（${brief.slice(0, 120)}），尝试下一个后端：`, err);
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));

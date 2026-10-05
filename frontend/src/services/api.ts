@@ -44,11 +44,11 @@ const DEFAULT_API_BASE = 'http://127.0.0.1:5000';
  * 或"首次识别"（要建 OCR/DINO 会话、读特征库）时会超过 30 秒。
  *
  * 原来这里写死 30s，会把"正常但较慢"的识别直接掐断：前端抛 ECONNABORTED，后端其实还在算，
- * 结果被丢弃，用户看到的却是"无法连接本地识别后端"。放宽到 120s。
+ * 结果被丢弃，用户看到的却是"无法连接本地识别后端"。放宽到 180s（2026-10-06 由 120s 提高）。
  * 服务端 waitress 的 channel_timeout 只回收"空闲"连接（有请求在跑就绝不会关），
  * 所以不会被服务端提前断掉。
  */
-const BATCH_INIT_TIMEOUT_MS = 120000;
+const BATCH_INIT_TIMEOUT_MS = 180000;
 
 /** 单图识别（/predict，跟随识别用）的等待上限：只切几个图位，维持原值。 */
 const PREDICT_TIMEOUT_MS = 12000;

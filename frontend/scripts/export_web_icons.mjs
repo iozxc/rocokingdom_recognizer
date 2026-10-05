@@ -1,5 +1,5 @@
 // 跨平台唤起 Python 运行 export_web_icons.py。
-// 依次尝试 python / python3 / py，保证 Windows 与 Vercel(Linux) 都能跑。
+// 依次尝试 python / python3 / py，保证 Windows 与 ESA都能跑。
 import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

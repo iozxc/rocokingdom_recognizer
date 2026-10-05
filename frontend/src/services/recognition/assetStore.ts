@@ -77,10 +77,16 @@ export function isCrossOriginIsolated(): boolean {
   return typeof self !== 'undefined' && (self as unknown as { crossOriginIsolated?: boolean }).crossOriginIsolated === true;
 }
 
-/** 硬件并发度（对齐后端「逻辑核一半」的线程思路）。 */
+/**
+ * 硬件并发度（对齐后端「逻辑核一半」的线程思路）。
+ *
+ * 上限从 4 提到 8（2026-10-06）：int8 DINO 的 MatMulInteger 在 WebGPU 会话里会回退到
+ * wasm 执行，这部分完全吃 CPU 多核；实测本机（20 逻辑核）8 线程比 4 线程再快约 8%。
+ * 只有核心数 ≥14 的机器才会用到 6~8 线程，低端机不受影响（仍按 核数/2 取整）。
+ */
 export function hardwareThreads(): number {
   const cores = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 4;
-  return Math.max(1, Math.min(4, Math.ceil(cores / 2)));
+  return Math.max(1, Math.min(8, Math.ceil(cores / 2)));
 }
 
 export function loadManifest(): Promise<RecognizerManifest | null> {

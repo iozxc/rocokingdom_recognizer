@@ -526,7 +526,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
     setScanProgress({
       phase: 'manifest',
       pct: 0,
-      text: IS_STATIC ? '正在准备识别资产' : '正在准备识别',
+      text: IS_STATIC ? '正在准备识别资源…' : '正在准备识别',
     });
 
     try {
@@ -1498,7 +1498,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed bg-[#FFFDF5] dark:bg-amber-950/20 rounded-xl p-2.5 space-y-1">
                           <div>✨ 识别完成后，系统将自动定位精灵候选并标出未遇状态，您可以勾选需要点亮的精灵。</div>
                           <div className="text-[10px] text-amber-700 dark:text-amber-400 font-medium pt-1 border-t border-amber-200/50 dark:border-amber-800/50">
-                            💡 提示：首次识别时加载特征库可能较慢，请耐心等待片刻，后续识别将显著提速。
+                            💡 提示：首次识别需要下载并初始化本地模型（图像识别 + 文字识别），会明显慢一些；之后走缓存，通常几秒即可完成。
                           </div>
                         </div>
                       </div>
@@ -1520,7 +1520,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         {isScanning ? (
                             <>
                               <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                              <span>正在智能批量分割识别中...</span>
+                              <span>正在识别中，请稍候…</span>
                             </>
                         ) : (
                             <>
@@ -1551,7 +1551,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                             {isScanning && (
                                 <div className="flex items-center justify-between">
                                   <span className="text-[10px] text-slate-400">
-                                    {IS_STATIC ? '首次识别需下载本地模型，之后走缓存秒开' : '本地后端识别中，请稍候'}
+                                    {IS_STATIC ? '首次需下载并初始化模型，之后会明显更快' : '本地后端识别中，请稍候'}
                                   </span>
                                   {IS_STATIC && (
                                       <button

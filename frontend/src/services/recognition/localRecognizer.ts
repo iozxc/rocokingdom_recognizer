@@ -304,7 +304,7 @@ class LocalRecognizerClass {
 
   /** 建会话（DINO）。 */
   private async initSession(modelBuffer: ArrayBuffer, onProgress?: ProgressCb): Promise<void> {
-    onProgress?.('session', 0, '正在初始化识别模型');
+    onProgress?.('session', 0, '正在启动图像识别引擎…');
     await new Promise<void>((resolve, reject) => {
       const worker = this.ensureWorker();
       // 外层超时要 > worker 内「WebGPU -> 多线程 WASM -> 单线程 WASM」三级兜底的耗时上限（约 155s），
@@ -314,7 +314,7 @@ class LocalRecognizerClass {
         if (e.data.kind === 'init-progress') {
           // worker 在建会话时会依次尝试 WebGPU / 多线程 WASM / 单线程 WASM，
           // 把当前这一步显示出来，用户就不会以为"卡死"了。
-          onProgress?.('session', 0, String(e.data.text || '正在初始化识别模型'));
+          onProgress?.('session', 0, String(e.data.text || '正在启动图像识别引擎…'));
         } else if (e.data.kind === 'ready') {
           window.clearTimeout(timer);
           this.backend = e.data.backend || '';
@@ -365,7 +365,7 @@ class LocalRecognizerClass {
 
   private async _init(onProgress?: ProgressCb): Promise<void> {
     const t0 = performance.now();
-    onProgress?.('manifest', 0, '正在准备识别资产');
+    onProgress?.('manifest', 0, '正在准备识别资源…');
     this.manifest = await loadManifest();
     const version = this.manifest?.version ?? 0;
     if (this.manifest?.scope) {
@@ -384,14 +384,14 @@ class LocalRecognizerClass {
     let inited = false;
     for (const rel of candidates) {
       try {
-        onProgress?.('model', 0, `正在加载识别模型（${rel.split('/').pop()}）`);
+        onProgress?.('model', 0, '正在加载图像识别模型…');
         let cached = false;
         const buf = await loadAsset(rel, version, (p) => {
           cached = p.fromCache;
           const pct = p.total ? Math.min(99, Math.round((p.loaded / p.total) * 100)) : 0;
           onProgress?.('model', pct, p.fromCache
-              ? `正在读取本地缓存的识别模型（${mb(p.total)}）`
-              : `正在下载识别模型 ${mb(p.loaded)}/${mb(p.total)}`);
+              ? `正在读取本地缓存的图像识别模型（${mb(p.total)}）`
+              : `正在下载图像识别模型 ${mb(p.loaded)}/${mb(p.total)}`);
         });
         await this.initSession(buf, onProgress);
         this.modelPath = rel;
@@ -413,10 +413,11 @@ class LocalRecognizerClass {
       throw (lastErr instanceof Error ? lastErr : new Error('没有可用的识别模型，请检查 public-web/models 资产'));
     }
 
-    onProgress?.('features', 0, '正在加载特征库');
-    await featureStore.ensureLoaded(version, (p) => onProgress?.('features', p));
+    onProgress?.('features', 0, '正在加载精灵特征库…');
+    await featureStore.ensureLoaded(version, (p) => onProgress?.('features', p,
+        p >= 100 ? '图像识别引擎就绪' : '正在加载精灵特征库…'));
     this.readyMs = performance.now() - t0;
-    onProgress?.('features', 100, '识别引擎就绪');
+    onProgress?.('features', 100, '图像识别引擎就绪');
     console.info(`[localRecognizer] 就绪：backend=${this.backend} threads=${this.threads || 1} ` +
         `model=${this.modelPath} features=${featureStore.meta?.count} 耗时=${Math.round(this.readyMs)}ms ` +
         `（跨域隔离=${isCrossOriginIsolated()}）`);
@@ -442,12 +443,12 @@ class LocalRecognizerClass {
     const keysFile = ocr.keys?.file || 'data/ocr_keys.json';
     if (!det || !rec) throw new Error('未找到 OCR 模型资产（请先运行 tools/export_web_recognizer.py）');
 
-    onProgress?.('ocr', 0, '正在加载 OCR 模型');
+    onProgress?.('ocr', 0, '正在加载文字识别模型…');
     const [detBuf, recBuf, keysData] = await Promise.all([
       loadAsset(det, version, (p) => onProgress?.('ocr', p.total ? Math.min(50, Math.round((p.loaded / p.total) * 50)) : 0,
-          `正在加载 OCR 检测模型 ${mb(p.loaded)}/${mb(p.total)}`)),
+          `正在加载文字识别 · 检测模型 ${mb(p.loaded)}/${mb(p.total)}`)),
       loadAsset(rec, version, (p) => onProgress?.('ocr', p.total ? Math.min(90, 50 + Math.round((p.loaded / p.total) * 40)) : 50,
-          `正在加载 OCR 识别模型 ${mb(p.loaded)}/${mb(p.total)}`)),
+          `正在加载文字识别 · 识别模型 ${mb(p.loaded)}/${mb(p.total)}`)),
       fetchJson<{ chars: string[] }>(
           withVersionParam(`${import.meta.env.BASE_URL || '/'}${keysFile}`, version), 20000),
     ]);
@@ -463,9 +464,10 @@ class LocalRecognizerClass {
       this.corrections = null;
     }
 
+    onProgress?.('ocr', 92, '正在启动文字识别引擎…');
     await new Promise<void>((resolve, reject) => {
       const worker = this.ensureWorker();
-      const timer = window.setTimeout(() => reject(new Error('OCR 模型初始化超时（120s）')), 120000);
+      const timer = window.setTimeout(() => reject(new Error('文字识别模型初始化超时（180s）')), 180000);
       const handler = (e: MessageEvent) => {
         if (e.data.kind === 'ocr-ready') {
           window.clearTimeout(timer);
@@ -481,7 +483,7 @@ class LocalRecognizerClass {
       worker.postMessage({ kind: 'ocr-init', detBuffer: detBuf, recBuffer: recBuf, chars: this.ocrChars },
           [detBuf, recBuf]);
     });
-    onProgress?.('ocr', 100, 'OCR 就绪');
+    onProgress?.('ocr', 100, '文字识别就绪');
   }
 
   // ------------------------------------------------------------------ //
@@ -509,7 +511,7 @@ class LocalRecognizerClass {
     }
     this.scannerImgsz = typeof scanner.imgsz === 'number' && scanner.imgsz > 0 ? scanner.imgsz : 1280;
 
-    onProgress?.('scanner', 0, '正在加载版面检测模型');
+    onProgress?.('scanner', 0, '正在加载版面检测模型…');
     const buf = await loadAsset(file, version, (p) => {
       const pct = p.total ? Math.min(99, Math.round((p.loaded / p.total) * 100)) : 0;
       onProgress?.('scanner', pct, p.fromCache
@@ -517,9 +519,10 @@ class LocalRecognizerClass {
           : `正在下载版面检测模型 ${mb(p.loaded)}/${mb(p.total)}`);
     });
 
+    onProgress?.('scanner', 97, '正在启动版面检测引擎…');
     await new Promise<void>((resolve, reject) => {
       const worker = this.ensureWorker();
-      const timer = window.setTimeout(() => reject(new Error('版面检测模型初始化超时（120s）')), 120000);
+      const timer = window.setTimeout(() => reject(new Error('版面检测模型初始化超时（180s）')), 180000);
       const handler = (e: MessageEvent) => {
         if (e.data?.kind === 'scanner-ready') {
           window.clearTimeout(timer);
@@ -569,7 +572,7 @@ class LocalRecognizerClass {
     await this.ensureScannerReady(onProgress);
     if (this.isCanceled(token)) throw new Error(CANCELED);
 
-    onProgress?.('infer', 0, '正在切分游戏画面');
+    onProgress?.('infer', 0, '正在切分游戏画面…');
     const frame = await this.recognizeFollowFrame(bitmap, options.imgsz);
     if (this.isCanceled(token)) throw new Error(CANCELED);
 
