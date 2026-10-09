@@ -70,20 +70,42 @@ function isSecure(): boolean {
   return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
 }
 
+/**
+ * 把 getDisplayMedia 的异常翻译成给用户看的**友好提示**。
+ *
+ * 注意：这里只给「用户看得懂 + 知道下一步该做什么」的文案，不要把原始 err.name /
+ * err.message 拼进界面 —— 那些只写进控制台（见 start() 的日志），供远程排查用。
+ */
 function describeError(err: unknown): { code: CaptureErrorCode; message: string } {
   const e = err as { name?: string; message?: string };
   switch (e?.name) {
     case 'NotAllowedError':
-      return { code: 'denied', message: '已取消或拒绝了屏幕共享授权，请重新点击「选择游戏窗口」' };
-    case 'NotFoundError':
-    case 'NotReadableError':
-      return { code: 'no-frame', message: '没有可用的捕获源，或该窗口当前无法被捕获' };
+      return {
+        code: 'denied',
+        message: '浏览器没有获得屏幕共享权限。请重新点击「连接游戏画面」并在弹窗里选择游戏窗口；'
+            + '如果一直没有弹窗，请点地址栏左侧的图标，把「屏幕共享」改成允许后再试。',
+      };
     case 'AbortError':
-      return { code: 'denied', message: '浏览器中止了共享（可能在选择器里点了取消）' };
+      return { code: 'denied', message: '已取消选择窗口。请重新点击「连接游戏画面」再试一次。' };
+    case 'NotFoundError':
+      return {
+        code: 'no-frame',
+        message: '没有找到可以共享的窗口。请先确认游戏窗口没有最小化（也不要放在已断开的显示器上），'
+            + '再点一次「连接游戏画面」。',
+      };
+    case 'NotReadableError':
+      return {
+        code: 'no-frame',
+        message: '没能读到所选窗口的画面。请重新选择一次游戏窗口；如果还是不行，可以关掉录屏 / 直播 / '
+            + '游戏加速器等可能占用画面的程序，或重启浏览器后再试。',
+      };
     case 'InvalidStateError':
-      return { code: 'no-frame', message: '当前页面已有共享请求在进行中，请稍后重试' };
+      return {
+        code: 'no-frame',
+        message: '这次点击没有生效。请直接在网页上点击「连接游戏画面」（不要在浮窗 / 小窗里点）再试一次。',
+      };
     default:
-      return { code: 'unknown', message: e?.message || String(err) };
+      return { code: 'unknown', message: '屏幕共享没有成功，请重新点击「连接游戏画面」再试一次。' };
   }
 }
 
@@ -137,12 +159,47 @@ class ScreenCaptureSession {
   }
 
   /**
-   * 请求共享。**必须在用户手势的同步调用栈里调用**（click handler 里直接 await 可以，
-   * 但不要先 setTimeout / 先 await 别的网络请求）。
+   * 挑一个能发起 getDisplayMedia 的 navigator.mediaDevices。
+   *
+   * Document PiP 浮窗里整块面板是用 portal 渲染进浮窗文档的：点击发生在浮窗里，但模块
+   * 跑在主页面的 realm 上，用主页面的 navigator 发请求会丢掉这次手势（浏览器直接拒绝）。
+   * 所以浮窗场景优先用浮窗自己的 navigator（同源，拿回来的 MediaStream 照样能用）。
    */
-  async start(): Promise<CaptureState> {
+  private pickMediaDevices(altWindow?: Window | null): MediaDevices | null {
+    const alt = (altWindow as unknown as { navigator?: Navigator } | null | undefined)?.navigator
+        ?.mediaDevices;
+    if (alt && typeof alt.getDisplayMedia === 'function') return alt;
+    return isSupported() ? navigator.mediaDevices : null;
+  }
+
+  /**
+   * 先按「窗口优先」的提示项请求；某些环境（远程桌面 / 虚拟显示器 / 精简系统）会因为
+   * displaySurface:'window' + selfBrowserSurface:'exclude' 直接 NotFound，此时退回最朴素的
+   * 约束再试一次 —— 多数情况下选择器就能列出可用源。
+   */
+  private async requestStream(devices: MediaDevices): Promise<MediaStream> {
+    try {
+      return await devices.getDisplayMedia({
+        video: { ...DISPLAY_HINTS } as MediaStreamConstraints['video'],
+        audio: false,
+      });
+    } catch (err) {
+      if ((err as Error)?.name !== 'NotFoundError') throw err;
+      console.warn('[capture] 带提示项的共享选择器不可用，退回默认约束重试：', err);
+      return await devices.getDisplayMedia({ video: true, audio: false });
+    }
+  }
+
+  /**
+   * 开始采集。必须在真正的用户手势同步调用栈里（click handler 里直接 await 可以，
+   * 但不要包在 setTimeout / 先 await 别的东西之后再调用）。
+   *
+   * @param altWindow 面板被 portal 渲染进 Document PiP 浮窗时传浮窗对象，见 pickMediaDevices。
+   */
+  async start(altWindow?: Window | null): Promise<CaptureState> {
     if (this.starting) return this.getState();
-    if (!isSupported()) {
+    const devices = this.pickMediaDevices(altWindow);
+    if (!devices) {
       this.patch({ supported: false, active: false, errorCode: 'unsupported', error: '当前浏览器不支持屏幕捕获（需 Chrome / Edge 等 Chromium 内核浏览器）' });
       return this.getState();
     }
@@ -154,10 +211,7 @@ class ScreenCaptureSession {
     try {
       // 已有流先释放，避免多次点击堆积多条轨道
       this.releaseStream();
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { ...DISPLAY_HINTS } as MediaStreamConstraints['video'],
-        audio: false,
-      });
+      const stream = await this.requestStream(devices);
       const track = stream.getVideoTracks()[0];
       if (!track) {
         stream.getTracks().forEach((t) => t.stop());
@@ -186,6 +240,8 @@ class ScreenCaptureSession {
         errorCode: null,
       });
     } catch (err) {
+      // 原始异常只写进控制台（用户看不到），方便线上排查；界面上只显示友好文案
+      console.warn('[capture] getDisplayMedia 失败：', err);
       const { code, message } = describeError(err);
       this.patch({ active: false, error: message, errorCode: code });
     } finally {

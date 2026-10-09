@@ -468,7 +468,9 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
     setErrorText(null);
     setHintText(null);
     sound.playClick();
-    const next = await screenCapture.start();
+    // 面板可能被 portal 渲染进 Document PiP 浮窗：把浮窗传下去，
+    // 让 getDisplayMedia 用「手势所在的那个窗口」发起（见 capture.pickMediaDevices）
+    const next = await screenCapture.start(pipWindow);
     if (!next.active && next.error) {
       setErrorText(next.error);
       return;
@@ -574,7 +576,9 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
           setErrorText(err.message);
           setStatusText('');
         } else {
-          setErrorText((err as Error)?.message || '识别失败');
+          // 具体原因只写进控制台；界面给一句能照做的提示
+          console.error('[scanner] 识别失败：', err);
+          setErrorText('识别失败，请重新点击「立即识别」再试一次。');
           setStatusText('');
         }
       }
@@ -602,7 +606,7 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
     if (!screenCapture.isActive()) {
       setErrorText(null);
       setHintText(null);
-      const st = await screenCapture.start();
+      const st = await screenCapture.start(pipWindow);
       if (!st.active) {
         if (st.error) setErrorText(st.error);
         return;
@@ -724,7 +728,9 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
       });
       setPipWindow(win);
     } catch (err) {
-      setErrorText(`悬浮窗打开失败：${(err as Error)?.message || err}`);
+      // 原始异常只写进控制台；浮窗打不开不影响在主页面使用
+      console.error('[scanner] 打开浮窗失败：', err);
+      setErrorText('打开浮窗失败。请刷新页面后重试；如果仍然不行，直接在当前页面使用即可。');
     }
   };
 
