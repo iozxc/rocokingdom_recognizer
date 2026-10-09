@@ -11,6 +11,7 @@ from core.api.response import error, success
 from core.infra.db import get_db, get_ts_db
 from core.infra.icon_names import load_map_pets, sprite_to_file, sprite_to_file_any
 from core.infra.logger import logger
+from core.infra.mime_types import STATIC_MIME_TYPES
 from core.infra.pet_path import sort_key
 from core.services.trials import get_trial_or_default, load_pet_elements
 from core.infra.utils import strip_id_prefix
@@ -91,18 +92,41 @@ def invalidate_icons_cache():
     _TRAITS_CACHE = None
 
 
+# 构建产物目录：这些目录下缺失的文件必须返回 404，不能回退 index.html
+_ASSET_DIR_PREFIXES = ('assets/', 'elements/', 'icon/', 'data/')
+
+
+def _send_static(path: str):
+    """发送 static 目录下的文件，并对关键资源强制正确的 MIME 类型。
+
+    Werkzeug 的 send_from_directory 内部用 mimetypes.guess_type 推断类型，而 Windows
+    上该结果会被注册表 HKCR 对应扩展名的 Content Type 污染（详见 core/infra/mime_types.py）。
+    这里按扩展名强制覆盖，确保 .js 一定以 JavaScript MIME 返回，避免浏览器拒绝执行
+    <script type="module"> 造成整页白屏。
+    """
+    forced = STATIC_MIME_TYPES.get(os.path.splitext(path)[1].lower())
+    if forced:
+        return send_from_directory(current_app.static_folder, path, mimetype=forced)
+    return send_from_directory(current_app.static_folder, path)
+
+
 @bp.route('/')
 def index():
-    return send_from_directory(current_app.static_folder, 'index.html')
+    return _send_static('index.html')
 
 @bp.route('/<path:path>')
 def serve_file(path):
     # 优先检查 static 目录下是否存在该文件
     full_path = os.path.join(current_app.static_folder, path)
     if os.path.exists(full_path) and os.path.isfile(full_path):
-        return send_from_directory(current_app.static_folder, path)
-    # 否则返回 index.html (支持 SPA 路由)
-    return send_from_directory(current_app.static_folder, 'index.html')
+        return _send_static(path)
+    # 构建产物缺失（如 index.html 与 assets 哈希不一致、文件被杀软删除）时，若回退
+    # index.html，浏览器会拿到 text/html 的"假 JS"并同样拒绝执行，反而掩盖真实错误。
+    normalized = path.replace('\\', '/').lstrip('/')
+    if normalized.startswith(_ASSET_DIR_PREFIXES):
+        return error('Not Found', 404)
+    # 其余路径回退 index.html (支持 SPA 路由)
+    return _send_static('index.html')
 
 @bp.route('/icons', methods=['GET'])
 def list_icons():

@@ -5,6 +5,13 @@
 导致启动日志顺序错乱。
 """
 
+from core.infra.mime_types import ensure_static_mime_types
+
+# 尽早注册静态资源 MIME：必须发生在任何静态文件请求之前，用于覆盖 Windows
+# 注册表对 mimetypes 的污染（详见 core/infra/mime_types.py），否则 .js 可能以
+# 错误的 Content-Type 返回，导致 Chromium 拒绝执行 <script type="module">。
+ensure_static_mime_types()
+
 
 def create_app():
     from flask import Flask
