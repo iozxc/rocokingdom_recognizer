@@ -37,6 +37,7 @@ import { storage } from '../services/storage';
 import { FALLBACK_MAPS_DATA, MAP_CONFIGS } from '../data/mockPets';
 import { formatPetName, isSamePetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
+import { PetSprite } from './PetSprite';
 import { PetSpecialTag } from './PetSpecialTag';
 
 interface BatchInitModalProps {
@@ -1072,16 +1073,13 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                             {/* Main Selected Pet Display */}
                             <div className="flex flex-col items-center text-center my-1">
                               <div className="relative w-16 h-16 rounded-xl bg-white dark:bg-slate-900 p-1 border border-[#E6EEF8] dark:border-slate-700 shadow-inner flex items-center justify-center">
+                                {/* 纯前端版 view_url 为空，交给 PetSprite 按 IS_STATIC 分支渲染 */}
                                 {isMatched && item.matchedPet ? (
-                                    <img
-                                        src={item.view_url || item.matchedPet.url}
+                                    <PetSprite
+                                        pet={item.matchedPet}
+                                        url={item.view_url}
                                         alt={displayName}
                                         className="w-full h-full object-contain"
-                                        onError={(e) => {
-                                          if (item.matchedPet?.url) {
-                                            (e.target as HTMLImageElement).src = item.matchedPet.url;
-                                          }
-                                        }}
                                     />
                                 ) : (
                                     <HelpCircle className="w-8 h-8 text-rose-300 dark:text-rose-500" />
@@ -1216,8 +1214,9 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
 
                                             {/* 图标：窄卡跨两行铺满，宽卡内联小图 */}
                                             <div className="relative z-10 w-5 h-5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs @max-[300px]:w-9 @max-[300px]:h-auto @max-[300px]:min-h-9 @max-[300px]:row-span-2 @max-[300px]:self-stretch">
-                                                <img
-                                                    src={cand.view_url || cand.matchedPet?.url}
+                                                <PetSprite
+                                                    pet={cand.matchedPet}
+                                                    url={cand.view_url}
                                                     alt={candDisplayName}
                                                     className="w-full h-full object-contain"
                                                 />
@@ -1447,8 +1446,9 @@ export const BatchInitModal: React.FC<BatchInitModalProps> = ({
                                   }`}
                               >
                                 <div className="relative w-14 h-14 rounded-xl bg-white dark:bg-slate-900 p-1 flex items-center justify-center border border-[#E6EEF8] dark:border-slate-700 shadow-inner group-hover:scale-105 transition-transform">
-                                  <img
-                                      src={pet.url}
+                                  {/* 纯前端版没有独立图标地址（pet.url 为空），统一走 PetSprite 的雪碧图切片 */}
+                                  <PetSprite
+                                      pet={pet}
                                       alt={cleanPetName}
                                       className="w-full h-full object-contain"
                                   />

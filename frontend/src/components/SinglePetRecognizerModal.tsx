@@ -27,6 +27,7 @@ import { formatPetName } from '../utils/petHelper';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { RecognitionSamplesHint } from './RecognitionSamplesHint';
 import { ElementBadges } from './ElementBadges';
+import { PetSprite } from './PetSprite';
 import { PetSpecialTag } from './PetSpecialTag';
 
 interface SinglePetRecognizerModalProps {
@@ -518,15 +519,11 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                           }`}>
                             <div className="flex items-center gap-4">
                               <div className="relative w-20 h-20 rounded-2xl bg-[#F5F9FF] dark:bg-slate-900 border-2 border-[#E6EEF8] dark:border-slate-700 p-1.5 flex items-center justify-center shrink-0">
-                                <img
-                                    src={activeCandidate.view_url || activeCandidate.matchedPet?.url}
+                                <PetSprite
+                                    pet={activeCandidate.matchedPet}
+                                    url={activeCandidate.view_url}
                                     alt={activeCandidate.filename}
                                     className="w-full h-full object-contain"
-                                    onError={(e) => {
-                                      if (activeCandidate.matchedPet?.url) {
-                                        (e.target as HTMLImageElement).src = activeCandidate.matchedPet.url;
-                                      }
-                                    }}
                                 />
                                 <ElementBadges
                                     elements={activeCandidate.matchedPet?.elements}
@@ -622,8 +619,9 @@ export const SinglePetRecognizerModal: React.FC<SinglePetRecognizerModalProps> =
                                     </span>
                                           </div>
                                           <div className="flex items-center gap-2">
-                                            <img
-                                                src={cand.view_url || cand.matchedPet?.url}
+                                            <PetSprite
+                                                pet={cand.matchedPet}
+                                                url={cand.view_url}
                                                 alt={cand.filename}
                                                 className="w-8 h-8 rounded-lg object-contain bg-[#F5F9FF] dark:bg-slate-900 border border-[#E2E8F0] dark:border-slate-700 p-0.5 shrink-0"
                                             />

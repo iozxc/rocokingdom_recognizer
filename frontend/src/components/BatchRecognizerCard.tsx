@@ -506,7 +506,16 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   const handleCancelScan = () => {
     sound.playClick();
     cancelLocalRecognition();
+    // 立刻恢复界面：取消必须「看得见」。否则要等 Worker 收尾，那期间按钮一直停在
+    // 「正在识别中，请稍候…」且被禁用，用户就会以为程序卡死了。
+    if (progressHideTimerRef.current !== null) {
+      window.clearTimeout(progressHideTimerRef.current);
+      progressHideTimerRef.current = null;
+    }
+    progressTargetRef.current = 0;
     setScanProgress(null);
+    setIsScanning(false);
+    setProgressVisible(false);
   };
 
   const handleStartBatchScan = async () => {
@@ -2202,7 +2211,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                 className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-[#7ABCF4] dark:hover:border-sky-400 hover:bg-[#F5F9FF] dark:hover:bg-slate-800 transition-all flex flex-col items-center text-center cursor-pointer group"
                             >
                               <div className="relative w-14 h-14 rounded-lg bg-[#F5F9FF] dark:bg-slate-800 p-1 flex items-center justify-center group-hover:scale-105 transition-transform">
-                                <img src={pet.url} alt={pet.name} className="w-full h-full object-contain" />
+                                {/* 纯前端版没有独立图标地址（pet.url 为空），统一走 PetSprite 的雪碧图切片 */}
+                                <PetSprite pet={pet} alt={formatPetName(pet.name)} className="w-full h-full object-contain" />
                                 {pet.id != null && (
                                     <span className="absolute top-0.5 right-0.5 z-10 text-[8px] font-mono font-black leading-none px-1 py-0.5 rounded bg-slate-800/70 text-white/90">
                                       #{pet.id}

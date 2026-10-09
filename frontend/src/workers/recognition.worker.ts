@@ -72,6 +72,10 @@ const STD = [0.229, 0.224, 0.225];
 const MAX_OCR_BOXES = 16;
 /** 批量特征前向的分块大小（每张 518×518 NCHW 约 3.2MB，分块跑避免一次性吃满内存）。 */
 const FEATURE_CHUNK = 4;
+/** 主线程要求中止当前批量识别时 Worker 内部抛出的信号（主线程已丢弃该请求，不会当成失败上报）。 */
+const ABORTED = 'RECOGNITION_ABORTED';
+/** 已被主线程取消的批量识别请求 id：特征提取在分块之间检查它并尽快退出。 */
+const canceledReqIds = new Set<number>();
 
 type InitMsg = { kind: 'init'; modelBuffer: ArrayBuffer; wasmPaths: string; threads?: number };
 type ExtractMsg = { kind: 'extract'; reqId: number; bitmap: ImageBitmap };
@@ -99,7 +103,9 @@ type BattleProbeMsg = {
   avatarBox: [number, number, number, number];
   nameBox: [number, number, number, number];
 };
-type InMsg = InitMsg | ExtractMsg | OcrInitMsg | OcrMsg | RecognizeMsg | ScannerInitMsg | FollowMsg | BattleProbeMsg;
+/** 主线程要求中止某个进行中的批量识别（用户点「取消」/换图）。 */
+type CancelMsg = { kind: 'cancel'; reqId: number };
+type InMsg = InitMsg | ExtractMsg | OcrInitMsg | OcrMsg | RecognizeMsg | ScannerInitMsg | FollowMsg | BattleProbeMsg | CancelMsg;
 
 let dinoSession: ort.InferenceSession | null = null;
 let dinoInput = 'batch';
@@ -355,7 +361,8 @@ async function recognizeBitmap(
     bitmap: ImageBitmap,
     totalCount: number,
     nameItems: NameAnchorItem[],
-    onProgress: (done: number, total: number) => void
+    onProgress: (done: number, total: number) => void,
+    isCanceled?: () => boolean
 ): Promise<{ feats: Float32Array; boxes: SegmentBox[]; mode: 'single' | 'batch'; ms: number; sigs: Uint8Array; blankFlags: Uint8Array; hardFlags: Uint8Array; lowInfoFlags: Uint8Array }> {
   if (!dinoSession) throw new Error('识别模型尚未初始化完成');
   const t0 = performance.now();
@@ -428,7 +435,10 @@ async function recognizeBitmap(
   }
   const inputName = dinoSession.inputNames[0] || dinoInput;
   let doneCount = boxes.length - activeIdx.length;
+  if (isCanceled?.()) throw new Error(ABORTED);
   for (let cStart = 0; cStart < activeIdx.length; cStart += FEATURE_CHUNK) {
+    // 用户取消：在分块之间退出，不再白跑剩下的图位
+    if (isCanceled?.()) throw new Error(ABORTED);
     const chunkIdx = activeIdx.slice(cStart, cStart + FEATURE_CHUNK);
     const data = new Float32Array(chunkIdx.length * 3 * INPUT_SIZE * INPUT_SIZE);
     for (let j = 0; j < chunkIdx.length; j++) {
@@ -762,16 +772,25 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
       workerScope.postMessage({ kind: 'feature', reqId: msg.reqId, backend, ms, data: feat }, [feat.buffer]);
       return;
     }
+    if (msg.kind === 'cancel') {
+      canceledReqIds.add(msg.reqId);
+      return;
+    }
     if (msg.kind === 'recognize') {
+      const reqId = msg.reqId;
+      // 同一时刻只跑一个批量识别：开新任务时清掉上一轮的取消标记
+      canceledReqIds.clear();
       const { feats, boxes, mode, ms, sigs, blankFlags, hardFlags, lowInfoFlags } = await recognizeBitmap(
           msg.bitmap,
           msg.totalCount ?? 12,
           msg.nameItems ?? [],
-          (done, total) => workerScope.postMessage({ kind: 'recognize-progress', reqId: msg.reqId, done, total })
+          (done, total) => workerScope.postMessage({ kind: 'recognize-progress', reqId, done, total }),
+          () => canceledReqIds.has(reqId)
       );
+      canceledReqIds.delete(reqId);
       workerScope.postMessage({
         kind: 'recognize-result',
-        reqId: msg.reqId,
+        reqId,
         backend,
         ms,
         mode,
@@ -853,6 +872,8 @@ workerScope.onmessage = async (e: MessageEvent<InMsg>) => {
       return;
     }
   } catch (err) {
+    // 用户主动取消：主线程已经丢弃该请求，这里静默结束，不要回一个「识别失败」
+    if ((err as Error)?.message === ABORTED) return;
     const message = (err as Error)?.message || String(err);
     const reqId = (msg as { reqId?: number }).reqId;
     if (msg.kind === 'init') workerScope.postMessage({ kind: 'init-error', message });

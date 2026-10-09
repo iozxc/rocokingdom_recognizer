@@ -18,12 +18,12 @@ interface PetSpriteProps {
  */
 export const PetSprite: React.FC<PetSpriteProps> = ({ pet, url, className = '', alt = '' }) => {
   if (!IS_STATIC || !pet?.sprite) {
-    const src = url || pet?.url || '';
+    const src = url || pet?.url || undefined;
     return <img src={src} alt={alt} className={className} draggable={false} loading="lazy" decoding="async" />;
   }
   const meta = getSpriteMeta(pet.sprite);
   if (!meta || pet.col == null || pet.row == null) {
-    const src = url || pet?.url || '';
+    const src = url || pet?.url || undefined;
     return <img src={src} alt={alt} className={className} draggable={false} loading="lazy" decoding="async" />;
   }
   return (

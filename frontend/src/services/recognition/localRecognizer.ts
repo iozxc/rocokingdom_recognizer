@@ -225,6 +225,8 @@ class LocalRecognizerClass {
   private ocrChars: string[] = [];
   private corrections: Corrections | null = null;
   private cancelToken = 0;
+  /** 进行中的批量识别请求 id（取消时据此立即 reject 并通知 Worker 停止）。 */
+  private activeRecognizeReqId: number | null = null;
   private perf: PerfSample[] = [];
   private readyMs = 0;
   private modelTier: ModelTier = 'auto';
@@ -725,6 +727,23 @@ class LocalRecognizerClass {
   /** 让进行中的识别作废（用户换图/取消时调用），旧任务的结果会被丢弃。 */
   cancelPending(): void {
     this.cancelToken++;
+    // 1) 立刻 reject 在途的 recognize 请求：否则 await 端要等 Worker 把整页 12 格
+    //    全部跑完才会走到取消检查，界面上就会出现「点了取消没反应、像卡死」。
+    // 2) 通知 Worker 中止：让它不用白跑剩下的图位（模型会话保留，不必重建）。
+    // 只动批量识别这一个请求，避免误伤同一 Worker 上的跟随识别 / OCR。
+    const reqId = this.activeRecognizeReqId;
+    if (reqId == null) return;
+    this.activeRecognizeReqId = null;
+    const p = this.pending.get(reqId);
+    if (p) {
+      this.pending.delete(reqId);
+      p.reject(new Error(CANCELED));
+    }
+    try {
+      this.worker?.postMessage({ kind: 'cancel', reqId });
+    } catch {
+      /* Worker 已退出等情况：忽略 */
+    }
   }
 
   /** 切换模型档位（体积/精度权衡）；已建会话会在下次识别时按新档位重建。 */
@@ -804,9 +823,14 @@ class LocalRecognizerClass {
       createImageBitmap(image)
           .then((bitmap) => {
             const reqId = ++this.reqSeq;
+            this.activeRecognizeReqId = reqId;
+            const settle = <T,>(fn: (v: T) => void) => (v: T) => {
+              if (this.activeRecognizeReqId === reqId) this.activeRecognizeReqId = null;
+              fn(v);
+            };
             this.pending.set(reqId, {
-              resolve: resolve as (v: unknown) => void,
-              reject,
+              resolve: settle(resolve as (v: unknown) => void),
+              reject: settle(reject),
               onProgress: onChunk,
             });
             this.ensureWorker().postMessage({ kind: 'recognize', reqId, bitmap, totalCount, nameItems }, [bitmap]);
