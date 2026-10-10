@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  AlertTriangle, ChevronLeft, Download, Loader2, Package, Power, Puzzle, RefreshCw, ShieldAlert, Trash2, Upload,
+  AlertTriangle, ChevronLeft, Download, Loader2, Package, Pin, Power, Puzzle, RefreshCw, ShieldAlert, Trash2, Upload,
 } from 'lucide-react';
 import { ModalHeader } from './ModalHeader';
 import { PluginFrame } from './plugins/PluginFrame';
@@ -17,10 +17,13 @@ interface PluginCenterModalProps {
   initialPluginId?: string | null;
   /** 声明了 ui.fullscreen 的插件：不要塞进弹窗，交给外面整页打开 */
   onOpenFullscreen?: (plugin: PluginInfo) => void;
+  /** 固定到右下角（主程序悬浮区） */
+  pinnedIds?: string[];
+  onTogglePin?: (plugin: PluginInfo) => void;
 }
 
 export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
-  isOpen, onClose, onPluginsChanged, initialPluginId, onOpenFullscreen,
+  isOpen, onClose, onPluginsChanged, initialPluginId, onOpenFullscreen, pinnedIds = [], onTogglePin,
 }) => {
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -528,6 +531,8 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
                       update={updates[plugin.id]}
                       updating={updatingId === plugin.id}
                       onUpdate={() => handleUpdate(plugin)}
+                      pinned={pinnedIds.includes(plugin.id)}
+                      onTogglePin={onTogglePin ? () => onTogglePin(plugin) : undefined}
                     />
                   ))}
                 </div>
@@ -610,6 +615,8 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
 };
 
 interface PluginCardProps {
+  pinned?: boolean;
+  onTogglePin?: () => void;
   plugin: PluginInfo;
   busy: boolean;
   onToggle: () => void;
@@ -622,7 +629,7 @@ interface PluginCardProps {
   onUpdate?: () => void;
 }
 
-const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemove, onOpen, captureRunning, update, updating, onUpdate }) => {
+const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemove, onOpen, captureRunning, update, updating, onUpdate, pinned, onTogglePin }) => {
   const canOpen = plugin.enabled && plugin.hasFrontend && !plugin.error;
   return (
     <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 p-3.5 sm:p-4 flex gap-3.5">
@@ -696,6 +703,22 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
       </div>
 
       <div className="flex flex-col items-end gap-2 shrink-0">
+        {onTogglePin && (
+          <button
+            type="button"
+            onClick={onTogglePin}
+            title={pinned ? '取消固定（右下角不再显示入口）' : '固定到右下角，之后点右下角的入口就能直接打开'}
+            className={`h-7 px-2.5 rounded-xl text-[11px] font-black flex items-center gap-1 transition-colors cursor-pointer ${
+              pinned
+                ? 'bg-[#EBF4FE] dark:bg-sky-950/60 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
+            }`}
+          >
+            <Pin className="w-3 h-3" />
+            {pinned ? '已固定' : '固定'}
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onToggle}

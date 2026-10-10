@@ -1210,6 +1210,14 @@ export default function App() {
             isOpen={isPluginCenterOpen}
             initialPluginId={pluginToOpen}
             onOpenFullscreen={openPlugin}
+            pinnedIds={pinnedPlugins.map((x) => x.id)}
+            onTogglePin={(plugin) => setPinnedPlugins((prev) => {
+              const has = prev.some((x) => x.id === plugin.id);
+              const next = has ? prev.filter((x) => x.id !== plugin.id)
+                : [...prev, { id: plugin.id, label: plugin.id === 'roco.breed_planner' ? '生蛋规划器' : plugin.title }];
+              try { localStorage.setItem('roco_pinned_plugins', JSON.stringify(next)); } catch { /* ignore */ }
+              return next;
+            })}
             onClose={() => { setIsPluginCenterOpen(false); setPluginToOpen(null); }}
             onPluginsChanged={setPlugins}
         />
