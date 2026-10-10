@@ -423,7 +423,9 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
                   <div className="flex flex-col gap-3">
                     {catalog.map((item) => (
                       <div key={item.id} className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 p-3.5 sm:p-4 flex gap-3.5">
-                        <div className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 border-2 border-[#BCD7F2] dark:border-sky-800 shadow-2xs">
+                        <div
+                          className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center text-white shadow-sm ring-1 ring-inset ring-white/25"
+                          style={{ background: `linear-gradient(140deg, ${item.accent || '#7abcf4'} 0%, #2B78C4 100%)` }}>
                           {(() => { const Icon = pluginIconOf(item); return <Icon className="w-5 h-5" />; })()}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -624,7 +626,9 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
   const canOpen = plugin.enabled && plugin.hasFrontend && !plugin.error;
   return (
     <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 p-3.5 sm:p-4 flex gap-3.5">
-      <div className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center bg-[#EBF4FE] dark:bg-sky-950/70 text-[#2B78C4] dark:text-sky-300 border-2 border-[#BCD7F2] dark:border-sky-800 shadow-2xs">
+      <div
+        className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center text-white shadow-sm ring-1 ring-inset ring-white/25"
+        style={{ background: `linear-gradient(140deg, ${plugin.accent || '#7abcf4'} 0%, #2B78C4 100%)` }}>
         {(() => { const Icon = pluginIconOf(plugin); return <Icon className="w-5 h-5" />; })()}
       </div>
 

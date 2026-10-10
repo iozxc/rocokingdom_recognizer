@@ -28,7 +28,7 @@ export const PluginPage: React.FC<{ plugin: PluginInfo; onClose: () => void }> =
         type="button"
         onClick={() => { sound.playClick(); onClose(); }}
         title="返回主界面（Esc）"
-        className="fixed bottom-3 left-3 z-[210] h-7 pl-1.5 pr-2.5 rounded-full text-[11px] font-black text-white/95 bg-slate-900/55 hover:bg-slate-900/85 backdrop-blur-sm flex items-center gap-0.5 shadow-lg transition-colors cursor-pointer"
+        className="fixed bottom-2 right-2 z-[210] h-6 pl-1 pr-2 rounded-full text-[10px] font-black text-white/80 hover:text-white bg-slate-900/35 hover:bg-slate-900/80 backdrop-blur-sm flex items-center gap-0.5 shadow transition-colors cursor-pointer"
       >
         <ChevronLeft className="w-3.5 h-3.5" /> 返回主界面
       </button>
