@@ -108,6 +108,28 @@ interface BatchRecognizerCardProps {
   captureLive?: boolean;
 }
 
+export /** 推理后端状态：模块级缓存。
+ *  切地图时这个组件会被重挂载，如果每次都从 null 开始，GPU 徽标就会
+ *  "消失 → 出现"闪一下；用模块级缓存让重挂载立刻显示上次的结果。 */
+interface InferBackendState {
+  activeLabel: string;
+  activeShort: string;
+  isGpu: boolean;
+  gpuAvailable: boolean;
+  gpuEnabled: boolean;
+  onnxruntime: string;
+  ocrGpu: boolean;
+  mode: string;
+  error: string | null;
+  gpuName: string;
+  gpuVramMB: number;
+  gpuCount: number;
+  cpuName: string;
+  gpuUsable: boolean;
+  gpuReason: string;
+}
+let inferBackendCache: InferBackendState | null = null;
+
 export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                                                           currentMap,
                                                                           trialKey = 'grass',
@@ -156,23 +178,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
   /** 本次识别已用时（秒）：OCR 这种长时间不回报的阶段靠它体现"还在动"。 */
   const [scanElapsed, setScanElapsed] = useState<number>(0);
   /** PC 端推理后端状态（GPU/CPU）：进页面就查一次，展示给用户看。 */
-  const [inferBackend, setInferBackend] = useState<{
-    activeLabel: string;
-    activeShort: string;
-    isGpu: boolean;
-    gpuAvailable: boolean;
-    gpuEnabled: boolean;
-    onnxruntime: string;
-    ocrGpu: boolean;
-    mode: string;
-    error: string | null;
-    gpuName: string;
-    gpuVramMB: number;
-    gpuCount: number;
-    cpuName: string;
-    gpuUsable: boolean;
-    gpuReason: string;
-  } | null>(null);
+  const [inferBackend, setInferBackend] = useState<InferBackendState | null>(inferBackendCache);
   const [backendChecking, setBackendChecking] = useState<boolean>(false);
   /** PC 端：上一次识别的耗时/图位数（与 Web 端一样，识别完展示一行信息） */
   const [pcPerf, setPcPerf] = useState<{ ms: number; count: number; p95: number; samples: number } | null>(null);
@@ -321,7 +327,8 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
           gpuUsable: info.gpuUsable,
           gpuReason: info.gpuReason,
         } : null))
-        .catch(() => setInferBackend(null))
+        .then((next) => { inferBackendCache = next; setInferBackend(next); })
+        .catch(() => { if (!inferBackendCache) setInferBackend(null); })
         .finally(() => setBackendChecking(false));
   }, []);
 
