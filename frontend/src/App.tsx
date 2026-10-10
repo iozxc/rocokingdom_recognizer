@@ -1,3 +1,4 @@
+import { Puzzle } from 'lucide-react';
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { Header } from './components/Header';
 import { SubHeaderToolbar } from './components/SubHeaderToolbar';
@@ -131,6 +132,10 @@ export default function App() {
   // ui.fullscreen 的插件走整页（替换整个界面），不走弹窗
   const [pluginPage, setPluginPage] = useState<PluginInfo | null>(null);
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
+  // 被「固定」到右下角的插件（插件里点【固定】→ postMessage 过来，存 localStorage）
+  const [pinnedPlugins, setPinnedPlugins] = useState<{ id: string; label: string }[]>(() => {
+    try { return JSON.parse(localStorage.getItem('roco_pinned_plugins') || '[]'); } catch { return []; }
+  });
   const [syncing, setSyncing] = useState<boolean>(false);
   // 抓包插件的草系试炼数据（静默同步用：用户界面不出现任何相关按钮/提示）
   const [view, setView] = useState<'assistant' | 'hub'>('assistant');
@@ -779,11 +784,32 @@ export default function App() {
 
   const closePluginPage = useCallback(() => setPluginPage(null), []);
 
-  // 整页插件自己的顶栏点了「返回」：iframe 里 postMessage 过来
+  /** 右下角悬浮入口：打开被固定的插件 */
+  const openPinned = useCallback((id: string) => {
+    const p = plugins.find((x) => x.id === id);
+    if (!p) return;
+    setIsPluginCenterOpen(false);
+    setPluginToOpen(null);
+    if (p.fullscreen) setPluginPage(p);
+    else { setPluginToOpen(p.id); setIsPluginCenterOpen(true); }
+  }, [plugins]);
+
+  // 整页插件的 iframe 通过 postMessage 跟主程序通信：
+  //   roco-plugin-close → 收起整页；roco-plugin-pin → 固定/取消固定到右下角
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
-      const data = e.data as { type?: string } | null;
-      if (data && data.type === 'roco-plugin-close') setPluginPage(null);
+      const data = e.data as { type?: string; plugin?: string; label?: string; pinned?: boolean } | null;
+      if (!data) return;
+      if (data.type === 'roco-plugin-close') { setPluginPage(null); return; }
+      if (data.type === 'roco-plugin-pin' && data.plugin) {
+        setPinnedPlugins((prev) => {
+          const next = data.pinned
+            ? [...prev.filter((x) => x.id !== data.plugin), { id: data.plugin as string, label: data.label || '插件' }]
+            : prev.filter((x) => x.id !== data.plugin);
+          try { localStorage.setItem('roco_pinned_plugins', JSON.stringify(next)); } catch { /* ignore */ }
+          return next;
+        });
+      }
     };
     window.addEventListener('message', onMsg);
     return () => window.removeEventListener('message', onMsg);
@@ -1162,7 +1188,25 @@ export default function App() {
             }}
         />
         {/* 插件中心：导入 / 管理插件 */}
-        <PluginCenterModal
+        {/* 固定在右下角的插件入口 */}
+      {view !== 'plugin' && pinnedPlugins.length > 0 && (
+        <div className="fixed right-4 bottom-24 z-[95] flex flex-col items-end gap-2">
+          {pinnedPlugins.map((pp) => (
+            <button
+              key={pp.id}
+              type="button"
+              onClick={() => { sound.playClick(); openPinned(pp.id); }}
+              title={`打开 ${pp.label}`}
+              className="h-10 pl-2.5 pr-4 rounded-full text-[12px] font-black text-white bg-gradient-to-b from-[#7ABCF4] to-[#2B78C4] shadow-lg shadow-sky-900/20 hover:from-[#8cc6f7] hover:to-[#3a87d1] active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+            >
+              <Puzzle className="w-4 h-4" />
+              {pp.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <PluginCenterModal
             isOpen={isPluginCenterOpen}
             initialPluginId={pluginToOpen}
             onOpenFullscreen={openPlugin}
