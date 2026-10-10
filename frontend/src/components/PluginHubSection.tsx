@@ -67,12 +67,12 @@ export const PluginHubSection: React.FC<PluginHubSectionProps> = ({ plugins, onO
               className="group flex w-full items-center gap-3.5 rounded-2xl bg-white dark:bg-slate-800 px-4 py-3.5 text-left ring-1 ring-slate-900/5 dark:ring-slate-700/60 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_10px_24px_-16px_rgba(15,23,42,0.35)] hover:ring-violet-200/70 dark:hover:ring-violet-500/50 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 cursor-pointer"
               title={plugin.description}
             >
-              {/* 图标：不再用单色线框，改成插件自己的主题色渐变底 + 白色图标（更有颜色） */}
+              {/* 图标：浅色底 + 主题色图标（和「插件中心」标题图标同款观感） */}
               <div
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-sm ring-1 ring-inset ring-white/25"
-                style={{ background: `linear-gradient(140deg, ${plugin.accent || '#7abcf4'} 0%, #2B78C4 100%)` }}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border"
+                style={{ backgroundColor: `${plugin.accent || '#7abcf4'}22`, color: plugin.accent || '#7abcf4', borderColor: `${plugin.accent || '#7abcf4'}55` }}
               >
-                {(() => { const Icon = pluginIconOf(plugin); return <Icon className="h-5 w-5" />; })()}
+                {(() => { const Icon = pluginIconOf(plugin); return <Icon className="h-5 w-5" strokeWidth={2.2} />; })()}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">

@@ -427,9 +427,9 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
                     {catalog.map((item) => (
                       <div key={item.id} className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 p-3.5 sm:p-4 flex gap-3.5">
                         <div
-                          className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center text-white shadow-sm ring-1 ring-inset ring-white/25"
-                          style={{ background: `linear-gradient(140deg, ${item.accent || '#7abcf4'} 0%, #2B78C4 100%)` }}>
-                          {(() => { const Icon = pluginIconOf(item); return <Icon className="w-5 h-5" />; })()}
+                          className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center border"
+                          style={{ backgroundColor: `${item.accent || '#7abcf4'}22`, color: item.accent || '#7abcf4', borderColor: `${item.accent || '#7abcf4'}55` }}>
+                          {(() => { const Icon = pluginIconOf(item); return <Icon className="w-5 h-5" strokeWidth={2.2} />; })()}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -634,9 +634,9 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
   return (
     <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-[#E6EEF8] dark:border-slate-700 p-3.5 sm:p-4 flex gap-3.5">
       <div
-        className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center text-white shadow-sm ring-1 ring-inset ring-white/25"
-        style={{ background: `linear-gradient(140deg, ${plugin.accent || '#7abcf4'} 0%, #2B78C4 100%)` }}>
-        {(() => { const Icon = pluginIconOf(plugin); return <Icon className="w-5 h-5" />; })()}
+        className="w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center border"
+        style={{ backgroundColor: `${plugin.accent || '#7abcf4'}22`, color: plugin.accent || '#7abcf4', borderColor: `${plugin.accent || '#7abcf4'}55` }}>
+        {(() => { const Icon = pluginIconOf(plugin); return <Icon className="w-5 h-5" strokeWidth={2.2} />; })()}
       </div>
 
       <div className="min-w-0 flex-1">
@@ -703,38 +703,39 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
       </div>
 
       <div className="flex flex-col items-end gap-2 shrink-0">
-        {onTogglePin && (
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={onTogglePin}
-            title={pinned ? '取消固定（右下角不再显示入口）' : '固定到右下角，之后点右下角的入口就能直接打开'}
-            className={`h-7 px-2.5 rounded-xl text-[11px] font-black flex items-center gap-1 transition-colors cursor-pointer ${
-              pinned
-                ? 'bg-[#EBF4FE] dark:bg-sky-950/60 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800'
+            onClick={onToggle}
+              disabled={busy || (plugin.compatible === false && !plugin.enabled)}
+            title={plugin.compatible === false && !plugin.enabled
+              ? (plugin.compatibleReason || '与当前主程序版本不匹配，无法启用')
+              : (plugin.enabled ? '停用插件' : '启用插件')}
+            className={`h-7 px-2.5 rounded-xl text-[11px] font-black flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 ${
+              plugin.enabled
+                ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
                 : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
             }`}
           >
-            <Pin className="w-3 h-3" />
-            {pinned ? '已固定' : '固定'}
+            {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Power className="w-3 h-3" />}
+            {plugin.enabled ? '已启用' : '未启用'}
           </button>
-        )}
-
-        <button
-          type="button"
-          onClick={onToggle}
-          disabled={busy || (plugin.compatible === false && !plugin.enabled)}
-          title={plugin.compatible === false && !plugin.enabled
-            ? (plugin.compatibleReason || '与当前主程序版本不匹配，无法启用')
-            : (plugin.enabled ? '停用插件' : '启用插件')}
-          className={`h-7 px-2.5 rounded-xl text-[11px] font-black flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 ${
-            plugin.enabled
-              ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
-              : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
-          }`}
-        >
-          {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Power className="w-3 h-3" />}
-          {plugin.enabled ? '已启用' : '未启用'}
-        </button>
+          {onTogglePin && (
+            <button
+              type="button"
+              onClick={onTogglePin}
+              title={pinned ? '取消固定（右下角不再显示入口）' : '固定到右下角，之后点右下角悬浮栏里的入口就能直接打开'}
+              className={`h-7 px-2.5 rounded-xl text-[11px] font-black flex items-center gap-1 transition-colors cursor-pointer ${
+                pinned
+                  ? 'bg-[#EBF4FE] dark:bg-sky-950/60 text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
+              }`}
+            >
+              <Pin className="w-3 h-3" />
+              {pinned ? '已固定' : '固定'}
+            </button>
+          )}
+        </div>
 
         <div className="flex items-center gap-1.5">
           {update && onUpdate && (

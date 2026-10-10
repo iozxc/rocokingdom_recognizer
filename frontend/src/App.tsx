@@ -132,10 +132,27 @@ export default function App() {
   // ui.fullscreen 的插件走整页（替换整个界面），不走弹窗
   const [pluginPage, setPluginPage] = useState<PluginInfo | null>(null);
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
-  // 被「固定」到右下角的插件（插件里点【固定】→ postMessage 过来，存 localStorage）
-  const [pinnedPlugins, setPinnedPlugins] = useState<{ id: string; label: string }[]>(() => {
-    try { return JSON.parse(localStorage.getItem('roco_pinned_plugins') || '[]'); } catch { return []; }
-  });
+  /**
+   * 被「固定」到右下角悬浮栏的插件。
+   * ⚠ 必须走 storage（后端 roco_user_data.json），**不能只存 localStorage**：
+   *   桌面端 pywebview 是 private_mode，退出即清空 WebView 存储 —— 那就是"固定重启就没了"的原因。
+   */
+  const [pinnedPlugins, setPinnedPlugins] = useState<{ id: string; label: string }[]>(
+    // getSettingCached：桌面端 appSettings 是异步从后端拉的，同步版本先给上次缓存值，
+    // 不然重启后首帧读到空数组，看起来又像"固定没保存"。
+    () => storage.getSettingCached<{ id: string; label: string }[]>('pinnedPlugins', []) || [],
+  );
+
+  // 后端设置到位后同步一次（首次启动时 appSettings 还没拉回来）
+  useEffect(() => storage.subscribeSettings((st) => {
+    const list = (st as { pinnedPlugins?: { id: string; label: string }[] }).pinnedPlugins;
+    if (Array.isArray(list)) setPinnedPlugins(list);
+  }), []);
+
+  const savePinned = useCallback((next: { id: string; label: string }[]) => {
+    setPinnedPlugins(next);
+    try { storage.setSetting('pinnedPlugins', next); } catch { /* ignore */ }
+  }, []);
   const [syncing, setSyncing] = useState<boolean>(false);
   // 抓包插件的草系试炼数据（静默同步用：用户界面不出现任何相关按钮/提示）
   const [view, setView] = useState<'assistant' | 'hub'>('assistant');
@@ -806,7 +823,7 @@ export default function App() {
           const next = data.pinned
             ? [...prev.filter((x) => x.id !== data.plugin), { id: data.plugin as string, label: data.label || '插件' }]
             : prev.filter((x) => x.id !== data.plugin);
-          try { localStorage.setItem('roco_pinned_plugins', JSON.stringify(next)); } catch { /* ignore */ }
+          try { storage.setSetting('pinnedPlugins', next); } catch { /* ignore */ }
           return next;
         });
       }
@@ -1109,6 +1126,8 @@ export default function App() {
         {view === 'assistant' && floatingMode !== 'hidden' && (
             <GlobalFloatingSearch
                 bottomClass={floatingBottomClass}
+                pinnedPlugins={pinnedPlugins.map((x) => ({ ...x, icon: plugins.find((p) => p.id === x.id)?.icon }))}
+                onOpenPinned={openPinned}
                 onOpenPluginCenter={IS_STATIC ? undefined : () => { setPluginToOpen(null); setIsPluginCenterOpen(true); }}
                 isOpen={isGlobalSearchOpen}
                 onOpenChange={(open) => setIsGlobalSearchOpen(open)}
@@ -1188,25 +1207,7 @@ export default function App() {
             }}
         />
         {/* 插件中心：导入 / 管理插件 */}
-        {/* 固定在右下角的插件入口 */}
-      {view !== 'plugin' && pinnedPlugins.length > 0 && (
-        <div className="fixed right-4 bottom-24 z-[95] flex flex-col items-end gap-2">
-          {pinnedPlugins.map((pp) => (
-            <button
-              key={pp.id}
-              type="button"
-              onClick={() => { sound.playClick(); openPinned(pp.id); }}
-              title={`打开 ${pp.label}`}
-              className="h-10 pl-2.5 pr-4 rounded-full text-[12px] font-black text-white bg-gradient-to-b from-[#7ABCF4] to-[#2B78C4] shadow-lg shadow-sky-900/20 hover:from-[#8cc6f7] hover:to-[#3a87d1] active:scale-95 transition-all cursor-pointer flex items-center gap-2"
-            >
-              <Puzzle className="w-4 h-4" />
-              {pp.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <PluginCenterModal
+        <PluginCenterModal
             isOpen={isPluginCenterOpen}
             initialPluginId={pluginToOpen}
             onOpenFullscreen={openPlugin}
@@ -1215,7 +1216,7 @@ export default function App() {
               const has = prev.some((x) => x.id === plugin.id);
               const next = has ? prev.filter((x) => x.id !== plugin.id)
                 : [...prev, { id: plugin.id, label: plugin.id === 'roco.breed_planner' ? '生蛋规划器' : plugin.title }];
-              try { localStorage.setItem('roco_pinned_plugins', JSON.stringify(next)); } catch { /* ignore */ }
+              try { storage.setSetting('pinnedPlugins', next); } catch { /* ignore */ }
               return next;
             })}
             onClose={() => { setIsPluginCenterOpen(false); setPluginToOpen(null); }}

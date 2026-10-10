@@ -272,7 +272,9 @@ export interface AppSettings {
   autoReturnView?: boolean; // 首页批量识别「视角自动归位」：识别完成自动下滚到结果区、确认点亮后回到识别区（默认开启；关闭后识别全程不自动滚动）
   effectLevel?: EffectLevel; // 0: 关闭, 1: 轻微 (默认), 2: 标准, 3: 丰富
   floatingButtonsMode?: FloatingButtonsMode; // 'normal' 正常完整 | 'compact' 紧凑缩小 | 'hidden' 彻底隐藏
-  isSimplifiedFABs?: boolean; // 快捷面板是否开启精简模式（隐藏数据管理等次要入口）
+  isSimplifiedFABs?: boolean;
+  /** 固定到右下角悬浮栏的插件 */
+  pinnedPlugins?: { id: string; label: string }[]; // 快捷面板是否开启精简模式（隐藏数据管理等次要入口）
   updateMode?: 'auto' | 'full'; // 'auto' 自动增量更新（默认）| 'full' 强制整包更新
   autoCheckUpdate?: boolean; // 启动时是否自动检测更新（默认开启）
   hideUpdateDot?: boolean; // 是否隐藏更新提示红点（默认不隐藏）

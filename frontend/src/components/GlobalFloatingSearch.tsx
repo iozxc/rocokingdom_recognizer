@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { PetSprite } from './PetSprite';
+import { pluginIconOf } from './plugins/pluginIcon';
 import {
   Search,
   X,
@@ -67,6 +68,9 @@ export interface GlobalSearchPetResult {
 }
 
 interface GlobalFloatingSearchProps {
+  /** 被固定到右下角悬浮栏的插件 */
+  pinnedPlugins?: { id: string; label: string; icon?: string }[];
+  onOpenPinned?: (id: string) => void;
   allMapsPets: Record<string, { count: number; items: PetItem[] }>;
   records: Record<string, EncounterRecord>;
   onNavigateToPet: (mapNum: number, petName: string) => void;
@@ -102,6 +106,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
             onToggleAtlasMode,
             followTrialKey,
             onOpenPluginCenter,
+  pinnedPlugins = [],
+  onOpenPinned,
             bottomClass = 'bottom-6',
           }) => {
   const maps = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
@@ -517,6 +523,25 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                   </span>
                         </button>
                     )}
+
+                    {/* 被固定的插件：和跟随识别/插件中心同款胶囊，无缝排在一起 */}
+                    {pinnedPlugins.map((pp) => {
+                      const PIcon = pluginIconOf({ icon: pp.icon });
+                      return (
+                        <button
+                          key={pp.id}
+                          type="button"
+                          onClick={() => { sound.playClick(); onOpenPinned?.(pp.id); }}
+                          className="relative flex items-center gap-2 pl-1.5 pr-3.5 sm:pl-2 sm:pr-4 py-1.5 bg-gradient-to-r from-sky-100 dark:from-sky-500/25 to-white dark:to-slate-800 backdrop-blur-md text-slate-700 dark:text-slate-100 font-black rounded-full ring-1 ring-inset ring-slate-200/80 dark:ring-slate-700 shadow-lg shadow-slate-900/5 dark:shadow-black/20 hover:ring-sky-300 dark:hover:ring-sky-600 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                          title={`打开 ${pp.label}`}
+                        >
+                          <div className="w-7 h-7 rounded-full bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
+                            <PIcon className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="text-xs sm:text-sm tracking-wide">{pp.label}</span>
+                        </button>
+                      );
+                    })}
 
                     {/* 4. 数据管理（web 版：导入/导出，精简模式下隐藏） */}
                     {onOpenDataManage && (
