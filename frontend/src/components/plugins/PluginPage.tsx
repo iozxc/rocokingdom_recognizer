@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
-import { ChevronLeft } from 'lucide-react';
 import { PluginFrame } from './PluginFrame';
 import { PluginInfo } from '../../services/pluginApi';
-import { sound } from '../../services/sound';
 
 /**
  * 整页插件（plugin.json 里声明 ui.fullscreen = true 的插件）。
@@ -24,14 +22,6 @@ export const PluginPage: React.FC<{ plugin: PluginInfo; onClose: () => void }> =
   return (
     <div className="fixed inset-0 z-[200] flex flex-col bg-white dark:bg-slate-900">
       <PluginFrame plugin={plugin} fill />
-      <button
-        type="button"
-        onClick={() => { sound.playClick(); onClose(); }}
-        title="返回主界面（Esc）"
-        className="fixed bottom-2 right-2 z-[210] h-6 pl-1 pr-2 rounded-full text-[10px] font-black text-white/80 hover:text-white bg-slate-900/35 hover:bg-slate-900/80 backdrop-blur-sm flex items-center gap-0.5 shadow transition-colors cursor-pointer"
-      >
-        <ChevronLeft className="w-3.5 h-3.5" /> 返回主界面
-      </button>
     </div>
   );
 };
