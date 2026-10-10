@@ -5,6 +5,7 @@ import {
     Database,
     Check,
     EyeOff,
+    Puzzle,
 } from 'lucide-react';
 import { sound } from '../services/sound';
 import { openFollowScanner } from '../services/followScanner';
@@ -16,6 +17,8 @@ interface SubHeaderToolbarProps {
     encounteredCount: number;
     totalCount: number;
     onOpenDataManage?: () => void;
+    /** 插件中心（桌面端） */
+    onOpenPluginCenter?: () => void;
     onOpenGlobalSearch?: () => void;
     showFollow?: boolean;
 }
@@ -26,6 +29,7 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                                                                       encounteredCount,
                                                                       totalCount,
                                                                       onOpenDataManage,
+                                                                      onOpenPluginCenter,
                                                                       onOpenGlobalSearch,
                                                                       showFollow = true,
                                                                   }) => {
@@ -110,6 +114,23 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                         >
                             <Sparkles className="w-3.5 h-3.5" />
                             <span>跟随识别</span>
+                        </button>
+                    )}
+
+                    {/* 插件中心（桌面端）：跟随识别下面、数据管理上面 */}
+                    {onOpenPluginCenter && (
+                        <button
+                            type="button"
+                            id="sub-header-plugin-btn"
+                            onClick={() => {
+                              sound.playClick();
+                              onOpenPluginCenter();
+                            }}
+                            className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                            title="插件中心：导入 / 更新 / 管理插件"
+                        >
+                          <Puzzle className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+                          <span>插件中心</span>
                         </button>
                     )}
 

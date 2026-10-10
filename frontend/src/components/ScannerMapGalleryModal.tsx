@@ -17,6 +17,7 @@ import {
 import { PetItem, EncounterRecord, AdvancedFilterState, MapConfig } from '../types';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA } from '../data/mockPets';
 import { sound } from '../services/sound';
+import { isCaptureLive, notifyCaptureConflict } from '../services/captureMode';
 import { storage } from '../services/storage';
 import { themeService } from '../services/theme';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName, getPetSpecialType } from '../utils/petHelper';
@@ -154,6 +155,12 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     };
 
     const handleToggle = (mapId: string, filename: string) => {
+        // 抓包中禁止手动点亮/取消（会和同步互相覆盖）
+        if (isCaptureLive()) {
+            sound.playClick();
+            notifyCaptureConflict();
+            return;
+        }
         sound.playClick();
         if (onToggleEncounter) {
             onToggleEncounter(mapId, filename);
@@ -314,13 +321,20 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                         type="button"
                         id="gallery-skill-hover-switch-btn"
                         onClick={handleToggleSkillHover}
-                        className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
-                        title={showSkillHover ? '关闭悬浮展示精灵技能' : '开启悬浮展示精灵技能'}
+                        className={`px-2.5 py-1 rounded-xl ring-1 ring-inset active:opacity-80 flex items-center gap-1 text-xs font-black transition-all cursor-pointer shrink-0 ${
+                            showSkillHover
+                                ? 'bg-amber-50 dark:bg-amber-950/50 ring-amber-300 dark:ring-amber-700 text-amber-700 dark:text-amber-300'
+                                : 'bg-white dark:bg-slate-800 ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-slate-500 dark:text-slate-300'
+                        }`}
+                        title={showSkillHover
+                            ? '关闭：鼠标悬停在精灵上不再显示【技能·特性】'
+                            : '开启：鼠标悬停在精灵上显示【技能·特性】详情'}
                     >
                         <span className="relative inline-flex items-center justify-center w-3.5 h-3.5">
-                            <Sparkles className={`w-3.5 h-3.5 transition-colors duration-200 ${showSkillHover ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'}`} />
+                            <Sparkles className={`w-3.5 h-3.5 transition-colors duration-200 ${showSkillHover ? 'text-amber-500' : 'text-slate-400 dark:text-slate-500'}`} />
                             {!showSkillHover && <Slash className="absolute w-3.5 h-3.5 text-slate-400 stroke-[3]" />}
                         </span>
+                        技能·特性
                     </button>
                     <button
                         type="button"
@@ -606,7 +620,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
                         <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">请修改搜索关键字或筛选模式</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                         {displayItems.map(({ pet, mapId, mapNum, themeColor }) => {
                             const isEnc = isEncountered(mapId, pet.name);
                             const displayName = formatPetName(pet.name);

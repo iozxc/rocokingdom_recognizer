@@ -17,6 +17,7 @@ import {
   ListFilter,
   Flame,
   Wand2,
+  Puzzle,
 } from 'lucide-react';
 import { MapConfig, PetItem, EncounterRecord, FloatingButtonsMode } from '../types';
 import { PetSearchMode, petMatchesSkillQuery } from '../utils/skillSearch';
@@ -82,6 +83,8 @@ interface GlobalFloatingSearchProps {
   onToggleAtlasMode?: () => void;
   // 跟随识别：打开扫描窗口时写入的试炼 key（保证窗口初始试炼与来源页面一致）
   followTrialKey?: string;
+  // 右下角垂直位置（默认 bottom-6）；主界面存在「插件中心」入口时上移避免重叠
+  bottomClass?: string;
 }
 
 export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
@@ -98,6 +101,8 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
             atlasMode,
             onToggleAtlasMode,
             followTrialKey,
+            onOpenPluginCenter,
+            bottomClass = 'bottom-6',
           }) => {
   const maps = mapsConfig && mapsConfig.length > 0 ? mapsConfig : MAP_CONFIGS;
   const [internalIsOpen, setInternalIsOpen] = useState<boolean>(false);
@@ -333,7 +338,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
             /* Compact Mode: Icon-only circular buttons, no text, clean & minimalist */
             <div
                 id="global-floating-fabs-compact"
-                className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 select-none animate-in fade-in zoom-in-95 duration-200"
+                className={`fixed ${bottomClass} right-6 z-40 flex flex-col items-center gap-2 select-none animate-in fade-in zoom-in-95 duration-200`}
             >
               {/* 回到顶部（向下滚动后出现） */}
               <BackToTopCircle size="md" />
@@ -351,6 +356,22 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
                       title="游戏窗口跟随识别 (AI 智能实时识别)"
                   >
                     <Sparkles className="w-5 h-5" />
+                  </button>
+              )}
+
+              {/* 插件中心（仅桌面端）：跟随识别下面、数据管理上面 */}
+              {onOpenPluginCenter && (
+                  <button
+                      type="button"
+                      id="global-compact-plugin-fab"
+                      onClick={() => {
+                        sound.playClick();
+                        onOpenPluginCenter();
+                      }}
+                      className="w-11 h-11 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-md text-violet-600 dark:text-violet-300 flex items-center justify-center ring-1 ring-inset ring-slate-200/80 dark:ring-slate-700 shadow-lg shadow-slate-900/5 dark:shadow-black/20 hover:ring-violet-300 dark:hover:ring-violet-600 transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                      title="插件中心：导入 / 管理插件"
+                  >
+                    <Puzzle className="w-5 h-5" />
                   </button>
               )}
 
@@ -422,7 +443,7 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
 
             </div>
         ) : (
-            <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end select-none">
+            <div className={`fixed ${bottomClass} right-6 z-40 flex flex-col items-end select-none`}>
               {isFABCollapsed ? (
                   /* Collapsed 小圆球：回到顶部在上、展开钮在下 */
                   <div className={`flex flex-col items-center gap-2 ${fabEnterGuard ? 'fab-enter-noanim' : ''}`}>
@@ -472,6 +493,27 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
 
                           <span className="text-xs sm:text-sm tracking-wide">
                     跟随识别
+                  </span>
+                        </button>
+                    )}
+
+                    {/* 插件中心（仅桌面端）：与跟随识别同款胶囊，位置在跟随识别下面、数据管理上面 */}
+                    {onOpenPluginCenter && (
+                        <button
+                            id="global-floating-plugin-fab"
+                            type="button"
+                            onClick={() => {
+                              sound.playClick();
+                              onOpenPluginCenter();
+                            }}
+                            className="relative flex items-center gap-2 pl-1.5 pr-3.5 sm:pl-2 sm:pr-4 py-1.5 bg-gradient-to-r from-violet-100 dark:from-violet-500/25 to-white dark:to-slate-800 backdrop-blur-md text-slate-700 dark:text-slate-100 font-black rounded-full ring-1 ring-inset ring-slate-200/80 dark:ring-slate-700 shadow-lg shadow-slate-900/5 dark:shadow-black/20 hover:ring-violet-300 dark:hover:ring-violet-600 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+                            title="插件中心：导入 / 更新 / 管理插件"
+                        >
+                          <div className="w-7 h-7 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-300 flex items-center justify-center shrink-0">
+                            <Puzzle className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="text-xs sm:text-sm tracking-wide">
+                    插件中心
                   </span>
                         </button>
                     )}

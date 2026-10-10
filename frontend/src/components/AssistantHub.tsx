@@ -1,10 +1,16 @@
 import React from 'react';
 import { BellRing, ChevronRight, Flame, Leaf, QrCode, Sparkles, Wrench } from 'lucide-react';
 import { Trial } from '../types';
+import { PluginInfo } from '../services/pluginApi';
+import { PluginHubSection } from './PluginHubSection';
 
 interface AssistantHubProps {
   trials: Trial[];
   onSelectAssistant: (trialKey: string) => void;
+  /** 已安装插件（桌面端），用于「插件中心」分区 */
+  plugins?: PluginInfo[];
+  onOpenPluginCenter?: () => void;
+  onOpenPlugin?: (plugin: PluginInfo) => void;
 }
 
 interface TrialItem {
@@ -55,7 +61,7 @@ const TRIAL_CARD_CONFIG: Record<string, TrialItem> = {
   },
 };
 
-export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssistant }) => {
+export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssistant, plugins, onOpenPluginCenter, onOpenPlugin }) => {
   const trialAssistants = trials
     .filter((trial) => TRIAL_CARD_CONFIG[trial.key])
     .map((trial) => ({ ...TRIAL_CARD_CONFIG[trial.key], devOnly: trial.dev_only }));
@@ -183,6 +189,15 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
             })}
           </div>
         </section>
+      )}
+
+      {/* 插件中心 分类：桌面端展示已启用的插件 */}
+      {onOpenPluginCenter && (
+        <PluginHubSection
+          plugins={plugins || []}
+          onOpenCenter={onOpenPluginCenter}
+          onOpenPlugin={onOpenPlugin}
+        />
       )}
     </div>
   );

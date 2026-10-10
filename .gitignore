@@ -80,3 +80,6 @@ new_version_files/
 update.bat
 update.ps1
 *.7z
+
+/extensions/
+/extensions_data/

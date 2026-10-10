@@ -100,6 +100,12 @@ interface BatchRecognizerCardProps {
   onSelectMap?: (mapNum: number) => void;
   /** 识别进行中状态上报，供父级锁定顶部 / 悬浮的地图切换。 */
   onScanningChange?: (scanning: boolean) => void;
+  /** 抓包同步：把抓包读到的试炼数据写进本机图鉴（按钮放在卡片标题行） */
+  onSyncTrial?: () => void;
+  syncTrialReady?: boolean;
+  syncTrialBusy?: boolean;
+  /** 抓包插件正在抓包：首页长期显示 capture live 提示 */
+  captureLive?: boolean;
 }
 
 export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
@@ -111,6 +117,10 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                                                           onBatchEncounterSuccess,
                                                                           onSelectMap,
                                                                           onScanningChange,
+                                                                          onSyncTrial,
+                                                                          syncTrialReady = false,
+                                                                          syncTrialBusy = false,
+                                                                          captureLive = false,
                                                                         }) => {
   const [selectedMapNum, setSelectedMapNum] = useState<number>(currentMap.num);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -1029,6 +1039,47 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         <Cpu className="w-3 h-3" />
                         {backendChecking ? '检测后端…' : inferBackend.activeShort}
                       </span>
+                    </HintTooltip>
+                )}
+                {/* 抓包中：首页长期显示（与跟随识别底栏同款），让用户随时知道抓包在跑 */}
+                {captureLive && (
+                  <HintTooltip content="抓包核心服务正在后台抓包，数据会实时同步进本机图鉴；关闭抓包插件或停止抓包后会消失">
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full border font-black flex items-center gap-1.5 bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#95D151] dark:border-emerald-800">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      capture live
+                    </span>
+                  </HintTooltip>
+                )}
+                {onSyncTrial && (
+                    <HintTooltip
+                        content={
+                            syncTrialReady
+                                ? '把数据同步图鉴'
+                                : '1、打开游戏 2、找罗兰奶奶打开【冒险日志】 3、三个地图分别点一下'
+                        }
+                    >
+                    <button
+                        type="button"
+                        id="trial-sync-btn"
+                        onClick={() => { if (!syncTrialReady || syncTrialBusy) return; sound.playClick(); onSyncTrial(); }}
+                        aria-disabled={!syncTrialReady || syncTrialBusy}
+                        className={`text-[11px] px-2.5 py-0.5 rounded-full border-2 font-black flex items-center gap-1 transition-all active:scale-95 ${
+                            syncTrialReady
+                                ? 'bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#95D151] dark:border-emerald-800 hover:bg-[#d3f0c8] cursor-pointer'
+                                : 'bg-[#FEF9E6] dark:bg-amber-950/70 text-[#854D0E] dark:text-amber-200 border-[#E5C43B] dark:border-amber-700 cursor-help'
+                        }`}
+                    >
+                      <RefreshCw className={`w-3 h-3 ${syncTrialBusy ? 'animate-spin' : ''}`} />
+                      {syncTrialReady ? '同步' : '待抓包数据'}
+                      {!syncTrialReady && !syncTrialBusy && (
+                        <span
+                            className="ml-0.5 w-3.5 h-3.5 rounded-full bg-amber-400 text-white text-[9px] font-black flex items-center justify-center shrink-0"
+                            aria-hidden="true"
+                        >
+                          !
+                        </span>
+                      )}
+                    </button>
                     </HintTooltip>
                 )}
               </div>

@@ -564,7 +564,7 @@ class WindowManager:
                     title='精灵识别跟随',
                     url=f'{self.base_url}/?view=scanner',
                     width=500,
-                    height=650,
+                    height=660,
                     frameless=True,
                     transparent=False,
                     on_top=topmost,
@@ -623,12 +623,26 @@ class WindowManager:
         except Exception as e:
             logger.debug(f"通知主窗口刷新存储失败: {e}")
 
+    def set_scanner_move_locked(self, locked):
+        """拖动门禁：高强度同步（抓包连续刷新 / 正在识别）期间禁止移动窗口。
+
+        这段时间拖动本来就跟不上手（跨线程 move + 主线程在忙），与其让它一卡一卡地
+        飘，不如直接不响应，等忙完再恢复。
+        """
+        self._scanner_move_locked = bool(locked)
+        logger.debug(f"跟随识别拖动门禁: {self._scanner_move_locked}")
+        return {"status": "ok", "locked": self._scanner_move_locked}
+
     def move_scanner(self, dx, dy):
         win = self.scanner_window
         if win:
+            if getattr(self, "_scanner_move_locked", False):
+                # 正在高强度同步：忽略这次移动，避免"卡着飘"
+                return {"status": "locked"}
             x, y = win.position
             win.move(x + dx, y + dy)
             logger.debug(f"移动子窗口: dx={dx}, dy={dy}, 新位置=({x + dx}, {y + dy})")
+        return {"status": "ok"}
 
     def resize_scanner(self, width, height):
         """前端内容变化时，按前端量出的尺寸动态调整子窗口大小"""
@@ -638,7 +652,7 @@ class WindowManager:
         try:
             # 钳位，防止内容测量异常把窗口撑爆或缩没
             width = max(360, min(int(width), 1920))
-            height = max(600, min(int(height), 1600))
+            height = max(260, min(int(height), 1600))
             win.resize(width, height)
             logger.debug(f"子窗口自适应: {width}x{height}")
             return {"status": "ok", "width": width, "height": height}

@@ -109,7 +109,11 @@ class AppApi:
             return {"status": "error", "message": str(e)}
 
     def move_scanner_window(self, dx, dy):
-        self._windows.move_scanner(dx, dy)
+        return self._windows.move_scanner(dx, dy)
+
+    def set_scanner_move_locked(self, locked=True):
+        """跟随识别拖动门禁：高强度同步期间由前端打开，避免拖动卡顿/飘。"""
+        return self._windows.set_scanner_move_locked(bool(locked))
 
     def resize_scanner_window(self, width, height):
         return self._windows.resize_scanner(width, height)

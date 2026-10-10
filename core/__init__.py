@@ -30,6 +30,10 @@ def create_app():
     app.teardown_appcontext(close_db_connection)
     register_blueprints(app)
     _register_error_handlers(app)
+
+    # 插件系统：扫描 extensions/、恢复启用状态并把插件后端挂到 /api/plugin-run/<id>
+    from core.plugins import plugin_manager
+    plugin_manager.initialize(app)
     return app
 
 
@@ -50,3 +54,4 @@ def _register_error_handlers(app):
     def internal_error(e):
         logger.error(f"未处理的服务器异常: {e}", exc_info=True)
         return api_error("服务器内部错误", 500)
+

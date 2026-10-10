@@ -14,9 +14,15 @@ import {
 const LOCAL_STORAGE_KEY = 'roco_encountered_pets_v1';
 const THRESHOLDS_STORAGE_KEY = 'roco_thresholds_v1';
 const SETTINGS_STORAGE_KEY = 'roco_settings_v1';
+const SUPPRESSED_STORAGE_KEY = 'roco_suppressed_v1';
+const MANUAL_MARKS_STORAGE_KEY = 'roco_manual_marks_v1';
 
 export interface StoragePayload {
   encounteredPets?: Record<string, EncounterRecord>;
+  /** 用户手动取消过「已遇见」的条目：抓包同步不再自动把它点亮回来 */
+  suppressed?: Record<string, true>;
+  /** 用户**手动点亮**过的条目：抓包同步的反向清理不会把它又取消掉 */
+  manualMarks?: Record<string, true>;
   thresholds?: Record<string, number>;
   appSettings?: AppSettings;
   version?: number;
@@ -38,6 +44,10 @@ export class StorageService {
   private thresholds: Record<string, number> = {};
   private appSettings: AppSettings = {};
   private listeners: Set<StorageListener> = new Set();
+  /** key = `<mapId>_<filename>`；用户手动取消点亮后记在这里，同步时跳过 */
+  private suppressed: Record<string, true> = {};
+  /** key = `<mapId>_<filename>`；用户手动点亮过，抓包同步的反向清理不再取消它 */
+  private manualMarks: Record<string, true> = {};
   private settingsListeners: Set<SettingsListener> = new Set();
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
   private isSyncing = false;
@@ -110,6 +120,8 @@ export class StorageService {
   public getPayload(): StoragePayload {
     return {
       encounteredPets: { ...this.records },
+      suppressed: { ...this.suppressed },
+      manualMarks: { ...this.manualMarks },
       thresholds: { ...this.thresholds },
       appSettings: { ...this.appSettings },
       version: this.localVersion,
@@ -186,6 +198,12 @@ export class StorageService {
         this.records = {};
       }
 
+      const suppressedData = localStorage.getItem(SUPPRESSED_STORAGE_KEY);
+      this.suppressed = suppressedData ? JSON.parse(suppressedData) : {};
+
+      const manualMarksData = localStorage.getItem(MANUAL_MARKS_STORAGE_KEY);
+      this.manualMarks = manualMarksData ? JSON.parse(manualMarksData) : {};
+
       const thresholdsData = localStorage.getItem(THRESHOLDS_STORAGE_KEY);
       if (thresholdsData) {
         this.thresholds = JSON.parse(thresholdsData);
@@ -211,6 +229,8 @@ export class StorageService {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(this.records));
       localStorage.setItem(THRESHOLDS_STORAGE_KEY, JSON.stringify(this.thresholds));
       localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(this.appSettings));
+      localStorage.setItem(SUPPRESSED_STORAGE_KEY, JSON.stringify(this.suppressed));
+      localStorage.setItem(MANUAL_MARKS_STORAGE_KEY, JSON.stringify(this.manualMarks));
     } catch (e) {
       console.error('Failed to save to localStorage:', e);
     }
@@ -245,6 +265,12 @@ export class StorageService {
     if (remote.encounteredPets) {
       this.records = remote.encounteredPets;
       hasRecordsChanges = true;
+    }
+    if (remote.suppressed) {
+      this.suppressed = remote.suppressed;
+    }
+    if (remote.manualMarks) {
+      this.manualMarks = remote.manualMarks;
     }
     if (remote.thresholds) {
       this.thresholds = remote.thresholds;
@@ -446,6 +472,46 @@ export class StorageService {
     return `${mapId}_${filename}`;
   }
 
+  /** 用户手动取消过点亮？抓包同步会跳过它（避免"取消又被自动点亮"）。 */
+  public isSuppressed(mapId: string, filename: string): boolean {
+    const key = this.getKey(mapId, filename);
+    if (this.suppressed[key]) return true;
+    return findMatchingRecordKeys(this.records, mapId, filename).some((k) => this.suppressed[k]);
+  }
+
+  public unsuppress(mapId: string, filename: string): void {
+    const key = this.getKey(mapId, filename);
+    let changed = false;
+    [key, ...findMatchingRecordKeys(this.records, mapId, filename)].forEach((k) => {
+      if (this.suppressed[k]) {
+        delete this.suppressed[k];
+        changed = true;
+      }
+    });
+    if (changed) this.triggerSave();
+  }
+
+  /** 用户手动点亮过？（抓包同步的反向清理会跳过它，避免"点亮了又被取消"） */
+  public isManualMark(mapId: string, filename: string): boolean {
+    const key = this.getKey(mapId, filename);
+    if (this.manualMarks[key]) return true;
+    return findMatchingRecordKeys(this.records, mapId, filename).some((k) => this.manualMarks[k]);
+  }
+
+  public setManualMark(mapId: string, filename: string, on: boolean): void {
+    const key = this.getKey(mapId, filename);
+    const keys = [key, ...findMatchingRecordKeys(this.records, mapId, filename)];
+    let changed = false;
+    keys.forEach((k) => {
+      if (on) {
+        if (!this.manualMarks[k]) { this.manualMarks[k] = true; changed = true; }
+      } else if (this.manualMarks[k]) {
+        delete this.manualMarks[k]; changed = true;
+      }
+    });
+    if (changed) this.triggerSave();
+  }
+
   public isEncountered(mapId: string, filename: string): boolean {
     return isPetEncounteredInRecords(this.records, mapId, filename);
   }
@@ -530,6 +596,24 @@ export class StorageService {
   }
 
   /**
+   * 批量取消「已收集」标记（抓包同步用：游戏里没有的精灵，本机也一并清掉）。
+   * 只处理显式传入的条目，不做任何模糊匹配。
+   */
+  public batchUnmarkEncountered(items: Array<{ mapId: string; filename: string }>): number {
+    let removed = 0;
+    items.forEach(({ mapId, filename }) => {
+      const key = this.getKey(mapId, filename);
+      if (this.records[key]) {
+        const next = { ...this.records[key], encountered: false, lastSeenAt: new Date().toISOString() };
+        this.records[key] = next;
+        removed++;
+      }
+    });
+    if (removed) this.triggerSave();
+    return removed;
+  }
+
+  /**
    * 导出本机已遇见的图鉴记录（供云端进度同步）。
    * key 与小程序/网页版完全一致：`<地图ID>_<完整文件名>`，
    * 例：map1_013_01_咔咔壳_本来.png
@@ -577,9 +661,19 @@ export class StorageService {
           lastSeenAt: now,
         };
       }
+      matchingKeys.forEach((mKey) => { this.suppressed[mKey] = true; });
+      this.suppressed[key] = true;
+      // 用户明确取消了它：同时撤销“手动点亮保护”，否则它会一直被保护住
+      matchingKeys.forEach((mKey) => { delete this.manualMarks[mKey]; });
+      delete this.manualMarks[key];
       this.triggerSave();
       return false;
     } else {
+      // 手动重新点亮：解除"不要再自动点亮"的抑制，并记下"这是用户手动点的"
+      delete this.suppressed[key];
+      matchingKeys.forEach((mKey) => { delete this.suppressed[mKey]; });
+      matchingKeys.forEach((mKey) => { this.manualMarks[mKey] = true; });
+      this.manualMarks[key] = true;
       // Toggle to TRUE: mark primary key as true, and sync any existing matched records
       const existing = this.records[key];
       this.records[key] = {
@@ -877,6 +971,11 @@ export class StorageService {
       return;
     }
     try {
+      // 本窗口还有没落盘的改动（例如刚刚点亮的结果）时，先把改动推上去再拉，
+      // 否则会被后端的旧快照覆盖，表现为「刚点的又变回未遇见」。
+      if (this.hasPendingLocalChanges) {
+        await this.flushPendingSave();
+      }
       await this.fetchRemote();
     } catch (e) {
       console.warn('refreshFromSource fail', e);

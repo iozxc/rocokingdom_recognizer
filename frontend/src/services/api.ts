@@ -393,8 +393,10 @@ export class ApiService {
       }
     }
     try {
+      // 超时给足：/icons 首次调用要在后端建图标缓存（读 datasets.db / 特性技能表），
+      // 机器忙或冷缓存时 4 秒不够，超时后会返回空图鉴，跟随窗口就会「什么都没显示」。
       const response = await axios.get<IconsApiResponse>(`${this.apiBase}/icons`, {
-        timeout: 4000,
+        timeout: 15000,
       });
 
       if (response.data && response.data.status === 'success' && response.data.data) {

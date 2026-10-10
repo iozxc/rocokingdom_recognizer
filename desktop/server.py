@@ -21,7 +21,9 @@ def get_waitress_threads() -> int:
     下限 2，上限 6（防止高核数机器开太多线程，桌面程序不需要）。
     """
     cpu = multiprocessing.cpu_count() or 4
-    threads = max(2, min(cpu * 2, 6))
+    # 下限提到 4：插件与跟随识别窗口会各占 1 条 SSE 长连接（插件实时推送），
+    # 线程太少会被长连接占满，普通接口就会排队。
+    threads = max(4, min(cpu * 2, 8))
     logger.debug(f"waitress线程计算: CPU逻辑核数={cpu}, 最终线程数={threads}")
     return threads
 

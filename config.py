@@ -153,6 +153,15 @@ UPDATE_CHECK_URL = _env(
     "ROCO_UPDATE_CHECK_URL",
     "https://gitee.com/iozxc/rocokingdom_recognizer/raw/master/version.json",
 )
+# 插件更新清单：与主程序 version.json 同一套思路（远程 JSON + 逐插件新版本）
+PLUGIN_MANIFEST_URL = _env(
+    "ROCO_PLUGIN_MANIFEST_URL",
+    "https://raw.giteeusercontent.com/iozxc/rocokingdom_recognizer_extension/raw/master/version_ext.json",
+)
+# 备用清单地址：逐个尝试，主地址不可用（404/403/网络异常）时自动换下一个
+PLUGIN_MANIFEST_FALLBACK_URLS = [
+    "https://gitee.com/iozxc/rocokingdom_recognizer_extension/raw/master/version_ext.json",
+]
 # 极简更新日志时间线（独立文件，与 version.json 分离，避免清单过大；读取失败不影响更新检测）
 CHANGELOG_URL = _env(
     "ROCO_CHANGELOG_URL",

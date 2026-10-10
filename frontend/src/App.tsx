@@ -23,6 +23,8 @@ import { AppSettingsModal } from './components/AppSettingsModal';
 import { HomeScrollbar } from './components/HomeScrollbar';
 import { applyScrollbarSetting, DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR } from './services/scrollbarSetting';
 import { AssistantHub } from './components/AssistantHub';
+import { PluginCenterModal } from './components/PluginCenterModal';
+import { PluginPage } from './components/plugins/PluginPage';
 import { MerchantSubscriptionModal } from './components/MerchantSubscriptionModal';
 import { SyncPopNotification, SyncPopType } from './components/SyncPopNotification';
 import { AuthBadge } from './components/AuthBadge';
@@ -30,6 +32,9 @@ import { FireBadgeTrial } from './components/Trial/FireBadgeTrial';
 import { MAP_CONFIGS } from './data/mockPets';
 import { resolveTrialMaps } from './data/trials';
 import { api } from './services/api';
+import { pluginApi, PluginInfo } from './services/pluginApi';
+import { findSyncPlugin, runTrialSync, trialSignature, usePluginTrial } from './services/pluginSync';
+import { CAPTURE_CONFLICT_MSG, isCaptureLive, setCaptureLive } from './services/captureMode';
 import { storage } from './services/storage';
 import { fireStorage } from './services/fireStorage';
 import { getFireTrialPetsCached, invalidateFireTrialData } from './services/fireTrialData';
@@ -121,6 +126,13 @@ export default function App() {
   const [dataUpdateAvailable, setDataUpdateAvailable] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isMerchantSubscriptionOpen, setIsMerchantSubscriptionOpen] = useState<boolean>(false);
+  const [isPluginCenterOpen, setIsPluginCenterOpen] = useState<boolean>(false);
+  const [pluginToOpen, setPluginToOpen] = useState<string | null>(null);
+  // ui.fullscreen 的插件走整页（替换整个界面），不走弹窗
+  const [pluginPage, setPluginPage] = useState<PluginInfo | null>(null);
+  const [plugins, setPlugins] = useState<PluginInfo[]>([]);
+  const [syncing, setSyncing] = useState<boolean>(false);
+  // 抓包插件的草系试炼数据（静默同步用：用户界面不出现任何相关按钮/提示）
   const [view, setView] = useState<'assistant' | 'hub'>('assistant');
   const [trials, setTrials] = useState<Trial[]>([
     { key: 'grass', title: '草系徽章试炼', element: 'grass', collection_key: 'encounteredPets', dev_only: false },
@@ -194,8 +206,36 @@ export default function App() {
     isDataUpdateOpen ||
     isSettingsOpen ||
     isMerchantSubscriptionOpen ||
+    isPluginCenterOpen ||
     detailPet !== null
   );
+
+  // 桌面端：启动时拉一次插件列表，用于首页「插件中心」与右下角入口角标。
+  // Web 版没有插件系统，直接跳过。
+  useEffect(() => {
+    if (IS_STATIC) return;
+    pluginApi.list().then(setPlugins).catch(() => {});
+  }, []);
+
+  // 声明了「同步」能力且已启用的插件（目前是抓包插件的草系试炼同步）。
+  const syncPlugin = useMemo(
+      () => (IS_STATIC ? null : findSyncPlugin(plugins)),
+      [plugins],
+  );
+
+  // 试炼数据统一走 usePluginTrial：内部是「轻量指纹轮询 + 变化才拉全量」，
+  // 避免每次轮询都解析几十 KB 造成卡顿。
+  const { trial: hookTrial, running: trialRunning } = usePluginTrial();
+  const trial = hookTrial;
+
+  // 抓包中 → 全局标记：其它页面（跟随识别 / 图鉴）据此拦截手动点亮/取消
+  useEffect(() => {
+    setCaptureLive(Boolean(syncPlugin && trialRunning));
+    return () => setCaptureLive(false);
+  }, [syncPlugin, trialRunning]);
+
+  // 插件中心已并入悬浮按钮组，不再需要为独立入口留位置 —— 按钮组直接贴底
+  const floatingBottomClass = 'bottom-6';
 
   // 任意弹窗打开时，锁住底层页面滚动（防止在弹窗外滚动滚轮时背景首页错误滚动）
   useEffect(() => {
@@ -588,6 +628,11 @@ export default function App() {
 
   // Toggle Encounter (from grid click / history / global search)
   const handleToggleEncounter = (mapId: string, filename: string) => {
+    // 抓包中禁止手动点亮/取消（会和同步互相覆盖）
+    if (isCaptureLive()) {
+      triggerScanSyncEffect('info', undefined, CAPTURE_CONFLICT_MSG);
+      return;
+    }
     const isCurrentlyEncountered = isPetEncountered(mapId, filename);
     storage.toggleEncountered(mapId, filename, '手动');
     refreshRecords();
@@ -611,6 +656,61 @@ export default function App() {
     storage.updateNote(mapId, filename, note);
     refreshRecords();
   };
+
+  /**
+   * 抓包数据 → 本机图鉴的「静默同步」。
+   *
+   * 没有任何按钮、也没有提示：只要抓包在跑、试炼数据发生变化（重新打开精灵足迹、
+   * 刷新三选一、推进节点……），就把三张图的足迹与当前三选一写进本机记录。
+   * 关闭插件 / 停止抓包后自动停止，界面与操作完全不受影响。
+   */
+  const trialSig = useMemo(() => trialSignature(trial), [trial]);
+  const lastSyncedSigRef = useRef<string>('');
+  useEffect(() => {
+    if (!syncPlugin || !trialSig || !trialRunning) return;
+    if (trialSig === lastSyncedSigRef.current) return;
+    // 数据抖动（连续几条包）时只同步最后一次
+    const timer = setTimeout(async () => {
+      try {
+        const res = await runTrialSync('grass', mapsData);
+        lastSyncedSigRef.current = trialSig;
+        if (res.summary && (res.summary.marked > 0 || res.summary.unmarked > 0)) {
+          refreshRecords();
+          setRecognizerKey((prev) => prev + 1);
+        }
+      } catch {
+        /* 静默：同步失败不打扰用户 */
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [trialSig, trialRunning, syncPlugin, refreshRecords]);
+
+  /**
+   * 「游戏画面识别」卡片标题行上的「同步」按钮：手动触发一次抓包同步。
+   * 平时数据变化会静默自动同步，这个按钮只是给用户一个"立刻同步 / 确认"的入口。
+   */
+  const handleTrialSync = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const res = await runTrialSync('grass', mapsData, { manual: true });
+      if (!res.summary) {
+        triggerScanSyncEffect('info', undefined, '没有可同步的抓包数据');
+        return;
+      }
+      refreshRecords();
+      setRecognizerKey((prev) => prev + 1);
+      triggerScanSyncEffect(
+          'encounter',
+          undefined,
+          `抓包同步完成：点亮 ${res.summary.marked} 只`,
+          res.summary.unmarked > 0 ? `并对齐取消了 ${res.summary.unmarked} 只` : undefined,
+      );
+    } catch (err) {
+      triggerScanSyncEffect('info', undefined, '同步失败', (err as Error).message);
+    } finally {
+      setSyncing(false);
+    }
+  }, [refreshRecords, triggerScanSyncEffect]);
 
   // Reset Encounters for Current Map（mapId 可显式传入，配合延迟渲染的网格）
   const handleResetCurrentMap = (mapId?: string) => {
@@ -662,7 +762,29 @@ export default function App() {
     }, 150);
   };
 
+  /** 打开插件：声明 fullscreen 的走整页，其余仍用插件中心弹窗里的内嵌界面 */
+  const openPlugin = (plugin: PluginInfo) => {
+    setIsPluginCenterOpen(false);
+    setPluginToOpen(null);
+    if (plugin.fullscreen) setPluginPage(plugin);
+    else { setPluginToOpen(plugin.id); setIsPluginCenterOpen(true); }
+  };
+
+  // 整页插件自己的顶栏点了「返回」：iframe 里 postMessage 过来
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      const data = e.data as { type?: string } | null;
+      if (data && data.type === 'roco-plugin-close') setPluginPage(null);
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
   const fireTrialAvailable = trials.some((t) => t.key === 'fire');
+
+  if (pluginPage) {
+    return <PluginPage plugin={pluginPage} onClose={() => setPluginPage(null)} />;
+  }
 
   if (view === 'assistant' && activeTrialKey === 'fire' && fireTrialAvailable) {
     return (
@@ -724,6 +846,7 @@ export default function App() {
         {view === 'assistant' && floatingMode === 'hidden' && (
             <>
             <SubHeaderToolbar
+                onOpenPluginCenter={IS_STATIC ? undefined : () => { setPluginToOpen(null); setIsPluginCenterOpen(true); }}
                 filterMode={filterMode}
                 onFilterChange={(mode) => setFilterMode(mode)}
                 encounteredCount={currentMapStats.encounteredCount}
@@ -733,7 +856,7 @@ export default function App() {
                 onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
             />
             {/* 悬浮按钮隐藏时：右下角仍保留独立的「回到顶部」 */}
-            <BackToTopStandalone />
+            <BackToTopStandalone bottomClass={floatingBottomClass} />
             </>
         )}
 
@@ -742,6 +865,9 @@ export default function App() {
           {view === 'hub' ? (
               <AssistantHub
                   trials={trials}
+                  plugins={plugins}
+                  onOpenPluginCenter={IS_STATIC ? undefined : () => setIsPluginCenterOpen(true)}
+                  onOpenPlugin={(plugin) => openPlugin(plugin)}
                   onSelectAssistant={(trialKey) => {
                     if (trialKey === 'merchant') {
                       setIsMerchantSubscriptionOpen(true);
@@ -791,6 +917,12 @@ export default function App() {
                         onBatchEncounterSuccess={handleBatchEncounterSuccess}
                         onSelectMap={(num) => setActiveStageNum(num)}
                         onScanningChange={setIsBatchScanning}
+                        // 只要装了「带同步能力的插件」就显示同步按钮；还没抓到数据时置灰 + 「!」提示，
+                        // 告诉用户去游戏里打开一次精灵足迹。没插件则完全不显示。
+                        onSyncTrial={syncPlugin ? handleTrialSync : undefined}
+                        syncTrialReady={Boolean(trial?.available)}
+                        syncTrialBusy={syncing}
+                        captureLive={Boolean(syncPlugin && trialRunning)}
                     />
 
                 {/* Map Pets Grid（跟随延迟图号，切换时不阻塞头部动画） */}
@@ -941,6 +1073,8 @@ export default function App() {
         {/* Global Floating Actions Component on the bottom right（单个识别/批量导入已整合进首页识别，不再重复展示） */}
         {view === 'assistant' && floatingMode !== 'hidden' && (
             <GlobalFloatingSearch
+                bottomClass={floatingBottomClass}
+                onOpenPluginCenter={IS_STATIC ? undefined : () => { setPluginToOpen(null); setIsPluginCenterOpen(true); }}
                 isOpen={isGlobalSearchOpen}
                 onOpenChange={(open) => setIsGlobalSearchOpen(open)}
                 allMapsPets={mapsData}
@@ -1018,6 +1152,15 @@ export default function App() {
               invalidateFireTrialData();
             }}
         />
+        {/* 插件中心：导入 / 管理插件 */}
+        <PluginCenterModal
+            isOpen={isPluginCenterOpen}
+            initialPluginId={pluginToOpen}
+            onOpenFullscreen={openPlugin}
+            onClose={() => { setIsPluginCenterOpen(false); setPluginToOpen(null); }}
+            onPluginsChanged={setPlugins}
+        />
+
       </div>
   );
 }

@@ -34,6 +34,7 @@ import {
   Undo2,
   Settings,
   ShieldAlert,
+  Puzzle,
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse, FirePokedexEntry, ThemeMode } from './types';
 import { IS_STATIC } from './services/staticMode';
@@ -66,9 +67,15 @@ import {
 } from './utils/petHelper';
 import { ELEMENT_EN_TO_CN } from './utils/elements';
 import { DEFAULT_FOLLOW_HOTKEY, formatChord } from './utils/hotkey';
+import { buildCaptureSlots, runTrialSync, trialSignature, usePluginTrial } from './services/pluginSync';
+import { pluginApi } from './services/pluginApi';
+import { CAPTURE_CONFLICT_MSG, isCaptureLive, setCaptureLive, subscribeCaptureConflict } from './services/captureMode';
+import { pluginIconOf } from './components/plugins/pluginIcon';
 
 interface DetectedPetSlot {
   id: string;
+  /** 由抓包直接填充（没有候选排行，卡片下缘不留白边） */
+  fromCapture?: boolean;
   name: string;
   score: number;
   view_url?: string;
@@ -77,6 +84,8 @@ interface DetectedPetSlot {
   selectedPetName: string;
   matchedPet?: PetItem;
   sourceMapNum?: number;
+  /** false = 抓包给出的非战斗事件（研究员 / 远行商人 / 魔力之源…）：只显示名字，不给图和点亮按钮 */
+  battle?: boolean;
 }
 
 /** 后端自动模式每秒推送的状态（desktop/auto_watch.py）。 */
@@ -109,6 +118,11 @@ interface AutoMarkToast {
 }
 
 /** 火系全图鉴 -> 与首页「全图鉴自选」一致的 mapsPets 结构（每张地图均为全量）。 */
+/** 跟随识别窗口的固定最低高度（内容更矮时也不再往下缩） */
+const BASE_MIN_WINDOW_HEIGHT = 660;
+/** 打开「历史记录 / 查图鉴 / 插件」浮层时的最低高度 */
+const PANEL_MIN_WINDOW_HEIGHT = 760;
+
 const buildFireMapsPets = (pets: FirePokedexEntry[]): Record<string, { count: number; items: PetItem[] }> => {
   const items: PetItem[] = pets
       .filter((pet): pet is FirePokedexEntry => !!pet && typeof pet === 'object')
@@ -309,8 +323,12 @@ export const ScannerApp: React.FC = () => {
       try { localStorage.removeItem('roco_follow_active'); } catch { /* ignore */ }
     };
     setActive();
+    // 定期保活：桌面端关闭跟随窗口时会清掉这个标记，重新显示时不一定能恢复，
+    // 这里每隔几秒补一次，保证跟随窗口自己的 storage 轮询一直有效（每次只回 {status:'ok'}，很便宜）。
+    const keepalive = window.setInterval(setActive, 5000);
     window.addEventListener('pagehide', clearActive);
     return () => {
+      window.clearInterval(keepalive);
       window.removeEventListener('pagehide', clearActive);
       clearActive();
     };
@@ -337,6 +355,9 @@ export const ScannerApp: React.FC = () => {
     return storage.getAll();
   });
   const [mapsPets, setMapsPets] = useState<Record<string, { count: number; items: PetItem[] }>>(FALLBACK_MAPS_DATA);
+  // 真实图鉴数据是否已加载：加载前不要把 FALLBACK_MAPS_DATA（每图只有几只）当成真实数量显示，
+  // 之前表现为「刚打开跟随识别的一瞬间显示总共只有 24 只精灵」。
+  const [petsLoaded, setPetsLoaded] = useState<boolean>(false);
 
   // Recognition process status
   const [isRecognizingNow, setIsRecognizingNow] = useState<boolean>(false);
@@ -354,6 +375,114 @@ export const ScannerApp: React.FC = () => {
   // 订阅设置变化、并在远程数据到达后重放，所以只需在挂载时调用一次。
   useEffect(() => applyScrollbarSetting(), []);
   const [lastScanTime, setLastScanTime] = useState<string>('未识别');
+
+  // 抓包插件：界面保持原样，只在底栏显示 capture live（关闭插件 / 停止抓包即恢复原样）
+  const { plugin: pluginInfo, trial: pluginTrial, running: captureRunning } = usePluginTrial();
+  const captureLive = Boolean(pluginInfo && captureRunning);
+
+  // 抓包中 → 全局标记（其它手动点亮入口据此拦截）
+  useEffect(() => {
+    setCaptureLive(captureLive);
+    return () => setCaptureLive(false);
+  }, [captureLive]);
+
+  // 手动操作冲突提示（抓包中点击点亮/取消时弹一下）
+  const [guardToast, setGuardToast] = useState<string>('');
+  const guardTimerRef = useRef<number | null>(null);
+  const showGuardRef = useRef<(msg: string) => void>(() => {});
+  // 子组件（查图鉴等）触发的冲突提示也冒到这里来
+  useEffect(() => subscribeCaptureConflict((msg) => showGuardRef.current(msg)), []);
+  const showGuard = useCallback((msg: string) => {
+    setGuardToast(msg);
+    if (guardTimerRef.current) window.clearTimeout(guardTimerRef.current);
+    guardTimerRef.current = window.setTimeout(() => setGuardToast(''), 3200);
+  }, []);
+  showGuardRef.current = showGuard;
+
+  // 拖动门禁：高强度同步（识别中 / 抓包连续刷新）时不允许拖窗口
+  const moveLockedRef = useRef<boolean>(false);
+  const setMoveLock = useCallback((locked: boolean) => {
+    const pyApi = (window as any).pywebview?.api;
+    if (!pyApi || typeof pyApi.set_scanner_move_locked !== 'function') return;
+    if (moveLockedRef.current === locked) return;
+    moveLockedRef.current = locked;
+    try { pyApi.set_scanner_move_locked(locked); } catch { /* 忽略 */ }
+  }, []);
+  useEffect(() => { setMoveLock(isRecognizingNow); }, [isRecognizingNow, setMoveLock]);
+  // 窗口刚打开这一小段：图标/存储/首帧数据都在加载，拖动本来就很卡 —— 先锁 2 秒
+  useEffect(() => {
+    setMoveLock(true);
+    const t = window.setTimeout(() => setMoveLock(false), 2000);
+    return () => { window.clearTimeout(t); setMoveLock(false); };
+  }, [setMoveLock]);
+  const burstRef = useRef<{ n: number; at: number }>({ n: 0, at: 0 });
+  const burstUnlockRef = useRef<number | null>(null);
+  useEffect(() => {
+    const rev = pluginTrial?.revision ?? null;
+    if (!rev) return;
+    const now = Date.now();
+    const b = burstRef.current;
+    b.n = now - b.at < 2000 ? b.n + 1 : 1;
+    b.at = now;
+    if (b.n < 3) return;                 // 2 秒内连续 3 次以上才算"高强度同步"
+    setMoveLock(true);
+    if (burstUnlockRef.current) window.clearTimeout(burstUnlockRef.current);
+    burstUnlockRef.current = window.setTimeout(() => setMoveLock(false), 1500);
+  }, [pluginTrial?.revision, setMoveLock]);
+  useEffect(() => () => setMoveLock(false), [setMoveLock]);
+
+  const pluginSig = useMemo(() => trialSignature(pluginTrial), [pluginTrial]);
+  // 识别结果来源：manual = 用户主动识别过（优先，不被抓包覆盖）；capture = 抓包填充
+  const detectedSourceRef = useRef<'none' | 'capture' | 'manual'>('none');
+
+  /**
+   * 抓包静默同步后，本窗口必须跟着刷新。
+   *
+   * 同步是主窗口做的（写入本机后端并推版本号），跟随识别窗口本来靠 `roco_follow_active`
+   * 轮询后端来同步；但桌面端关闭跟随窗口时会把那个标记清掉、重新显示时又不会自动恢复，
+   * 于是这个窗口就再也拉不到新数据，表现为「必须重新识别一次，界面才更新」。
+   *
+   * 这里做两件事兜底：
+   *  1) 抓包数据一变化（新的一页精灵足迹 / 新三选一），在主窗口同步完成后主动补拉；
+   *  2) 窗口重新显示 / 获得焦点时，恢复轮询标记并立刻拉一次。
+   */
+  useEffect(() => {
+    if (!pluginSig) return;
+    let alive = true;
+    // 抓包数据一变就本窗口直接同步一次：不等主窗口的 3s 去抖、也不等跨窗口轮询，
+    // 这样"打完一只 → 点下一个节点"时卡片和「已遇见」几乎是立刻更新。
+    const run = async () => {
+      try {
+        if (!alive) return;
+        // 直接用本窗口已经加载好的图鉴（mapsPets），不再拉 /icons、也不再整份 storage 拉取，
+        // 这样同步几乎零网络开销，拖动窗口不会再卡。
+        await runTrialSync('grass', mapsPets);
+      } catch {
+        /* 静默 */
+      }
+    };
+    const t1 = setTimeout(run, 250);
+    return () => {
+      alive = false;
+      clearTimeout(t1);
+    };
+  }, [pluginSig]);
+
+  useEffect(() => {
+    const onShown = () => {
+      try { localStorage.setItem('roco_follow_active', '1'); } catch { /* ignore */ }
+      void storage.refreshFromSource();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') onShown();
+    };
+    window.addEventListener('focus', onShown);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onShown);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   // 自动模式（自动识别选择界面 + 自动点亮对战精灵）
   const [autoMode, setAutoMode] = useState<boolean>(false);
@@ -427,10 +556,15 @@ export const ScannerApp: React.FC = () => {
 
   // Detected pets list (0 to 3 pets)
   const [detectedPets, setDetectedPets] = useState<DetectedPetSlot[]>([]);
+  // 有识别结果时窗口走纯自适应（空态才用最小高度）
+  const hasContentRef = useRef<boolean>(false);
+  useEffect(() => { hasContentRef.current = detectedPets.length > 0; }, [detectedPets.length]);
 
   // Gallery Modal state (for browsing other maps and full gallery)
   const [isGalleryOpen, setIsGalleryOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+  // 抓包插件页面（跟随识别窗口内直接弹出，尺寸跟随窗口，不用再开新窗口）
+  const [isPluginPanelOpen, setIsPluginPanelOpen] = useState<boolean>(false);
   const [topmost, setTopmost] = useState<boolean>(true);
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(() => themeService.isDark());
 
@@ -496,10 +630,10 @@ export const ScannerApp: React.FC = () => {
       });
       let cancelled = false;
       getFireTrialPetsCached().then((pets) => {
-        if (!cancelled && pets.length > 0) {
-          setMapsPets(buildFireMapsPets(pets));
-        }
-      });
+        if (cancelled) return;
+        if (pets.length > 0) setMapsPets(buildFireMapsPets(pets));
+        setPetsLoaded(true);
+      }).catch(() => setPetsLoaded(true));
       return () => {
         cancelled = true;
         unsub();
@@ -509,12 +643,36 @@ export const ScannerApp: React.FC = () => {
     const unsub = storage.subscribe((newRecords) => {
       setRecords(newRecords);
     });
-    api.getIcons().then((res) => {
-      if (res.data) {
-        setMapsPets(res.data);
+    // 拉真实图鉴：失败/返回空时重试几次。
+    // 注意 getIcons 失败时会"成功返回空对象"，所以必须判断有没有真实的 map 数据，
+    // 不能直接 setMapsPets({})——那会把兜底图鉴也清掉，抓包卡片就没有地图可对应了。
+    let cancelled = false;
+    let retryTimer: number | undefined;
+    const loadPets = async (attempt = 0) => {
+      let data: Record<string, { count: number; items: PetItem[] }> = {};
+      try {
+        const res = await api.getIcons();
+        data = res.data || {};
+      } catch {
+        data = {};
       }
-    });
+      if (cancelled) return;
+      if (Object.keys(data).length > 0) {
+        setMapsPets(data);
+        setPetsLoaded(true);
+        return;
+      }
+      if (attempt < 3) {
+        retryTimer = window.setTimeout(() => void loadPets(attempt + 1), 700 * (attempt + 1));
+      } else {
+        // 彻底拿不到也别一直停在"加载中"
+        setPetsLoaded(true);
+      }
+    };
+    void loadPets();
     return () => {
+      cancelled = true;
+      if (retryTimer) window.clearTimeout(retryTimer);
       unsub();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -671,6 +829,9 @@ export const ScannerApp: React.FC = () => {
   const lastResizeAtRef = useRef<number>(0);
   const resizeTrailingTimerRef = useRef<number | null>(null);
 
+  // 历史 / 查图鉴 浮层是否打开（用 ref 读，避免 syncScannerWindowHeight 依赖它们而频繁重建）
+  const panelOpenRef = useRef<boolean>(false);
+
   // 依据前端内容自然高度，动态调整 pywebview 子窗口高度（宽度保持当前值）
   const syncScannerWindowHeight = useCallback(() => {
     const pyApi = (window as any).pywebview?.api;
@@ -698,9 +859,15 @@ export const ScannerApp: React.FC = () => {
     const contentStyle = getComputedStyle(contentEl);
     contentH += (parseFloat(contentStyle.paddingTop) || 12) + (parseFloat(contentStyle.paddingBottom) || 12);
 
-    // 前端最低高度：内容再少窗口也不低于这个值（与 create_window 默认高度保持一致）
-    const MIN_WINDOW_HEIGHT = 614;
-    const targetHeight = Math.max(MIN_WINDOW_HEIGHT, Math.ceil(titlebarH + contentH + statusbarH));
+    // 跟随识别窗口高度策略：
+    //   平时最低 BASE_MIN_WINDOW_HEIGHT（不再往下缩，避免窗口又瘦又矮看不清）；
+    //   内容更高时会跟着长；打开「历史 / 查图鉴 / 插件」浮层时抬到 PANEL_MIN_WINDOW_HEIGHT。
+    // 空态（图鉴总览，没识别到东西）→ 用固定的最小高度；
+    // 一旦识别出精灵/内容 → 纯自适应（窗口按内容高低伸缩）；浮层照旧抬到面板高度。
+    const minHeight = panelOpenRef.current
+      ? Math.max(PANEL_MIN_WINDOW_HEIGHT, BASE_MIN_WINDOW_HEIGHT)
+      : (hasContentRef.current ? 0 : BASE_MIN_WINDOW_HEIGHT);
+    const targetHeight = Math.max(minHeight, Math.ceil(titlebarH + contentH + statusbarH));
     const prevHeight = lastWindowHeightRef.current;
     if (prevHeight !== null && Math.abs(prevHeight - targetHeight) <= 4) return;
     lastWindowHeightRef.current = targetHeight;
@@ -723,6 +890,13 @@ export const ScannerApp: React.FC = () => {
       }, remaining);
     }
   }, [syncScannerWindowHeight]);
+
+  // 打开 / 关闭「历史记录 / 查图鉴」时重新量一次：
+  // 浮层是 fixed 覆盖层，不改变内容高度，不会自动触发 resize，必须这里主动同步。
+  useEffect(() => {
+    panelOpenRef.current = isHistoryOpen || isGalleryOpen || isPluginPanelOpen;
+    throttledResize();
+  }, [isHistoryOpen, isGalleryOpen, isPluginPanelOpen, throttledResize]);
 
   // 首次加载：等 pywebview 就绪 + 内容布局稳定后再同步一次，
   // 避免在窗口刚创建/WebView2 未完全就绪时反复调整尺寸触发原生断点。
@@ -945,6 +1119,12 @@ export const ScannerApp: React.FC = () => {
 
   // Mark/unmark single pet (routes to sourceMapNum to avoid corrupting switched map book)
   const handleTogglePetEncounter = (petName: string, sourceMapNum?: number) => {
+    // 抓包中禁止手动点亮/取消：会和同步互相覆盖
+    if (isCaptureLive()) {
+      sound.playClick();
+      showGuard(CAPTURE_CONFLICT_MSG);
+      return;
+    }
     const targetMapNum = sourceMapNum ?? detectedMapNum ?? activeStageNum ?? 1;
     const mapKey = `map${targetMapNum}`;
     const level = storage.getSetting<EffectLevel>('effectLevel', 0);
@@ -1204,8 +1384,52 @@ export const ScannerApp: React.FC = () => {
     };
   }, [loadInferBackend]);
 
+  /**
+   * 抓包拿到的「三选一」直接填进识别结果列表。
+   *
+   * 这样一进游戏就能在原位置看到这三只（和手动识别完全同一套卡片样式、同样的已遇见标记），
+   * 不需要再点「立即识别」。用户主动识别过一次后就不再覆盖。
+   */
+  const captureSlots = useMemo(() => buildCaptureSlots(pluginTrial, mapsPets), [pluginTrial, mapsPets]);
+  const captureSlotsSig = useMemo(
+      () => (captureSlots
+          ? `${captureSlots.mapId}@` + captureSlots.slots.map((x) => `${x.slot}-${x.eventId}-${x.item?.name || x.name}`).join('|')
+          : ''),
+      [captureSlots],
+  );
+  useEffect(() => {
+    if (!captureSlots || !captureSlotsSig) return;
+    // 抓包这边的三选一变了（换节点 / 刷新了三选一）说明画面已经换了，旧识别结果已过期，直接覆盖；
+    // 没变时不打扰（用户手动识别的结果保留）。列表被清空（识别失败）时也要能重新填回来。
+    const mapNum = Number(String(captureSlots.mapId).replace(/\D/g, '')) || activeStageNum || 1;
+    const slots: DetectedPetSlot[] = captureSlots.slots.map((x) => ({
+      id: `capture-${x.slot}-${x.eventId}`,
+      fromCapture: true,
+      name: x.item ? x.item.name : x.name,
+      score: 1,
+      candidates: x.item ? [{ filename: x.item.name, score: 1, matchedPet: x.item }] : [],
+      selectedCandidateIndex: 0,
+      selectedPetName: x.item ? x.item.name : x.name,
+      matchedPet: x.item,
+      sourceMapNum: mapNum,
+      battle: x.battle !== false,
+    }));
+    detectedSourceRef.current = 'capture';
+    setDetectedMapNum(mapNum);
+    // 抓包模式下抓包数据是权威的：视图直接跟随抓包给出的地图，
+    // 清掉手动切换与「钉住」——否则换地图时会停在上一张（明明精灵已经是新图的了）。
+    if (pinnedMapNum !== null) {
+      setPinnedMapNum(null);
+      storage.setSetting('scannerPinnedStageNum', null);
+    }
+    setSelectedMapNum(null);
+    setDetectedPets(slots);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [captureSlotsSig, detectedPets.length]);
+
   // 识别不可用（游戏未打开 / 无 Python 桥接 / 识别失败）时，保持“当前未检测到精灵”空态
   const showNoPets = () => {
+    detectedSourceRef.current = 'none';
     setDetectedPets([]);
     markScanTime();
   };
@@ -1287,6 +1511,9 @@ export const ScannerApp: React.FC = () => {
     const isEmptySlot = (slot: DetectedPetSlot) =>
         slot.score <= 0 || slot.candidates.every((c) => c.score <= 0.1);
     const visibleSlots = formattedSlots.filter((slot) => !isEmptySlot(slot));
+    // 只有识别真的出了结果才算「手动结果」；识别为空（游戏没开/画面没识别到）时不能挡住抓包填充，
+    // 否则会出现「点过一次立即识别没识别到 → 抓包数据再也进不来，界面一直是空的」。
+    detectedSourceRef.current = visibleSlots.length > 0 ? 'manual' : 'none';
     setDetectedPets(visibleSlots);
 
     // 共创采集：无完整图鉴的试炼（如火系），把跟随识别到的 (图, 精灵id, 置信度) 上报用于聚合
@@ -1494,7 +1721,7 @@ export const ScannerApp: React.FC = () => {
               </span>
               <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 ring-1 ring-inset ring-sky-200 dark:ring-sky-500/40 shrink-0 font-mono">
                 {activeStageNum === null
-                    ? `全图 ${allMapsStats.grandEncountered}/${allMapsStats.grandTotal}`
+                    ? (petsLoaded ? `全图 ${allMapsStats.grandEncountered}/${allMapsStats.grandTotal}` : '全图 加载中')
                     : `地图 ${activeStageNum}`}
               </span>
             </div>
@@ -1502,6 +1729,18 @@ export const ScannerApp: React.FC = () => {
 
           {/* Right side status & action buttons */}
           <div className="flex items-center gap-1.5 shrink-0 pywebview-no-drag">
+            {/* 打开抓包插件页面（仅当装了带前端的插件；纯前端模式不显示） */}
+            {!IS_STATIC && pluginInfo?.hasFrontend && (
+              <button
+                  type="button"
+                  id="scanner-plugin-panel-btn"
+                  onClick={() => { sound.playClick(); setIsPluginPanelOpen(true); }}
+                  title={`打开「${pluginInfo.title || '插件'}」页面`}
+                  className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 active:opacity-80 text-slate-500 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+              >
+                <Puzzle className="w-3.5 h-3.5" />
+              </button>
+            )}
             <button
                 type="button"
                 onClick={() => {
@@ -1585,7 +1824,9 @@ export const ScannerApp: React.FC = () => {
                           王国各区域图鉴总览
                         </span>
                         <span className="text-xs font-mono font-black text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-[#95D151]/50 dark:border-emerald-700/50">
-                          {allMapsStats.grandEncountered}/{allMapsStats.grandTotal} ({allMapsStats.grandPercent.toFixed(0)}%)
+                          {petsLoaded
+                              ? `${allMapsStats.grandEncountered}/${allMapsStats.grandTotal} (${allMapsStats.grandPercent.toFixed(0)}%)`
+                              : '加载中…'}
                         </span>
                       </div>
 
@@ -1593,7 +1834,7 @@ export const ScannerApp: React.FC = () => {
                       <div className="w-full h-2.5 bg-[#E9F2FA] dark:bg-slate-700/80 rounded-full overflow-hidden border-2 border-[#D5E3F0] dark:border-slate-600 p-0.5">
                         <div
                             className="h-full rounded-full bg-gradient-to-r from-[#7ABCF4] via-[#95D151] to-[#76B032] transition-all duration-300"
-                            style={{ width: `${allMapsStats.grandPercent}%` }}
+                            style={{ width: `${petsLoaded ? allMapsStats.grandPercent : 0}%` }}
                         />
                       </div>
 
@@ -1611,8 +1852,12 @@ export const ScannerApp: React.FC = () => {
                                 {m.config.name}
                               </div>
                               <div className="flex items-center justify-between mt-1 text-[10px] font-mono">
-                                <span className="font-bold text-[#2D6613] dark:text-emerald-400">{m.encountered}/{m.total}</span>
-                                <span className="text-slate-400 dark:text-slate-400 font-sans">{m.percent.toFixed(0)}%</span>
+                                <span className="font-bold text-[#2D6613] dark:text-emerald-400">
+                                  {petsLoaded ? `${m.encountered}/${m.total}` : '-/-'}
+                                </span>
+                                <span className="text-slate-400 dark:text-slate-400 font-sans">
+                                  {petsLoaded ? `${m.percent.toFixed(0)}%` : ''}
+                                </span>
                               </div>
                             </button>
                         ))}
@@ -1627,7 +1872,9 @@ export const ScannerApp: React.FC = () => {
                           {currentDetectedMap.name}
                         </span>
                         <div className="flex items-center gap-1.5">
-                          {/* 钉住地图：识别后视图不再跳回 */}
+                          {/* 钉住地图：识别后视图不再跳回。
+                              抓包模式下视图必须跟随抓包地图，所以整块隐藏。 */}
+                          {!captureLive && (
                           <button
                               type="button"
                               onClick={handleTogglePin}
@@ -1645,6 +1892,7 @@ export const ScannerApp: React.FC = () => {
                             <MapPin className={`w-3 h-3 ${pinnedMapNum !== null ? 'fill-[#E5C43B]' : ''}`} />
                             {pinnedMapNum !== null ? '已钉住' : '钉住'}
                           </button>
+                          )}
                           <span className="text-xs font-mono font-black text-[#2D6613] dark:text-emerald-300 bg-[#E1F7DB] dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-[#95D151]/50 dark:border-emerald-700/50">
                             {mapCollectionStats.encountered}/{mapCollectionStats.total}
                           </span>
@@ -1669,7 +1917,8 @@ export const ScannerApp: React.FC = () => {
                       </div>
 
                       {/* Pending re-recognition banner if user manually switched map */}
-                      {hasPendingMapChange && (
+                      {/* 抓包模式：数据来自抓包，一定是当前地图，不需要"待重新识别" */}
+                      {hasPendingMapChange && !captureLive && (
                           <div className="text-[11px] font-bold text-[#854D0E] dark:text-amber-200 bg-[#FEF9E6] dark:bg-amber-950/60 border border-[#E5C43B] dark:border-amber-700 rounded-xl px-2.5 py-1.5 flex items-center justify-between">
                             <span>已指定为【{currentDetectedMap.name}】</span>
                             <span className="text-[10px] bg-[#FEE061] text-[#854D0E] font-black px-2 py-0.5 rounded-full border border-[#E5C43B]">
@@ -1724,7 +1973,8 @@ export const ScannerApp: React.FC = () => {
 
                 {/* 2.2 Detected Pets List */}
                 {/* Notice banner when user switched viewing map but has not re-recognized yet */}
-                {detectedPets.length > 0 && detectedMapNum !== null && activeStageNum !== detectedMapNum && (
+                {/* 抓包模式：抓包数据一定对应当前地图，隐藏「已切换至…立即重识」整块 */}
+                {!captureLive && detectedPets.length > 0 && detectedMapNum !== null && activeStageNum !== detectedMapNum && (
                     <div className="p-2.5 rounded-2xl bg-[#FEF9E6] dark:bg-amber-950/60 border-2 border-[#E5C43B] dark:border-amber-700 text-[#854D0E] dark:text-amber-200 flex items-center justify-between gap-2 shadow-2xs">
                       <div className="flex items-center gap-2 min-w-0">
                       <span className="w-5 h-5 rounded-full bg-[#FEE061] text-[#854D0E] flex items-center justify-center font-black text-xs shrink-0 border border-[#E5C43B]">
@@ -1770,6 +2020,29 @@ export const ScannerApp: React.FC = () => {
                           cleanName === '远行商人' ||
                           rawName.includes('远行商人');
 
+                      // 抓包给出的非战斗事件（研究员 / 易西 / 罗兰 等）：只显示名字，
+                      // 不显示图片、不显示「点亮图鉴」按钮（它们本来就不是精灵）。
+                      const isNonBattleEvent =
+                          slot.battle === false && !isSpecialPlaceholder;
+
+                      if (isNonBattleEvent) {
+                        return (
+                            <div
+                                key={slot.id}
+                                className="rounded-2xl border-2 border-dashed border-[#BCD7F2] dark:border-sky-900/60 bg-[#F4F9FF] dark:bg-slate-800/90 p-3 flex items-center justify-between gap-2.5"
+                            >
+                              <div className="min-w-0">
+                                <div className="text-xs font-black text-slate-800 dark:text-slate-100 break-all">
+                                  {cleanName || rawName}
+                                </div>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                                  剧情 / NPC 节点，无需点亮图鉴
+                                </p>
+                              </div>
+                            </div>
+                        );
+                      }
+
                       if (isSpecialPlaceholder) {
                         return (
                             <div
@@ -1799,6 +2072,8 @@ export const ScannerApp: React.FC = () => {
                         );
                       }
 
+                      // 抓包填充的槽位只有 1 个"候选"（就是它本身），不显示候选排行
+                      const showCandidates = !slot.fromCapture && !!slot.candidates && slot.candidates.length > 1;
                       const slotSourceMap = slot.sourceMapNum ?? detectedMapNum ?? 1;
                       const isSlotFromDifferentMap = activeStageNum !== slotSourceMap;
                       const isEncountered = checkEncountered(slot.selectedPetName, slotSourceMap);
@@ -1814,8 +2089,9 @@ export const ScannerApp: React.FC = () => {
                               }`}
                           >
 
-                            {/* Header: Avatar, Name, Status, Action */}
-                            <div className="flex items-center justify-between gap-2.5 mb-2.5">
+                            {/* Header: Avatar, Name, Status, Action
+                                抓包填充的槽位没有候选排行，去掉下边距，避免卡片底部出现一条白边 */}
+                            <div className={`flex items-center justify-between gap-2.5 ${showCandidates ? 'mb-2.5' : ''}`}>
                               <div className="flex items-center gap-2.5 min-w-0">
                                 {/* Pet Image（悬停/点击放大预览） */}
                                 <div className="relative shrink-0">
@@ -1844,9 +2120,12 @@ export const ScannerApp: React.FC = () => {
                                         pet={slot.matchedPet}
                                         filename={slot.selectedPetName || slot.name}
                                     />
-                                    <span className="text-[10px] font-mono font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800">
-                                      {topScorePercent}%
-                                    </span>
+                                    {/* 抓包填充的槽位是确定结果，不显示置信度（100% 没有意义） */}
+                                    {!slot.fromCapture && (
+                                        <span className="text-[10px] font-mono font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800">
+                                          {topScorePercent}%
+                                        </span>
+                                    )}
                                   </div>
 
                                   <div className="flex items-center gap-1 mt-1">
@@ -1895,7 +2174,7 @@ export const ScannerApp: React.FC = () => {
                             </div>
 
                             {/* Candidate Switcher with Horizontal Navigation */}
-                            {slot.candidates && slot.candidates.length > 1 && (
+                            {showCandidates && (
                                 <CandidateCarousel
                                     candidates={slot.candidates}
                                     selectedCandidateIndex={slot.selectedCandidateIndex}
@@ -1924,7 +2203,8 @@ export const ScannerApp: React.FC = () => {
               </div>
           )}
 
-          {/* 2.3 Bottom Action Buttons (Main app matched buttons) */}
+          {/* 2.3 Bottom Action Buttons：抓包在用（capture live）时整块隐藏（含上面那条分隔线） */}
+          {!captureLive && (
           <div className="pt-2 border-t-2 border-[#D5E3F0] dark:border-slate-700 space-y-2 shrink-0">
             <div
                 className={`grid gap-2 ${
@@ -2030,7 +2310,15 @@ export const ScannerApp: React.FC = () => {
               </button>
             </div>
           </div>
+          )}
         </div>
+
+        {/* 抓包中的手动操作冲突提示 */}
+        {guardToast && (
+          <div className="fixed left-1/2 -translate-x-1/2 bottom-12 z-[80] max-w-[94%] px-3 py-2 rounded-xl bg-[#FEF9E6] dark:bg-amber-950/95 border-2 border-[#E5C43B] dark:border-amber-700 text-[11px] font-black text-[#854D0E] dark:text-amber-200 shadow-xl animate-in fade-in duration-150">
+            {guardToast}
+          </div>
+        )}
 
         {/* ------------------------------------------------------------- */}
         {/* 3. Micro Status Bar */}
@@ -2040,7 +2328,14 @@ export const ScannerApp: React.FC = () => {
             className="h-7 px-3 bg-slate-50/90 dark:bg-slate-900/90 border-t border-slate-200/70 dark:border-slate-800 text-[11px] leading-tight font-mono text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2 shrink-0 font-bold overflow-hidden"
         >
           <span className="flex items-center gap-2 shrink-0">
-            <span className="truncate">上次捕获: {lastScanTime}</span>
+            {captureLive ? (
+              <span className="truncate flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                capture live
+              </span>
+            ) : (
+              <span className="truncate">上次捕获: {lastScanTime}</span>
+            )}
             <FooterAuthChip />
           </span>
           {/* 右侧：识别设备（显卡/CPU）+ 程序名。风格与左侧一致，不加底色边框；
@@ -2066,7 +2361,7 @@ export const ScannerApp: React.FC = () => {
         {/* ------------------------------------------------------------- */}
         {/* 3.5 自动模式：右下角状态面板（可折叠）+ 自动点亮撤销 toast */}
         {/* ------------------------------------------------------------- */}
-        {autoMode && autoPanelOpen && (
+        {autoMode && autoPanelOpen && !captureLive && (
           <div
               id="scanner-auto-status"
               className="absolute right-2 bottom-[76px] z-40 w-[232px] rounded-2xl border-2 border-[#7BC363]/60 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm shadow-lg shadow-slate-900/15 p-2.5"
@@ -2115,7 +2410,7 @@ export const ScannerApp: React.FC = () => {
                 <Bot className="w-3.5 h-3.5 mt-0.5 text-[#1E5B99] dark:text-sky-300 shrink-0" />
               )}
               <div className="text-[11px] font-bold leading-snug text-slate-600 dark:text-slate-300 min-w-0">
-                {autoStatus?.message || '等待状态同步…'}
+                {autoStatus?.message || ''}
                 {autoStatus?.phase === 'battle' && autoStatus?.candidate?.name && (
                   <div className="mt-0.5 text-[10px] font-mono text-slate-400 truncate">
                     候选：{autoStatus.candidate.name}
@@ -2186,7 +2481,7 @@ export const ScannerApp: React.FC = () => {
         )}
 
         {/* 折叠态：一行迷你状态 pill，点击展开完整面板 */}
-        {autoMode && !autoPanelOpen && (
+        {autoMode && !autoPanelOpen && !captureLive && (
           <button
               type="button"
               id="scanner-auto-status-mini"
@@ -2216,7 +2511,7 @@ export const ScannerApp: React.FC = () => {
         )}
 
         {/* 自动点亮撤销 toast（位于状态面板上方，6 秒自动消失） */}
-        {autoToast && (
+        {autoToast && !captureLive && (
           <div className={`absolute right-2 z-50 w-[232px] rounded-2xl border-2 border-emerald-300 bg-[#F2FBEE] dark:bg-emerald-950/80 px-2.5 py-2 shadow-lg shadow-slate-900/15 ${autoPanelOpen ? 'bottom-[228px]' : 'bottom-[120px]'}`}>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -2250,6 +2545,35 @@ export const ScannerApp: React.FC = () => {
         )}
 
         {/* ------------------------------------------------------------- */}
+        {/* 3.9 抓包插件页面：铺满跟随识别窗口，尺寸自适应（内部 iframe 自己滚动） */}
+        {isPluginPanelOpen && pluginInfo?.hasFrontend && (
+          <div className="absolute inset-0 z-[60] w-full h-full bg-[#FDF9F3] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col select-none overflow-hidden animate-in fade-in duration-150">
+            <div className="pywebview-drag-region cursor-move h-11 px-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 rounded-none">
+              <div className="flex items-center gap-2 min-w-0 cursor-default">
+                <span className="w-7 h-7 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-600 dark:text-violet-300 ring-1 ring-inset ring-violet-200 dark:ring-violet-500/30 flex items-center justify-center shrink-0">
+                  {(() => { const Icon = pluginIconOf(pluginInfo); return <Icon className="w-3.5 h-3.5" />; })()}
+                </span>
+                <span className="text-xs sm:text-sm font-black truncate tracking-tight">
+                  {pluginInfo.title || '抓包插件'}
+                </span>
+              </div>
+              <button
+                  type="button"
+                  onClick={() => { sound.playClick(); setIsPluginPanelOpen(false); }}
+                  className="shrink-0 h-7 px-2.5 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 hover:ring-slate-300 dark:hover:ring-slate-600 text-[11px] font-black text-slate-600 dark:text-slate-300 flex items-center gap-1 transition-all cursor-pointer active:opacity-80"
+                  title="返回识别主界面"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> 返回识别
+              </button>
+            </div>
+            <iframe
+                title={pluginInfo.title || '抓包插件'}
+                src={pluginApi.frameUrl(pluginInfo)}
+                className="flex-1 w-full border-0 bg-white dark:bg-slate-900"
+            />
+          </div>
+        )}
+
         {/* 4. Scanner Map & All Pet Gallery Modal */}
         {/* ------------------------------------------------------------- */}
         <ScannerMapGalleryModal

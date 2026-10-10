@@ -130,6 +130,14 @@ def _shutdown(server, server_thread) -> None:
         logger.info("Flask 服务器已停止")
     except Exception as e:
         logger.warning(f"停止 Flask 服务器异常: {e}", exc_info=True)
+    # 停止插件（例如抓包插件的 dumpcap 子进程）——必须放在 os._exit 之前，
+    # 因为 os._exit 会跳过 atexit / finally，不在这里停就会留下孤儿抓包进程。
+    try:
+        from core.plugins import plugin_manager
+        plugin_manager.shutdown_all()
+    except Exception as e:
+        logger.warning(f"停止插件异常: {e}")
+
     # 兜底：强制退出，确保进程不再驻留
     os._exit(0)
 

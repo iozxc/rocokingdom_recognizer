@@ -56,9 +56,9 @@ export const BackToTopCircle: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'md' 
 };
 
 /** 悬浮栏隐藏（按钮收纳到顶部工具栏）时：独立固定在右下角 */
-export const BackToTopStandalone: React.FC = () => {
+export const BackToTopStandalone: React.FC<{ bottomClass?: string }> = ({ bottomClass = 'bottom-6' }) => {
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 select-none">
+    <div className={`fixed ${bottomClass} right-6 z-40 flex flex-col items-center gap-2 select-none`}>
       <button
         type="button"
         onClick={scrollToTop}
