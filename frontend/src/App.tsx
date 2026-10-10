@@ -762,13 +762,22 @@ export default function App() {
     }, 150);
   };
 
-  /** 打开插件：声明 fullscreen 的走整页，其余仍用插件中心弹窗里的内嵌界面 */
-  const openPlugin = (plugin: PluginInfo) => {
+  /**
+   * 打开插件：声明 fullscreen 的走整页，其余仍用插件中心弹窗里的内嵌界面。
+   *
+   * ⚠ 必须用 useCallback：这个函数会作为 prop 传给 PluginCenterModal，
+   * 而弹窗里「打开时刷新一次」的 useEffect 依赖它 —— 一旦它每次渲染都换新引用，
+   * 就会变成「effect → setPlugins → App 重渲染 → 新函数 → effect…」的无限循环，
+   * 表现就是插件中心在疯狂调用「检查更新」。
+   */
+  const openPlugin = useCallback((plugin: PluginInfo) => {
     setIsPluginCenterOpen(false);
     setPluginToOpen(null);
     if (plugin.fullscreen) setPluginPage(plugin);
     else { setPluginToOpen(plugin.id); setIsPluginCenterOpen(true); }
-  };
+  }, []);
+
+  const closePluginPage = useCallback(() => setPluginPage(null), []);
 
   // 整页插件自己的顶栏点了「返回」：iframe 里 postMessage 过来
   useEffect(() => {
@@ -783,7 +792,7 @@ export default function App() {
   const fireTrialAvailable = trials.some((t) => t.key === 'fire');
 
   if (pluginPage) {
-    return <PluginPage plugin={pluginPage} onClose={() => setPluginPage(null)} />;
+    return <PluginPage plugin={pluginPage} onClose={closePluginPage} />;
   }
 
   if (view === 'assistant' && activeTrialKey === 'fire' && fireTrialAvailable) {

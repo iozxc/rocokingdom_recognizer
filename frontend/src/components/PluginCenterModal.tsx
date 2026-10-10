@@ -43,6 +43,9 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
   const [catalog, setCatalog] = useState<PluginUpdateInfo[]>([]);
   const [installingId, setInstallingId] = useState<string>('');
   const fileRef = useRef<HTMLInputElement | null>(null);
+  // 外部回调放 ref：effect 里用它，但不进依赖数组（避免调用方每次渲染换引用就把 effect 重新跑一遍）
+  const fullscreenRef = useRef(onOpenFullscreen);
+  fullscreenRef.current = onOpenFullscreen;
 
   const publish = useCallback((items: PluginInfo[]) => {
     setPlugins(items);
@@ -110,9 +113,10 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
       const items = await refresh();
       void refreshRuntimeState(items);
       const target = initialPluginId ? items.find((p) => p.id === initialPluginId) : null;
-      if (target && target.fullscreen && onOpenFullscreen) {
+      const openFull = fullscreenRef.current;
+      if (target && target.fullscreen && openFull) {
         // 直达一个整页插件：别在弹窗里渲染，交给外面整页打开
-        onOpenFullscreen(target);
+        openFull(target);
         setActive(null);
       } else if (target) {
         setActive(target);
@@ -120,7 +124,7 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
       // 静默拉一次插件市场清单（失败不打扰用户）
       void handleCheckUpdates(true);
     })();
-  }, [isOpen, initialPluginId, refresh, onOpenFullscreen]);
+  }, [isOpen, initialPluginId, refresh]);
 
   const handleImportZip = async (file: File | undefined) => {
     if (!file) return;
