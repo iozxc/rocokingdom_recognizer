@@ -31,6 +31,7 @@ import { isWebFollowSupported } from '../services/recognition/capture';
 import { formatPetName, isPetEncounteredInRecords, getBasePetName } from '../utils/petHelper';
 import { ElementBadges } from './ElementBadges';
 import { IS_STATIC } from '../services/staticMode';
+import { IS_MOBILE_WEB } from '../services/device';
 import { BackToTopHeaderButton, BackToTopCircle } from './BackToTopButton';
 import { ModalHeader, ModalHeaderBadge } from './ModalHeader';
 
@@ -332,8 +333,11 @@ export const GlobalFloatingSearch: React.FC<GlobalFloatingSearchProps> = ({
    * 跟随识别悬浮按钮是否显示。
    * 桌面版一直显示（点开的是 pywebview 悬浮窗）；纯前端版只在浏览器支持屏幕捕获时显示
    * （点开的是网页版跟随识别面板）—— 入口完全一样，只是各自执行各自的效果。
+   *
+   * 纯 web 版的手机 / 平板上一律不显示：手机浏览器里 getDisplayMedia 抓不到游戏窗口
+   * （游戏在电脑上跑），点开只有个空面板，属于误导性入口。
    */
-  const showFollowFab = !searchOnly || isWebFollowSupported();
+  const showFollowFab = !IS_MOBILE_WEB && (!searchOnly || isWebFollowSupported());
   // 全域搜索两端都提供；纯 Web 端只隐藏 Ctrl+K 键帽（浏览器占用该组合键），功能本身保留。
   const showSearchFab = true;
 

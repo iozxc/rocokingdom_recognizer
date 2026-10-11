@@ -6,6 +6,7 @@ import { storage } from '../services/storage';
 import { MAP_CONFIGS } from '../data/mockPets';
 import { isPetEncounteredInRecords } from '../utils/petHelper';
 import { AdvancedFilterPopover } from './AdvancedFilterPopover';
+import { IS_STATIC } from '../services/staticMode';
 
 interface FloatingFilterSwitchProps {
     currentMap: MapConfig;
@@ -81,6 +82,14 @@ export const FloatingFilterSwitch: React.FC<FloatingFilterSwitchProps> = ({
 
     // If hidden, do not render floating UI
     if (floatingMode === 'hidden') {
+        return null;
+    }
+
+    // 纯 web 版（手机 / iPad 打开的就是这一版）不渲染左下角这组悬浮按钮：
+    // 它长期压住图鉴网格（手机上尤其明显），而 web 端页头已经有一模一样的
+    // 「全部 / 已遇 / 未遇 / 高级筛选」，切地图也能在首页识别卡里点。
+    // 桌面端（桌面 app）保持原样。
+    if (IS_STATIC) {
         return null;
     }
 

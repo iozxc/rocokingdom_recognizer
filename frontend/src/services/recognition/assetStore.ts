@@ -91,7 +91,9 @@ export function hardwareThreads(): number {
 
 export function loadManifest(): Promise<RecognizerManifest | null> {
   if (!manifestPromise) {
-    manifestPromise = fetchJson<RecognizerManifest>(`${baseUrl()}data/recognizer-assets.json`, 10000)
+    // 超时给宽一点：手机上首次打开会同时抢带宽下模型，这条清单请求也在同一批里，
+    // 10s 在弱网 / 弱设备上会误判成"没有清单"，后面就会整条链路重新下载。
+    manifestPromise = fetchJson<RecognizerManifest>(`${baseUrl()}data/recognizer-assets.json`, 20000)
         .then((r) => (r && typeof r === 'object' ? r : null))
         .catch(() => null);
   }

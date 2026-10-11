@@ -309,9 +309,10 @@ class LocalRecognizerClass {
     onProgress?.('session', 0, '正在启动图像识别引擎…');
     await new Promise<void>((resolve, reject) => {
       const worker = this.ensureWorker();
-      // 外层超时要 > worker 内「WebGPU -> 多线程 WASM -> 单线程 WASM」三级兜底的耗时上限（约 155s），
+      // 外层超时要 > worker 内「WebGPU -> 多线程 WASM -> 单线程 WASM」三级兜底的耗时上限（约 280s），
       // 否则内层还在换后端、外层已经先超时了。
-      const timer = window.setTimeout(() => reject(new Error('识别模型初始化超时（240s）')), 240000);
+      // 时长按手机 / iPad 这类弱设备留足余量（弱设备上单线程 WASM 建图可能上百秒）。
+      const timer = window.setTimeout(() => reject(new Error('识别模型初始化超时（300s）')), 300000);
       const handler = (e: MessageEvent) => {
         if (e.data.kind === 'init-progress') {
           // worker 在建会话时会依次尝试 WebGPU / 多线程 WASM / 单线程 WASM，
@@ -452,7 +453,8 @@ class LocalRecognizerClass {
       loadAsset(rec, version, (p) => onProgress?.('ocr', p.total ? Math.min(90, 50 + Math.round((p.loaded / p.total) * 40)) : 50,
           `正在加载文字识别 · 识别模型 ${mb(p.loaded)}/${mb(p.total)}`)),
       fetchJson<{ chars: string[] }>(
-          withVersionParam(`${import.meta.env.BASE_URL || '/'}${keysFile}`, version), 20000),
+          // 手机上首次识别时这条请求和模型下载抢带宽，超时=整次识别失败，给足 40s。
+          withVersionParam(`${import.meta.env.BASE_URL || '/'}${keysFile}`, version), 40000),
     ]);
     this.ocrChars = keysData?.chars || [];
     if (!this.ocrChars.length) throw new Error('OCR 字符表为空');
@@ -460,7 +462,7 @@ class LocalRecognizerClass {
     const correctionsFile = ocr.corrections?.file || 'data/ocr_corrections.json';
     try {
       const corrData = await fetchJson(
-          withVersionParam(`${import.meta.env.BASE_URL || '/'}${correctionsFile}`, version), 10000);
+          withVersionParam(`${import.meta.env.BASE_URL || '/'}${correctionsFile}`, version), 20000);
       this.corrections = parseCorrections(corrData);
     } catch {
       this.corrections = null;
@@ -469,7 +471,7 @@ class LocalRecognizerClass {
     onProgress?.('ocr', 92, '正在启动文字识别引擎…');
     await new Promise<void>((resolve, reject) => {
       const worker = this.ensureWorker();
-      const timer = window.setTimeout(() => reject(new Error('文字识别模型初始化超时（180s）')), 180000);
+      const timer = window.setTimeout(() => reject(new Error('文字识别模型初始化超时（300s）')), 300000);
       const handler = (e: MessageEvent) => {
         if (e.data.kind === 'ocr-ready') {
           window.clearTimeout(timer);
@@ -524,7 +526,7 @@ class LocalRecognizerClass {
     onProgress?.('scanner', 97, '正在启动版面检测引擎…');
     await new Promise<void>((resolve, reject) => {
       const worker = this.ensureWorker();
-      const timer = window.setTimeout(() => reject(new Error('版面检测模型初始化超时（180s）')), 180000);
+      const timer = window.setTimeout(() => reject(new Error('版面检测模型初始化超时（300s）')), 300000);
       const handler = (e: MessageEvent) => {
         if (e.data?.kind === 'scanner-ready') {
           window.clearTimeout(timer);

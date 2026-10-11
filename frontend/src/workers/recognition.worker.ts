@@ -174,11 +174,16 @@ async function createOrtSession(buffer: ArrayBuffer, label: string): Promise<ort
  * 没有超时的话用户会干等到外层 120s 超时、一个结果都拿不到。加超时后表现为「慢一点但能出结果」。
  */
 const DINO_ATTEMPT_TIMEOUT_MS: Record<string, number> = {
-  // 首次可能有 shader 编译，但卡住不返回的情况更常见：超过 20s 就赶紧回落 WASM，
-  // 否则用户要对着"正在启动图像识别引擎"干等 40s+（总链路最坏 155s）。
-  webgpu: 20000,
-  'wasm-threads': 25000,  // 正常几秒就能建好，超过说明子 Worker 卡住了
-  wasm: 90000,            // 单线程兜底，慢但最稳（21MB wasm + 24MB 模型建图，确实可能几十秒）
+  // 首次可能有 shader 编译，但卡住不返回的情况更常见：太久不回落会让用户对着
+  // "正在启动图像识别引擎"干等，所以 GPU / 多线程这两档仍然会主动放弃、降级。
+  //
+  // 时长按「弱设备」标定（手机 / iPad 比台式机慢一个数量级：手机上建会话要
+  // 下载 21MB wasm + 24MB 模型建图，官方旗舰机实测就要 10s+，旧机型几十秒很常见）：
+  // 原来 20s / 25s / 90s 在弱设备上会先超时降级、甚至三级全超时直接失败，
+  // 表现为"手机上识别总是超时"。总链路最坏 ≈ 280s，外层 initSession 必须比它更长。
+  webgpu: 40000,
+  'wasm-threads': 60000,  // 正常几秒就能建好，超过说明子 Worker 卡住了
+  wasm: 180000,           // 单线程兜底，慢但最稳（21MB wasm + 24MB 模型建图，弱设备确实要几十秒）
 };
 
 /** 把「当前在建哪种会话」上报给主线程，UI 就能显示具体进度而不是一直写"初始化中"。 */
@@ -247,7 +252,7 @@ async function createDinoSession(buffer: ArrayBuffer, wantThreads: number): Prom
   for (const attempt of attempts) {
     try {
       if (attempt.threads !== ort.env.wasm.numThreads) ort.env.wasm.numThreads = attempt.threads;
-      const timeoutMs = DINO_ATTEMPT_TIMEOUT_MS[attempt.label] || 60000;
+      const timeoutMs = DINO_ATTEMPT_TIMEOUT_MS[attempt.label] || 120000;
       const secs = Math.round(timeoutMs / 1000);
       reportInitProgress(
           attempt.label === 'webgpu'

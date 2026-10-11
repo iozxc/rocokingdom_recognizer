@@ -21,6 +21,7 @@
  *      看起来就像开关没生效（历史 bug：设置里关了，跟随识别的图鉴里照样有条）。
  */
 import { IS_STATIC } from './staticMode';
+import { IS_MOBILE_WEB } from './device';
 import { storage } from './storage';
 
 const ON_CLASS = 'roco-scrollbar-on';
@@ -33,8 +34,18 @@ const MAX_WIDTH = 16;
 /**
  * 自定义滚动条默认是否显示。
  * Web 端默认开启（浏览器里滚动条是必要的滚动提示），桌面端默认关闭（界面更干净）。
+ * 纯 web 版的手机 / 平板上强制关闭（见 SCROLLBAR_ALLOWED）。
  */
-export const DEFAULT_SHOW_SCROLLBAR: boolean = IS_STATIC;
+export const DEFAULT_SHOW_SCROLLBAR: boolean = IS_STATIC && !IS_MOBILE_WEB;
+
+/**
+ * 本设备是否允许显示自定义滚动条。
+ *
+ * 纯 web 版的手机 / 平板上恒为 false：手指滑动本来就不需要滚动提示，而首页右侧那条
+ * 覆盖条在小屏上会压住卡片（用户明确要求隐藏），所以这里直接忽略用户设置。
+ * 桌面 app / 桌面浏览器仍由「设置 → 系统设置 → 滚动条」决定。
+ */
+export const SCROLLBAR_ALLOWED: boolean = !IS_MOBILE_WEB;
 
 /** 自定义滚动条默认宽度（px）。 */
 export const DEFAULT_SCROLLBAR_WIDTH = 10;
@@ -54,7 +65,7 @@ export function clampScrollbarWidth(value: unknown): number {
 export function readScrollbarSetting(): { on: boolean; width: number } {
   const raw = storage.getSettingCached<unknown>('showHomeScrollbar', DEFAULT_SHOW_SCROLLBAR);
   return {
-    on: typeof raw === 'boolean' ? raw : DEFAULT_SHOW_SCROLLBAR,
+    on: SCROLLBAR_ALLOWED && (typeof raw === 'boolean' ? raw : DEFAULT_SHOW_SCROLLBAR),
     width: clampScrollbarWidth(
         storage.getSettingCached<unknown>('homeScrollbarWidth', DEFAULT_SCROLLBAR_WIDTH),
     ),

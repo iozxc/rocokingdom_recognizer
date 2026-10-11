@@ -300,7 +300,9 @@ class ScreenCaptureSession {
     return video;
   }
 
-  private waitForFrame(video: HTMLVideoElement, timeoutMs = 2500): Promise<void> {
+  // 手机上抓第一帧比台式机慢（大窗口 + 弱解码器），2.5s 常常还没出画面，
+  // 之后第一次识别就会报"捕获画面还没有可用帧"。这里放宽到 6s，只是多等一会儿。
+  private waitForFrame(video: HTMLVideoElement, timeoutMs = 6000): Promise<void> {
     return new Promise((resolve) => {
       if (video.videoWidth > 0 && video.readyState >= 2) {
         resolve();

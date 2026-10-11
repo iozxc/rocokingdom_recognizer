@@ -9,7 +9,8 @@ import { storage } from '../services/storage';
 import { themeService } from '../services/theme';
 import { useUpdateStore } from '../services/useUpdateStore';
 import { IS_STATIC } from '../services/staticMode';
-import { DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR } from '../services/scrollbarSetting';
+import { IS_MOBILE_WEB } from '../services/device';
+import { DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR, SCROLLBAR_ALLOWED } from '../services/scrollbarSetting';
 import { SyncPopType } from './SyncPopNotification';
 import { UserAgreementModal } from './UserAgreementModal';
 import { HotkeySetting } from './HotkeySetting';
@@ -841,6 +842,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                       <span>界面</span>
                     </div>
 
+                    {/* 跟随识别窗口置顶：纯 web 版手机/平板上跟随识别入口已隐藏，这一项没有意义 */}
+                    {!IS_MOBILE_WEB && (
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">跟随识别窗口置顶</div>
@@ -858,6 +861,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                         />
                       </button>
                     </div>
+                    )}
 
                     {/* 跟随识别全局热键：浏览器无法注册系统级热键，Web 版隐藏 */}
                     {!IS_STATIC && <HotkeySetting />}
@@ -879,7 +883,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                       </button>
                     </div>
 
-                    {/* 首页滚动条设置 */}
+                    {/* 首页滚动条设置（纯 web 版手机/平板上恒不显示滚动条，这一项直接隐藏） */}
+                    {SCROLLBAR_ALLOWED && (
                     <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
                       <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">滚动条</div>
 
@@ -921,6 +926,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                         </div>
                       </div>
                     </div>
+                    )}
                   </div>
 
                   {/* 声音 */}

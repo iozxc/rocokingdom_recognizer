@@ -349,7 +349,8 @@ export class ApiService {
         await loadElementSprites();
         await loadTsSprites();
         await loadGlossary();
-        const remoteData = await fetchJson<any>(dataUrl('data/icons.json'), 10000);
+        // 图鉴 JSON 近 1MB，手机上（弱网）10s 经常不够，超时表现为"图鉴加载失败"。
+        const remoteData = await fetchJson<any>(dataUrl('data/icons.json'), 30000);
         // icons.json 顶层按试炼分组：{ "t1": {map1,map2,map3}, "t2": {...} }
 
 

@@ -6,6 +6,7 @@ import { ElementBadges } from './ElementBadges';
 import { PetSprite } from './PetSprite';
 import { PetSpecialTag } from './PetSpecialTag';
 import { petKeyOf } from '../services/atlasCollector';
+import { IS_STATIC } from '../services/staticMode';
 
 /** 社区图鉴数据（字段来自服务端，允许携带额外字段）。 */
 export interface PetCardCommunityInfo {
@@ -155,6 +156,11 @@ export const PetCard: React.FC<PetCardProps> = React.memo(({
             <div className="absolute right-0.5 top-1/2 -translate-y-1/2 z-[1] pointer-events-none">
               <PetSpecialTag pet={pet} vertical />
             </div>
+            {/* 纯 web 版（手机 / iPad 上用的就是这一版）不渲染右下角这个详情按钮：
+                它只在 hover 时出现，触摸端第一次点卡片会把它"粘"出来，再点同一个位置
+                （卡片右下角）就会直接弹出精灵信息框 —— 用户点两下卡片是为了切【已遇见】，
+                不该被这个按钮截走。web 端仍可通过长按 / 右键卡片菜单进详情。 */}
+            {!IS_STATIC && (
             <button
               id={`pet-card-info-btn-${pet.name.replace('.', '-')}`}
               type="button"
@@ -167,6 +173,7 @@ export const PetCard: React.FC<PetCardProps> = React.memo(({
             >
               <Info className="w-3 h-3" />
             </button>
+            )}
           </div>
         ) : (
           /* 经典布局：编号/系别图标叠加在立绘上 */
@@ -192,6 +199,8 @@ export const PetCard: React.FC<PetCardProps> = React.memo(({
             <div className="absolute bottom-1 left-0 right-0 z-[1] flex justify-center pointer-events-none">
               <PetSpecialTag pet={pet} />
             </div>
+            {/* 同上：纯 web 版不渲染卡片右下角的详情按钮（触摸端会误触弹信息框）。 */}
+            {!IS_STATIC && (
             <button
               id={`pet-card-info-btn-${pet.name.replace('.', '-')}`}
               type="button"
@@ -204,6 +213,7 @@ export const PetCard: React.FC<PetCardProps> = React.memo(({
             >
               <Info className="w-3 h-3" />
             </button>
+            )}
           </div>
         )}
 

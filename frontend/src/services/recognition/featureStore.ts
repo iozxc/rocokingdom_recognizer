@@ -66,7 +66,8 @@ class FeatureStoreClass {
   private async _load(version: number, onProgress?: (pct: number) => void): Promise<void> {
     const base = import.meta.env.BASE_URL || '/';
     // 带清单版本：/data/ 就可以长期缓存，改资产即换 URL
-    const meta = await fetchJson<FeatureMeta>(withVersionParam(`${base}data/features.meta.json`, version), 20000);
+    // 0.7MB 的 JSON，手机上（弱网）20s 偶尔不够，超时等于整次识别失败，给足 40s。
+    const meta = await fetchJson<FeatureMeta>(withVersionParam(`${base}data/features.meta.json`, version), 40000);
     if (!meta || !Array.isArray(meta.entries) || meta.dim <= 0) {
       throw new Error('特征库 meta 格式异常');
     }

@@ -22,7 +22,7 @@ import { DownloadAppModal } from './components/DownloadAppModal';
 import { DataManageModal } from './components/DataManageModal';
 import { AppSettingsModal } from './components/AppSettingsModal';
 import { HomeScrollbar } from './components/HomeScrollbar';
-import { applyScrollbarSetting, DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR } from './services/scrollbarSetting';
+import { applyScrollbarSetting, SCROLLBAR_ALLOWED, DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR } from './services/scrollbarSetting';
 import { AssistantHub } from './components/AssistantHub';
 import { PluginCenterModal } from './components/PluginCenterModal';
 import { PluginPage } from './components/plugins/PluginPage';
@@ -940,7 +940,8 @@ export default function App() {
         />
 
         {/* 首页自定义滚动条（设置里开启后显示，始终位于 Header 下方，不触及 Header） */}
-        <HomeScrollbar visible={showHomeScrollbar && !isAnyModalOpen} width={homeScrollbarWidth} />
+        {/* 纯 web 版的手机/平板上一律不显示（SCROLLBAR_ALLOWED=false），忽略用户设置 */}
+        <HomeScrollbar visible={SCROLLBAR_ALLOWED && showHomeScrollbar && !isAnyModalOpen} width={homeScrollbarWidth} />
 
         {/* Sub-Header Toolbar: Displayed only when floating buttons are in 'hidden' mode */}
         {view === 'assistant' && floatingMode === 'hidden' && (
