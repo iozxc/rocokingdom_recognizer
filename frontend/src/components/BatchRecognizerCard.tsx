@@ -100,7 +100,7 @@ interface BatchRecognizerCardProps {
   onSelectMap?: (mapNum: number) => void;
   /** 识别进行中状态上报，供父级锁定顶部 / 悬浮的地图切换。 */
   onScanningChange?: (scanning: boolean) => void;
-  /** 同步同步：把同步读到的试炼数据写进本机图鉴（按钮放在卡片标题行） */
+  /** 同步：把同步读到的试炼数据写进本机图鉴（按钮放在卡片标题行） */
   onSyncTrial?: () => void;
   syncTrialReady?: boolean;
   /** 同步（原同步）是否正在跑：用来把「还没开始」和「开始了但没检测到试炼」分开 */

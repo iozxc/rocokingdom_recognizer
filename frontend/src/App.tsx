@@ -251,6 +251,18 @@ export default function App() {
   const trial = hookTrial;
 
   // 同步中 → 全局标记：其它页面（跟随识别 / 图鉴）据此拦截手动点亮/取消
+  // 每次「同步」重新跑起来 = 新一局：写个会话标记。
+  // 跟随识别（独立窗口）据此把上一局的识别结果清掉 —— 只清本局结果，图鉴记录不动。
+  useEffect(() => {
+    if (!trialRunning) return;
+    try {
+      window.localStorage.setItem('roco_sync_session', String(Date.now()));
+    } catch { /* ignore */ }
+    // 也管住"同步一直没停、只是重开了游戏"这种情况：
+    // 插件在游戏登录包到达时会清空本轮 trial（available 变成 false），
+    // 这同样是"新一局开始了"，跟随识别也该清掉上一局的识别结果。
+  }, [trialRunning, trial?.available]);
+
   useEffect(() => {
     setCaptureLive(Boolean(syncPlugin && trialRunning));
     return () => setCaptureLive(false);
@@ -708,15 +720,30 @@ export default function App() {
   }, [trialSig, trialRunning, syncPlugin, refreshRecords]);
 
   /**
-   * 「游戏画面识别」卡片标题行上的「同步」按钮：手动触发一次同步同步。
+   * 「游戏画面识别」卡片标题行上的「同步」按钮：手动触发一次同步。
    * 平时数据变化会静默自动同步，这个按钮只是给用户一个"立刻同步 / 确认"的入口。
    */
   const handleTrialSync = useCallback(async () => {
     setSyncing(true);
     try {
-      const res = await runTrialSync('grass', mapsData, { manual: true });
+      let res = await runTrialSync('grass', mapsData, { manual: true });
+      // 手动点「同步」时，游戏里刚发生的事可能还没进到最近一帧快照里，
+      // 于是会出现「点了同步说点亮 0 只、过一会儿它自己才全同步」。
+      // 这里持续重取（每 400ms，最多 2.5s），直到拿到有内容的那一帧。
+      const deadline = Date.now() + 2500;
+      while (
+        res.summary &&
+        res.summary.marked === 0 &&
+        res.summary.unmarked === 0 &&
+        Date.now() < deadline
+      ) {
+        await new Promise((r) => setTimeout(r, 400));
+        const again = await runTrialSync('grass', mapsData, { manual: true });
+        res = again;
+        if (!again.summary || again.summary.marked > 0 || again.summary.unmarked > 0) break;
+      }
       if (!res.summary) {
-        triggerScanSyncEffect('info', undefined, '没有可同步的同步数据');
+        triggerScanSyncEffect('info', undefined, '当前没有可同步的数据');
         return;
       }
       refreshRecords();
@@ -724,7 +751,7 @@ export default function App() {
       triggerScanSyncEffect(
           'encounter',
           undefined,
-          `同步同步完成：点亮 ${res.summary.marked} 只`,
+          `同步完成：点亮 ${res.summary.marked} 只`,
           res.summary.unmarked > 0 ? `并对齐取消了 ${res.summary.unmarked} 只` : undefined,
       );
     } catch (err) {
@@ -757,6 +784,12 @@ export default function App() {
   const handleBatchEncounterSuccess = (
       items: Array<{ mapId: string; filename: string; note?: string }>
   ) => {
+    // 同步开着时禁止手动点亮 —— 「图片识别后批量点亮」走的也是这条路，
+    // 之前只拦了单个点亮，批量这条漏了，会和同步互相覆盖。
+    if (isCaptureLive()) {
+      triggerScanSyncEffect('info', undefined, CAPTURE_CONFLICT_MSG);
+      return;
+    }
     storage.batchMarkEncountered(items);
     refreshRecords();
     sound.playEncounter();

@@ -297,7 +297,7 @@ export function applySyncPlan(plans: MapPlan[], options: { manual?: boolean } = 
           storage.isEncountered(plan.mapId, pet.name) &&
           !storage.isManualMark(plan.mapId, pet.name),
     );
-    toMark.forEach((pet) => markItems.push({ mapId: plan.mapId, filename: pet.name, note: '同步同步' }));
+    toMark.forEach((pet) => markItems.push({ mapId: plan.mapId, filename: pet.name, note: '同步' }));
     toUnmark.forEach((pet) => unmarkItems.push({ mapId: plan.mapId, filename: pet.name }));
 
     summary.plans.push({

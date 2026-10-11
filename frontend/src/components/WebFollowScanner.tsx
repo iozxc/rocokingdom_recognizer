@@ -248,6 +248,23 @@ export const WebFollowScanner: React.FC<WebFollowScannerProps> = ({ hostWindow =
   // ——PiP 的 root 是它自己的 <html>，不是当前 document。
   useEffect(() => applyScrollbarSetting(hostDoc()), [hostDoc]);
   const [slots, setSlots] = useState<SlotView[]>([]);
+
+  // 新一局同步开始（App 写入的会话标记变了）→ 清掉上一局的识别结果。
+  // ⚠ 只清"本轮识别到的精灵/可点亮"，storage 里的图鉴记录(records)一律不动。
+  useEffect(() => {
+    let last = '';
+    try { last = window.localStorage.getItem('roco_sync_session') || ''; } catch { /* ignore */ }
+    const timer = window.setInterval(() => {
+      let cur = '';
+      try { cur = window.localStorage.getItem('roco_sync_session') || ''; } catch { return; }
+      if (!cur || cur === last) return;
+      last = cur;
+      setSlots([]);
+      setDetectedStage(null);
+      setHintText(null);
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, []);
   const [busy, setBusy] = useState(false);
   const [statusText, setStatusText] = useState('');
   const [errorText, setErrorText] = useState<string | null>(null);

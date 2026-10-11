@@ -19,9 +19,9 @@ const MANUAL_MARKS_STORAGE_KEY = 'roco_manual_marks_v1';
 
 export interface StoragePayload {
   encounteredPets?: Record<string, EncounterRecord>;
-  /** 用户手动取消过「已遇见」的条目：同步同步不再自动把它点亮回来 */
+  /** 用户手动取消过「已遇见」的条目：同步不再自动把它点亮回来 */
   suppressed?: Record<string, true>;
-  /** 用户**手动点亮**过的条目：同步同步的反向清理不会把它又取消掉 */
+  /** 用户**手动点亮**过的条目：同步的反向清理不会把它又取消掉 */
   manualMarks?: Record<string, true>;
   thresholds?: Record<string, number>;
   appSettings?: AppSettings;
@@ -46,7 +46,7 @@ export class StorageService {
   private listeners: Set<StorageListener> = new Set();
   /** key = `<mapId>_<filename>`；用户手动取消点亮后记在这里，同步时跳过 */
   private suppressed: Record<string, true> = {};
-  /** key = `<mapId>_<filename>`；用户手动点亮过，同步同步的反向清理不再取消它 */
+  /** key = `<mapId>_<filename>`；用户手动点亮过，同步的反向清理不再取消它 */
   private manualMarks: Record<string, true> = {};
   private settingsListeners: Set<SettingsListener> = new Set();
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -472,7 +472,7 @@ export class StorageService {
     return `${mapId}_${filename}`;
   }
 
-  /** 用户手动取消过点亮？同步同步会跳过它（避免"取消又被自动点亮"）。 */
+  /** 用户手动取消过点亮？同步会跳过它（避免"取消又被自动点亮"）。 */
   public isSuppressed(mapId: string, filename: string): boolean {
     const key = this.getKey(mapId, filename);
     if (this.suppressed[key]) return true;
@@ -491,7 +491,7 @@ export class StorageService {
     if (changed) this.triggerSave();
   }
 
-  /** 用户手动点亮过？（同步同步的反向清理会跳过它，避免"点亮了又被取消"） */
+  /** 用户手动点亮过？（同步的反向清理会跳过它，避免"点亮了又被取消"） */
   public isManualMark(mapId: string, filename: string): boolean {
     const key = this.getKey(mapId, filename);
     if (this.manualMarks[key]) return true;
@@ -596,7 +596,7 @@ export class StorageService {
   }
 
   /**
-   * 批量取消「已收集」标记（同步同步用：游戏里没有的精灵，本机也一并清掉）。
+   * 批量取消「已收集」标记（同步用：游戏里没有的精灵，本机也一并清掉）。
    * 只处理显式传入的条目，不做任何模糊匹配。
    */
   public batchUnmarkEncountered(items: Array<{ mapId: string; filename: string }>): number {
