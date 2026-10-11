@@ -155,7 +155,7 @@ export const ScannerMapGalleryModal: React.FC<ScannerMapGalleryModalProps> = ({
     };
 
     const handleToggle = (mapId: string, filename: string) => {
-        // 抓包中禁止手动点亮/取消（会和同步互相覆盖）
+        // 同步中禁止手动点亮/取消（会和同步互相覆盖）
         if (isCaptureLive()) {
             sound.playClick();
             notifyCaptureConflict();

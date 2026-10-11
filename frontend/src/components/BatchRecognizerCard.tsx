@@ -100,13 +100,13 @@ interface BatchRecognizerCardProps {
   onSelectMap?: (mapNum: number) => void;
   /** 识别进行中状态上报，供父级锁定顶部 / 悬浮的地图切换。 */
   onScanningChange?: (scanning: boolean) => void;
-  /** 抓包同步：把抓包读到的试炼数据写进本机图鉴（按钮放在卡片标题行） */
+  /** 同步同步：把同步读到的试炼数据写进本机图鉴（按钮放在卡片标题行） */
   onSyncTrial?: () => void;
   syncTrialReady?: boolean;
-  /** 同步（原抓包）是否正在跑：用来把「还没开始」和「开始了但没检测到试炼」分开 */
+  /** 同步（原同步）是否正在跑：用来把「还没开始」和「开始了但没检测到试炼」分开 */
   syncLive?: boolean;
   syncTrialBusy?: boolean;
-  /** 抓包插件正在抓包：首页长期显示 capture live 提示 */
+  /** 同步插件正在同步：首页长期显示 capture live 提示 */
   captureLive?: boolean;
 }
 
@@ -1051,9 +1051,9 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                       </span>
                     </HintTooltip>
                 )}
-                {/* 抓包中：首页长期显示（与跟随识别底栏同款），让用户随时知道抓包在跑 */}
+                {/* 同步中：首页长期显示（与跟随识别底栏同款），让用户随时知道同步在跑 */}
                 {captureLive && (
-                  <HintTooltip content="抓包核心服务正在后台抓包，数据会实时同步进本机图鉴；关闭抓包插件或停止抓包后会消失">
+                  <HintTooltip content="网络数据同步核心正在后台同步，数据会实时同步进本机图鉴；关闭同步插件或停止同步后会消失">
                     <span className="text-[11px] px-2.5 py-0.5 rounded-full border font-black flex items-center gap-1.5 bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border-[#95D151] dark:border-emerald-800">
                       <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       capture live

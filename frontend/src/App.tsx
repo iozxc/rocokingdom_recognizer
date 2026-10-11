@@ -154,7 +154,7 @@ export default function App() {
     try { storage.setSetting('pinnedPlugins', next); } catch { /* ignore */ }
   }, []);
   const [syncing, setSyncing] = useState<boolean>(false);
-  // 抓包插件的草系试炼数据（静默同步用：用户界面不出现任何相关按钮/提示）
+  // 同步插件的草系试炼数据（静默同步用：用户界面不出现任何相关按钮/提示）
   const [view, setView] = useState<'assistant' | 'hub'>('assistant');
   const [trials, setTrials] = useState<Trial[]>([
     { key: 'grass', title: '草系徽章试炼', element: 'grass', collection_key: 'encounteredPets', dev_only: false },
@@ -239,7 +239,7 @@ export default function App() {
     pluginApi.list().then(setPlugins).catch(() => {});
   }, []);
 
-  // 声明了「同步」能力且已启用的插件（目前是抓包插件的草系试炼同步）。
+  // 声明了「同步」能力且已启用的插件（目前是同步插件的草系试炼同步）。
   const syncPlugin = useMemo(
       () => (IS_STATIC ? null : findSyncPlugin(plugins)),
       [plugins],
@@ -250,7 +250,7 @@ export default function App() {
   const { trial: hookTrial, running: trialRunning } = usePluginTrial();
   const trial = hookTrial;
 
-  // 抓包中 → 全局标记：其它页面（跟随识别 / 图鉴）据此拦截手动点亮/取消
+  // 同步中 → 全局标记：其它页面（跟随识别 / 图鉴）据此拦截手动点亮/取消
   useEffect(() => {
     setCaptureLive(Boolean(syncPlugin && trialRunning));
     return () => setCaptureLive(false);
@@ -650,7 +650,7 @@ export default function App() {
 
   // Toggle Encounter (from grid click / history / global search)
   const handleToggleEncounter = (mapId: string, filename: string) => {
-    // 抓包中禁止手动点亮/取消（会和同步互相覆盖）
+    // 同步中禁止手动点亮/取消（会和同步互相覆盖）
     if (isCaptureLive()) {
       triggerScanSyncEffect('info', undefined, CAPTURE_CONFLICT_MSG);
       return;
@@ -680,11 +680,11 @@ export default function App() {
   };
 
   /**
-   * 抓包数据 → 本机图鉴的「静默同步」。
+   * 同步数据 → 本机图鉴的「静默同步」。
    *
-   * 没有任何按钮、也没有提示：只要抓包在跑、试炼数据发生变化（重新打开精灵足迹、
+   * 没有任何按钮、也没有提示：只要同步在跑、试炼数据发生变化（重新打开精灵足迹、
    * 刷新三选一、推进节点……），就把三张图的足迹与当前三选一写进本机记录。
-   * 关闭插件 / 停止抓包后自动停止，界面与操作完全不受影响。
+   * 关闭插件 / 停止同步后自动停止，界面与操作完全不受影响。
    */
   const trialSig = useMemo(() => trialSignature(trial), [trial]);
   const lastSyncedSigRef = useRef<string>('');
@@ -708,7 +708,7 @@ export default function App() {
   }, [trialSig, trialRunning, syncPlugin, refreshRecords]);
 
   /**
-   * 「游戏画面识别」卡片标题行上的「同步」按钮：手动触发一次抓包同步。
+   * 「游戏画面识别」卡片标题行上的「同步」按钮：手动触发一次同步同步。
    * 平时数据变化会静默自动同步，这个按钮只是给用户一个"立刻同步 / 确认"的入口。
    */
   const handleTrialSync = useCallback(async () => {
@@ -716,7 +716,7 @@ export default function App() {
     try {
       const res = await runTrialSync('grass', mapsData, { manual: true });
       if (!res.summary) {
-        triggerScanSyncEffect('info', undefined, '没有可同步的抓包数据');
+        triggerScanSyncEffect('info', undefined, '没有可同步的同步数据');
         return;
       }
       refreshRecords();
@@ -724,7 +724,7 @@ export default function App() {
       triggerScanSyncEffect(
           'encounter',
           undefined,
-          `抓包同步完成：点亮 ${res.summary.marked} 只`,
+          `同步同步完成：点亮 ${res.summary.marked} 只`,
           res.summary.unmarked > 0 ? `并对齐取消了 ${res.summary.unmarked} 只` : undefined,
       );
     } catch (err) {

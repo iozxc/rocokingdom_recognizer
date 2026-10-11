@@ -39,7 +39,7 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
   const [checking, setChecking] = useState<boolean>(false);
   const [updateNote, setUpdateNote] = useState<string>('');
   const [updatingId, setUpdatingId] = useState<string>('');
-  // 插件「运行状态」：区分"插件已启用"和"插件真的在抓包"
+  // 插件「运行状态」：区分"插件已启用"和"插件真的在同步"
   const [runtimeState, setRuntimeState] = useState<Record<string, boolean>>({});
   // 插件市场：清单里的全部插件（含未安装）
   const [tab, setTab] = useState<'installed' | 'market'>('installed');
@@ -105,14 +105,14 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
     return () => window.clearTimeout(timer);
   }, [updateNote]);
 
-  // 回到插件列表（从插件页面返回）时立刻重查一次抓包状态
+  // 回到插件列表（从插件页面返回）时立刻重查一次同步状态
   useEffect(() => {
     if (!isOpen || active) return;
     void refreshRuntimeState(plugins);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, active]);
 
-  // 弹窗开着的时候每 3 秒刷一次抓包状态，保证"回去就能看到正在抓包"
+  // 弹窗开着的时候每 3 秒刷一次同步状态，保证"回去就能看到正在同步"
   useEffect(() => {
     if (!isOpen) return;
     const timer = window.setInterval(() => {
@@ -172,8 +172,8 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
   };
 
   const togglePlugin = async (plugin: PluginInfo) => {
-    // 声明了 require_admin 的插件（如抓包）：没管理员权限就先弹个提示，
-    // 「知道了」之后照常把它启用（没有管理员权限时抓包可能失败，但不拦着用户）
+    // 声明了 require_admin 的插件（如同步）：没管理员权限就先弹个提示，
+    // 「知道了」之后照常把它启用（没有管理员权限时同步可能失败，但不拦着用户）
     if (!plugin.enabled && plugin.requireAdmin) {
       const admin = await pluginApi.isAdmin();
       if (!admin) {
@@ -559,12 +559,12 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
                 <span className="text-sm font-black text-slate-800 dark:text-slate-100">需要管理员权限</span>
               </div>
               <div className="px-4 py-4 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                「<b className="text-slate-800 dark:text-slate-100">{elevateTarget.title}</b>」需要<b>管理员权限</b>才能正常抓包，现在这一份不是管理员权限。
+                「<b className="text-slate-800 dark:text-slate-100">{elevateTarget.title}</b>」需要<b>管理员权限</b>才能正常同步，现在这一份不是管理员权限。
                 <div className="mt-2 text-slate-500 dark:text-slate-400">
                   想拿到管理员权限：关掉主程序 → 右键主程序图标 → <b className="text-slate-700 dark:text-slate-200">以管理员身份运行</b>，再回来启用它。
                 </div>
                 <div className="mt-2 text-slate-500 dark:text-slate-400">
-                  也可以先继续启用：只是抓包可能因为权限不足失败。
+                  也可以先继续启用：只是同步可能因为权限不足失败。
                 </div>
               </div>
               <div className="flex items-center justify-end gap-2 px-4 py-3 bg-slate-50/70 dark:bg-slate-800/50 border-t border-slate-200/70 dark:border-slate-800">
@@ -630,7 +630,7 @@ interface PluginCardProps {
   onToggle: () => void;
   onRemove: () => void;
   onOpen: () => void;
-  /** 后端插件是否正在运行（如抓包中）；undefined = 未知/不适用 */
+  /** 后端插件是否正在运行（如同步中）；undefined = 未知/不适用 */
   captureRunning?: boolean;
   update?: PluginUpdateInfo;
   updating?: boolean;
@@ -651,7 +651,7 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-black text-slate-800 dark:text-slate-100">{plugin.title}</span>
           <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500">v{plugin.version}</span>
-          {/* 后端插件：紧跟版本号显示"功能是否真的在跑"（启用了插件 ≠ 正在抓包） */}
+          {/* 后端插件：紧跟版本号显示"功能是否真的在跑"（启用了插件 ≠ 正在同步） */}
           {plugin.enabled && plugin.hasBackend && (
             captureRunning ? (
               <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border border-[#95D151]/50 dark:border-emerald-700/50 flex items-center gap-1">
@@ -663,7 +663,7 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
                 className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
                 title="插件已启用 ≠ 正在同步：请打开插件页面点「开始同步」"
               >
-                未抓包
+                未同步
               </span>
             )
           )}

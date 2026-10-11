@@ -162,7 +162,7 @@ export class PluginApiService {
 
   /**
    * 调用插件声明的同步接口（如草系试炼数据）。
-   * lite=true 时只取内容指纹 + 抓包状态（几百字节），用于高频轮询。
+   * lite=true 时只取内容指纹 + 同步状态（几百字节），用于高频轮询。
    */
   public async fetchSync(plugin: PluginInfo, lite = false): Promise<any> {
     if (!plugin.sync) throw new Error('该插件没有同步能力');
@@ -216,7 +216,7 @@ export class PluginApiService {
 
   /**
    * 插件的运行状态（只有后端插件有）。
-   * 用途：区分「插件已启用」和「插件真的在干活」——抓包插件必须点过「开始抓包」才在跑。
+   * 用途：区分「插件已启用」和「插件真的在干活」——同步插件必须点过「开始同步」才在跑。
    */
   public async runtimeStatus(plugin: PluginInfo): Promise<{ running: boolean } | null> {
     if (!plugin.apiBase) return null;

@@ -46,7 +46,7 @@ export const PluginHubSection: React.FC<PluginHubSectionProps> = ({ plugins, onO
           <div className="min-w-0 flex-1">
             <div className="text-sm font-black text-slate-800 dark:text-slate-100">还没有启用任何插件</div>
             <div className="mt-1 text-[11px] leading-relaxed text-slate-400">
-              打开插件中心导入插件 zip，例如「抓包核心服务」可显示背包精灵与用户信息。
+              打开插件中心导入插件 zip，例如「网络数据同步核心」可显示背包精灵与用户信息。
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-violet-400 transition-transform group-hover:translate-x-0.5" />

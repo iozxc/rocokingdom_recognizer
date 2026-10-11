@@ -1,5 +1,5 @@
 /**
- * 抓包插件「同步」能力：把游戏里的草系试炼数据接进本机图鉴。
+ * 同步插件「同步」能力：把游戏里的草系试炼数据接进本机图鉴。
  *
  * 数据契约（插件 manifest 里声明 sync.endpoint，返回结构由本文件解析）：
  * {
@@ -20,7 +20,7 @@ import { formatPetName } from '../utils/petHelper';
 import { PetItem } from '../types';
 
 /**
- * 三选一界面的一张卡（来自抓包 + 游戏配置表 GRASS_TRIAL_EVENT_CONF）。
+ * 三选一界面的一张卡（来自同步 + 游戏配置表 GRASS_TRIAL_EVENT_CONF）。
  * book/form 是图鉴编号与形态序号，与项目图标文件名 `<book>_<seq>_<名字>.png` 完全对应。
  */
 export interface TrialSelectionSlot {
@@ -39,7 +39,7 @@ export interface TrialSelectionSlot {
   battle?: boolean;
 }
 
-/** 抓包给出的「已点亮精灵」明细：图鉴号/形态序号来自游戏 PET_HANDBOOK。 */
+/** 同步给出的「已点亮精灵」明细：图鉴号/形态序号来自游戏 PET_HANDBOOK。 */
 export interface TrialPetRef {
   id?: number;
   name: string;
@@ -84,7 +84,7 @@ export interface TrialPayload {
   inTrial?: boolean;
   active?: boolean;
   updatedAt?: number | null;
-  /** 插件自身状态（抓包是否在跑），用于底栏 capture live 指示 */
+  /** 插件自身状态（同步是否在跑），用于底栏 capture live 指示 */
   status?: { running?: boolean; mode?: string } | null;
 }
 
@@ -115,7 +115,7 @@ export interface ResolvedRef {
 }
 
 /**
- * 把抓包给的一条精灵引用解析成本机图鉴条目。
+ * 把同步给的一条精灵引用解析成本机图鉴条目。
  *
  * 依次尝试：
  *  1. 图鉴号 + 形态序号（PET_HANDBOOK 权威编号）—— 精确；
@@ -169,8 +169,8 @@ export async function fetchTrial(plugin: PluginInfo): Promise<TrialPayload | nul
 }
 
 /**
- * 轻量轮询：只拿一个内容指纹（revision）和抓包状态。
- * 抓包数据没变就不拉完整 payload，避免每次轮询都解析几十 KB 造成界面卡顿。
+ * 轻量轮询：只拿一个内容指纹（revision）和同步状态。
+ * 同步数据没变就不拉完整 payload，避免每次轮询都解析几十 KB 造成界面卡顿。
  */
 export async function fetchTrialLite(
   plugin: PluginInfo,
@@ -196,13 +196,13 @@ export function buildSyncPlan(
   const plans: MapPlan[] = [];
 
   for (const rec of trial.maps || []) {
-    // 优先用抓包给的明细（含游戏 PET_HANDBOOK 的 图鉴号/形态序号）；老数据只有名字时退回名字匹配。
+    // 优先用同步给的明细（含游戏 PET_HANDBOOK 的 图鉴号/形态序号）；老数据只有名字时退回名字匹配。
     const refs: TrialPetRef[] = rec.discovered && rec.discovered.length
       ? rec.discovered
       : (rec.discoveredNames || []).filter(Boolean).map((n) => ({ name: n, book: 0, seq: 0 }));
     if (!refs.length) continue;
 
-    // 按「该图精灵总数」把抓包的日志对应到本机地图
+    // 按「该图精灵总数」把同步的日志对应到本机地图
     let mapId = mapIds.find((id) => !used.has(id) && (mapsData[id].items?.length || 0) === rec.total);
     if (!mapId) mapId = mapIds.find((id) => !used.has(id) && (mapsData[id].items?.length || 0) >= rec.total);
     if (!mapId) continue;
@@ -265,7 +265,7 @@ export interface SyncSummary {
  * 把同步计划落库。
  *
  * @param options.manual 手动点「同步」时为 true：
- *   忽略「用户手动取消过点亮」的抑制，按抓包数据强制重新点亮（并解除抑制），
+ *   忽略「用户手动取消过点亮」的抑制，按同步数据强制重新点亮（并解除抑制），
  *   这样手滑取消的精灵能一键恢复；自动同步仍尊重用户的手动取消。
  */
 export function applySyncPlan(plans: MapPlan[], options: { manual?: boolean } = {}): SyncSummary {
@@ -282,7 +282,7 @@ export function applySyncPlan(plans: MapPlan[], options: { manual?: boolean } = 
 
   plans.forEach((plan) => {
     // 自动同步：用户手动取消过点亮的条目不再自动点亮（避免"取消了又被点亮"）；
-    // 手动同步：忽略抑制，按抓包数据强制恢复。
+    // 手动同步：忽略抑制，按同步数据强制恢复。
     const toMark = plan.mark.filter((pet) => {
       if (storage.isEncountered(plan.mapId, pet.name)) return false;
       if (!manual && storage.isSuppressed(plan.mapId, pet.name)) return false;
@@ -297,7 +297,7 @@ export function applySyncPlan(plans: MapPlan[], options: { manual?: boolean } = 
           storage.isEncountered(plan.mapId, pet.name) &&
           !storage.isManualMark(plan.mapId, pet.name),
     );
-    toMark.forEach((pet) => markItems.push({ mapId: plan.mapId, filename: pet.name, note: '抓包同步' }));
+    toMark.forEach((pet) => markItems.push({ mapId: plan.mapId, filename: pet.name, note: '同步同步' }));
     toUnmark.forEach((pet) => unmarkItems.push({ mapId: plan.mapId, filename: pet.name }));
 
     summary.plans.push({
@@ -356,7 +356,7 @@ export function usePluginTrial(): { plugin: PluginInfo | null; trial: TrialPaylo
       if (alive) pushTrial(data);
     };
 
-    // 拖动跟随识别窗口期间先不 setState —— 抓包数据每来一条就整体重渲染，
+    // 拖动跟随识别窗口期间先不 setState —— 同步数据每来一条就整体重渲染，
     // 主线程被占满，窗口就拖不动（表现为「很卡、不跟手」）。
     // 这里只留最新一条，松手后补上。
     const pendingRef: { trial?: TrialPayload; running?: boolean } = {};
@@ -479,7 +479,7 @@ export interface SelectionResolution {
 /**
  * 把「三选一界面」的 3 张卡解析成本机图鉴条目。
  *
- * 地图判定：抓包给出 `challenge.log_id`（100/101/102）→ 对应 trial.maps 里同 logConfId 的
+ * 地图判定：同步给出 `challenge.log_id`（100/101/102）→ 对应 trial.maps 里同 logConfId 的
  * total → 本机条目数相同的那张图。卡片用 book(图鉴号) + form(形态序号) 精确匹配，
  * 因此不会像纯名字匹配那样在「神圣狮鹫_迎击 / _腾山」这类多形态上产生歧义。
  */
@@ -681,7 +681,7 @@ export interface CaptureSlot {
   /** 卡片位次（1/2/3） */
   slot: number;
   eventId: number;
-  /** 抓包解析出的游戏内名字（如 旋叶虫 / 远行商人） */
+  /** 同步解析出的游戏内名字（如 旋叶虫 / 远行商人） */
   name: string;
   /** 匹配到的本机图鉴条目；非战斗卡（商人 / 研究员等）为 undefined */
   item?: PetItem;
