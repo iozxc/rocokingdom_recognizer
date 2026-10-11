@@ -103,6 +103,8 @@ interface BatchRecognizerCardProps {
   /** 抓包同步：把抓包读到的试炼数据写进本机图鉴（按钮放在卡片标题行） */
   onSyncTrial?: () => void;
   syncTrialReady?: boolean;
+  /** 同步（原抓包）是否正在跑：用来把「还没开始」和「开始了但没检测到试炼」分开 */
+  syncLive?: boolean;
   syncTrialBusy?: boolean;
   /** 抓包插件正在抓包：首页长期显示 capture live 提示 */
   captureLive?: boolean;
@@ -141,6 +143,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                                                                           onScanningChange,
                                                                           onSyncTrial,
                                                                           syncTrialReady = false,
+                                                                          syncLive = false,
                                                                           syncTrialBusy = false,
                                                                           captureLive = false,
                                                                         }) => {
@@ -1077,7 +1080,7 @@ export const BatchRecognizerCard: React.FC<BatchRecognizerCardProps> = ({
                         }`}
                     >
                       <RefreshCw className={`w-3 h-3 ${syncTrialBusy ? 'animate-spin' : ''}`} />
-                      {syncTrialReady ? '同步' : '待抓包数据'}
+                      {syncTrialReady ? '同步' : (syncLive ? '暂无可同步的试炼' : '待同步数据')}
                       {!syncTrialReady && !syncTrialBusy && (
                         <span
                             className="ml-0.5 w-3.5 h-3.5 rounded-full bg-amber-400 text-white text-[9px] font-black flex items-center justify-center shrink-0"

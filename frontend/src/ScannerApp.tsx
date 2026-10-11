@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse, FirePokedexEntry, ThemeMode } from './types';
 import { IS_STATIC } from './services/staticMode';
-import { createDragGate, installWindowDragWatcher } from './services/windowDrag';
+import { createDragGate, installWindowDragWatcher, isWindowDragging, onWindowDragChange } from './services/windowDrag';
 import { inferDeviceLine } from './utils/inferBackendText';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA, createSvgPetAvatar } from './data/mockPets';
 import { FIRE_MAP_CONFIGS } from './data/trials';
@@ -838,6 +838,10 @@ export const ScannerApp: React.FC = () => {
     const pyApi = (window as any).pywebview?.api;
     if (!pyApi || typeof pyApi.resize_scanner_window !== 'function') return;
 
+    // 关键：拖动窗口时**千万别**去 resize —— pywebview 的 resize 会和系统的原生拖动打架，
+    // 表现就是窗口慢慢悠悠地追鼠标、卡顿。松手后补一次（见下面的 onWindowDragChange）。
+    if (isWindowDragging()) return;
+
     const contentEl = document.getElementById('scanner-scroll-content');
     const titlebarEl = document.getElementById('scanner-titlebar');
     const statusbarEl = document.getElementById('scanner-statusbar');
@@ -898,6 +902,26 @@ export const ScannerApp: React.FC = () => {
     panelOpenRef.current = isHistoryOpen || isGalleryOpen || isPluginPanelOpen;
     throttledResize();
   }, [isHistoryOpen, isGalleryOpen, isPluginPanelOpen, throttledResize]);
+
+  // 内容自己变高变矮时也要跟着调窗口高度。
+  // 之前只在「打开/关闭浮层」和少数几个状态变化时主动调一次，缺少对内容的监听，
+  // 所以图鉴点亮、列表条数变化这些不会立刻反映到窗口高度上（要关闭/操作一下才刷新）。
+  useEffect(() => {
+    const el = document.getElementById('scanner-scroll-content');
+    if (!el) return;
+    let obChild: ResizeObserver | null = null;
+    const observeChildren = () => {
+      if (!obChild) return;
+      Array.from(el.children).forEach((c) => obChild.observe(c));
+    };
+    const mo = new MutationObserver(() => { observeChildren(); throttledResize(); });
+    mo.observe(el, { childList: true, subtree: true, characterData: true });
+    obChild = new ResizeObserver(() => throttledResize());
+    obChild.observe(el);
+    observeChildren();
+    const offDrag = onWindowDragChange((d) => { if (!d) throttledResize(); });
+    return () => { mo.disconnect(); obChild?.disconnect(); offDrag(); };
+  }, [throttledResize]);
 
   // 首次加载：等 pywebview 就绪 + 内容布局稳定后再同步一次，
   // 避免在窗口刚创建/WebView2 未完全就绪时反复调整尺寸触发原生断点。

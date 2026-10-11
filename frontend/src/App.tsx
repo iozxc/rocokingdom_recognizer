@@ -973,6 +973,7 @@ export default function App() {
                         // 告诉用户去游戏里打开一次精灵足迹。没插件则完全不显示。
                         onSyncTrial={syncPlugin ? handleTrialSync : undefined}
                         syncTrialReady={Boolean(trial?.available)}
+                        syncLive={trialRunning}
                         syncTrialBusy={syncing}
                         captureLive={Boolean(syncPlugin && trialRunning)}
                     />

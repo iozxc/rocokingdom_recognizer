@@ -656,12 +656,12 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
             captureRunning ? (
               <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border border-[#95D151]/50 dark:border-emerald-700/50 flex items-center gap-1">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                抓包中
+                同步中
               </span>
             ) : (
               <span
                 className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
-                title="插件已启用 ≠ 正在抓包：请打开插件页面点「开始抓包」"
+                title="插件已启用 ≠ 正在同步：请打开插件页面点「开始同步」"
               >
                 未抓包
               </span>

@@ -11,6 +11,7 @@
  * 主程序只依赖这份「通用同步载荷」，不关心是哪个插件提供的。
  */
 import { useEffect, useState } from 'react';
+import { isWindowDragging, onWindowDragChange } from './windowDrag';
 import { pluginApi, PluginInfo } from './pluginApi';
 import { api } from './api';
 import { IS_STATIC } from './staticMode';
@@ -352,8 +353,27 @@ export function usePluginTrial(): { plugin: PluginInfo | null; trial: TrialPaylo
       if (rev === lastRev) return;
       lastRev = rev;
       const data = await fetchTrial(current);
-      if (alive) setTrial(data);
+      if (alive) pushTrial(data);
     };
+
+    // 拖动跟随识别窗口期间先不 setState —— 抓包数据每来一条就整体重渲染，
+    // 主线程被占满，窗口就拖不动（表现为「很卡、不跟手」）。
+    // 这里只留最新一条，松手后补上。
+    const pendingRef: { trial?: TrialPayload; running?: boolean } = {};
+    const pushTrial = (v: TrialPayload) => {
+      if (isWindowDragging()) { pendingRef.trial = v; return; }
+      setTrial(v);
+    };
+    const pushRunning = (v: boolean) => {
+      if (isWindowDragging()) { pendingRef.running = v; return; }
+      setRunning(v);
+    };
+    const flushPending = () => {
+      const p = pendingRef;
+      if (p.trial !== undefined) { setTrial(p.trial); p.trial = undefined; }
+      if (p.running !== undefined) { setRunning(p.running); p.running = undefined; }
+    };
+    const offDrag = onWindowDragChange((d) => { if (!d) flushPending(); });
 
     const connect = (found: PluginInfo) => {
       try {
@@ -371,10 +391,10 @@ export function usePluginTrial(): { plugin: PluginInfo | null; trial: TrialPaylo
           if (msg.type === 'trial' && msg.data) {
             lastRev = msg.data.revision ?? null;
             if (!alive) return;
-            setTrial(msg.data as TrialPayload);
-            setRunning(Boolean(msg.status?.running ?? msg.data?.status?.running));
+            pushTrial(msg.data as TrialPayload);
+            pushRunning(Boolean(msg.status?.running ?? msg.data?.status?.running));
           } else if (msg.type === 'status') {
-            if (alive) setRunning(Boolean(msg.data?.running));
+            if (alive) pushRunning(Boolean(msg.data?.running));
           }
         };
         es.onerror = () => {
@@ -400,7 +420,7 @@ export function usePluginTrial(): { plugin: PluginInfo | null; trial: TrialPaylo
       setPlugin(found);
       current = found;
       if (!found) {
-        setTrial(null);
+        pushTrial(null);
         setRunning(false);
         if (es) {
           es.close();
