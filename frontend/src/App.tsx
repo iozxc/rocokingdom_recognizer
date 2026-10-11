@@ -35,7 +35,12 @@ import { resolveTrialMaps } from './data/trials';
 import { api } from './services/api';
 import { pluginApi, PluginInfo } from './services/pluginApi';
 import { findSyncPlugin, runTrialSync, trialSignature, usePluginTrial } from './services/pluginSync';
-import { CAPTURE_CONFLICT_MSG, isCaptureLive, setCaptureLive } from './services/captureMode';
+import {
+  CAPTURE_CONFLICT_MSG,
+  isCaptureLive,
+  setCaptureLive,
+  subscribeCaptureConflict,
+} from './services/captureMode';
 import { storage } from './services/storage';
 import { fireStorage } from './services/fireStorage';
 import { getFireTrialPetsCached, invalidateFireTrialData } from './services/fireTrialData';
@@ -331,6 +336,16 @@ export default function App() {
         }, 2200);
       },
       []
+  );
+
+  /**
+   * 同步中「重置记录 / 点亮图鉴」这类手动操作会被拦下（避免和同步互相覆盖）。
+   * 拦截提示统一走 captureMode 的通知总线：跟随识别窗口自己订阅，主窗口也必须订阅，
+   * 否则在首页点「重置记录」会表现为"点了没反应"。
+   */
+  useEffect(
+      () => subscribeCaptureConflict(() => triggerScanSyncEffect('info', undefined, CAPTURE_CONFLICT_MSG)),
+      [triggerScanSyncEffect]
   );
 
   // Load encounter records from local/backend storage

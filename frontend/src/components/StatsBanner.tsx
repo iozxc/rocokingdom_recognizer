@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, RotateCcw, MapPin, ArrowUpCircle } from 'lucide-react';
-import { isCaptureLive } from '../services/captureMode';
+import { isCaptureLive, notifyCaptureConflict } from '../services/captureMode';
 import { MapConfig, PetItem, AdvancedFilterState, SearchFilterPosition } from '../types';
 import { sound } from '../services/sound';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -124,7 +124,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
                                     id="reset-map-encounters-btn"
                                     onClick={() => {
                                         sound.playClick();
-                                        if (!isCaptureLive()) setIsConfirmOpen(true);
+                                        if (isCaptureLive()) { notifyCaptureConflict(); } else { setIsConfirmOpen(true); }
                                     }}
                                     title={isCaptureLive() ? '同步中：请先关闭同步再重置记录' : '清空当前关卡遇见记录'}
                                     className="text-[10px] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-1 cursor-pointer hover:underline"

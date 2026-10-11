@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useId, useCallback } from 'react';
 import { Sparkles, Check, Info, Bug, RotateCcw, MapPin, ArrowUpCircle } from 'lucide-react';
-import { isCaptureLive } from '../services/captureMode';
+import { isCaptureLive, notifyCaptureConflict } from '../services/captureMode';
 import { MapConfig, PetItem, EncounterRecord, AdvancedFilterState, SearchFilterPosition, StatsLayoutMode } from '../types';
 import { sound } from '../services/sound';
 import { IS_STATIC } from '../services/staticMode';
@@ -369,7 +369,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                         id="reset-map-encounters-btn"
                         onClick={() => {
                           sound.playClick();
-                          if (!isCaptureLive()) setIsResetConfirmOpen(true);
+                          if (isCaptureLive()) { notifyCaptureConflict(); } else { setIsResetConfirmOpen(true); }
                         }}
                         title={isCaptureLive() ? '同步中：请先关闭同步再重置记录' : '清空当前关卡遇见记录'}
                         className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-0.5 cursor-pointer hover:underline"
@@ -485,7 +485,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
                       id="reset-map-encounters-btn-sm"
                       onClick={() => {
                         sound.playClick();
-                        if (!isCaptureLive()) setIsResetConfirmOpen(true);
+                        if (isCaptureLive()) { notifyCaptureConflict(); } else { setIsResetConfirmOpen(true); }
                       }}
                       title={isCaptureLive() ? '同步中：请先关闭同步再重置记录' : '清空当前关卡遇见记录'}
                       className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors flex items-center gap-0.5 cursor-pointer hover:underline shrink-0"

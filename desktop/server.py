@@ -18,12 +18,13 @@ def get_waitress_threads() -> int:
     """
     桌面端自适应计算 waitress 线程数。
     仅限本机访问的本地客户端，IO 密集场景：
-    下限 2，上限 6（防止高核数机器开太多线程，桌面程序不需要）。
+    下限 8，上限 16（防止高核数机器开太多线程，桌面程序不需要）。
     """
     cpu = multiprocessing.cpu_count() or 4
-    # 下限提到 4：插件与跟随识别窗口会各占 1 条 SSE 长连接（插件实时推送），
-    # 线程太少会被长连接占满，普通接口就会排队。
-    threads = max(4, min(cpu * 2, 8))
+    # 每个窗口都会占 1 条 SSE 长连接（插件实时推送），主窗口 + 跟随识别 + 插件页
+    # 还有各自的轮询。线程太少时普通接口会排队甚至长时间不返回（表现就是插件页
+    # 「一直在加载网卡 / 环境检测空白」，其实请求根本没被处理）。
+    threads = max(4, min(cpu, 8))
     logger.debug(f"waitress线程计算: CPU逻辑核数={cpu}, 最终线程数={threads}")
     return threads
 
