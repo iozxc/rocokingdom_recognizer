@@ -416,6 +416,11 @@ class PluginManager:
             public["compatibleReason"] = entry_why
             public["requiredRange"] = describe_range(entry_min, entry_max)
 
+            # 版本号 < 1.0.0 = 测试阶段：只允许开发模式下载，普通人只能手动导入
+            blocked = is_download_blocked(public["version"])
+            if blocked:
+                continue
+
             # 市场里也要能看到已安装的（标成已安装/可更新）
             public["installed"] = current is not None
             if current is not None:
@@ -457,6 +462,9 @@ class PluginManager:
         if not info:
             raise PluginError("没有可用的插件更新")
         url = str(info.get("url") or "").strip()
+        # 测试阶段（< 1.0.0）只允许开发模式下载；人工导入不受这条限制
+        if is_download_blocked(str(info.get("version") or "")):
+            raise PluginError(TEST_STAGE_HINT)
         # 先按清单声明的版本范围把关（放在下载之前，省得白下几十 KB）
         ok, why = is_compatible(
             config.APP_VERSION,
@@ -691,6 +699,38 @@ def _resolve_storage() -> tuple[Path, Path]:
 
 plugin_manager = PluginManager()
 
+
+
+def _version_tuple(text: str) -> tuple[int, ...]:
+    """把 "0.31.0" 解析成 (0, 31, 0)；解析不出来的部分直接停。"""
+    parts: list[int] = []
+    for chunk in re.split(r"[.\-+]", str(text or "").strip()):
+        m = re.match(r"^(\d+)", chunk)
+        if not m:
+            break
+        parts.append(int(m.group(1)))
+    return tuple(parts) or (0,)
+
+
+def is_test_stage(version: str) -> bool:
+    """版本号 < 1.0.0 一律视为**测试阶段**。"""
+    v = _version_tuple(version)
+    return v < (1, 0, 0)
+
+
+def is_download_blocked(version: str) -> bool:
+    """测试阶段的插件，只允许**开发模式**（源码运行）下载；打包发行版一律拦住。
+
+    注意：这条只挡「插件市场的一键下载 / 更新」，
+    人工导入 zip 或把文件夹丢进 extensions/ 不受影响。
+    """
+    return is_test_stage(version) and not config.is_dev_environment()
+
+
+TEST_STAGE_HINT = (
+    "这个插件还在测试阶段（版本号 < 1.0.0），暂时不开放下载。"
+    "拿测试包请手动导入 zip（插件管理 → 导入 zip），或把插件文件夹放进 extensions/。"
+)
 
 
 def _version_gt(candidate: str, current: str) -> bool:

@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { PetItem, EncounterRecord, MapConfig, FollowRecognizeApiResponse, FirePokedexEntry, ThemeMode } from './types';
 import { IS_STATIC } from './services/staticMode';
+import { createDragGate, installWindowDragWatcher } from './services/windowDrag';
 import { inferDeviceLine } from './utils/inferBackendText';
 import { MAP_CONFIGS, FALLBACK_MAPS_DATA, createSvgPetAvatar } from './data/mockPets';
 import { FIRE_MAP_CONFIGS } from './data/trials';
@@ -1264,9 +1265,12 @@ export const ScannerApp: React.FC = () => {
   // 注册后端推送入口：自动状态 + 自动点亮事件（仅桌面端）
   useEffect(() => {
     if (IS_STATIC) return;
+    // 拖动窗口期间先不应用高频更新（只留最新一条），松手后补一次 —— 否则抓包数据
+    // 涌进来时主线程被 setState 占满，窗口拖起来会「飘、不跟手」
+    installWindowDragWatcher();
     const w = window as any;
-    w.__rocoAutoStatus = (s: AutoStatus) => setAutoStatus(s);
-    w.__rocoAutoEncounter = (p: AutoEncounterPayload) => autoEncounterRef.current(p);
+    w.__rocoAutoStatus = createDragGate<AutoStatus>((s) => setAutoStatus(s));
+    w.__rocoAutoEncounter = createDragGate<AutoEncounterPayload>((p) => autoEncounterRef.current(p));
     return () => {
       try {
         if (w.__rocoAutoStatus) delete w.__rocoAutoStatus;

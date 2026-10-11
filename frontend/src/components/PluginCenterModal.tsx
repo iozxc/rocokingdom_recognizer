@@ -53,6 +53,21 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
   const publish = useCallback((items: PluginInfo[]) => {
     setPlugins(items);
     onPluginsChanged?.(items);
+    // 市场清单里的「已安装 / 可更新」也跟着走一遍。
+    // 否则删掉插件后切到「插件市场」，那一条还显示「已安装」，要退出重进才对。
+    setCatalog((prev) => prev.map((c) => {
+      const hit = items.find((p) => p.id === c.id);
+      if (!hit) {
+        return { ...c, installed: false, installedVersion: '', enabled: false, updateAvailable: false };
+      }
+      return {
+        ...c,
+        installed: true,
+        installedVersion: hit.version,
+        enabled: Boolean(hit.enabled),
+        updateAvailable: String(c.version || '') !== String(hit.version || ''),
+      };
+    }));
   }, [onPluginsChanged]);
 
   /** 拉一次各后端插件的运行状态（失败按未运行显示） */
@@ -157,7 +172,8 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
   };
 
   const togglePlugin = async (plugin: PluginInfo) => {
-    // 声明了 require_admin 的插件（如抓包）：没管理员权限就先申请提权
+    // 声明了 require_admin 的插件（如抓包）：没管理员权限就先弹个提示，
+    // 「知道了」之后照常把它启用（没有管理员权限时抓包可能失败，但不拦着用户）
     if (!plugin.enabled && plugin.requireAdmin) {
       const admin = await pluginApi.isAdmin();
       if (!admin) {
@@ -166,6 +182,11 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
         return;
       }
     }
+    await doToggle(plugin);
+  };
+
+  /** 真正执行启用 / 停用 */
+  const doToggle = async (plugin: PluginInfo) => {
     setBusyId(plugin.id);
     setError('');
     try {
@@ -247,20 +268,6 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
   const requestRemove = (plugin: PluginInfo) => {
     sound.playClick();
     setConfirmTarget(plugin);
-  };
-
-  /** 申请管理员权限：重启主程序（确认 UAC 后当前进程会退出并拉起新实例） */
-  const doElevate = async () => {
-    const target = elevateTarget;
-    setElevateTarget(null);
-    if (!target) return;
-    setError('');
-    try {
-      await pluginApi.restartAsAdmin();
-      setUpdateNote('已申请管理员权限，主程序正在以管理员身份重启…重启后插件可直接启用');
-    } catch (err) {
-      setError((err as Error).message || '申请管理员权限失败');
-    }
   };
 
   const doRemove = async () => {
@@ -549,28 +556,29 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
                 <span className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-500/20 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
                   <ShieldAlert className="w-4 h-4" />
                 </span>
-                <span className="text-sm font-black text-slate-800 dark:text-slate-100">申请管理员权限</span>
+                <span className="text-sm font-black text-slate-800 dark:text-slate-100">需要管理员权限</span>
               </div>
               <div className="px-4 py-4 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                「<b className="text-slate-800 dark:text-slate-100">{elevateTarget.title}</b>」需要<b>管理员权限</b>才能正常抓包。
+                「<b className="text-slate-800 dark:text-slate-100">{elevateTarget.title}</b>」需要<b>管理员权限</b>才能正常抓包，现在这一份不是管理员权限。
                 <div className="mt-2 text-slate-500 dark:text-slate-400">
-                  现在以管理员身份重启主程序？（会弹出系统 UAC 授权框；选「否」也可以继续启用，只是抓包可能因权限不足失败）
+                  想拿到管理员权限：关掉主程序 → 右键主程序图标 → <b className="text-slate-700 dark:text-slate-200">以管理员身份运行</b>，再回来启用它。
+                </div>
+                <div className="mt-2 text-slate-500 dark:text-slate-400">
+                  也可以先继续启用：只是抓包可能因为权限不足失败。
                 </div>
               </div>
               <div className="flex items-center justify-end gap-2 px-4 py-3 bg-slate-50/70 dark:bg-slate-800/50 border-t border-slate-200/70 dark:border-slate-800">
                 <button
                   type="button"
-                  onClick={() => { sound.playClick(); setElevateTarget(null); }}
-                  className="h-8 px-3.5 rounded-xl bg-white dark:bg-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:ring-slate-300 active:scale-95 transition cursor-pointer"
-                >
-                  暂不重启
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { sound.playClick(); void doElevate(); }}
+                  onClick={() => {
+                    sound.playClick();
+                    const target = elevateTarget;
+                    setElevateTarget(null);
+                    if (target) void doToggle(target);
+                  }}
                   className="h-8 px-3.5 rounded-xl bg-gradient-to-b from-[#7ABCF4] to-[#5DA8E8] text-white text-xs font-black shadow-xs active:scale-95 transition cursor-pointer"
                 >
-                  以管理员身份重启
+                  知道了，继续启用
                 </button>
               </div>
             </div>
