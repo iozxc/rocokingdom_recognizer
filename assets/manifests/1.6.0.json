@@ -2,8 +2,8 @@
   "version": "1.6.0",
   "files": {
     "RocoKingdomRecognizer.exe": {
-      "md5": "ce0ff8a51796aa97ec3b41ad85fc7266",
-      "size": 19755485
+      "md5": "78021a65a9f2f6eda53d4886e9692937",
+      "size": 19755468
     },
     "libs/api-ms-win-core-console-l1-1-0.dll": {
       "md5": "6758f8aee3488dbe68c9b474d11b7c09",
@@ -166,7 +166,7 @@
       "size": 22000
     },
     "libs/base_library.zip": {
-      "md5": "08f47ce21099dd8a615359493ac4de8d",
+      "md5": "485b9a20e1fda5470b7207777c96bb82",
       "size": 1333490
     },
     "libs/ffi.dll": {
@@ -174,7 +174,7 @@
       "size": 41288
     },
     "libs/file_manifest.json": {
-      "md5": "18aa6b60aabaa22ff223bb8a0c8911c2",
+      "md5": "6373b9e39f303b7b0e558926d12606a3",
       "size": 235478
     },
     "libs/LIBBZ2.dll": {
@@ -3154,7 +3154,7 @@
       "size": 166720
     },
     "libs/static/index.html": {
-      "md5": "c310b8395694abd8b95daac9a560b7c2",
+      "md5": "8e04a361fb3f192082927f3eb57afad5",
       "size": 927
     },
     "libs/static/qrcode.png": {
@@ -3165,9 +3165,9 @@
       "md5": "2e4a2a0d8a9b9422e20623449db83712",
       "size": 376750
     },
-    "libs/static/assets/index-Dl9-zbpY.js": {
-      "md5": "e819993d80e594d361af9e1ff0616aa0",
-      "size": 1102766
+    "libs/static/assets/index-B98rxLTm.js": {
+      "md5": "06daf680defb44330ab5f8d19d5451ed",
+      "size": 1104142
     },
     "libs/static/assets/index-rpXmO5kw.css": {
       "md5": "c7e8088fc99932547c7521fc5a93739a",

@@ -4,24 +4,24 @@
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.6.0 更新公告】\n\n【功能新增：PC】\n1、新增插件管理\n2、新增抓包插件\n3、根据抓包内容自动填充所有图鉴信息\n4、根据抓包内容自动刷新跟随识别窗口\n5、根据抓包内容自动点亮对战精灵\n\n【优化&修复】\n6、修复部分电脑白屏问题\n7、修复网页版人工选择缺失图片的问题 & 修复取消按钮无效的问题",
+  "update_log": "【v1.6.0 更新公告】\n\n【功能新增：PC】\n1、新增插件管理\n2、新增网络数据同步插件\n3、根据同步数据内容自动填充所有图鉴信息\n4、根据同步数据内容自动刷新跟随识别窗口\n5、根据同步数据内容自动点亮对战精灵\n\n【优化&修复】\n6、修复部分电脑白屏问题\n7、修复网页版人工选择缺失图片的问题 & 修复取消按钮无效的问题\n",
   "auto_update": {
     "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "3eb4a3b17335bfcce61ffdd1d9b89abf",
+        "md5": "71a312b8be88dd19ba3ac1c992055c94",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "1e5a1a937e96b95b813381efdf59bb9d",
+        "md5": "481a239ddc5738cb49dc016e0c9e4028",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "482a56a30ab54657f296ae157fe9fd69",
-        "size": 70373311
+        "md5": "ea618b03796f5fa1912e8e0f0ec7f092",
+        "size": 70364811
       }
     ]
   },
@@ -29,64 +29,64 @@
     {
       "base_version": "1.5.3",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.5.3.7z",
-      "md5": "33157eb6093015f7167b7e84d1d74385",
-      "size": 20054940,
+      "md5": "204a9e044237eff7ab0008d9b6c7242b",
+      "size": 20055120,
       "changed": 7,
       "removed": 2
     },
     {
       "base_version": "1.5.2",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.5.2.7z",
-      "md5": "f3bcce0ef5e3c9076c85769c2cf5004e",
-      "size": 20054871,
+      "md5": "4f887b938f09b832c60ff7632b94c28e",
+      "size": 20054996,
       "changed": 7,
       "removed": 2
     },
     {
       "base_version": "1.5.1",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.5.1.7z",
-      "md5": "ab9e98c388e6b08bfa50b7bee4a37dcf",
-      "size": 28762943,
+      "md5": "64931333cb559367620a67fca3555368",
+      "size": 28787688,
       "changed": 9,
       "removed": 2
     },
     {
       "base_version": "1.5.0",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.5.0.7z",
-      "md5": "2901ac56beaff65671a8edf2d79a84b7",
-      "size": 35318388,
+      "md5": "fde3e2b8a9775561b8cfa095fc595307",
+      "size": 35343475,
       "changed": 23,
       "removed": 3
     },
     {
       "base_version": "1.4.10",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.4.10.7z",
-      "md5": "df1028c7aba2c0b627f1670a6746792f",
-      "size": 35318303,
+      "md5": "3cd0ecc77d150495cba8c0f7921c7a0c",
+      "size": 35343348,
       "changed": 23,
       "removed": 3
     },
     {
       "base_version": "1.4.9",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.4.9.7z",
-      "md5": "3e6f37ee6312f81b7bf2a9e32ff7665d",
-      "size": 35318260,
+      "md5": "cc41f0da94d486409b5062492ba85b12",
+      "size": 35343245,
       "changed": 23,
       "removed": 4
     },
     {
       "base_version": "1.4.8",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.4.8.7z",
-      "md5": "9fb409372b1f7ab3244e8c141e76aec3",
-      "size": 35318254,
+      "md5": "58c505bfab75d2c95e1cdfab48cec07b",
+      "size": 35343245,
       "changed": 23,
       "removed": 4
     },
     {
       "base_version": "1.4.7",
       "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.4.7.7z",
-      "md5": "2070c090d190088e51c9684c3cd7cfd4",
-      "size": 51468822,
+      "md5": "ed2bccd93396f8cd6574ff9e82850861",
+      "size": 51493495,
       "changed": 81,
       "removed": 13
     }
