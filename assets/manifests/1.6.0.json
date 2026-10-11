@@ -2,8 +2,8 @@
   "version": "1.6.0",
   "files": {
     "RocoKingdomRecognizer.exe": {
-      "md5": "e59ef51749f26100222cef6a3a5897c7",
-      "size": 19752023
+      "md5": "ce0ff8a51796aa97ec3b41ad85fc7266",
+      "size": 19755485
     },
     "libs/api-ms-win-core-console-l1-1-0.dll": {
       "md5": "6758f8aee3488dbe68c9b474d11b7c09",
@@ -166,7 +166,7 @@
       "size": 22000
     },
     "libs/base_library.zip": {
-      "md5": "bc34e468ee26efdb967d8da1557b0d80",
+      "md5": "08f47ce21099dd8a615359493ac4de8d",
       "size": 1333490
     },
     "libs/ffi.dll": {
@@ -174,7 +174,7 @@
       "size": 41288
     },
     "libs/file_manifest.json": {
-      "md5": "dedfb0ccdeaf2a838296642838a32a41",
+      "md5": "18aa6b60aabaa22ff223bb8a0c8911c2",
       "size": 235478
     },
     "libs/LIBBZ2.dll": {
@@ -3154,7 +3154,7 @@
       "size": 166720
     },
     "libs/static/index.html": {
-      "md5": "43172c32826e195d188466c08f6d5943",
+      "md5": "c310b8395694abd8b95daac9a560b7c2",
       "size": 927
     },
     "libs/static/qrcode.png": {
@@ -3165,13 +3165,13 @@
       "md5": "2e4a2a0d8a9b9422e20623449db83712",
       "size": 376750
     },
-    "libs/static/assets/index-BmawDWcN.css": {
-      "md5": "589cdd9192b7a8813d7f2455f87b3aab",
-      "size": 236701
+    "libs/static/assets/index-Dl9-zbpY.js": {
+      "md5": "e819993d80e594d361af9e1ff0616aa0",
+      "size": 1102766
     },
-    "libs/static/assets/index-D6q6qy7_.js": {
-      "md5": "18b518e886295946a3b2f635f1c603fb",
-      "size": 1093166
+    "libs/static/assets/index-rpXmO5kw.css": {
+      "md5": "c7e8088fc99932547c7521fc5a93739a",
+      "size": 237284
     },
     "libs/static/assets/magic-spring-icon.png": {
       "md5": "8916f4de4fb5bc415f32f643f92fc16c",
