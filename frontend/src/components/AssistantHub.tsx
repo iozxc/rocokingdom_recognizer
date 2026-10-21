@@ -2,6 +2,7 @@ import React from 'react';
 import { BellRing, ChevronRight, Flame, Leaf, QrCode, Sparkles, Wrench } from 'lucide-react';
 import { Trial } from '../types';
 import { PluginInfo } from '../services/pluginApi';
+import { TRIAL_ASSISTANT_IMAGES } from '../services/assistantAssets';
 import { PluginHubSection } from './PluginHubSection';
 
 interface AssistantHubProps {
@@ -48,7 +49,7 @@ const TRIAL_CARD_CONFIG: Record<string, TrialItem> = {
     key: 'grass',
     title: '草系徽章试炼',
     subtitle: '洛克王国草系徽章识别助手',
-    image: './tag_1.png',
+    image: TRIAL_ASSISTANT_IMAGES.grass,
     gradient: 'from-[#7ABCF4] to-[#2B78C4]',
     Icon: Leaf,
   },
@@ -96,14 +97,19 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                   className="group relative overflow-hidden rounded-2xl border-2 border-[#E6EEF8] dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs hover:border-[#7ABCF4] dark:hover:border-sky-500 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer text-left"
                   title="点击进入"
                 >
-                  <div className={`relative w-full aspect-square bg-gradient-to-br ${a.gradient} flex items-center justify-center border-b border-[#EDF3FA] dark:border-slate-700/60`}>
+                  <div
+                    className={`relative w-full aspect-square bg-gradient-to-br ${a.gradient} flex items-center justify-center border-b border-[#EDF3FA] dark:border-slate-700/60`}
+                    style={{ aspectRatio: '1 / 1' }}
+                  >
                     <span className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,255,255,0.28),transparent_38%)]" />
                     <Icon className="w-10 h-10 text-white/70" />
                     {a.image && (
                       <img
                         src={a.image}
                         alt={a.title}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-contain"
+                        loading="eager"
+                        decoding="async"
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).style.display = 'none';
                         }}

@@ -24,6 +24,7 @@ import { AppSettingsModal } from './components/AppSettingsModal';
 import { HomeScrollbar } from './components/HomeScrollbar';
 import { applyScrollbarSetting, SCROLLBAR_ALLOWED, DEFAULT_SCROLLBAR_WIDTH, DEFAULT_SHOW_SCROLLBAR } from './services/scrollbarSetting';
 import { AssistantHub } from './components/AssistantHub';
+import { scheduleTrialAssistantImagePreload } from './services/assistantAssets';
 import { PluginCenterModal } from './components/PluginCenterModal';
 import { PluginPage } from './components/plugins/PluginPage';
 import { MerchantSubscriptionModal } from './components/MerchantSubscriptionModal';
@@ -198,6 +199,9 @@ export default function App() {
    * 它自己会订阅设置变化 + 等远程数据到达后重放，所以这里只需挂载一次。
    */
   useEffect(() => applyScrollbarSetting(), []);
+  useEffect(() => {
+    scheduleTrialAssistantImagePreload();
+  }, []);
 
   // Modal States
   const [isSingleRecognizerOpen, setIsSingleRecognizerOpen] = useState<boolean>(false);
