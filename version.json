@@ -1,94 +1,94 @@
 {
-  "version": "1.6.0",
+  "version": "1.6.1",
   "mirrors": {
     "Gitee": "https://gitee.com/iozxc/rocokingdom_recognizer/releases",
     "GitHub": "https://github.com/iozxc/rocokingdom_recognizer/releases"
   },
-  "update_log": "【v1.6.0 更新公告】\n\n【功能新增：PC】\n1、新增插件管理\n2、新增网络数据同步插件\n3、根据同步数据内容自动填充所有图鉴信息\n4、根据同步数据内容自动刷新跟随识别窗口\n5、根据同步数据内容自动点亮对战精灵\n\n【优化&修复】\n6、修复部分电脑白屏问题\n7、修复网页版人工选择缺失图片的问题 & 修复取消按钮无效的问题\n",
+  "update_log": "【v1.6.1 更新公告】\n\n【功能新增：PC】\n1、新增（洛克资料详情助手）插件\n\t主要功能 ： 整理并预测精灵蛋、规划蛋组信息、查看精灵和图鉴详情、统计色卡信息、查看家园信息\n2、新增（跑图规划 · 大地图路线助手）插件\n\t主要功能 ： 实时同步大世界位置与资源点，支持路线绘制、自动记录、回放与探索遮罩\n3、新增启动页面的选择（草系徽章试炼/导览页面）\n\n【优化&修复】\n4、优化了移动端的使用",
   "auto_update": {
-    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/",
+    "base_url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/",
     "files": [
       {
         "name": "RocoKingdomRecognizer_part.7z.001",
-        "md5": "71a312b8be88dd19ba3ac1c992055c94",
+        "md5": "26e3a48199a976fd1114733cdbc7768c",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.002",
-        "md5": "481a239ddc5738cb49dc016e0c9e4028",
+        "md5": "2868aa8a4614e192235271ef1a397245",
         "size": 94371840
       },
       {
         "name": "RocoKingdomRecognizer_part.7z.003",
-        "md5": "ea618b03796f5fa1912e8e0f0ec7f092",
-        "size": 70364811
+        "md5": "dc3e947205d04271bb6e7c2ad39e4414",
+        "size": 70387889
       }
     ]
   },
   "deltas": [
     {
+      "base_version": "1.6.0",
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/RocoKingdomRecognizer_delta_1.6.0.7z",
+      "md5": "b661554ed9f0c8b99667c4360ba7bc6f",
+      "size": 20057455,
+      "changed": 7,
+      "removed": 2
+    },
+    {
       "base_version": "1.5.3",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.5.3.7z",
-      "md5": "204a9e044237eff7ab0008d9b6c7242b",
-      "size": 20055120,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/RocoKingdomRecognizer_delta_1.5.3.7z",
+      "md5": "c3d92533cb9527292cd99c265ae156b1",
+      "size": 20057268,
       "changed": 7,
       "removed": 2
     },
     {
       "base_version": "1.5.2",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.5.2.7z",
-      "md5": "4f887b938f09b832c60ff7632b94c28e",
-      "size": 20054996,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/RocoKingdomRecognizer_delta_1.5.2.7z",
+      "md5": "9f05c4dedde569f27c4dcc9b062131cc",
+      "size": 20057435,
       "changed": 7,
       "removed": 2
     },
     {
       "base_version": "1.5.1",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.5.1.7z",
-      "md5": "64931333cb559367620a67fca3555368",
-      "size": 28787688,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/RocoKingdomRecognizer_delta_1.5.1.7z",
+      "md5": "752fc6e1d1eff2c509bf2d611a5915bd",
+      "size": 28802894,
       "changed": 9,
       "removed": 2
     },
     {
       "base_version": "1.5.0",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.5.0.7z",
-      "md5": "fde3e2b8a9775561b8cfa095fc595307",
-      "size": 35343475,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/RocoKingdomRecognizer_delta_1.5.0.7z",
+      "md5": "8e539a369f61a60b91af69e62235da18",
+      "size": 35359479,
       "changed": 23,
       "removed": 3
     },
     {
       "base_version": "1.4.10",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.4.10.7z",
-      "md5": "3cd0ecc77d150495cba8c0f7921c7a0c",
-      "size": 35343348,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/RocoKingdomRecognizer_delta_1.4.10.7z",
+      "md5": "9a01d997b0d5e3bf3487bd875ede2d8c",
+      "size": 35359348,
       "changed": 23,
       "removed": 3
     },
     {
       "base_version": "1.4.9",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.4.9.7z",
-      "md5": "cc41f0da94d486409b5062492ba85b12",
-      "size": 35343245,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/RocoKingdomRecognizer_delta_1.4.9.7z",
+      "md5": "177ff5deaa189859ab7009563d147624",
+      "size": 35359535,
       "changed": 23,
       "removed": 4
     },
     {
       "base_version": "1.4.8",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.4.8.7z",
-      "md5": "58c505bfab75d2c95e1cdfab48cec07b",
-      "size": 35343245,
+      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.1/RocoKingdomRecognizer_delta_1.4.8.7z",
+      "md5": "7085d5fbdfc532bece8c9543919e97de",
+      "size": 35359537,
       "changed": 23,
       "removed": 4
-    },
-    {
-      "base_version": "1.4.7",
-      "url": "https://gitee.com/iozxc/rocokingdom_recognizer/releases/download/v1.6.0/RocoKingdomRecognizer_delta_1.4.7.7z",
-      "md5": "ed2bccd93396f8cd6574ff9e82850861",
-      "size": 51493495,
-      "changed": 81,
-      "removed": 13
     }
   ]
 }
