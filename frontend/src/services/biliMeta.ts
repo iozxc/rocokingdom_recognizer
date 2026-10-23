@@ -6,7 +6,7 @@
  *   而浏览器 fetch 一旦带上 Origin 头就会被对方 403（已实测：desktop 的 127.0.0.1
  *   与网页版域名都一样）。`<script>` 标签不受 CORS 限制，所以用 jsonp 回调形式拿数据。
  *
- * 结果做两级缓存（内存 + localStorage，7 天），避免每次打开弹窗都发请求。
+ * 结果做两级缓存（内存 + localStorage）：稳定信息缓存 7 天，播放量缓存 1 分钟。
  * 任何一步失败都静默降级：调用方只用拿到手的字段，拿不到就退化成纯文字卡片。
  */
 
@@ -28,10 +28,12 @@ export interface BiliMeta {
 }
 
 const CACHE_KEY = 'roco_bili_meta_v1';
-const TTL = 7 * 24 * 60 * 60 * 1000; // 7 天
+const META_TTL = 7 * 24 * 60 * 60 * 1000; // 标题、封面等稳定信息：7 天
+const VIEWS_TTL = 60 * 1000; // 播放量：1 分钟
 const JSONP_TIMEOUT = 8000;
 
-type CacheShape = Record<string, { ts: number; data: BiliMeta }>;
+type CacheEntry = { ts: number; viewsTs?: number; data: BiliMeta };
+type CacheShape = Record<string, CacheEntry>;
 
 let memCache: CacheShape | null = null;
 const inflight = new Map<string, Promise<BiliMeta | null>>();
@@ -50,7 +52,14 @@ function readCache(): CacheShape {
 
 function writeCache(key: string, data: BiliMeta) {
   const cache = readCache();
-  cache[key] = { ts: Date.now(), data };
+  const prev = cache[key];
+  const now = Date.now();
+  cache[key] = {
+    // 仅播放量过期时仍保留稳定信息的原始时间戳
+    ts: prev && now - prev.ts < META_TTL ? prev.ts : now,
+    viewsTs: now,
+    data: { ...prev?.data, ...data },
+  };
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
   } catch {
@@ -141,12 +150,15 @@ function fetchViaJsonp(bvid: string): Promise<BiliMeta | null> {
  * 取单个视频元信息（带缓存 + 并发去重）。
  * 拿不到返回 null，调用方自行降级。
  */
-export async function getBiliMeta(bvid: string): Promise<BiliMeta | null> {
+export async function getBiliMeta(bvid: string, force = false): Promise<BiliMeta | null> {
   if (!bvid) return null;
 
   const cache = readCache();
   const hit = cache[bvid];
-  if (hit && Date.now() - hit.ts < TTL) return hit.data;
+  const now = Date.now();
+  const metaFresh = !!hit && now - hit.ts < META_TTL;
+  const viewsFresh = metaFresh && now - (hit.viewsTs ?? hit.ts) < VIEWS_TTL;
+  if (!force && metaFresh && viewsFresh) return hit.data;
 
   const running = inflight.get(bvid);
   if (running) return running;
@@ -154,9 +166,10 @@ export async function getBiliMeta(bvid: string): Promise<BiliMeta | null> {
   const task = fetchViaJsonp(bvid)
       .then((data) => {
         if (data) writeCache(bvid, data);
-        return data;
+        // 播放量刷新失败时仍保留已缓存的标题/封面等稳定信息
+        return data || (metaFresh ? hit.data : null);
       })
-      .catch(() => null)
+      .catch(() => (metaFresh ? hit.data : null))
       .finally(() => inflight.delete(bvid));
 
   inflight.set(bvid, task);
@@ -164,9 +177,12 @@ export async function getBiliMeta(bvid: string): Promise<BiliMeta | null> {
 }
 
 /** 批量并发取（数量不多，直接 Promise.all） */
-export async function getBiliMetaBatch(bvids: string[]): Promise<Record<string, BiliMeta | null>> {
+export async function getBiliMetaBatch(
+    bvids: string[],
+    force = false,
+): Promise<Record<string, BiliMeta | null>> {
   const uniq = Array.from(new Set(bvids.filter(Boolean)));
-  const list = await Promise.all(uniq.map((b) => getBiliMeta(b)));
+  const list = await Promise.all(uniq.map((b) => getBiliMeta(b, force)));
   const out: Record<string, BiliMeta | null> = {};
   uniq.forEach((b, i) => {
     out[b] = list[i];

@@ -134,7 +134,8 @@ function resolveItem(it: VideoGuideItem, i: number, meta: BiliMeta | null | unde
     cover: normalizeUrl(it.cover) || normalizeUrl(meta?.cover),
     duration: it.duration || meta?.duration,
     date: it.date || meta?.date,
-    views: it.views || meta?.views,
+    // 播放量是动态数据，优先使用 1 分钟缓存下来的 B 站返回值；手填值只作请求失败时的兜底
+    views: meta?.views || it.views,
     url: normalizeUrl(it.url) || meta?.url || (bvid ? `https://www.bilibili.com/video/${bvid}` : undefined),
     // 骨架态仅限「确实还在等」：已请求过（tried）但返回 null 说明失败了，
     // 此时必须退化成占位图标，否则会一直闪骨架。
@@ -157,9 +158,11 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
     if (!isOpen) return;
     setPlaying(null);
     setCoverStage({});
+    // 重新打开弹窗时重新检查元信息；实际是否联网由播放量 1 分钟缓存决定
+    setMetaTried({});
   }, [isOpen]);
 
-  // 补齐缺失的元信息：只对「配置里没写全、且有 bvid」的条目发请求
+  // 检查 B 站元信息：播放量会变化，所以有 bvid 的条目都要经过 1 分钟缓存判断
   useEffect(() => {
     if (!isOpen) return;
     const need: string[] = [];
@@ -167,8 +170,7 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
       const bvid = extractBvid(src?.bvid || src?.embed);
       if (!bvid) return;
       if (metaTried[bvid]) return;
-      // 手填了标题和封面就不用联网了
-      if (src?.name && src?.cover) return;
+      // 播放量会变化，不能因为标题和封面是手填的就跳过元信息刷新
       need.push(bvid);
     });
     const uniq = Array.from(new Set(need));
@@ -188,8 +190,7 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
         .catch(() => { /* 静默降级：保留文字卡片 */ });
     return () => { canceled = true; };
     // metaTried 变化会重新跑，但上面已用 metaTried 过滤，不会重复请求
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, items]);
+  }, [isOpen, items, metaTried]);
 
   const resolved = useMemo(
       () =>
@@ -230,8 +231,7 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
   const refreshMeta = () => {
     sound.playClick();
     const bvids = resolved.map((r) => extractBvid(r.embed)).filter(Boolean) as string[];
-    setMetaTried({});
-    getBiliMetaBatch(bvids)
+    getBiliMetaBatch(bvids, true)
         .then((res) => setMetaMap((m) => ({ ...m, ...res })))
         .catch(() => {});
   };
