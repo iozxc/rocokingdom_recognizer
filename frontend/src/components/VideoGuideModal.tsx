@@ -165,15 +165,14 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
   // 检查 B 站元信息：播放量会变化，所以有 bvid 的条目都要经过 1 分钟缓存判断
   useEffect(() => {
     if (!isOpen) return;
-    const need: string[] = [];
+    const bvids: string[] = [];
     (items || []).forEach((src) => {
       const bvid = extractBvid(src?.bvid || src?.embed);
       if (!bvid) return;
-      if (metaTried[bvid]) return;
       // 播放量会变化，不能因为标题和封面是手填的就跳过元信息刷新
-      need.push(bvid);
+      bvids.push(bvid);
     });
-    const uniq = Array.from(new Set(need));
+    const uniq = Array.from(new Set(bvids));
     if (!uniq.length) return;
 
     let canceled = false;
@@ -189,8 +188,9 @@ export const VideoGuideModal: React.FC<VideoGuideModalProps> = ({ isOpen, onClos
         })
         .catch(() => { /* 静默降级：保留文字卡片 */ });
     return () => { canceled = true; };
-    // metaTried 变化会重新跑，但上面已用 metaTried 过滤，不会重复请求
-  }, [isOpen, items, metaTried]);
+    // 不能把 metaTried 放进依赖：它在本 effect 内更新，会立刻清理掉尚未完成的请求。
+    // 重复打开时仍会调用这里，缓存层负责保证播放量最多每分钟请求一次。
+  }, [isOpen, items]);
 
   const resolved = useMemo(
       () =>
