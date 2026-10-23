@@ -283,7 +283,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
 
 
   return (
-      <div className="bg-white dark:bg-slate-800 roco-card p-5 sm:p-6 border-2 border-transparent dark:border-slate-700/80 transition-colors">
+      <div className="pet-grid-panel bg-white dark:bg-slate-800 roco-card p-5 sm:p-6 border-2 border-transparent dark:border-slate-700/80 transition-colors">
         {/* Section Header */}
         {statsLayoutMode === 'merged' ? (
           <div className="relative pb-4 border-b-2 border-[#F1F5F9] dark:border-slate-700/80 mb-5">
@@ -618,7 +618,7 @@ export const PetGrid: React.FC<PetGridProps> = ({
             </div>
         ) : (
             /* Uniform Grid of Scaled Pet Icons - Responsive density on mobile phones & desktop */
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] sm:grid-cols-[repeat(auto-fill,150px)] justify-center gap-2 sm:gap-4">
+            <div className="pet-grid-layout grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] sm:grid-cols-[repeat(auto-fill,150px)] justify-center gap-2 sm:gap-4">
               {filteredPets.map((pet) => {
                 const key = `${currentMap.id}_${pet.name}`;
                 const isEnc = isPetEncounteredInRecords(records, currentMap.id, pet.name);

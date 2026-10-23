@@ -1,0 +1,29 @@
+/**
+ * Pure-web mobile layout refinements.
+ *
+ * Content ranking: pet cards are primary; search/filter controls are secondary.
+ * Scope: IS_STATIC only (`.web-app-shell`) and < 640px. Desktop stays untouched.
+ * Refactoring UI rules: §3.2 use the existing spacing scale (96px track floor),
+ * §3.3.1 make the mobile layout explicit, §3.6 outer spacing must exceed inner
+ * spacing.
+ *
+ * Revert: remove this import and this file; the added class hooks are inert.
+ */
+
+@media (max-width: 639px) {
+  .web-app-shell .app-main-content {
+    padding-top: 8px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .web-app-shell .pet-grid-panel {
+    padding: 12px;
+  }
+
+  .web-app-shell .pet-grid-layout {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    justify-content: stretch;
+    gap: 8px;
+  }
+}

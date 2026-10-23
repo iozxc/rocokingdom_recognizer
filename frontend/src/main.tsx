@@ -11,6 +11,7 @@ import { IS_STATIC } from './services/staticMode';
 import { startWebTelemetry } from './services/webTelemetry';
 import { webAccounts } from './services/webAccounts';
 import './index.css';
+import './mobile-web.css';
 
 // Check if running as standalone scanner window (via pathname /scanner or query ?view=scanner or #scanner)
 function isScannerMode(): boolean {

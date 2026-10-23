@@ -927,7 +927,7 @@ export default function App() {
   }
 
   return (
-      <div className="min-h-screen flex flex-col selection:bg-sky-200 selection:text-sky-900 pb-12 relative">
+      <div className={`${IS_STATIC ? 'web-app-shell ' : ''}min-h-screen flex flex-col selection:bg-sky-200 selection:text-sky-900 pb-12 relative`}>
         {/* Sleek Commercial Feedback Pop Notification & Confetti */}
         <SyncPopNotification
             isVisible={syncPopState.isVisible}
@@ -990,7 +990,7 @@ export default function App() {
         )}
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full mx-auto px-3 sm:px-8 lg:px-16 pt-4 sm:pt-6">
+        <main className="app-main-content flex-1 w-full mx-auto px-3 sm:px-8 lg:px-16 pt-4 sm:pt-6">
           {view === 'hub' ? (
               <AssistantHub
                   trials={trials}

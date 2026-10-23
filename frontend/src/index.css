@@ -305,15 +305,38 @@ html.theme-switching *::after {
    只是「看不见」，滚动能力完全保留（滚轮 / 触控板 / 键盘 / 拖拽都不受影响）。
    <html> 自己那条本来就由 base 层隐藏，这里一并覆盖是为了防止将来有人
    改掉 base 规则后关闭态又冒出一条原生滚动条。 */
-html.roco-scrollbar-off,
-html.roco-scrollbar-off * {
+html.roco-scrollbar-off {
+  overflow-y: auto;
+  scrollbar-gutter: auto;
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
+
+html.roco-scrollbar-off body,
+html.roco-scrollbar-off * {
+  scrollbar-width: none !important;
+  scrollbar-color: transparent transparent !important;
+  -ms-overflow-style: none !important;
+}
+
+html.roco-scrollbar-off::-webkit-scrollbar,
 html.roco-scrollbar-off *::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+html.roco-scrollbar-off::-webkit-scrollbar-track,
+html.roco-scrollbar-off *::-webkit-scrollbar-track,
+html.roco-scrollbar-off::-webkit-scrollbar-thumb,
+html.roco-scrollbar-off *::-webkit-scrollbar-thumb,
+html.roco-scrollbar-off::-webkit-scrollbar-corner,
+html.roco-scrollbar-off *::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+/* 即使组件状态短暂滞后，关闭态也不再渲染首页覆盖滚动条。 */
+html.roco-scrollbar-off [aria-label="首页滚动条"] {
+  display: none !important;
 }
 
 /* ── Firefox ────────────────────────────────────────────────────────
