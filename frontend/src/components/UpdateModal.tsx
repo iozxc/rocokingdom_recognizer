@@ -516,12 +516,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
             onClick={onClose}
             onWheel={(e) => e.stopPropagation()}
         >
             <div
-                className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-w-5xl w-full overflow-hidden flex flex-col relative transition-colors"
+                className="bg-white dark:bg-slate-900 rounded-[26px] shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 max-h-[calc(100dvh-2rem)] max-w-5xl w-full overflow-hidden flex flex-col relative transition-colors"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -561,12 +561,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ isOpen, onClose }) => 
                     </div>
                 ) : (
                     <div
-                        className={`grid grid-cols-1 gap-4 p-4 sm:p-5 md:max-h-[78vh] overflow-hidden ${
+                        className={`grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto p-4 sm:p-5 md:grid-rows-[minmax(0,1fr)] md:overflow-hidden ${
                             hasChangelog ? "md:grid-cols-[minmax(0,1fr)_340px]" : ""
                         }`}
                     >
-                        {/* 左：主内容，整行高度由左列内容决定（过高时独立滚动） */}
-                        <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
+                        {/* 左：桌面端独立滚动；窄屏由整个内容区滚动，避免嵌套滚动冲突 */}
+                        <div className="min-h-0 space-y-4 overflow-visible pr-1 md:overflow-y-auto md:overscroll-contain md:custom-roco-scrollbar">
                         {hasChecked && updateData?.has_update ? (
                             <>
                             {/* Has update banner */}
