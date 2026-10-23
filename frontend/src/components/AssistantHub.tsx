@@ -98,7 +98,7 @@ export const AssistantHub: React.FC<AssistantHubProps> = ({ trials, onSelectAssi
                   title="点击进入"
                 >
                   <div
-                    className={`relative w-full aspect-square bg-gradient-to-br ${a.gradient} flex items-center justify-center border-b border-[#EDF3FA] dark:border-slate-700/60`}
+                    className={`relative w-full aspect-square bg-gradient-to-br ${a.gradient} flex items-center justify-center`}
                     style={{ aspectRatio: '1 / 1' }}
                   >
                     <span className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,255,255,0.28),transparent_38%)]" />

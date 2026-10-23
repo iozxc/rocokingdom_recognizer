@@ -49,7 +49,7 @@ import { sound } from './services/sound';
 import { updateStore } from './services/updateStore';
 import { fireEncounterConfetti, fireUnencounterEffect } from './services/effect';
 import { IS_STATIC } from './services/staticMode';
-import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState, SearchFilterPosition, StatsLayoutMode } from './types';
+import { MapConfig, PetItem, PredictResult, EncounterRecord, EffectLevel, FloatingButtonsMode, Trial, AdvancedFilterState, SearchFilterPosition, StatsLayoutMode, StartupPage } from './types';
 import { isPetEncounteredInRecords } from './utils/petHelper';
 import { PetSearchMode } from './utils/skillSearch';
 
@@ -161,11 +161,31 @@ export default function App() {
   }, []);
   const [syncing, setSyncing] = useState<boolean>(false);
   // 同步插件的草系试炼数据（静默同步用：用户界面不出现任何相关按钮/提示）
-  const [view, setView] = useState<'assistant' | 'hub'>('assistant');
+  const [view, setView] = useState<'assistant' | 'hub'>(() =>
+    storage.getSettingCached<StartupPage>('startupPage', 'grass') === 'hub' ? 'hub' : 'assistant',
+  );
+  // 桌面端先等设置水合完成再展示主界面，避免默认页面先绘制一帧、随后又跳到目标页面。
+  const [startupPageReady, setStartupPageReady] = useState<boolean>(IS_STATIC);
   const [trials, setTrials] = useState<Trial[]>([
     { key: 'grass', title: '草系徽章试炼', element: 'grass', collection_key: 'encounteredPets', dev_only: false },
   ]);
   const [activeTrialKey, setActiveTrialKey] = useState<'grass' | 'fire'>('grass');
+
+  // appSettings 在桌面端是异步拉取的；首帧若只有默认值，等首次加载完成后再校正一次。
+  useEffect(() => {
+    if (IS_STATIC) return undefined;
+    let alive = true;
+    void storage.initialLoad.then(() => {
+      if (!alive) return;
+      const startupPage = storage.getSetting<StartupPage>('startupPage', 'grass');
+      setActiveTrialKey('grass');
+      setView(startupPage === 'hub' ? 'hub' : 'assistant');
+      setStartupPageReady(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const activeTrialMaps = useMemo(() => resolveTrialMaps(trials, activeTrialKey), [trials, activeTrialKey]);
 
   // 同步当前试炼到 localStorage，供独立扫描窗口（跟随识别 ScannerApp）做开荒采集判断
@@ -885,6 +905,10 @@ export default function App() {
   }, []);
 
   const fireTrialAvailable = trials.some((t) => t.key === 'fire');
+
+  if (!startupPageReady) {
+    return null;
+  }
 
   if (pluginPage) {
     return <PluginPage plugin={pluginPage} onClose={closePluginPage} />;

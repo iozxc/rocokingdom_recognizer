@@ -3,7 +3,7 @@ import { X, ChevronLeft, Volume2, Database, ArrowRight, ArrowUpCircle, Sparkles,
 import { Cpu, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
 import { inferHardwareLine } from '../utils/inferBackendText';
-import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode, SearchFilterPosition, StatsLayoutMode } from '../types';
+import { EffectLevel, FloatingButtonsMode, CaptureMode, ThemeMode, SearchFilterPosition, StatsLayoutMode, StartupPage } from '../types';
 import { sound } from '../services/sound';
 import { storage } from '../services/storage';
 import { themeService } from '../services/theme';
@@ -44,6 +44,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   });
   const [statsLayoutMode, setStatsLayoutMode] = useState<StatsLayoutMode>(() => {
     return storage.getSetting<StatsLayoutMode>('statsLayoutMode', 'merged');
+  });
+  const [startupPage, setStartupPage] = useState<StartupPage>(() => {
+    return storage.getSetting<StartupPage>('startupPage', 'grass');
   });
   const [isSoundMuted, setIsSoundMuted] = useState<boolean>(() => {
     return storage.getSetting<boolean>('isSoundMuted', false);
@@ -99,6 +102,9 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
       if (settings.statsLayoutMode === 'merged' || settings.statsLayoutMode === 'separate') {
         setStatsLayoutMode(settings.statsLayoutMode);
       }
+      if (settings.startupPage === 'grass' || settings.startupPage === 'hub') {
+        setStartupPage(settings.startupPage);
+      }
       if (typeof settings.isSoundMuted === 'boolean') setIsSoundMuted(settings.isSoundMuted);
       if (settings.captureMode === 'hwnd' || settings.captureMode === 'grab') setCaptureMode(settings.captureMode);
       if (typeof settings.showRecognitionSamples === 'boolean') setShowSamples(settings.showRecognitionSamples);
@@ -129,6 +135,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     } else {
       setStatsLayoutMode('merged');
     }
+    const savedStartupPage = storage.getSetting<StartupPage>('startupPage', 'grass');
+    setStartupPage(savedStartupPage === 'hub' ? 'hub' : 'grass');
     setIsSoundMuted(storage.getSetting<boolean>('isSoundMuted', false));
     const savedCaptureMode = storage.getSetting<CaptureMode>('captureMode', 'grab');
     if (savedCaptureMode === 'hwnd' || savedCaptureMode === 'grab') {
@@ -297,6 +305,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     sound.playClick();
     setStatsLayoutMode(mode);
     storage.setSetting('statsLayoutMode', mode);
+  };
+
+  const handleSelectStartupPage = (page: StartupPage) => {
+    sound.playClick();
+    setStartupPage(page);
+    storage.setSetting('startupPage', page);
   };
 
   const handleToggleSound = () => {
@@ -773,8 +787,51 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 </div>
               ) : (
                 <div className="space-y-5">
-                  {/* 提示与示例 */}
+                  {/* 启动页面 */}
                   <div className="space-y-3">
+                    <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                      <LayoutGrid className="w-3.5 h-3.5 text-[#7ABCF4]" />
+                      <span>启动页面</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">默认打开页面</div>
+                      <div className="text-[10px] text-slate-400">下次启动主程序时直接进入所选页面</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                      <button
+                          type="button"
+                          id="startup-page-grass-btn"
+                          onClick={() => handleSelectStartupPage('grass')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                              startupPage === 'grass'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        草系徽章试炼
+                      </button>
+                      <button
+                          type="button"
+                          id="startup-page-hub-btn"
+                          onClick={() => handleSelectStartupPage('hub')}
+                          className={`py-1.5 px-2 rounded-lg font-medium transition-all cursor-pointer text-center ${
+                              startupPage === 'hub'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-xs font-semibold'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                      >
+                        导览页面
+                      </button>
+                    </div>
+                    <div className="text-[10px] text-slate-400 px-0.5">
+                      {startupPage === 'grass'
+                          ? '默认直接进入草系徽章试炼'
+                          : '默认进入导览页面，也就是点击左上角图标打开的页面'}
+                    </div>
+                  </div>
+
+                  {/* 提示与示例 */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
                     <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                       <Info className="w-3.5 h-3.5 text-sky-500" />
                       <span>提示与示例</span>

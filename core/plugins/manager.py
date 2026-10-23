@@ -453,7 +453,12 @@ class PluginManager:
             "catalog": catalog,
         }
 
-    def update_plugin(self, plugin_id: str, entry: dict | None = None) -> InstalledPlugin:
+    def update_plugin(
+        self,
+        plugin_id: str,
+        entry: dict | None = None,
+        _seen: set[str] | None = None,
+    ) -> InstalledPlugin:
         """下载并安装插件新版本（md5 校验 + 覆盖安装 + 保留启用状态）。"""
         info = entry
         if info is None:
@@ -511,15 +516,30 @@ class PluginManager:
             ok2, why2 = self._compat(downloaded)
             if not ok2:
                 raise PluginError(f"已阻止安装/更新：更新包与当前主程序不兼容。{why2}")
+            # 市场清单是发布方声明的依赖，下载包里的 plugin.json 则是安装包本身的
+            # 声明。两者取并集，避免旧安装包漏写 requires 时绕过前置组件安装。
+            declared_ids = {str(req.get("id") or "") for req in downloaded.requires}
+            for raw_req in info.get("requires") or []:
+                if not isinstance(raw_req, dict):
+                    continue
+                rid = str(raw_req.get("id") or "").strip()
+                if rid and rid not in declared_ids:
+                    downloaded.requires.append(
+                        {"id": rid, "min_version": str(raw_req.get("min_version") or "").strip()}
+                    )
+                    declared_ids.add(rid)
+            # 先把前置插件装好并启用，再落地主插件。这样依赖失败时不会留下
+            # “主插件显示已安装、实际却完全不能用”的半成品状态。
+            seen = set(_seen or ()) | {plugin_id}
+            self._install_required_plugins(downloaded, seen=seen)
             plugin = self._install_from_dir(root, origin=f"update:{url}")
-        # 这个插件声明依赖的其它插件（如"基于抓包核心服务"）：缺的/版本不够的一起装上
-        self._install_required_plugins(plugin.manifest, seen={plugin_id})
         return plugin
 
     def _install_required_plugins(self, manifest: PluginManifest, seen: set[str] | None = None) -> list[str]:
         """把 manifest.requires 里缺的（或版本过低的）插件一并安装。
 
-        只依赖更新清单里已有的条目；任何一个装失败都只记日志，不影响主插件。
+        依赖是插件的运行前提：安装成功后会自动启用；任何一个无法满足都会直接
+        抛错，让上层保持“可重新安装”的状态，而不是静默留下坏掉的插件。
         """
         seen = set(seen or ())
         reqs = list(manifest.requires or [])
@@ -528,29 +548,49 @@ class PluginManager:
         try:
             catalog = self.check_updates().get("catalog") or []
         except Exception as exc:  # noqa: BLE001
-            logger.warning("读取插件清单失败，跳过依赖安装：%s", exc)
-            return []
+            raise PluginError(f"读取插件清单失败，无法安装前置插件：{exc}") from exc
         by_id = {str(e.get("id") or ""): e for e in catalog}
         installed: list[str] = []
+        problems: list[str] = []
         for req in reqs:
             rid = str(req.get("id") or "").strip()
             min_version = str(req.get("min_version") or "").strip()
-            if not rid or rid in seen:
+            if not rid:
+                continue
+            if rid in seen:
+                problems.append(f"检测到循环依赖：{rid}")
                 continue
             current = self.plugins.get(rid)
             if current is not None and not (min_version and _version_gt(min_version, current.manifest.version)):
-                continue                      # 已装且版本够
+                # 已装且版本够：如果用户之前停用了前置插件，这里一并恢复。
+                if not current.enabled:
+                    try:
+                        self.enable(rid)
+                    except Exception as exc:  # noqa: BLE001
+                        problems.append(f"{rid} 启用失败：{exc}")
+                continue
             entry = by_id.get(rid)
             if not entry:
-                logger.warning("插件 %s 依赖 %s（>=%s），但更新清单里没有它", manifest.id, rid, min_version or "-")
+                problems.append(
+                    f"{manifest.id} 依赖 {rid}"
+                    f"{f' ≥ {min_version}' if min_version else ''}，但插件市场里没有可用的对应条目"
+                )
                 continue
             try:
-                dep = self.update_plugin(rid, entry)
+                dep = self.update_plugin(rid, entry, _seen=seen)
+                if not dep.enabled:
+                    dep = self.enable(rid)
                 seen.add(rid)
                 installed.append(rid)
                 logger.info("已随 %s 一起安装依赖插件 %s v%s", manifest.id, rid, dep.manifest.version)
             except Exception as exc:  # noqa: BLE001
-                logger.warning("依赖插件 %s 安装失败（不影响 %s）：%s", rid, manifest.id, exc)
+                problems.append(f"{rid} 安装失败：{exc}")
+        if problems:
+            raise PluginError(
+                f"插件「{manifest.name}」的前置组件没有准备完成："
+                + "；".join(problems)
+                + "。请检查网络后重试安装。"
+            )
         return installed
 
     # ------------------------------------------------------------------ 查询
