@@ -8,9 +8,9 @@ import { PluginInfo } from '../../services/pluginApi';
  * 直接替换整个界面，而不是塞进弹窗里 —— 生育规划这类
  * 工具需要大画布，弹窗塞不下。
  *
- * 返回有两个入口：
+ * 返回方式：
  *   1. 插件自己的顶栏按钮 → iframe 里 postMessage({type:'roco-plugin-close'})（App 里监听）；
- *   2. 左下角这个半透明浮标 / 按 Esc（兜底，防止插件没实现关闭）。
+ *   2. 按 Esc（兜底，防止插件没实现关闭）。
  */
 export const PluginPage: React.FC<{ plugin: PluginInfo; onClose: () => void }> = ({ plugin, onClose }) => {
   useEffect(() => {

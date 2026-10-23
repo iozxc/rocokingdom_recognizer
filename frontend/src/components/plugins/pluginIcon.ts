@@ -1,5 +1,5 @@
 import {
-  Activity, Antenna, Cable, Dna, Egg, Network, Puzzle, Radar, Radio, ScanLine, Satellite, Sprout,
+  Activity, Antenna, BookOpen, Cable, Dna, Egg, Network, Puzzle, Radar, Radio, ScanLine, Satellite, Sprout,
   Waypoints, Wifi, type LucideIcon,
 } from 'lucide-react';
 
@@ -12,6 +12,7 @@ import {
 const PLUGIN_ICONS: Record<string, LucideIcon> = {
   activity: Activity,
   antenna: Antenna,
+  bookopen: BookOpen,
   cable: Cable,
   dna: Dna,
   // 生育规划类插件用蛋/幼苗，语义比 Puzzle 清楚

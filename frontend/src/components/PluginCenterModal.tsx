@@ -234,7 +234,7 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
       await pluginApi.installPlugin(item.id, item);
       await refresh();
       await handleCheckUpdates(true);
-      setUpdateNote(`「${item.name}」已安装 v${item.version}，可在「已安装」里启用`);
+      setUpdateNote(`「${item.name}」已安装 v${item.version}，前置组件已自动安装并启用`);
       setTab('installed');
     } catch (err) {
       setError((err as Error).message || '安装失败');
@@ -442,6 +442,11 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-sm font-black text-slate-800 dark:text-slate-100">{item.name}</span>
                             <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500">v{item.version}</span>
+                            {(item.requires || []).length > 0 && (
+                              <span className="text-[10px] font-bold text-violet-500 dark:text-violet-300">
+                                ！依赖 {(item.requires || []).map((r) => `${r.id}${r.min_version ? ` ≥ ${r.min_version}` : ''}`).join('、')}
+                              </span>
+                            )}
                             {item.installed && (
                               <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#E1F7DB] dark:bg-emerald-950/60 text-[#2D6613] dark:text-emerald-300 border border-[#95D151]/50">
                                 已安装 v{item.installedVersion || '-'}
@@ -471,11 +476,6 @@ export const PluginCenterModal: React.FC<PluginCenterModalProps> = ({
                             </div>
                           )}
                           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
-                            {(item.requires || []).length > 0 && (
-                              <span className="text-[10px] font-bold text-violet-500 dark:text-violet-300">
-                                依赖 {(item.requires || []).map((r) => `${r.id}${r.min_version ? ` ≥ ${r.min_version}` : ''}`).join('、')}（会自动一起安装）
-                              </span>
-                            )}
                             {item.size ? <span>{(item.size / 1024 / 1024).toFixed(2)} MB</span> : null}
                             {(item.tags || []).map((t) => (
                               <span key={t} className="rounded-full bg-[#EBF4FE] dark:bg-sky-950/60 px-1.5 py-0.5 text-[10px] font-bold text-[#2B78C4] dark:text-sky-300 border border-[#BCD7F2] dark:border-sky-800">
@@ -651,6 +651,11 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-black text-slate-800 dark:text-slate-100">{plugin.title}</span>
           <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500">v{plugin.version}</span>
+          {(plugin.requires || []).length > 0 && (
+            <span className="text-[10px] font-bold text-violet-500 dark:text-violet-300">
+              ！依赖 {(plugin.requires || []).map((r) => `${r.id}${r.min_version ? ` ≥ ${r.min_version}` : ''}`).join('、')}
+            </span>
+          )}
           {/* 后端插件：紧跟版本号显示"功能是否真的在跑"（启用了插件 ≠ 正在同步） */}
           {plugin.enabled && plugin.hasBackend && (
             captureRunning ? (
@@ -688,11 +693,6 @@ const PluginCard: React.FC<PluginCardProps> = ({ plugin, busy, onToggle, onRemov
           )}
         </div>
         <div className="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">{plugin.description || plugin.subtitle}</div>
-        {(plugin.requires || []).length > 0 && (
-          <div className="mt-1.5 text-[10px] font-bold text-violet-500 dark:text-violet-300">
-            依赖 {(plugin.requires || []).map((r) => `${r.id}${r.min_version ? ` ≥ ${r.min_version}` : ''}`).join('、')}
-          </div>
-        )}
         {plugin.tags?.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {plugin.tags.map((tag) => (
